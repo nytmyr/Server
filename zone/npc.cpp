@@ -120,6 +120,7 @@ NPC::NPC(const NPCType *npc_type_data, Spawn2 *in_respawn, const glm::vec4 &posi
 	  swarm_timer(100),
 	  classattack_timer(1000),
 	  monkattack_timer(1000),
+	  monkepic_timer(11000),
 	  knightattack_timer(1000),
 	  assist_timer(AIassistcheck_delay),
 	  qglobal_purge_timer(30000),

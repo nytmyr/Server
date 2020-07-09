@@ -2120,6 +2120,9 @@ std::string Bot::GetBotMagicianPetType(Bot* botCaster) {
 				case 3:
 					result = std::string("SumEarth");
 					break;
+				case 5:
+					result = std::string("SumMageMultiElement");
+					break;
 				default:
 					result = std::string("MonsterSum");
 					break;

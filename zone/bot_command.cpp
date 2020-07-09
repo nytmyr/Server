@@ -1428,6 +1428,7 @@ int bot_command_init(void)
 		bot_command_add("suspend", "Suspends a bot's AI processing until released", 0, bot_command_suspend) ||
 		bot_command_add("taunt", "Toggles taunt use by a bot", 0, bot_command_taunt) ||
 		bot_command_add("track", "Orders a capable bot to track enemies", 0, bot_command_track) ||
+		bot_command_add("useepic", "Orders your targeted bot to use their epic if it is equipped", 0, bot_command_use_epic) ||
 		bot_command_add("viewcombos", "Views bot race class combinations", 0, bot_command_view_combos) ||
 		bot_command_add("waterbreathing", "Orders a bot to cast a water breathing spell", 0, bot_command_water_breathing)
 	) {
@@ -4906,6 +4907,191 @@ void bot_command_track(Client *c, const Seperator *sep)
 	entity_list.ShowSpawnWindow(c, (c->GetLevel() * base_distance), track_named);
 }
 
+void bot_command_use_epic(Client *c, const Seperator *sep)
+{
+	if (!RuleB(Bots, BotsUseEpics)) {
+			c->Message(m_fail, "The ability to use a bot's epic is currently disabled.");
+			return;
+	}
+	if (RuleB(Bots, BotsUseEpics)) {
+		if (RuleI(Bots, BotsUseEpicMinLvl) > c->GetLevel()) {
+		c->Message(m_fail, "You must be level %i to use your bot's epic", RuleI(Bots, BotsUseEpicMinLvl));
+		return;
+		} else { 
+			if (RuleI(Bots, BotsUseEpicMinLvl) == -1 && c->GetLevel() < 50) {
+				c->Message(m_fail, "You must be level 50 to use your bot's epic");
+				return;
+			}
+				if (helper_is_help_or_usage(sep->arg[1])) {
+					c->Message(m_usage, "usage: target the corpse or NPC you want the bot to cast on and type %s <bot name>", sep->arg[0]);
+					return;
+				}
+				Bot* my_bot = nullptr;
+				std::list<Bot*> sbl;
+				MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[1]);
+					if (sbl.empty()) {
+						c->Message(m_fail, "You do not own or have a bot spawned a bot by that name.");
+						return;
+					}
+				auto selected_bot = sbl.front();
+				auto bot_class = selected_bot->GetClass();	
+				auto target_mob = c->GetTarget();
+				if (bot_class == WIZARD) {
+					//check and use 14341 | 1931 | 25101
+					auto instp = selected_bot->CastToBot()->GetBotItem(13);
+						if (!instp || !instp->GetItem()) {
+							c->Message(m_fail, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
+							return;
+						}
+					auto insts = selected_bot->CastToBot()->GetBotItem(13);
+						if (!insts || !insts->GetItem()) {
+							c->Message(m_fail, "I need something for my %s (slot 14)", EQ::invslot::GetInvPossessionsSlotName(14), 14);
+							return;
+						}
+					auto pitem = instp->GetItem()->ID;	
+						if (pitem == 14341) {
+							uint32 dont_root_before = 0;
+							if (helper_cast_standard_spell(selected_bot, selected_bot, 25101, true, &dont_root_before))
+								target_mob->SetDontRootMeBefore(dont_root_before);
+								return;
+						} else if (pitem != 14341) {
+							c->Message(m_fail, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
+							return;
+						}
+				}
+				auto target_corpse = target_mob->IsPlayerCorpse();
+				if (target_mob && bot_class == CLERIC){
+					//check and use 5532 | 1524 | 25102
+					if (target_corpse) {
+					auto instp = selected_bot->CastToBot()->GetBotItem(13);
+						if (!instp || !instp->GetItem()) {
+							c->Message(m_fail, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
+							return;
+						}
+					auto insts = selected_bot->CastToBot()->GetBotItem(13);
+						if (!insts || !insts->GetItem()) {
+							c->Message(m_fail, "I need something for my %s (slot 14)", EQ::invslot::GetInvPossessionsSlotName(14), 14);
+							return;
+						}
+					auto pitem = instp->GetItem()->ID;	
+						if (pitem == 5532) {
+							uint32 dont_root_before = 0;
+							if (helper_cast_standard_spell(selected_bot, target_mob, 25102, true, &dont_root_before))
+								target_mob->SetDontRootMeBefore(dont_root_before);
+								return;
+						} else if (pitem != 5532) {
+							c->Message(m_fail, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
+							return;
+						}
+					} else {
+						c->Message(m_fail, "Target is not a player corpse.");
+						return;
+					}
+				}
+				auto target_enemy = ActionableTarget::VerifyEnemy(c, BCEnum::TT_Single);
+				if (!target_enemy && !target_corpse && bot_class == ENCHANTER) {
+					//check and use 10650 | 1939 | 25103
+					auto instp = selected_bot->CastToBot()->GetBotItem(13);
+						if (!instp || !instp->GetItem()) {
+							c->Message(m_fail, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
+							return;
+						}
+					auto insts = selected_bot->CastToBot()->GetBotItem(13);
+						if (!insts || !insts->GetItem()) {
+							c->Message(m_fail, "I need something for my %s (slot 14)", EQ::invslot::GetInvPossessionsSlotName(14), 14);
+							return;
+						}
+					auto pitem = instp->GetItem()->ID;	
+						if (pitem == 10650) {
+							uint32 dont_root_before = 0;
+							if (helper_cast_standard_spell(selected_bot, target_mob, 25103, true, &dont_root_before))
+								target_mob->SetDontRootMeBefore(dont_root_before);
+								return;
+						} else if (pitem != 10650) {
+							c->Message(m_fail, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
+							return;
+						}
+				}
+				if (target_enemy && bot_class == ENCHANTER) {
+					c->Message(m_fail, "Your target is not a friendly target.");
+					return;
+				}
+				if (target_enemy && bot_class == DRUID) {
+					//check and use 20490 | 1926 | 25104
+					auto instp = selected_bot->CastToBot()->GetBotItem(13);
+						if (!instp || !instp->GetItem()) {
+							c->Message(m_fail, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
+							return;
+						}
+					auto insts = selected_bot->CastToBot()->GetBotItem(13);
+						if (!insts || !insts->GetItem()) {
+							c->Message(m_fail, "I need something for my %s (slot 14)", EQ::invslot::GetInvPossessionsSlotName(14), 14);
+							return;
+						}
+					auto pitem = instp->GetItem()->ID;	
+						if (pitem == 20490) {
+							uint32 dont_root_before = 0;
+							if (helper_cast_standard_spell(selected_bot, target_mob, 25104, true, &dont_root_before))
+								target_mob->SetDontRootMeBefore(dont_root_before);
+								return;
+						} else if (pitem != 20490) {
+							c->Message(m_fail, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
+							return;
+						}
+				}
+				if (target_enemy && bot_class == NECROMANCER) {
+					//check and use 20544 | 1938 | 25107
+					auto instp = selected_bot->CastToBot()->GetBotItem(13);
+						if (!instp || !instp->GetItem()) {
+							c->Message(m_fail, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
+							return;
+						}
+					auto insts = selected_bot->CastToBot()->GetBotItem(13);
+						if (!insts || !insts->GetItem()) {
+							c->Message(m_fail, "I need something for my %s (slot 14)", EQ::invslot::GetInvPossessionsSlotName(14), 14);
+							return;
+						}
+					auto pitem = instp->GetItem()->ID;	
+						if (pitem == 20544) {
+							uint32 dont_root_before = 0;
+							if (helper_cast_standard_spell(selected_bot, target_mob, 25107, true, &dont_root_before))
+								target_mob->SetDontRootMeBefore(dont_root_before);
+								return;
+						} else if (pitem != 20544) {
+							c->Message(m_fail, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
+							return;
+						}
+				}
+				if (target_enemy && bot_class == SHAMAN) {
+					//check and use 10651 | 1932 | 25106
+					auto instp = selected_bot->CastToBot()->GetBotItem(13);
+						if (!instp || !instp->GetItem()) {
+							c->Message(m_fail, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
+							return;
+						}
+					auto insts = selected_bot->CastToBot()->GetBotItem(13);
+						if (!insts || !insts->GetItem()) {
+							c->Message(m_fail, "I need something for my %s (slot 14)", EQ::invslot::GetInvPossessionsSlotName(14), 14);
+							return;
+						}
+					auto pitem = instp->GetItem()->ID;	
+						if (pitem == 10651) {
+							uint32 dont_root_before = 0;
+							if (helper_cast_standard_spell(selected_bot, target_mob, 25106, true, &dont_root_before))
+								target_mob->SetDontRootMeBefore(dont_root_before);
+								return;
+						} else if (pitem != 10651) {
+							c->Message(m_fail, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
+							return;
+						}
+				} else {
+					c->Message(m_fail, "No bots have an epic usable on this target");
+					return;
+				}
+		}
+	}
+}
+
 void bot_command_water_breathing(Client *c, const Seperator *sep)
 {
 	bcst_list* local_list = &bot_command_spells[BCEnum::SpT_WaterBreathing];
@@ -6096,7 +6282,8 @@ void bot_subcommand_bot_spawn(Client *c, const Seperator *sep)
 	int spawned_bot_count = Bot::SpawnedBotCount(c->CharacterID());
 
 	int rule_limit = RuleI(Bots, SpawnLimit);
-	if (spawned_bot_count >= rule_limit && !c->GetGM()) {
+	int status_limit = RuleI(Bots,StatusSpawnLimit);
+if (spawned_bot_count >= rule_limit && !c->GetGM() && c->Admin() < status_limit) {
 		c->Message(m_fail, "You can not have more than %i spawned bots", rule_limit);
 		return;
 	}
@@ -8552,7 +8739,7 @@ void bot_subcommand_pet_set_type(Client *c, const Seperator *sep)
 	if (helper_command_alias_fail(c, "bot_subcommand_pet_set_type", sep->arg[0], "petsettype"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(m_usage, "usage: %s [type: water | fire | air | earth | monster] ([actionable: target | byname] ([actionable_name]))", sep->arg[0]);
+		c->Message(m_usage, "usage: %s [type: water | fire | air | earth | monster | epic] ([actionable: target | byname] ([actionable_name]))", sep->arg[0]);
 		c->Message(m_note, "requires one of the following bot classes:");
 		c->Message(m_message, "Magician(1)");
 		return;
@@ -8583,9 +8770,67 @@ void bot_subcommand_pet_set_type(Client *c, const Seperator *sep)
 		pet_type = 4;
 		level_req = 30;
 	}
+	
+	else if (!pet_arg.compare("epic")) {
+		pet_type = 5;
+		level_req = RuleI(Bots, MageEpicPetMinLvl);
+
+		if (RuleI(Bots, MageEpicPet) == 0)  {
+			c->Message(m_fail, "Epic Pets for bots are currently disabled.");
+			return;
+		}
+		else if (RuleI(Bots, MageEpicPet) == 1) {
+				std::list<Bot*> sbl;
+					if (ActionableBots::PopulateSBL(c, sep->arg[2], sbl, ab_mask, sep->arg[3]) == ActionableBots::ABT_None)
+					return;
+		
+				uint16 class_mask = PLAYER_CLASS_MAGICIAN_BIT;
+				ActionableBots::Filter_ByClasses(c, sbl, class_mask);
+					if (sbl.empty()) {
+						c->Message(m_fail, "You have no spawned Magician bots");
+					return;
+					}
+				ActionableBots::Filter_ByMinLevel(c, sbl, level_req);
+					if (sbl.empty()) {
+						c->Message(m_fail, "Your Mage bots must be level %i or higher to use their Epic pet", level_req);
+					return;
+					}
+				auto my_bot = sbl.front();
+				auto inst = my_bot->CastToBot()->GetBotItem(13);
+					if (!inst || !inst->GetItem()) {
+					c->Message(m_message, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
+					return;
+					}
+					auto botitem = inst->GetItem()->ID;	
+					if (botitem == 550005) {
+					}
+					else {
+						c->Message(m_message, "Your bot does not currently have their epic equipped.");
+						return;
+					}
+				}
+			else if (RuleI(Bots, MageEpicPet) == 2) {
+				std::list<Bot*> sbl;
+					if (ActionableBots::PopulateSBL(c, sep->arg[2], sbl, ab_mask, sep->arg[3]) == ActionableBots::ABT_None)
+					return;
+		
+				uint16 class_mask = PLAYER_CLASS_MAGICIAN_BIT;
+				ActionableBots::Filter_ByClasses(c, sbl, class_mask);
+					if (sbl.empty()) {
+						c->Message(m_fail, "You have no spawned Magician bots");
+					return;
+					}
+		
+				ActionableBots::Filter_ByMinLevel(c, sbl, level_req);
+					if (sbl.empty()) {
+						c->Message(m_fail, "Your Mage bots must be level %i or higher to use their Epic pet", level_req);
+					return;
+					}
+			}
+		}
 
 	if (pet_type == 255) {
-		c->Message(m_fail, "You must specify a pet [type: water | fire | air | earth | monster]");
+		c->Message(m_fail, "You must specify a pet [type: water | fire | air | earth | monster | epic]");
 		return;
 	}
 

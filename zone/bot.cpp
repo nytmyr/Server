@@ -6132,6 +6132,7 @@ void Bot::DoClassAttacks(Mob *target, bool IsRiposte) {
 	bool ca_time = classattack_timer.Check(false);
 	bool ma_time = monkattack_timer.Check(false);
 	bool ka_time = knightattack_timer.Check(false);
+	bool me_time = monkepic_timer.Check();
 
 	if (taunt_time) {
 
@@ -6240,6 +6241,29 @@ void Bot::DoClassAttacks(Mob *target, bool IsRiposte) {
 		}
 		default:
 			break;;
+		}
+	}
+	
+	if (me_time) {
+		switch (GetClass()) {
+			case MONK: {
+				auto bot_owner = GetBotOwner();
+				auto epic_inst = m_inv.GetItem(EQ::invslot::slotHands);
+				if (!epic_inst) {
+				break;
+				}
+				auto botitem = epic_inst->GetItem()->ID;
+				if (!botitem) {
+				break;
+				}
+				else if ((botitem == 10652 && GetLevel() >= RuleI(Bots, BotsUseEpicMinLvl) && RuleI(Bots, BotsUseEpicMinLvl) != -1) || (botitem == 10652 && RuleI(Bots, BotsUseEpicMinLvl) == -1 && GetLevel() >= 50)) {
+					CastSpell(SPELL_CELESTIAL_TRANQUILITY, GetID());
+					monkepic_timer.Start(11000);
+					break;
+				} else {
+					break;
+				}
+			}
 		}
 	}
 
@@ -7387,6 +7411,9 @@ bool Bot::DoFinishedSpellSingleTarget(uint16 spell_id, Mob* spellTarget, EQ::spe
 			}
 
 			if(!noGroupSpell) {
+				if(thespell == 1940 || thespell == 25101) {
+							return true;
+				}
 				Group *g = GetGroup();
 				if(g) {
 					for(int i = 0; i < MAX_GROUP_MEMBERS; i++) {

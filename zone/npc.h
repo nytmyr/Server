@@ -559,6 +559,7 @@ protected:
 	Timer	knightattack_timer;
 	Timer	assist_timer;		//ask for help from nearby mobs
 	Timer	qglobal_purge_timer;
+	Timer	monkepic_timer; //1.0 epic timer
 
 	bool	combat_event;	//true if we are in combat, false otherwise
 	Timer	send_hp_update_timer;
