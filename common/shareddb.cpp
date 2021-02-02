@@ -2202,7 +2202,7 @@ void SharedDatabase::LoadLootDrops(void *data, uint32 size) {
 		}
 
 		p_loot_drop_struct->Entries[current_entry].item_id           = static_cast<uint32>(atoul(row[1]));
-		p_loot_drop_struct->Entries[current_entry].item_charges      = static_cast<int8>(atoi(row[2]));
+		p_loot_drop_struct->Entries[current_entry].item_charges      = static_cast<int16>(atoi(row[2]));
 		p_loot_drop_struct->Entries[current_entry].equip_item        = static_cast<uint8>(atoi(row[3]));
 		p_loot_drop_struct->Entries[current_entry].chance            = static_cast<float>(atof(row[4]));
 		p_loot_drop_struct->Entries[current_entry].trivial_min_level = static_cast<uint16>(atoi(row[5]));

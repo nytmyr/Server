@@ -40,7 +40,7 @@ struct LootTable_Struct {
 
 struct LootDropEntries_Struct {
 	uint32 item_id;
-	int8   item_charges;
+	int16   item_charges;
 	uint8  equip_item;
 	float  chance;
 	uint16 trivial_min_level;
