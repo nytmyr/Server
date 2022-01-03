@@ -2910,29 +2910,30 @@ bool BotDatabase::LoadAutoSpawnBotGroupsByOwnerID(const uint32 owner_id, std::li
 // added owner ID to this function to fix groups with mulitple players grouped with bots.
 bool BotDatabase::LoadGroupedBotsByGroupID(const uint32 owner_id, const uint32 group_id, std::list<uint32>& group_list)
 {
-	if (!group_id || !owner_id) {
+	if (!group_id || !owner_id)
 		return false;
-	}
 
-	query = fmt::format(
-		"SELECT `charid` FROM `group_id` WHERE `groupid` = {} AND `name` IN "
-		"(SELECT `name` FROM `bot_data` WHERE `owner_id` = {})",
+	query = StringFormat(
+		"SELECT `charid`"
+		" FROM `group_id`"
+		" WHERE `groupid` = '%u'"
+		" AND `name` IN ("
+		"  SELECT `name`"
+		"  FROM `bot_data`"
+		"  WHERE `owner_id` = '%u'"
+		"  )",
 		group_id,
 		owner_id
 	);
 
 	auto results = database.QueryDatabase(query);
-	if (!results.Success()) {
+	if (!results.Success())
 		return false;
-	}
-
-	if (!results.RowCount()) {
+	if (!results.RowCount())
 		return true;
-	}
 
-	for (auto row : results) {
-		group_list.push_back(std::stoul(row[0]));
-	}
+	for (auto row = results.begin(); row != results.end(); ++row)
+		group_list.push_back(atoi(row[0]));
 
 	return true;
 }

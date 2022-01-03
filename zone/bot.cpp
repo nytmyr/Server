@@ -20,6 +20,7 @@
 
 #include "bot.h"
 #include "object.h"
+#include "raids.h"
 #include "doors.h"
 #include "quest_parser_collection.h"
 #include "lua_parser.h"
@@ -27,6 +28,7 @@
 #include "../common/say_link.h"
 
 extern volatile bool is_zone_loaded;
+extern bool Critical;
 
 // This constructor is used during the bot create command
 Bot::Bot(NPCType *npcTypeData, Client* botOwner) : NPC(npcTypeData, nullptr, glm::vec4(), Ground, false), rest_timer(1), ping_timer(1) {
@@ -2171,7 +2173,11 @@ bool Bot::Process()
 	}
 
 	// Bot AI
-	AI_Process();
+	Raid* bot_raid = entity_list.GetRaidByBotName(this->GetName());
+	if (bot_raid)
+		AI_Process_Raid();
+	else
+		AI_Process();
 
 	return true;
 }
@@ -2388,11 +2394,11 @@ void Bot::AI_Process()
 
 	Client* bot_owner = (GetBotOwner() && GetBotOwner()->IsClient() ? GetBotOwner()->CastToClient() : nullptr);
 	Group* bot_group = GetGroup();
-
+	
 //#pragma region PRIMARY AI SKIP CHECKS
 
 	// Primary reasons for not processing AI
-	if (!bot_owner || !bot_group || !IsAIControlled()) {
+	if (!bot_owner || (!bot_group) || !IsAIControlled()) {
 		return;
 	}
 
@@ -2405,7 +2411,12 @@ void Bot::AI_Process()
 	}
 
 	// We also need a leash owner and follow mob (subset of primary AI criteria)
-	Client* leash_owner = (bot_group->GetLeader() && bot_group->GetLeader()->IsClient() ? bot_group->GetLeader()->CastToClient() : bot_owner);
+	Client* leash_owner = nullptr;
+
+	if (bot_group) {
+		leash_owner = (bot_group->GetLeader() && bot_group->GetLeader()->IsClient() ? bot_group->GetLeader()->CastToClient() : bot_owner);
+	}
+
 	if (!leash_owner) {
 		return;
 	}
@@ -3867,7 +3878,7 @@ void Bot::Depop() {
 	entity_list.RemoveFromHateLists(this);
 	if(HasGroup())
 		Bot::RemoveBotFromGroup(this, GetGroup());
-
+	
 	if(HasPet())
 		GetPet()->Depop();
 
@@ -3941,7 +3952,13 @@ bool Bot::Spawn(Client* botCharacterOwner) {
 				}
 			}
 		}
+		Raid* raid = entity_list.GetRaidByBotName(this->GetName());
 
+		if (raid)
+		{
+			raid->VerifyRaid();
+			this->SetRaidGrouped(true);
+		}
 		return true;
 	}
 
@@ -5072,7 +5089,24 @@ bool Bot::Death(Mob *killerMob, int64 damage, uint16 spell_id, EQ::skills::Skill
 		my_owner->CastToClient()->SetBotPulling(false);
 	}
 
-	entity_list.RemoveBot(GetID());
+	Raid* raid = entity_list.GetRaidByBotName(this->GetName());
+	
+	if (raid) 
+	{
+ 
+		for (int x = 0; x < MAX_RAID_MEMBERS; x++)
+		{
+			if (strcmp(raid->members[x].membername, this->GetName()) == 0) 
+			{
+				raid->members[x].member = nullptr;
+			}
+		}
+	}
+//	else
+//	{
+	entity_list.RemoveBot(this->GetID());
+//	}
+
 	return true;
 }
 
@@ -7069,7 +7103,7 @@ int64 Bot::GetActSpellDamage(uint16 spell_id, int64 value, Mob* target) {
 	int chance = 0;
 
 	// Need to scale HT damage differently after level 40! It no longer scales by the constant value in the spell file. It scales differently, instead of 10 more damage per level, it does 30 more damage per level. So we multiply the level minus 40 times 20 if they are over level 40.
-	if ((spell_id == SPELL_HARM_TOUCH || spell_id == SPELL_HARM_TOUCH2 || spell_id == SPELL_IMP_HARM_TOUCH ) && GetLevel() > 40)
+	if ((spell_id == SPELL_HARM_TOUCH || spell_id == SPELL_HARM_TOUCH2 || spell_id == SPELL_IMP_HARM_TOUCH) && GetLevel() > 40)
 		value -= (GetLevel() - 40) * 20;
 
 	//This adds the extra damage from the AA Unholy Touch, 450 per level to the AA Improved Harm TOuch.
@@ -7083,11 +7117,11 @@ int64 Bot::GetActSpellDamage(uint16 spell_id, int64 value, Mob* target) {
 	//Crtical Hit Calculation pathway
 	if (chance > 0 || (GetClass() == WIZARD && GetLevel() >= RuleI(Spells, WizCritLevel))) {
 
-		 int32 ratio = RuleI(Spells, BaseCritRatio); //Critical modifier is applied from spell effects only. Keep at 100 for live like criticals.
+		int32 ratio = RuleI(Spells, BaseCritRatio); //Critical modifier is applied from spell effects only. Keep at 100 for live like criticals.
 
-		//Improved Harm Touch is a guaranteed crit if you have at least one level of SCF.
+	   //Improved Harm Touch is a guaranteed crit if you have at least one level of SCF.
 		if (spell_id == SPELL_IMP_HARM_TOUCH && (GetAA(aaSpellCastingFury) > 0) && (GetAA(aaUnholyTouch) > 0))
-			 chance = 100;
+			chance = 100;
 
 		if (spells[spell_id].override_crit_chance > 0 && chance > spells[spell_id].override_crit_chance)
 			chance = spells[spell_id].override_crit_chance;
@@ -7099,9 +7133,9 @@ int64 Bot::GetActSpellDamage(uint16 spell_id, int64 value, Mob* target) {
 		}
 
 		else if (GetClass() == WIZARD || (IsMerc() && GetClass() == CASTERDPS)) {
-			if ((GetLevel() >= RuleI(Spells, WizCritLevel)) && zone->random.Roll(RuleI(Spells, WizCritChance))){
+			if ((GetLevel() >= RuleI(Spells, WizCritLevel)) && zone->random.Roll(RuleI(Spells, WizCritChance))) {
 				//Wizard innate critical chance is calculated seperately from spell effect and is not a set ratio. (20-70 is parse confirmed)
-				ratio += zone->random.Int(20,70);
+				ratio += zone->random.Int(20, 70);
 				Critical = true;
 			}
 		}
@@ -7111,20 +7145,20 @@ int64 Bot::GetActSpellDamage(uint16 spell_id, int64 value, Mob* target) {
 
 		if (Critical) {
 
-			value = base_value*ratio/100;
+			value = base_value * ratio / 100;
 
-			value += base_value*GetBotFocusEffect(focusImprovedDamage, spell_id)/100;
-			value += base_value*GetBotFocusEffect(focusImprovedDamage2, spell_id)/100;
+			value += base_value * GetBotFocusEffect(focusImprovedDamage, spell_id) / 100;
+			value += base_value * GetBotFocusEffect(focusImprovedDamage2, spell_id) / 100;
 
-			value += int(base_value*GetBotFocusEffect(focusFcDamagePctCrit, spell_id)/100)*ratio/100;
-			value += int(base_value*GetBotFocusEffect(focusFcAmplifyMod, spell_id) / 100)*ratio / 100;
+			value += int(base_value * GetBotFocusEffect(focusFcDamagePctCrit, spell_id) / 100) * ratio / 100;
+			value += int(base_value * GetBotFocusEffect(focusFcAmplifyMod, spell_id) / 100) * ratio / 100;
 
 			if (target) {
-				value += int(base_value*target->GetVulnerability(this, spell_id, 0)/100)*ratio/100;
+				value += int(base_value * target->GetVulnerability(this, spell_id, 0) / 100) * ratio / 100;
 				value -= target->GetFcDamageAmtIncoming(this, spell_id);
 			}
 
-			value -= GetBotFocusEffect(focusFcDamageAmtCrit, spell_id)*ratio/100;
+			value -= GetBotFocusEffect(focusFcDamageAmtCrit, spell_id) * ratio / 100;
 
 			value -= GetBotFocusEffect(focusFcDamageAmt, spell_id);
 			value -= GetBotFocusEffect(focusFcDamageAmt2, spell_id);
@@ -7143,14 +7177,14 @@ int64 Bot::GetActSpellDamage(uint16 spell_id, int64 value, Mob* target) {
 	//Non Crtical Hit Calculation pathway
 	value = base_value;
 
-	value += base_value*GetBotFocusEffect(focusImprovedDamage, spell_id)/100;
-	value += base_value*GetBotFocusEffect(focusImprovedDamage2, spell_id)/100;
+	value += base_value * GetBotFocusEffect(focusImprovedDamage, spell_id) / 100;
+	value += base_value * GetBotFocusEffect(focusImprovedDamage2, spell_id) / 100;
 
-	value += base_value*GetBotFocusEffect(focusFcDamagePctCrit, spell_id)/100;
-	value += base_value*GetBotFocusEffect(focusFcAmplifyMod, spell_id)/100;
+	value += base_value * GetBotFocusEffect(focusFcDamagePctCrit, spell_id) / 100;
+	value += base_value * GetBotFocusEffect(focusFcAmplifyMod, spell_id) / 100;
 
 	if (target) {
-		value += base_value*target->GetVulnerability(this, spell_id, 0)/100;
+		value += base_value * target->GetVulnerability(this, spell_id, 0) / 100;
 		value -= target->GetFcDamageAmtIncoming(this, spell_id);
 	}
 
@@ -7200,10 +7234,10 @@ int64 Bot::GetActSpellHealing(uint16 spell_id, int64 value, Mob* target) {
 	}
 
 	if (GetClass() == CLERIC) {
-		value += int(base_value*RuleI(Spells, ClericInnateHealFocus) / 100);  //confirmed on live parsing clerics get an innate 5 pct heal focus
+		value += int(base_value * RuleI(Spells, ClericInnateHealFocus) / 100);  //confirmed on live parsing clerics get an innate 5 pct heal focus
 	}
-	value += int(base_value*GetBotFocusEffect(focusImprovedHeal, spell_id) / 100);
-	value += int(base_value*GetBotFocusEffect(focusFcAmplifyMod, spell_id) / 100);
+	value += int(base_value * GetBotFocusEffect(focusImprovedHeal, spell_id) / 100);
+	value += int(base_value * GetBotFocusEffect(focusFcAmplifyMod, spell_id) / 100);
 
 	// Instant Heals
 	if (spells[spell_id].buff_duration < 1) {
@@ -7877,11 +7911,27 @@ bool Bot::DoFinishedSpellSingleTarget(uint16 spell_id, Mob* spellTarget, EQ::spe
 
 bool Bot::DoFinishedSpellGroupTarget(uint16 spell_id, Mob* spellTarget, EQ::spells::CastingSlot slot, bool& stopLogic) {
 	bool isMainGroupMGB = false;
+	Raid* raid = entity_list.GetRaidByBotName(this->GetName());
+
 	if(isMainGroupMGB && (GetClass() != BARD)) {
 		BotGroupSay(this, "MGB %s", spells[spell_id].name);
 		SpellOnTarget(spell_id, this);
 		entity_list.AESpell(this, this, spell_id, true);
-	} else {
+	}
+	else if (raid) 
+	{
+		//for (auto& iter : raid->GetRaidGroupMembers(raid->GetGroup(this->GetName()))) {
+		std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(raid->GetGroup(this->GetName()));
+		for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
+			if (iter->member) {
+				SpellOnTarget(spell_id, iter->member);
+				if (iter->member && iter->member->GetPetID())
+					SpellOnTarget(spell_id, iter->member ->GetPet());
+			}
+		}
+	}
+	else
+	{
 		Group *g = GetGroup();
 		if(g) {
 			for(int i = 0; i < MAX_GROUP_MEMBERS; ++i) {
@@ -8552,6 +8602,16 @@ void Bot::Camp(bool databaseSave) {
 	//auto group = GetGroup();
 	if(GetGroup())
 		RemoveBotFromGroup(this, GetGroup());
+	
+	//Mitch
+	Raid* bot_raid = entity_list.GetRaidByBotName(this->GetName());
+	if (bot_raid) {
+		uint32 gid = bot_raid->GetGroup(this->GetName());
+		bot_raid->SendRaidGroupRemove(this->GetName(), bot_raid->GetGroup(this->GetName()));
+		bot_raid->RemoveMember(this->GetName());
+		bot_raid->GroupUpdate(gid);
+	}
+
 
 	// RemoveBotFromGroup() code is too complicated for this to work as-is (still needs to be addressed to prevent memory leaks)
 	//if (group->GroupCount() < 2)
@@ -8566,9 +8626,14 @@ void Bot::Camp(bool databaseSave) {
 }
 
 void Bot::Zone() {
-	if(HasGroup())
+	Raid* raid = entity_list.GetRaidByBotName(this->GetName());
+	if (raid) {
+		raid->MemberZoned(this->CastToClient());
+	}
+	else if (HasGroup()) {
 		GetGroup()->MemberZoned(this);
-
+	}
+		
 	Save();
 	Depop();
 }
@@ -8817,7 +8882,11 @@ void Bot::ProcessClientZoneChange(Client* botOwner) {
 			Bot* tempBot = *itr;
 
 			if(tempBot) {
-				if(tempBot->HasGroup()) {
+				Raid* raid = entity_list.GetRaidByBotName(tempBot->GetName());
+				if (raid) {
+					tempBot->Zone();
+				}
+				else if(tempBot->HasGroup()) {
 					Group* g = tempBot->GetGroup();
 					if(g && g->IsGroupMember(botOwner)) {
 						if(botOwner && botOwner->IsClient()) {
@@ -9399,11 +9468,51 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 					}
 				}
 			}
+#ifdef BOTS
+			else if (caster->IsRaidGrouped())
+			{
+				//added raid check
+				Raid* raid = entity_list.GetRaidByBotName(caster->GetName());
+				uint32 gid = raid->GetGroup(caster->GetName());
+				if (gid < 12) {
+					std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(gid);
+					for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
+						//for (auto& iter : raid->GetRaidGroupMembers(g)) {
+						if (iter->member && !iter->member->qglobal) {
+							if (iter->member->IsClient() && iter->member->GetHPRatio() < 90) {
+								if (caster->AICastSpell(iter->member, 100, SpellType_Heal))
+									return true;
+							}
+							else if ((iter->member->GetClass() == WARRIOR || iter->member->GetClass() == PALADIN || iter->member->GetClass() == SHADOWKNIGHT) && iter->member->GetHPRatio() < 95) {
+								if (caster->AICastSpell(iter->member, 100, SpellType_Heal))
+									return true;
+							}
+							else if (iter->member->GetClass() == ENCHANTER && iter->member->GetHPRatio() < 80) {
+								if (caster->AICastSpell(iter->member, 100, SpellType_Heal))
+									return true;
+							}
+							else if (iter->member->GetHPRatio() < 70) {
+								if (caster->AICastSpell(iter->member, 100, SpellType_Heal))
+									return true;
+							}
+
+						}
+
+						if (iter->member && !iter->member->qglobal && iter->member->HasPet() && iter->member->GetPet()->GetHPRatio() < 50) {
+							if (iter->member->GetPet()->GetOwner() != caster && caster->IsEngaged() && iter->member->IsCasting() && iter->member->GetClass() != ENCHANTER)
+								continue;
+
+							if (caster->AICastSpell(iter->member->GetPet(), 100, SpellType_Heal))
+								return true;
+						}
+					}
+				}	
+			}
+#endif
 		}
 
 		if( botCasterClass == PALADIN || botCasterClass == BEASTLORD || botCasterClass == RANGER) {
-			if(caster->HasGroup()) {
-				Group *g = caster->GetGroup();
+			if(caster->HasGroup() || caster->IsRaidGrouped()) {
 				float hpRatioToHeal = 25.0f;
 				switch(caster->GetBotStance()) {
 				case EQ::constants::stanceReactive:
@@ -9420,6 +9529,11 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 					hpRatioToHeal = 25.0f;
 					break;
 				}
+				Group* g = caster->GetGroup();
+				uint32 gid = 0xff;
+				Raid* raid = entity_list.GetRaidByBotName(caster->GetName());
+				if (raid)
+					uint32 gid = raid->GetGroup(caster->GetName());
 
 				if(g) {
 					for(int i = 0; i < MAX_GROUP_MEMBERS; i++) {
@@ -9448,6 +9562,39 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 						}
 					}
 				}
+				else if (gid < 12)
+				{
+					std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(gid);
+					for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
+						//for (auto& iter : raid->GetRaidGroupMembers(gid)) {
+						if (iter->member && !iter->member->qglobal) {
+							if (iter->member->IsClient() && iter->member->GetHPRatio() < hpRatioToHeal) {
+								if (caster->AICastSpell(iter->member, 100, SpellType_Heal))
+									return true;
+							}
+							else if ((iter->member->GetClass() == WARRIOR || iter->member->GetClass() == PALADIN || iter->member->GetClass() == SHADOWKNIGHT) && iter->member->GetHPRatio() < hpRatioToHeal) {
+								if (caster->AICastSpell(iter->member, 100, SpellType_Heal))
+									return true;
+							}
+							else if (iter->member->GetClass() == ENCHANTER && iter->member->GetHPRatio() < hpRatioToHeal) {
+								if (caster->AICastSpell(iter->member, 100, SpellType_Heal))
+									return true;
+							}
+							else if (iter->member->GetHPRatio() < hpRatioToHeal / 2) {
+								if (caster->AICastSpell(iter->member, 100, SpellType_Heal))
+									return true;
+							}
+						}
+
+						if (iter->member && !iter->member->qglobal && iter->member->HasPet() && iter->member->GetPet()->GetHPRatio() < 25) {
+							if (iter->member->GetPet()->GetOwner() != caster && caster->IsEngaged() && iter->member->IsCasting() && iter->member->GetClass() != ENCHANTER)
+								continue;
+
+							if (caster->AICastSpell(iter->member->GetPet(), 100, SpellType_Heal))
+								return true;
+						}
+					}
+				}
 			}
 		}
 	}
@@ -9460,7 +9607,22 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 			else
 				return false;
 		}
-
+#ifdef BOTS
+//added raid check
+		if (caster->IsRaidGrouped()) {
+			Raid* raid = entity_list.GetRaidByBotName(caster->GetName());
+			uint32 g = raid->GetGroup(caster->GetName());
+			if (g < 12) {
+				std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(g);
+				for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
+					if (iter->member) {
+						if (caster->AICastSpell(iter->member, chanceToCast, SpellType_Buff) || caster->AICastSpell(iter->member->GetPet(), chanceToCast, SpellType_Buff))
+							return true;
+					}
+				}
+			}
+		}
+#endif
 		if(caster->HasGroup()) {
 			Group *g = caster->GetGroup();
 			if(g) {
@@ -9493,6 +9655,27 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 				}
 			}
 		}
+		else if (caster->IsRaidGrouped())
+		{
+			Raid* raid = entity_list.GetRaidByBotName(caster->GetName());
+			uint32 gid = raid->GetGroup(caster->GetName());
+			if (gid < 12) {
+				std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(gid);
+				for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
+					if (iter->member && caster->GetNeedsCured(iter->member)) {
+						if (caster->AICastSpell(iter->member, caster->GetChanceToCastBySpellType(SpellType_Cure), SpellType_Cure))
+							return true;
+						else if (botCasterClass == BARD)
+							return false;
+					}
+
+					if (iter->member && iter->member->GetPet() && caster->GetNeedsCured(iter->member->GetPet())) {
+						if (caster->AICastSpell(iter->member->GetPet(), (int)caster->GetChanceToCastBySpellType(SpellType_Cure) / 4, SpellType_Cure))
+							return true;
+					}
+				}
+			}
+		}
 	}
 
 	if (iSpellTypes == SpellType_HateRedux) {
@@ -9510,13 +9693,41 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 				}
 			}
 		}
+		else if (caster->IsRaidGrouped())
+		{
+			Raid* raid = entity_list.GetRaidByBotName(caster->GetName());
+			uint32 gid = raid->GetGroup(caster->GetName());
+			if (gid < 12) {
+				std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(gid);
+				for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
+					if (iter->member && caster->GetNeedsHateRedux(iter->member)) {
+						if (caster->AICastSpell(iter->member, caster->GetChanceToCastBySpellType(SpellType_HateRedux), SpellType_HateRedux))
+							return true;
+					}
+				}
+			}
+		}
+
 	}
 
 	if (iSpellTypes == SpellType_PreCombatBuff) {
 		if (botCasterClass == BARD || caster->IsEngaged())
 			return false;
 
-		if (caster->HasGroup()) {
+		//added raid check
+		if (caster->IsRaidGrouped()) {
+			Raid* raid = entity_list.GetRaidByBotName(caster->GetName());
+			uint32 g = raid->GetGroup(caster->GetName());
+			if (g < 12) {
+				std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(g);
+				for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
+					if (iter->member) {
+						if (caster->AICastSpell(iter->member, iChance, SpellType_PreCombatBuff) || caster->AICastSpell(iter->member->GetPet(), iChance, SpellType_PreCombatBuff))
+							return true;
+					}
+				}
+			}
+		} else if (caster->HasGroup()) {
 			Group *g = caster->GetGroup();
 			if (g) {
 				for (int i = 0; i < MAX_GROUP_MEMBERS; i++) {
@@ -10411,5 +10622,538 @@ void Bot::SpawnBotGroupByName(Client* c, std::string botgroup_name, uint32 leade
 }
 
 uint8 Bot::spell_casting_chances[SPELL_TYPE_COUNT][PLAYER_CLASS_COUNT][EQ::constants::STANCE_TYPE_COUNT][cntHSND] = { 0 };
+
+void Bot::ProcessRaidInvite(Client* invitee, Client* invitor) {
+
+	if (!invitee || !invitor)
+		return;
+
+	Raid* raid = entity_list.GetRaidByClient(invitor);
+	Group* g_invitee = invitee->GetGroup();
+	Group* g_invitor = invitor->GetGroup();
+
+	if (raid)
+	{
+		if (g_invitee) 
+		{
+			//As there is already a raid, just add this group
+			raid->SendBulkRaid(invitee);
+			raid->SendMakeLeaderPacketTo(raid->leadername, invitee); //added to resolve Basic's raid window not showing a raid leader
+			uint32 raid_free_group_id = raid->GetFreeGroup();
+			for (int x = 0; x < 6; x++) {
+				if (g_invitee->members[x]) {
+					Client* c = nullptr;
+					Bot* b = nullptr;
+					if (g_invitee->members[x] && g_invitee->members[x]->IsBot()) {
+						b = g_invitee->members[x]->CastToBot();
+						if (x == 0) {
+							raid->AddBot(b, raid_free_group_id, false, true, false);
+							raid->SetGroupLeader(b->GetName());
+						}
+						else {
+							raid->AddBot(b, raid_free_group_id, false, false, false);
+						}
+					}
+					else if (g_invitee->members[x] && g_invitee->members[x]->IsClient()) {
+						c = g_invitee->members[x]->CastToClient();
+						if (x == 0) {
+							raid->SendRaidCreate(c);
+							raid->SendMakeLeaderPacketTo(raid->leadername, c);
+							raid->AddMember(c, raid_free_group_id, false, true, false);
+							raid->SetGroupLeader(c->GetName());
+							if (raid->IsLocked()) {
+								raid->SendRaidLockTo(c);
+							}
+						}
+						else {
+							raid->SendRaidCreate(c);
+							raid->SendMakeLeaderPacketTo(raid->leadername, c);
+							raid->AddMember(c, raid_free_group_id, false, false, false);
+							if (raid->IsLocked()) {
+								raid->SendRaidLockTo(c);
+							}
+						}
+					}
+				}
+			}
+			raid->GroupUpdate(raid_free_group_id);
+//			raid->SendBulkRaid(invitor); //Send a raid updates to the invitor
+			g_invitee->JoinRaidXTarget(raid, true);
+			g_invitee->DisbandGroup(true);
+			if (raid->IsLocked()) {
+				raid->SendRaidLockTo(invitor);
+			}
+		}
+		else
+		{
+			//As there is already a raid and no group, just add this single client
+			raid->SendRaidCreate(invitee);
+			raid->AddMember(invitee);
+			raid->SendMakeLeaderPacketTo(raid->leadername, invitee); //moved to be after the addmember to resolve raid window not showing a raid leader
+			if (raid->IsLocked()) {
+				raid->SendRaidLockTo(invitee);
+			}
+		}
+	}
+	else
+	{
+		//As there is no raid
+		//First, create the raid
+		raid = new Raid(invitor);
+		entity_list.AddRaid(raid);
+		raid->SetRaidDetails();
+		raid->SendRaidCreate(invitor);
+		raid->SendMakeLeaderPacketTo(raid->leadername, invitor); //added to resolve no raid leader shown in Rola's raid window
+		
+		if (g_invitor)
+		{
+			//Second, add the invitor group as group 0
+			for (int x = 0; x < 6; x++) {
+				if (g_invitor->members[x]) {
+					Client* c = nullptr;
+					Bot* b = nullptr;
+					if (g_invitor->members[x] && g_invitor->members[x]->IsBot()) {
+						b = g_invitor->members[x]->CastToBot();
+						if (x == 0) {
+							raid->AddBot(b, 0, false, true, false);
+							raid->SetGroupLeader(b->GetName());
+							raid->GroupUpdate(0);
+						}
+						else {
+							raid->AddBot(b, 0, false, false, false);
+							raid->GroupUpdate(0);
+						}
+					}
+					else if (g_invitor->members[x] && g_invitor->members[x]->IsClient()) {
+						c = g_invitor->members[x]->CastToClient();
+						if (x == 0) {
+							raid->SendRaidCreate(c);
+							raid->SendMakeLeaderPacketTo(raid->leadername, c);
+							raid->AddMember(c, 0, false, true, false);
+							raid->SetGroupLeader(c->GetName());
+							raid->GroupUpdate(0);
+							if (raid->IsLocked()) {
+								raid->SendRaidLockTo(c);
+							}
+						}
+						else {
+							raid->SendRaidCreate(c);
+							raid->SendMakeLeaderPacketTo(raid->leadername, c);
+							raid->AddMember(c, 0, false, false, false);
+							raid->GroupUpdate(0);
+							if (raid->IsLocked()) {
+								raid->SendRaidLockTo(c);
+							}
+						}
+					}
+				}
+			}
+			raid->GroupUpdate(0);
+			raid->SendBulkRaid(invitee); //Send a raid updates to the invitor
+			g_invitor->JoinRaidXTarget(raid, true);
+			g_invitor->DisbandGroup(true);
+			if (raid->IsLocked()) {
+				raid->SendRaidLockTo(invitor);
+			}
+			if (g_invitee)
+			{
+				//Third, add the invitee group
+				uint32 raid_free_group_id = raid->GetFreeGroup();
+				for (int x = 0; x < 6; x++) {
+					if (g_invitee->members[x]) {
+						Client* c = nullptr;
+						Bot* b = nullptr;
+						if (g_invitee->members[x] && g_invitee->members[x]->IsBot()) {
+							b = g_invitee->members[x]->CastToBot();
+							if (x == 0) {
+								raid->AddBot(b, raid_free_group_id, false, true, false);
+								raid->SetGroupLeader(b->GetName());
+								raid->GroupUpdate(raid_free_group_id);
+							}
+							else {
+								raid->AddBot(b, raid_free_group_id, false, false, false);
+								raid->GroupUpdate(raid_free_group_id);
+							}
+						}
+						else if (g_invitee->members[x] && g_invitee->members[x]->IsClient()) {
+							c = g_invitee->members[x]->CastToClient();
+							if (x == 0) {
+								raid->SendRaidCreate(c);
+								raid->SendMakeLeaderPacketTo(raid->leadername, c);
+								raid->AddMember(c, raid_free_group_id, false, true, false);
+								raid->SetGroupLeader(c->GetName());
+								raid->GroupUpdate(raid_free_group_id);
+								if (raid->IsLocked()) {
+									raid->SendRaidLockTo(c);
+								}
+							}
+							else {
+								raid->SendRaidCreate(c);
+								raid->SendMakeLeaderPacketTo(raid->leadername, c);
+								raid->AddMember(c, raid_free_group_id, false, false, false);
+								raid->GroupUpdate(raid_free_group_id); 
+								if (raid->IsLocked()) {
+									raid->SendRaidLockTo(c);
+								}
+							}
+						}
+					}
+				}
+				raid->GroupUpdate(raid_free_group_id);
+//				raid->SendBulkRaid(invitee); //Send a raid updates to the invitee
+				g_invitee->JoinRaidXTarget(raid, true);
+				g_invitee->DisbandGroup(true);
+				if (raid->IsLocked()) {
+					raid->SendRaidLockTo(invitor);
+				}
+			}
+			else
+			{
+				//Third, no group so add the single client
+				raid->SendRaidCreate(invitee);
+				raid->SendMakeLeaderPacketTo(raid->leadername, invitee);
+				raid->AddMember(invitee);
+//				raid->SendBulkRaid(invitee);
+				if (raid->IsLocked()) {
+					raid->SendRaidLockTo(invitee);
+				}
+			}
+		}
+		else
+		{
+			//Second, add the single invitor
+			raid->SendRaidCreate(invitor);
+			raid->SendMakeLeaderPacketTo(raid->leadername, invitor);
+			raid->AddMember(invitor, 0xFFFFFFFF, true, false, true);
+			raid->SendBulkRaid(invitee); //Send a raid updates to the invitee
+			if (raid->IsLocked()) {
+				raid->SendRaidLockTo(invitor);
+			}
+			if (g_invitee)
+			{
+				//Third, add the invitee group
+				uint32 raid_free_group_id = raid->GetFreeGroup();
+				for (int x = 0; x < 6; x++) {
+					if (g_invitee->members[x]) {
+						Client* c = nullptr;
+						Bot* b = nullptr;
+						if (g_invitee->members[x] && g_invitee->members[x]->IsBot()) {
+							b = g_invitee->members[x]->CastToBot();
+							if (x == 0) {
+								raid->AddBot(b, raid_free_group_id, false, true, false);
+								raid->SetGroupLeader(b->GetName());
+								raid->GroupUpdate(raid_free_group_id);
+							}
+							else {
+								raid->AddBot(b, raid_free_group_id, false, false, false);
+								raid->GroupUpdate(raid_free_group_id);
+							}
+						}
+						else if (g_invitee->members[x] && g_invitee->members[x]->IsClient()) {
+							c = g_invitee->members[x]->CastToClient();
+							if (x == 0) {
+								raid->SendRaidCreate(c);
+								raid->SendMakeLeaderPacketTo(raid->leadername, c);
+								raid->AddMember(c, raid_free_group_id, false, true, false);
+								raid->SetGroupLeader(c->GetName());
+								raid->GroupUpdate(raid_free_group_id);
+								if (raid->IsLocked()) {
+									raid->SendRaidLockTo(c);
+								}
+							}
+							else {
+								raid->SendRaidCreate(c);
+								raid->SendMakeLeaderPacketTo(raid->leadername, c);
+								raid->AddMember(c, raid_free_group_id, false, false, false);
+								raid->GroupUpdate(raid_free_group_id);
+								if (raid->IsLocked()) {
+									raid->SendRaidLockTo(c);
+								}
+							}
+						}
+					}
+				}
+				raid->GroupUpdate(raid_free_group_id);
+				g_invitee->JoinRaidXTarget(raid, true);
+				g_invitee->DisbandGroup(true);
+				if (raid->IsLocked()) {
+					raid->SendRaidLockTo(invitor);
+				}
+			}
+			else
+			{
+				//Third, no group so add the single client invitee
+				raid->SendRaidCreate(invitee);
+				raid->SendMakeLeaderPacketTo(raid->leadername, invitee);
+				raid->AddMember(invitee);
+				if (raid->IsLocked()) {
+					raid->SendRaidLockTo(invitee);
+				}
+			}
+		}
+	}
+}
+
+void Bot::ProcessRaidInvite(Bot* invitee, Client* invitor) {
+
+	if (!invitee || !invitor)
+		return;
+
+	Raid* raid = entity_list.GetRaidByClient(invitor);
+	Group* g_invitee = invitee->GetGroup();
+	Group* g_invitor = invitor->GetGroup();
+
+	if (raid)
+	{
+		if (g_invitee)
+		{
+			//As there is already a raid, just add this group
+			uint32 raid_free_group_id = raid->GetFreeGroup();
+			for (int x = 0; x < 6; x++) {
+				if (g_invitee->members[x]) {
+					Client* c = nullptr;
+					Bot* b = nullptr;
+					if (g_invitee->members[x] && g_invitee->members[x]->IsBot()) {
+						b = g_invitee->members[x]->CastToBot();
+						if (x == 0) {
+							raid->AddBot(b, raid_free_group_id, false, true, false);
+							raid->SetGroupLeader(b->GetName());
+							raid->GroupUpdate(raid_free_group_id);
+						}
+						else {
+							raid->AddBot(b, raid_free_group_id, false, false, false);
+							raid->GroupUpdate(raid_free_group_id);
+						}
+					}
+					else if (g_invitee->members[x] && g_invitee->members[x]->IsClient()) {
+						c = g_invitee->members[x]->CastToClient();
+						if (x == 0) {
+							raid->SendRaidCreate(c);
+							raid->SendMakeLeaderPacketTo(raid->leadername, c);
+							raid->AddMember(c, raid_free_group_id, false, true, false);
+							raid->SetGroupLeader(c->GetName());
+							raid->GroupUpdate(raid_free_group_id);
+							if (raid->IsLocked()) {
+								raid->SendRaidLockTo(c);
+							}
+						}
+						else {
+							raid->SendRaidCreate(c);
+							raid->SendMakeLeaderPacketTo(raid->leadername, c);
+							raid->AddMember(c, raid_free_group_id, false, false, false);
+							raid->GroupUpdate(raid_free_group_id);
+							if (raid->IsLocked()) {
+								raid->SendRaidLockTo(c);
+							}
+						}
+					}
+				}
+			}
+			//			raid->SendBulkRaid(invitor); //Send a raid updates to the invitor
+			g_invitee->JoinRaidXTarget(raid, true);
+			g_invitee->DisbandGroup(true);
+			if (raid->IsLocked()) {
+				raid->SendRaidLockTo(invitor);
+			}
+		}
+		else
+		{
+			//As there is already a raid and no group, just add this single client
+			//raid->SendRaidCreate(invitee);
+			//raid->SendMakeLeaderPacketTo(raid->leadername, invitee);
+			raid->AddBot(invitee);
+			//if (raid->IsLocked()) {
+			//	raid->SendRaidLockTo(invitee);
+			//}
+		}
+	}
+	else
+	{
+		//As there is no raid
+		//First, create the raid
+		raid = new Raid(invitor);
+		entity_list.AddRaid(raid);
+		raid->SetRaidDetails();
+//		raid->SendRaidCreate(invitor);
+//		raid->SetLeader(invitor);	//Added Jan 18
+//		raid->SendMakeLeaderPacketTo(raid->leadername, invitor);
+
+		if (g_invitor)
+		{
+			//Second, add the invitor group as group 0
+			for (int x = 0; x < 6; x++) {
+				if (g_invitor->members[x]) {
+					Client* c = nullptr;
+					Bot* b = nullptr;
+					if (g_invitor->members[x] && g_invitor->members[x]->IsBot()) {
+						b = g_invitor->members[x]->CastToBot();
+						if (x == 0) {
+							raid->AddBot(b, 0, false, true, false);
+							raid->SetGroupLeader(b->GetName());
+							//raid->GroupUpdate(0);
+						}
+						else {
+							raid->AddBot(b, 0, false, false, false);
+							//raid->GroupUpdate(0);
+							b->SetFollowID(g_invitor->GetLeader()->GetID());
+						}
+					}
+					else if (g_invitor->members[x] && g_invitor->members[x]->IsClient()) {
+						c = g_invitor->members[x]->CastToClient();
+						if (x == 0) {
+							raid->SendRaidCreate(c);
+							raid->AddMember(c, 0, true, true, true);
+							raid->SendMakeLeaderPacketTo(raid->leadername, c);
+
+							if (raid->IsLocked()) {
+								raid->SendRaidLockTo(c);
+							}
+						}
+						else {
+							raid->SendRaidCreate(c);
+							raid->SendMakeLeaderPacketTo(raid->leadername, c);
+							raid->AddMember(c, 0, false, false, false);
+							//raid->GroupUpdate(0, true);
+							if (raid->IsLocked()) {
+								raid->SendRaidLockTo(c);
+							}
+						}
+					}
+				}
+			}
+//			raid->GroupUpdate(0, true);
+//			raid->SendBulkRaid(invitee); //Send a raid updates to the invitor
+			g_invitor->JoinRaidXTarget(raid, true);
+			g_invitor->DisbandGroup(true); //Added Jan 23 to fix group database and entity integrity
+			raid->GroupUpdate(0, true);
+			if (raid->IsLocked()) {
+				raid->SendRaidLockTo(invitor);
+			}
+			if (g_invitee)
+			{
+				//Third, add the invitee group
+				uint32 raid_free_group_id = raid->GetFreeGroup();
+				for (int x = 0; x < 6; x++) {
+					if (g_invitee->members[x]) {
+						Client* c = nullptr;
+						Bot* b = nullptr;
+						if (g_invitee->members[x] && g_invitee->members[x]->IsBot()) {
+							b = g_invitee->members[x]->CastToBot();
+							if (x == 0) {
+								raid->AddBot(b, raid_free_group_id, false, true, false);
+								raid->SetGroupLeader(b->GetName());
+							}
+							else {
+								raid->AddBot(b, raid_free_group_id, false, false, false);
+							}
+						}
+						else if (g_invitee->members[x] && g_invitee->members[x]->IsClient()) {
+							c = g_invitee->members[x]->CastToClient();
+							if (x == 0) {
+								raid->SendRaidCreate(c);
+								raid->SendMakeLeaderPacketTo(raid->leadername, c);
+								raid->AddMember(c, raid_free_group_id, false, true, false);
+								raid->SetGroupLeader(c->GetName());
+								if (raid->IsLocked()) {
+									raid->SendRaidLockTo(c);
+								}
+							}
+							else {
+								raid->SendRaidCreate(c);
+								raid->SendMakeLeaderPacketTo(raid->leadername, c);
+								raid->AddMember(c, raid_free_group_id, false, false, false);
+								if (raid->IsLocked()) {
+									raid->SendRaidLockTo(c);
+								}
+							}
+						}
+					}
+				}
+				//raid->SendBulkRaid(invitor); //Send a raid updates to the invitor
+				g_invitee->JoinRaidXTarget(raid, true);
+				g_invitee->DisbandGroup(true);
+				raid->GroupUpdate(raid_free_group_id);
+				if (raid->IsLocked()) {
+					raid->SendRaidLockTo(invitor);
+				}
+			}
+			else
+			{
+				//Third, no group so add the single client
+				raid->AddBot(invitee);
+
+			}
+		}
+		else
+		{
+			//Second, add the single invitor
+			raid->SendRaidCreate(invitor);
+			raid->AddMember(invitor, 0xFFFFFFFF, true, false, true);
+			raid->SendMakeLeaderPacketTo(invitor->GetName(), invitor);  //Mitch Jan 18
+			if (raid->IsLocked()) {
+				raid->SendRaidLockTo(invitor);
+			}
+			if (g_invitee)
+			{
+				//Third, add the invitee group
+				uint32 raid_free_group_id = raid->GetFreeGroup();
+				for (int x = 0; x < 6; x++) {
+					if (g_invitee->members[x]) {
+						Client* c = nullptr;
+						Bot* b = nullptr;
+						if (g_invitee->members[x] && g_invitee->members[x]->IsBot()) {
+							b = g_invitee->members[x]->CastToBot();
+							if (x == 0) {
+								raid->AddBot(b, raid_free_group_id, false, true, false);
+								raid->SetGroupLeader(b->GetName());
+							}
+							else {
+								raid->AddBot(b, raid_free_group_id, false, false, false);
+							}
+						}
+						else if (g_invitee->members[x] && g_invitee->members[x]->IsClient()) {
+							c = g_invitee->members[x]->CastToClient();
+							if (x == 0) {
+								raid->SendRaidCreate(c);
+								raid->SendMakeLeaderPacketTo(raid->leadername, c);
+								raid->AddMember(c, raid_free_group_id, false, true, false);
+								raid->SetGroupLeader(c->GetName());
+								if (raid->IsLocked()) {
+									raid->SendRaidLockTo(c);
+								}
+							}
+							else {
+								raid->SendRaidCreate(c);
+								raid->SendMakeLeaderPacketTo(raid->leadername, c);
+								raid->AddMember(c, raid_free_group_id, false, false, false);
+								if (raid->IsLocked()) {
+									raid->SendRaidLockTo(c);
+								}
+							}
+						}
+					}
+				}
+				//				raid->SendBulkRaid(invitor); //Send a raid updates to the invitor
+				g_invitee->JoinRaidXTarget(raid, true);
+				g_invitee->DisbandGroup(true);
+				raid->GroupUpdate(raid_free_group_id);
+				if (raid->IsLocked()) {
+					raid->SendRaidLockTo(invitor);
+				}
+			}
+			else
+			{
+				//Third, no group so add the single client invitee
+				//raid->SendRaidCreate(invitee);
+				//raid->SendMakeLeaderPacketTo(raid->leadername, invitee);
+				raid->AddBot(invitee);
+				invitee->SetFollowID(invitor->GetID());
+				//if (raid->IsLocked()) {
+				//	raid->SendRaidLockTo(invitee);
+				//}
+			}
+		}
+	}
+}
 
 #endif

@@ -25,6 +25,7 @@
 #include "mob.h"
 #include "raids.h"
 #include "string_ids.h"
+#include "bot.h"
 
 #include "worldserver.h"
 
@@ -96,13 +97,22 @@ void Raid::AddMember(Client *c, uint32 group, bool rleader, bool groupleader, bo
 	if(!c)
 		return;
 
+#ifdef BOTS
 	std::string query = StringFormat("INSERT INTO raid_members SET raidid = %lu, charid = %lu, "
                                     "groupid = %lu, _class = %d, level = %d, name = '%s', "
-                                    "isgroupleader = %d, israidleader = %d, islooter = %d",
+                                    "isgroupleader = %d, israidleader = %d, islooter = %d, isbot = 0",
                                     (unsigned long)GetID(), (unsigned long)c->CharacterID(),
                                     (unsigned long)group, c->GetClass(), c->GetLevel(),
                                     c->GetName(), groupleader, rleader, looter);
-    auto results = database.QueryDatabase(query);
+#else
+	std::string query = StringFormat("INSERT INTO raid_members SET raidid = %lu, charid = %lu, "
+		"groupid = %lu, _class = %d, level = %d, name = '%s', "
+		"isgroupleader = %d, israidleader = %d, islooter = %d",
+		(unsigned long)GetID(), (unsigned long)c->CharacterID(),
+		(unsigned long)group, c->GetClass(), c->GetLevel(),
+		c->GetName(), groupleader, rleader, looter);
+#endif
+	auto results = database.QueryDatabase(query);
 
 	if(!results.Success()) {
 		LogError("Error inserting into raid members: [{}]", results.ErrorMessage().c_str());
@@ -110,6 +120,14 @@ void Raid::AddMember(Client *c, uint32 group, bool rleader, bool groupleader, bo
 
 	LearnMembers();
 	VerifyRaid();
+
+#ifdef BOTS
+	if (rleader) {
+		database.SetRaidGroupLeaderInfo(group, GetID());
+		UpdateRaidAAs();
+	}
+	else 
+#endif
 	if (rleader) {
 		database.SetRaidGroupLeaderInfo(RAID_GROUPLESS, GetID());
 		UpdateRaidAAs();
@@ -164,12 +182,65 @@ void Raid::AddMember(Client *c, uint32 group, bool rleader, bool groupleader, bo
 	safe_delete(pack);
 }
 
+#ifdef BOTS
+void Raid::AddBot(Bot* b, uint32 group, bool rleader, bool groupleader, bool looter) {
+	if (!b)
+		return;
+
+	std::string query = StringFormat("INSERT INTO raid_members SET raidid = %lu, charid = %lu, "
+		"groupid = %lu, _class = %d, level = %d, name = '%s', "
+		"isgroupleader = %d, israidleader = %d, islooter = %d, isbot = 1",
+		(unsigned long)GetID(), (unsigned long)b->GetBotID(),
+		(unsigned long)group, b->GetClass(), b->GetLevel(),
+		b->GetName(), groupleader, rleader, looter);
+	auto results = database.QueryDatabase(query);
+
+	if (!results.Success()) {
+		LogError("Error inserting into raid members: [{}]", results.ErrorMessage().c_str());
+	}
+
+	LearnMembers();
+	VerifyRaid();
+
+	if (group < 12) //Jan22
+		GroupUpdate(group); //Jan22
+	else // get raid AAs, GroupUpdate will handles it otherwise Jan 22
+		SendGroupLeadershipAA(b->GetOwner()->CastToClient(), RAID_GROUPLESS); //Is this needed for bots? Jan 22
+	SendRaidAddAll(b->GetName());
+	
+	b->SetRaidGrouped(true);
+	b->p_raid_instance = this;
+
+
+	auto pack = new ServerPacket(ServerOP_RaidAdd, sizeof(ServerRaidGeneralAction_Struct));
+	ServerRaidGeneralAction_Struct* rga = (ServerRaidGeneralAction_Struct*)pack->pBuffer;
+	rga->rid = GetID();
+	strn0cpy(rga->playername, b->GetName(), 64);
+	rga->zoneid = zone->GetZoneID();
+	rga->instance_id = zone->GetInstanceID();
+	worldserver.SendPacket(pack);
+	safe_delete(pack);
+}
+#endif
+
+
 void Raid::RemoveMember(const char *characterName)
 {
 	std::string query = StringFormat("DELETE FROM raid_members where name='%s'", characterName);
 	auto results = database.QueryDatabase(query);
 
 	Client *client = entity_list.GetClientByName(characterName);
+#ifdef BOTS
+	Bot* bot = entity_list.GetBotByBotName(characterName);
+
+	if (bot) {
+		bot->SetFollowID(bot->GetOwner()->CastToClient()->GetID());
+		bot->SetGrouped(false);
+		bot->SetTarget(nullptr);
+		bot->SetRaidGrouped(false);
+	}
+#endif
+
 	disbandCheck = true;
 	SendRaidRemoveAll(characterName);
 	SendRaidDisband(client);
@@ -970,12 +1041,12 @@ void Raid::SendRaidAdd(const char *who, Client *to)
 
 void Raid::SendRaidAddAll(const char *who)
 {
-	for(int x = 0; x < MAX_RAID_MEMBERS; x++)
+	for (int x = 0; x < MAX_RAID_MEMBERS; x++)
 	{
-		if(strcmp(members[x].membername, who) == 0)
+		if (strcmp(members[x].membername, who) == 0 )
 		{
 			auto outapp = new EQApplicationPacket(OP_RaidUpdate, sizeof(RaidAddMember_Struct));
-			RaidAddMember_Struct *ram = (RaidAddMember_Struct*)outapp->pBuffer;
+			RaidAddMember_Struct* ram = (RaidAddMember_Struct*)outapp->pBuffer;
 			ram->raidGen.action = raidAdd;
 			ram->raidGen.parameter = members[x].GroupNumber;
 			strcpy(ram->raidGen.leader_name, members[x].membername);
@@ -986,6 +1057,7 @@ void Raid::SendRaidAddAll(const char *who)
 			QueuePacket(outapp);
 			safe_delete(outapp);
 			return;
+
 		}
 	}
 }
@@ -1098,11 +1170,16 @@ void Raid::SendBulkRaid(Client *to)
 	if(!to)
 		return;
 
+#ifdef BOTS
+	if (members[GetPlayerIndex(to)].IsBot)
+		return;
+#endif
+
 	for(int x = 0; x < MAX_RAID_MEMBERS; x++)
 	{
-		if(strlen(members[x].membername) > 0 && (strcmp(members[x].membername, to->GetName()) != 0)) //don't send ourself
+		if(members[x].member && strlen(members[x].membername) > 0 && (strcmp(members[x].membername, to->GetName()) != 0)) //don't send ourself
 		{
-			SendRaidAdd(members[x].membername, to);
+				SendRaidAdd(members[x].membername, to);
 		}
 	}
 }
@@ -1111,7 +1188,11 @@ void Raid::QueuePacket(const EQApplicationPacket *app, bool ack_req)
 {
 	for(int x = 0; x < MAX_RAID_MEMBERS; x++)
 	{
+#ifdef BOTS
+		if(members[x].member && !members[x].IsBot)
+#else
 		if(members[x].member)
+#endif
 		{
 			members[x].member->QueuePacket(app, ack_req);
 		}
@@ -1120,6 +1201,12 @@ void Raid::QueuePacket(const EQApplicationPacket *app, bool ack_req)
 
 void Raid::SendMakeLeaderPacket(const char *who) //30
 {
+		
+#ifdef BOTS
+	if (entity_list.GetBotByBotName(who) && members[GetPlayerIndex(who)].IsBot)
+		return;
+#endif
+
 	auto outapp = new EQApplicationPacket(OP_RaidUpdate, sizeof(RaidLeadershipUpdate_Struct));
 	RaidLeadershipUpdate_Struct *rg = (RaidLeadershipUpdate_Struct*)outapp->pBuffer;
 	rg->action = raidMakeLeader;
@@ -1134,6 +1221,11 @@ void Raid::SendMakeLeaderPacketTo(const char *who, Client *to)
 {
 	if(!to)
 		return;
+
+#ifdef BOTS
+	if (members[GetPlayerIndex(who)].IsBot)
+		return;
+#endif
 
 	auto outapp = new EQApplicationPacket(OP_RaidUpdate, sizeof(RaidLeadershipUpdate_Struct));
 	RaidLeadershipUpdate_Struct *rg = (RaidLeadershipUpdate_Struct*)outapp->pBuffer;
@@ -1164,6 +1256,11 @@ void Raid::SendGroupUpdate(Client *to)
 {
 	if(!to)
 		return;
+
+#ifdef BOTS
+	if (members[GetPlayerIndex(to)].IsBot)
+		return;
+#endif
 
 	auto outapp = new EQApplicationPacket(OP_GroupUpdate, sizeof(GroupUpdate2_Struct));
 	GroupUpdate2_Struct* gu = (GroupUpdate2_Struct*)outapp->pBuffer;
@@ -1211,7 +1308,7 @@ void Raid::GroupUpdate(uint32 gid, bool initial)
 	{
 		if(strlen(members[x].membername) > 0){
 			if(members[x].GroupNumber == gid){
-				if(members[x].member) {
+				if (members[x].member) {
 					SendGroupUpdate(members[x].member);
 					SendGroupLeadershipAA(members[x].member, gid);
 				}
@@ -1353,6 +1450,11 @@ void Raid::SendRaidMOTDToWorld()
 
 void Raid::SendGroupLeadershipAA(Client *c, uint32 gid)
 {
+#ifdef BOTS
+	if (members[GetPlayerIndex(c)].IsBot)
+		return;
+#endif
+
 	auto outapp = new EQApplicationPacket(OP_RaidUpdate, sizeof(RaidLeadershipUpdate_Struct));
 	RaidLeadershipUpdate_Struct *rlaa = (RaidLeadershipUpdate_Struct *)outapp->pBuffer;
 	rlaa->action = raidSetLeaderAbilities;
@@ -1368,16 +1470,25 @@ void Raid::SendGroupLeadershipAA(Client *c, uint32 gid)
 void Raid::SendGroupLeadershipAA(uint32 gid)
 {
 	for (uint32 i = 0; i < MAX_RAID_MEMBERS; i++)
+#ifdef BOTS
+		if (members[i].member && members[i].GroupNumber == gid && !members[i].IsBot)
+#else
 		if (members[i].member && members[i].GroupNumber == gid)
+#endif
 			SendGroupLeadershipAA(members[i].member, gid);
 }
 
 void Raid::SendAllRaidLeadershipAA()
 {
 	for (uint32 i = 0; i < MAX_RAID_MEMBERS; i++)
+#ifdef BOTS
+		if (members[i].member && !members[i].IsBot)
+#else
 		if (members[i].member)
-			SendGroupLeadershipAA(members[i].member, members[i].GroupNumber);
+#endif
+		SendGroupLeadershipAA(members[i].member, members[i].GroupNumber);
 }
+
 
 void Raid::LockRaid(bool lockFlag)
 {
@@ -1444,11 +1555,18 @@ bool Raid::LearnMembers()
 {
 	memset(members, 0, (sizeof(RaidMember)*MAX_RAID_MEMBERS));
 
+#ifdef BOTS
 	std::string query = StringFormat("SELECT name, groupid, _class, level, "
-                                    "isgroupleader, israidleader, islooter "
+                                    "isgroupleader, israidleader, islooter, isbot "
                                     "FROM raid_members WHERE raidid = %lu",
                                     (unsigned long)GetID());
-    auto results = database.QueryDatabase(query);
+#else
+	std::string query = StringFormat("SELECT name, groupid, _class, level, "
+		"isgroupleader, israidleader, islooter "
+		"FROM raid_members WHERE raidid = %lu",
+		(unsigned long)GetID());
+#endif
+	auto results = database.QueryDatabase(query);
     if (!results.Success())
         return false;
 
@@ -1476,7 +1594,10 @@ bool Raid::LearnMembers()
         members[index].IsGroupLeader = atoi(row[4]);
         members[index].IsRaidLeader = atoi(row[5]);
         members[index].IsLooter = atoi(row[6]);
-        ++index;
+#ifdef BOTS
+		members[index].IsBot = atoi(row[7]);
+#endif
+		++index;
     }
 
 	return true;
@@ -1491,14 +1612,32 @@ void Raid::VerifyRaid()
 		}
 		else{
 			Client *c = entity_list.GetClientByName(members[x].membername);
+#ifdef BOTS
+			Bot* b = entity_list.GetBotByBotName(members[x].membername); 
+#endif
 			if(c){
 				members[x].member = c;
+#ifdef BOTS
+				members[x].IsBot = false;
+#endif
 			}
-			else{
+#ifdef BOTS
+			else if(b){
+				//Raid requires client* we are forcing it here to be a BOT.  Care is needed here as any client function that
+				//does not exist within the Bot Class will likely corrupt memory for the member object. Good practice to test the IsBot
+				//attribute before calling a client function or casting to client.
+				members[x].member = b->CastToClient(); 
+				members[x].IsBot = true; //Used to identify those members who are Bots
+			}
+#endif
+			else {
 				members[x].member = nullptr;
+#ifdef BOTS
+				members[x].IsBot = false;
+#endif
 			}
 		}
-		if(members[x].IsRaidLeader){
+		if(members[x].IsRaidLeader){ 
 			if(strlen(members[x].membername) > 0){
 				SetLeader(members[x].member);
 				strn0cpy(leadername, members[x].membername, 64);
@@ -1548,7 +1687,11 @@ void Raid::SendHPManaEndPacketsTo(Client *client)
 	EQApplicationPacket outapp(OP_MobManaUpdate, sizeof(MobManaUpdate_Struct));
 
 	for(int x = 0; x < MAX_RAID_MEMBERS; x++) {
-		if(members[x].member) {
+#ifdef BOTS
+		if(members[x].member && !members[x].IsBot) {
+#else
+		if (members[x].member) {
+#endif
 			if((members[x].member != client) && (members[x].GroupNumber == group_id)) {
 
 				members[x].member->CreateHPPacket(&hp_packet);
@@ -1590,7 +1733,11 @@ void Raid::SendHPManaEndPacketsFrom(Mob *mob)
 	mob->CreateHPPacket(&hpapp);
 
 	for(int x = 0; x < MAX_RAID_MEMBERS; x++) {
-		if(members[x].member) {
+#ifdef BOTS
+		if(members[x].member && !members[x].IsBot) {
+#else
+		if (members[x].member) {
+#endif
 			if(!mob->IsClient() || ((members[x].member != mob->CastToClient()) && (members[x].GroupNumber == group_id))) {
 				members[x].member->QueuePacket(&hpapp, false);
 				if (members[x].member->ClientVersion() >= EQ::versions::ClientVersion::SoD) {
@@ -1623,7 +1770,11 @@ void Raid::SendManaPacketFrom(Mob *mob)
 	EQApplicationPacket outapp(OP_MobManaUpdate, sizeof(MobManaUpdate_Struct));
 
 	for (int x = 0; x < MAX_RAID_MEMBERS; x++) {
+#ifdef BOTS
+		if (members[x].member && !members[x].IsBot) {
+#else
 		if (members[x].member) {
+#endif
 			if (!mob->IsClient() || ((members[x].member != mob->CastToClient()) && (members[x].GroupNumber == group_id))) {
 				if (members[x].member->ClientVersion() >= EQ::versions::ClientVersion::SoD) {
 					outapp.SetOpcode(OP_MobManaUpdate);
@@ -1650,7 +1801,11 @@ void Raid::SendEndurancePacketFrom(Mob *mob)
 	EQApplicationPacket outapp(OP_MobManaUpdate, sizeof(MobManaUpdate_Struct));
 
 	for (int x = 0; x < MAX_RAID_MEMBERS; x++) {
+#ifdef BTOS
+		if (members[x].member && !members[x].IsBot) {
+#else
 		if (members[x].member) {
+#endif
 			if (!mob->IsClient() || ((members[x].member != mob->CastToClient()) && (members[x].GroupNumber == group_id))) {
 				if (members[x].member->ClientVersion() >= EQ::versions::ClientVersion::SoD) {
 					outapp.SetOpcode(OP_MobEnduranceUpdate);
@@ -1757,9 +1912,18 @@ void Raid::CheckGroupMentor(uint32 group_id, Client *c)
 void Raid::SetDirtyAutoHaters()
 {
 	for (int i = 0; i < MAX_RAID_MEMBERS; ++i)
+#ifdef BOTS
+		if (members[i].member && members[i].IsBot)
+		{
+			members[i].member->CastToBot()->SetDirtyAutoHaters();
+		}
+		else if (members[i].member && !members[i].IsBot)
+#else
 		if (members[i].member)
+#endif
+		{
 			members[i].member->SetDirtyAutoHaters();
-
+		}
 }
 
 void Raid::QueueClients(Mob *sender, const EQApplicationPacket *app, bool ack_required /*= true*/, bool ignore_sender /*= true*/, float distance /*= 0*/, bool group_only /*= true*/) {
@@ -1778,6 +1942,10 @@ void Raid::QueueClients(Mob *sender, const EQApplicationPacket *app, bool ack_re
 			if (!members[i].member->IsClient())
 				continue;
 
+#ifdef BOTS
+			if (members[i].IsBot)
+				continue;
+#endif
 			if (ignore_sender && members[i].member == sender)
 				continue;
 
@@ -1840,3 +2008,17 @@ bool Raid::DoesAnyMemberHaveExpeditionLockout(
 		return Expedition::HasLockoutByCharacterName(raid_member.membername, expedition_name, event_name);
 	});
 }
+#ifdef BOTS
+Mob* Raid::GetRaidMainAssistOneByName(const char* name)
+{
+	Raid* raid = entity_list.GetRaidByBotName(name);
+	std::vector<RaidMember> raid_members = raid->GetMembers();
+
+	for (RaidMember iter : raid_members)
+	{
+		if (iter.IsRaidMainAssistOne)
+			return iter.member->CastToMob();
+	}
+	return nullptr;
+}
+#endif

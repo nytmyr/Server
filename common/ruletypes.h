@@ -600,6 +600,8 @@ RULE_INT(Bots, MageEpicPet, 1, "1 default requiring epic, 0 disabled, 2 enabled 
 RULE_INT(Bots, MageEpicPetMinLvl, 50, "50 default, level required for bot to summon mage epic pet")
 RULE_INT(Bots, BotsUseEpicMinLvl, -1, "Minimum level for bots to be able to use their epics. -1 uses default levels for epics.")
 RULE_BOOL(Bots, BotsUseEpics, true, "true default allowing bots epic to be used via 'useepic' command")
+RULE_BOOL(Bots, DisplayHealDamage, false, "Enables the display of bot heal damage to the bot owner client")
+RULE_BOOL(Bots, DisplaySpellDamage, false, "Enables the display of bot spell damage to the bot owner client")
 RULE_BOOL(Bots, OldRaceRezEffects, false, "Older clients had ID 757 for races with high starting STR, but it doesn't seem used anymore")
 RULE_BOOL(Bots, ResurrectionSickness, true, "Use Resurrection Sickness based on Resurrection spell cast, set to false to disable Resurrection Sickness.")
 RULE_INT(Bots, OldResurrectionSicknessSpell, 757, "757 is Default Old Resurrection Sickness Spell")
