@@ -599,6 +599,7 @@ RULE_INT(Bots, BotExpansionSettings, 16383, "Sets the expansion settings for bot
 RULE_BOOL(Bots, AllowCamelCaseNames, false, "Allows the use of 'MyBot' type names")
 RULE_INT(Bots, CommandSpellRank, 1, "Filters bot command spells by rank. 1, 2 and 3 are valid filters - any other number allows all ranks")
 RULE_INT(Bots, CreationLimit, 150, "Number of bots that each account can create")
+RULE_INT(Bots, CreationLimitStatusBypass, 120, "Default 120, account status to bypass creation limit")
 RULE_BOOL(Bots, FinishBuffing, false, "Allow for buffs to complete even if the bot caster is out of mana. Only affects buffing out of combat")
 RULE_BOOL(Bots, GroupBuffing, false, "Bots will cast single target buffs as group buffs, default is false for single. Does not make single target buffs work for MGB")
 RULE_INT(Bots, HealRotationMaxMembers, 24, "Maximum number of heal rotation members")

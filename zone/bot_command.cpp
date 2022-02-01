@@ -5299,13 +5299,14 @@ void bot_subcommand_bot_clone(Client *c, const Seperator *sep)
 	}
 
 	uint32 max_bot_count = RuleI(Bots, CreationLimit);
+	uint32 max_bot_bypass = RuleI(Bots, CreationLimitStatusBypass);
 
 	uint32 bot_count = 0;
 	if (!database.botdb.QueryBotCount(c->CharacterID(), bot_count)) {
 		c->Message(m_fail, "%s", BotDatabase::fail::QueryBotCount());
 		return;
 	}
-	if (bot_count >= max_bot_count) {
+	if (bot_count >= max_bot_count && c->Admin() < max_bot_bypass) {
 		c->Message(m_fail, "You have reached the maximum limit of %i bots", max_bot_count);
 		return;
 	}
@@ -9027,13 +9028,14 @@ uint32 helper_bot_create(Client *bot_owner, std::string bot_name, uint8 bot_clas
 	}
 
 	uint32 max_bot_count = RuleI(Bots, CreationLimit);
-
+	uint32 max_bot_bypass = RuleI(Bots, CreationLimitStatusBypass);
+	
 	uint32 bot_count = 0;
 	if (!database.botdb.QueryBotCount(bot_owner->CharacterID(), bot_count)) {
 		bot_owner->Message(m_fail, "%s", BotDatabase::fail::QueryBotCount());
 		return bot_id;
 	}
-	if (bot_count >= max_bot_count) {
+	if (bot_count >= max_bot_count && bot_owner->Admin() < max_bot_bypass) {
 		bot_owner->Message(m_fail, "You have reached the maximum limit of %i bots.", max_bot_count);
 		return bot_id;
 	}
