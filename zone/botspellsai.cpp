@@ -452,10 +452,10 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 			break;
 		}
 		case SpellType_Nuke: {
-			if((tar->GetHPRatio() <= 95.0f) || ((botClass == BARD) || (botClass == SHAMAN) || (botClass == ENCHANTER)))
+			if ((tar->GetHPRatio() <= 95.0f) || ((botClass == BARD) || (botClass == SHAMAN) || (botClass == ENCHANTER)))
 			{
-				if(!checked_los) {
-					if(!CheckLosFN(tar))
+				if (!checked_los) {
+					if (!CheckLosFN(tar))
 						break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
 
 					checked_los = true;
@@ -509,6 +509,9 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						}
 					}
 				}
+
+				if (botClass == CLERIC && GetHoldNukes() == 1)
+					return botSpell.SpellId = 0;
 
 				if(botClass == WIZARD && botSpell.SpellId == 0) {
 					botSpell = GetBestBotWizardNukeSpellByTargetResists(this, tar);

@@ -318,7 +318,9 @@ public:
 	bool GetPauseAI() { return _pauseAI; }
 	void SetPauseAI(bool pause_flag) { _pauseAI = pause_flag; }
 	uint8 GetStopMeleeLevel() { return _stopMeleeLevel; }
+	uint8 GetHoldNukes() { return _holdNukes; }
 	void SetStopMeleeLevel(uint8 level);
+	void SetHoldNukes(uint8 holdstatus);
 	void SetGuardMode();
 	void SetHoldMode();
 
@@ -682,6 +684,7 @@ private:
 	bool _showhelm;
 	bool _pauseAI;
 	uint8 _stopMeleeLevel;
+	uint8 _holdNukes;
 
 	// Private "base stats" Members
 	int32 _baseMR;

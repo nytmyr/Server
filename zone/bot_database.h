@@ -140,6 +140,8 @@ public:
 
 	bool SaveStopMeleeLevel(const uint32 owner_id, const uint32 bot_id, const uint8 sml_value);
 
+	bool SaveHoldNukes(const uint32 owner_id, const uint32 bot_id, const uint8 hn_value);
+
 	bool LoadOwnerOptions(Client *owner);
 	bool SaveOwnerOption(const uint32 owner_id, size_t type, const bool flag);
 	bool SaveOwnerOption(const uint32 owner_id, const std::pair<size_t, size_t> type, const std::pair<bool, bool> flag);
@@ -255,6 +257,7 @@ public:
 		static const char* CreateCloneBot();
 		static const char* CreateCloneBotInventory();
 		static const char* SaveStopMeleeLevel();
+		static const char* SaveHoldNukes();
 
 		/* fail::Bot bot-group functions   */
 		static const char* QueryBotGroupExistence();

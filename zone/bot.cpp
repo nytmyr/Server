@@ -2323,6 +2323,10 @@ void Bot::SetStopMeleeLevel(uint8 level) {
 		_stopMeleeLevel = 255;
 }
 
+void Bot::SetHoldNukes(uint8 holdstatus) {
+	_holdNukes = holdstatus;
+}
+
 void Bot::SetGuardMode() {
 
 	StopMoving();

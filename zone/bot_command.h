@@ -570,6 +570,7 @@ void bot_command_guard(Client *c, const Seperator *sep);
 void bot_command_heal_rotation(Client *c, const Seperator *sep);
 void bot_command_help(Client *c, const Seperator *sep);
 void bot_command_hold(Client *c, const Seperator *sep);
+void bot_command_hold_nukes(Client* c, const Seperator* sep);
 void bot_command_identify(Client *c, const Seperator *sep);
 void bot_command_inventory(Client *c, const Seperator *sep);
 void bot_command_invisibility(Client *c, const Seperator *sep);

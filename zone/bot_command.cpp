@@ -1397,6 +1397,7 @@ int bot_command_init(void)
 		bot_command_add("healrotationstop", "Stops a heal rotation", 0, bot_subcommand_heal_rotation_stop) ||
 		bot_command_add("help", "List available commands and their description - specify partial command as argument to search", 0, bot_command_help) ||
 		bot_command_add("hold", "Prevents a bot from attacking until released", 0, bot_command_hold) ||
+		bot_command_add("holdnukes", "Sets Clerics to hold their nukes", 0, bot_command_hold_nukes) ||
 		bot_command_add("identify", "Orders a bot to cast an item identification spell", 0, bot_command_identify) ||
 		bot_command_add("inventory", "Lists the available bot inventory [subcommands]", 0, bot_command_inventory) ||
 		bot_command_add("inventorygive", "Gives the item on your cursor to a bot", 0, bot_subcommand_inventory_give) ||
@@ -3494,6 +3495,48 @@ void bot_command_hold(Client *c, const Seperator *sep)
 	else {
 		c->Message(m_action, "%i of your bots are %sholding their attacks.", sbl.size(), (clear ? "no longer " : ""));
 	}
+}
+
+void bot_command_hold_nukes(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_nukes", sep->arg[0], "holdnukes"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(m_usage, "usage: <target_bot> %s [current | reset | value: 0-1]", sep->arg[0]);
+		c->Message(m_note, "note: Only used for Clerics");
+		c->Message(m_note, "note: Use [reset] to disable hold nukes");
+		c->Message(m_note, "note: Set to 0 to prevent holding nukes");
+		c->Message(m_note, "note: Set to 1 to hold nukes");
+		c->Message(m_note, "note: Anything other than 1 results in no hold");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(m_fail, "You must <target> a bot that you own to use this command");
+		return;
+	}
+	if (!(my_bot->GetClass() == CLERIC)) {
+		c->Message(m_fail, "You must <target> a Cleric to use this command");
+		return;
+	}
+
+	uint8 hn = 0;
+
+	if (sep->IsNumber(1)) {
+		hn = atoi(sep->arg[1]);
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(m_message, "My current hold status is %u", my_bot->GetHoldNukes());
+		return;
+	}
+	// [reset] falls through with initialization value
+
+	my_bot->SetHoldNukes(hn);
+	if (!database.botdb.SaveHoldNukes(c->CharacterID(), my_bot->GetBotID(), hn))
+		c->Message(m_fail, "%s for '%s'", BotDatabase::fail::SaveHoldNukes(), my_bot->GetCleanName());
+
+	c->Message(m_action, "Successfully set Hold Nuke for %s to %u", my_bot->GetCleanName(), hn);
 }
 
 void bot_command_identify(Client *c, const Seperator *sep)
