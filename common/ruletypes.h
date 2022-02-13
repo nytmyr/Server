@@ -636,6 +636,18 @@ RULE_INT(Bots, DispelResistLimit, 115, "115 Default. This is the resist gap wher
 RULE_INT(Bots, CharmResistLimit, 115, "115 Default. This is the resist gap where bots will refuse to cast due to a high resist chance.")
 RULE_INT(Bots, SlowResistLimit, 115, "115 Default. This is the resist gap where bots will refuse to cast due to a high resist chance.")
 RULE_INT(Bots, DebuffResistLimit, 115, "115 Default. This is the resist gap where bots will refuse to cast due to a high resist chance.")
+RULE_INT(Bots, HealPercentLimit, 95, "95 Default. Percent at which bots will START the heal check routine.")
+RULE_INT(Bots, HealPercentLimitShaman, 80, "80 Default. Percent at which bots will START healing shamans to allow them time to canni.")
+RULE_INT(Bots, HealPercentLimitNecro, 40, "40 Default. Percent at which bots will START healing nercros to allow them time to lifetap.")
+RULE_INT(Bots, HoTHealPercentLimit, 95, "95 Default. Percent at which bots will START HoT healing (when target doesn't have aggro, otherwise will do percentage heal till max limit).")
+RULE_INT(Bots, PercentageHealPercentLimit, 70, "70 Default. Percent at which bots will START percentage based healing.")
+RULE_INT(Bots, GroupHealPercentLimit, 60, "60 Default. Percent at which bots will START group based healing.")
+RULE_INT(Bots, FastHealPercentLimit, 35, "35 Default. Percent at which bots will START fast healing.")
+RULE_INT(Bots, OOCHoTHealPercentLimit, 90, "90 Default. Percent at which bots will STOP HoT healing when OOC.")
+RULE_INT(Bots, OOCHealPercentLimit, 75, "75 Default. Percent at which bots will STOP single healing when OOC.")
+RULE_INT(Bots, OOCGroupHealPercentLimit, 60, "60 Default. Percent at which bots will STOP group based healing.")
+RULE_INT(Bots, OOCPercentageHealPercentLimit, 40, "40 Default. Percent at which bots will STOP percentage based healing.")
+
 RULE_CATEGORY_END()
 #endif
 

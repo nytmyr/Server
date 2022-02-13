@@ -111,17 +111,17 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					isPrimaryHealer = IsGroupHealer();
 				}
 
-				if(hpr < 95 || (tar->IsClient() && (hpr < 95)) || (botClass == BARD)) {
+				if(hpr < RuleI(Bots, HealPercentLimit) || (tar->IsClient() && hpr < (RuleI(Bots, HealPercentLimit))) || (botClass == BARD)) {
 					if(tar->GetClass() == NECROMANCER) {
 						// Give necromancers a chance to go lifetap something or cleric can spend too much mana on a necro
-						if(hpr >= 40) {
+						if(hpr >= RuleI(Bots, HealPercentLimitNecro)) {
 							break;
 						}
 					}
 
 					if(tar->GetClass() == SHAMAN) {
 						// Give shaman the chance to canni without wasting the cleric's mana
-						if(hpr >= 80) {
+						if(hpr >= RuleI(Bots, HealPercentLimitShaman)) {
 							break;
 						}
 					}
@@ -132,17 +132,17 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 							hasAggro = true;
 						}
 
-						if(hpr < 35) {
+						if(hpr < RuleI(Bots, FastHealPercentLimit)) {
 							botSpell = GetBestBotSpellForFastHeal(this);
 						}
-						else if(hpr >= 35 && hpr < 70){
-							if(GetNumberNeedingHealedInGroup(60, false) >= 3)
+						else if(hpr >= RuleI(Bots, FastHealPercentLimit) && hpr < RuleI(Bots, PercentageHealPercentLimit)){
+							if(GetNumberNeedingHealedInGroup(RuleI(Bots, GroupHealPercentLimit), false) >= 3)
 								botSpell = GetBestBotSpellForGroupHeal(this);
 
 							if(botSpell.SpellId == 0)
 								botSpell = GetBestBotSpellForPercentageHeal(this);
 						}
-						else if(hpr >= 70 && hpr < 95){
+						else if(hpr >= RuleI(Bots, PercentageHealPercentLimit) && hpr < RuleI(Bots, HoTHealPercentLimit)){
 							if(GetNumberNeedingHealedInGroup(80, false) >= 3)
 								botSpell = GetBestBotSpellForGroupHealOverTime(this);
 
@@ -155,7 +155,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						}
 					}
 					else if ((botClass == CLERIC) || (botClass == DRUID) || (botClass == SHAMAN) || (botClass == PALADIN)) {
-						if(GetNumberNeedingHealedInGroup(40, true) >= 2){
+						if(GetNumberNeedingHealedInGroup(RuleI(Bots, OOCPercentageHealPercentLimit), true) >= 2){
 							botSpell = GetBestBotSpellForGroupCompleteHeal(this);
 
 							if(botSpell.SpellId == 0)
@@ -164,41 +164,43 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 							if(botSpell.SpellId == 0)
 								botSpell = GetBestBotSpellForGroupHealOverTime(this);
 
-							if(hpr < 40) {
+							if(hpr < RuleI(Bots, OOCPercentageHealPercentLimit)) {
 								if(botSpell.SpellId == 0)
 									botSpell = GetBestBotSpellForPercentageHeal(this);
 							}
 						}
-						else if(GetNumberNeedingHealedInGroup(60, true) >= 2){
+						else if(GetNumberNeedingHealedInGroup(RuleI(Bots, OOCGroupHealPercentLimit), true) >= 2){
 							botSpell = GetBestBotSpellForGroupHeal(this);
 
 							if(botSpell.SpellId == 0)
 								botSpell = GetBestBotSpellForGroupHealOverTime(this);
 
-							if(hpr < 40) {
+							if(hpr < RuleI(Bots, OOCPercentageHealPercentLimit)) {
 								if(botSpell.SpellId == 0)
 									botSpell = GetBestBotSpellForPercentageHeal(this);
 							}
 						}
-						else if(hpr < 40)
+						else if(hpr < RuleI(Bots, OOCPercentageHealPercentLimit))
 							botSpell = GetBestBotSpellForPercentageHeal(this);
-						else if(hpr >= 40 && hpr < 75)
+						else if(hpr >= RuleI(Bots, OOCPercentageHealPercentLimit) && hpr < RuleI(Bots, OOCHealPercentLimit))
 							botSpell = GetBestBotSpellForRegularSingleTargetHeal(this);
 						else {
-							if(hpr < 90 && !tar->FindType(SE_HealOverTime))
+							if(hpr < RuleI(Bots, OOCHoTHealPercentLimit) && !tar->FindType(SE_HealOverTime))
 								botSpell = GetBestBotSpellForHealOverTime(this);
 						}
 					}
 					else {
 						float hpRatioToCast = 0.0f;
-
+						
 						switch(this->GetBotStance()) {
 						case EQ::constants::stanceEfficient:
+							hpRatioToCast = isPrimaryHealer ? 70.0f : 50.0f;
+							break;
 						case EQ::constants::stanceAggressive:
 							hpRatioToCast = isPrimaryHealer?90.0f:50.0f;
 							break;
 						case EQ::constants::stanceBalanced:
-							hpRatioToCast = isPrimaryHealer?95.0f:75.0f;
+							hpRatioToCast = RuleI(Bots, HealPercentLimit);
 							break;
 						case EQ::constants::stanceReactive:
 							hpRatioToCast = isPrimaryHealer?100.0f:90.0f;
@@ -208,7 +210,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 							hpRatioToCast = isPrimaryHealer?75.0f:25.0f;
 							break;
 						default:
-							hpRatioToCast = isPrimaryHealer?100.0f:0.0f;
+							hpRatioToCast = isPrimaryHealer?100.0f:90.0f;
 							break;
 						}
 
