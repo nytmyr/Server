@@ -1611,6 +1611,381 @@ XS(XS_Mob_GetSpellHPBonuses) {
 	XSRETURN(1);
 }
 
+XS(XS_Mob_GetSpellACBonuses); /* prototype to pass -Wmissing-prototypes */
+XS(XS_Mob_GetSpellACBonuses) {
+	dXSARGS;
+	if (items != 1)
+		Perl_croak(aTHX_ "Usage: Mob::GetSpellACBonuses(THIS)");
+	{
+		Mob *THIS;
+		int32 RETVAL;
+		dXSTARG;
+
+		if (sv_derived_from(ST(0), "Mob")) {
+			IV tmp = SvIV((SV *) SvRV(ST(0)));
+			THIS = INT2PTR(Mob *, tmp);
+		} else
+			Perl_croak(aTHX_ "THIS is not of type Mob");
+		if (THIS == nullptr)
+			Perl_croak(aTHX_ "THIS is nullptr, avoiding crash.");
+
+		RETVAL = THIS->GetSpellACBonuses();
+		XSprePUSH;
+		PUSHi((IV) RETVAL);
+	}
+	XSRETURN(1);
+}
+
+XS(XS_Mob_GetSpellSTRBonuses); /* prototype to pass -Wmissing-prototypes */
+XS(XS_Mob_GetSpellSTRBonuses) {
+	dXSARGS;
+	if (items != 1)
+		Perl_croak(aTHX_ "Usage: Mob::GetSpellSTRBonuses(THIS)");
+	{
+		Mob *THIS;
+		int32 RETVAL;
+		dXSTARG;
+
+		if (sv_derived_from(ST(0), "Mob")) {
+			IV tmp = SvIV((SV *) SvRV(ST(0)));
+			THIS = INT2PTR(Mob *, tmp);
+		} else
+			Perl_croak(aTHX_ "THIS is not of type Mob");
+		if (THIS == nullptr)
+			Perl_croak(aTHX_ "THIS is nullptr, avoiding crash.");
+
+		RETVAL = THIS->GetSpellSTRBonuses();
+		XSprePUSH;
+		PUSHi((IV) RETVAL);
+	}
+	XSRETURN(1);
+}
+
+XS(XS_Mob_GetSpellSTABonuses); /* prototype to pass -Wmissing-prototypes */
+XS(XS_Mob_GetSpellSTABonuses) {
+	dXSARGS;
+	if (items != 1)
+		Perl_croak(aTHX_ "Usage: Mob::GetSpellSTABonuses(THIS)");
+	{
+		Mob *THIS;
+		int32 RETVAL;
+		dXSTARG;
+
+		if (sv_derived_from(ST(0), "Mob")) {
+			IV tmp = SvIV((SV *) SvRV(ST(0)));
+			THIS = INT2PTR(Mob *, tmp);
+		} else
+			Perl_croak(aTHX_ "THIS is not of type Mob");
+		if (THIS == nullptr)
+			Perl_croak(aTHX_ "THIS is nullptr, avoiding crash.");
+
+		RETVAL = THIS->GetSpellSTABonuses();
+		XSprePUSH;
+		PUSHi((IV) RETVAL);
+	}
+	XSRETURN(1);
+}
+
+XS(XS_Mob_GetSpellAGIBonuses); /* prototype to pass -Wmissing-prototypes */
+XS(XS_Mob_GetSpellAGIBonuses) {
+	dXSARGS;
+	if (items != 1)
+		Perl_croak(aTHX_ "Usage: Mob::GetSpellAGIBonuses(THIS)");
+	{
+		Mob *THIS;
+		int32 RETVAL;
+		dXSTARG;
+
+		if (sv_derived_from(ST(0), "Mob")) {
+			IV tmp = SvIV((SV *) SvRV(ST(0)));
+			THIS = INT2PTR(Mob *, tmp);
+		} else
+			Perl_croak(aTHX_ "THIS is not of type Mob");
+		if (THIS == nullptr)
+			Perl_croak(aTHX_ "THIS is nullptr, avoiding crash.");
+
+		RETVAL = THIS->GetSpellAGIBonuses();
+		XSprePUSH;
+		PUSHi((IV) RETVAL);
+	}
+	XSRETURN(1);
+}
+
+XS(XS_Mob_GetSpellDEXBonuses); /* prototype to pass -Wmissing-prototypes */
+XS(XS_Mob_GetSpellDEXBonuses) {
+	dXSARGS;
+	if (items != 1)
+		Perl_croak(aTHX_ "Usage: Mob::GetSpellDEXBonuses(THIS)");
+	{
+		Mob *THIS;
+		int32 RETVAL;
+		dXSTARG;
+
+		if (sv_derived_from(ST(0), "Mob")) {
+			IV tmp = SvIV((SV *) SvRV(ST(0)));
+			THIS = INT2PTR(Mob *, tmp);
+		} else
+			Perl_croak(aTHX_ "THIS is not of type Mob");
+		if (THIS == nullptr)
+			Perl_croak(aTHX_ "THIS is nullptr, avoiding crash.");
+
+		RETVAL = THIS->GetSpellDEXBonuses();
+		XSprePUSH;
+		PUSHi((IV) RETVAL);
+	}
+	XSRETURN(1);
+}
+
+XS(XS_Mob_GetSpellINTBonuses); /* prototype to pass -Wmissing-prototypes */
+XS(XS_Mob_GetSpellINTBonuses) {
+	dXSARGS;
+	if (items != 1)
+		Perl_croak(aTHX_ "Usage: Mob::GetSpellINTBonuses(THIS)");
+	{
+		Mob *THIS;
+		int32 RETVAL;
+		dXSTARG;
+
+		if (sv_derived_from(ST(0), "Mob")) {
+			IV tmp = SvIV((SV *) SvRV(ST(0)));
+			THIS = INT2PTR(Mob *, tmp);
+		} else
+			Perl_croak(aTHX_ "THIS is not of type Mob");
+		if (THIS == nullptr)
+			Perl_croak(aTHX_ "THIS is nullptr, avoiding crash.");
+
+		RETVAL = THIS->GetSpellINTBonuses();
+		XSprePUSH;
+		PUSHi((IV) RETVAL);
+	}
+	XSRETURN(1);
+}
+
+XS(XS_Mob_GetSpellWISBonuses); /* prototype to pass -Wmissing-prototypes */
+XS(XS_Mob_GetSpellWISBonuses) {
+	dXSARGS;
+	if (items != 1)
+		Perl_croak(aTHX_ "Usage: Mob::GetSpellWISBonuses(THIS)");
+	{
+		Mob *THIS;
+		int32 RETVAL;
+		dXSTARG;
+
+		if (sv_derived_from(ST(0), "Mob")) {
+			IV tmp = SvIV((SV *) SvRV(ST(0)));
+			THIS = INT2PTR(Mob *, tmp);
+		} else
+			Perl_croak(aTHX_ "THIS is not of type Mob");
+		if (THIS == nullptr)
+			Perl_croak(aTHX_ "THIS is nullptr, avoiding crash.");
+
+		RETVAL = THIS->GetSpellWISBonuses();
+		XSprePUSH;
+		PUSHi((IV) RETVAL);
+	}
+	XSRETURN(1);
+}
+
+XS(XS_Mob_GetSpellCHABonuses); /* prototype to pass -Wmissing-prototypes */
+XS(XS_Mob_GetSpellCHABonuses) {
+	dXSARGS;
+	if (items != 1)
+		Perl_croak(aTHX_ "Usage: Mob::GetSpellCHABonuses(THIS)");
+	{
+		Mob *THIS;
+		int32 RETVAL;
+		dXSTARG;
+
+		if (sv_derived_from(ST(0), "Mob")) {
+			IV tmp = SvIV((SV *) SvRV(ST(0)));
+			THIS = INT2PTR(Mob *, tmp);
+		} else
+			Perl_croak(aTHX_ "THIS is not of type Mob");
+		if (THIS == nullptr)
+			Perl_croak(aTHX_ "THIS is nullptr, avoiding crash.");
+
+		RETVAL = THIS->GetSpellCHABonuses();
+		XSprePUSH;
+		PUSHi((IV) RETVAL);
+	}
+	XSRETURN(1);
+}
+
+XS(XS_Mob_GetSpellManaBonuses); /* prototype to pass -Wmissing-prototypes */
+XS(XS_Mob_GetSpellManaBonuses) {
+	dXSARGS;
+	if (items != 1)
+		Perl_croak(aTHX_ "Usage: Mob::GetSpellManaBonuses(THIS)");
+	{
+		Mob *THIS;
+		int32 RETVAL;
+		dXSTARG;
+
+		if (sv_derived_from(ST(0), "Mob")) {
+			IV tmp = SvIV((SV *) SvRV(ST(0)));
+			THIS = INT2PTR(Mob *, tmp);
+		} else
+			Perl_croak(aTHX_ "THIS is not of type Mob");
+		if (THIS == nullptr)
+			Perl_croak(aTHX_ "THIS is nullptr, avoiding crash.");
+
+		RETVAL = THIS->GetSpellManaBonuses();
+		XSprePUSH;
+		PUSHi((IV) RETVAL);
+	}
+	XSRETURN(1);
+}
+
+XS(XS_Mob_GetSpellATKBonuses); /* prototype to pass -Wmissing-prototypes */
+XS(XS_Mob_GetSpellATKBonuses) {
+	dXSARGS;
+	if (items != 1)
+		Perl_croak(aTHX_ "Usage: Mob::GetSpellATKBonuses(THIS)");
+	{
+		Mob *THIS;
+		int32 RETVAL;
+		dXSTARG;
+
+		if (sv_derived_from(ST(0), "Mob")) {
+			IV tmp = SvIV((SV *) SvRV(ST(0)));
+			THIS = INT2PTR(Mob *, tmp);
+		} else
+			Perl_croak(aTHX_ "THIS is not of type Mob");
+		if (THIS == nullptr)
+			Perl_croak(aTHX_ "THIS is nullptr, avoiding crash.");
+
+		RETVAL = THIS->GetSpellATKBonuses();
+		XSprePUSH;
+		PUSHi((IV) RETVAL);
+	}
+	XSRETURN(1);
+}
+
+XS(XS_Mob_GetSpellFRBonuses); /* prototype to pass -Wmissing-prototypes */
+XS(XS_Mob_GetSpellFRBonuses) {
+	dXSARGS;
+	if (items != 1)
+		Perl_croak(aTHX_ "Usage: Mob::GetSpellFRBonuses(THIS)");
+	{
+		Mob *THIS;
+		int32 RETVAL;
+		dXSTARG;
+
+		if (sv_derived_from(ST(0), "Mob")) {
+			IV tmp = SvIV((SV *) SvRV(ST(0)));
+			THIS = INT2PTR(Mob *, tmp);
+		} else
+			Perl_croak(aTHX_ "THIS is not of type Mob");
+		if (THIS == nullptr)
+			Perl_croak(aTHX_ "THIS is nullptr, avoiding crash.");
+
+		RETVAL = THIS->GetSpellFRBonuses();
+		XSprePUSH;
+		PUSHi((IV) RETVAL);
+	}
+	XSRETURN(1);
+}
+
+XS(XS_Mob_GetSpellCRBonuses); /* prototype to pass -Wmissing-prototypes */
+XS(XS_Mob_GetSpellCRBonuses) {
+	dXSARGS;
+	if (items != 1)
+		Perl_croak(aTHX_ "Usage: Mob::GetSpellCRBonuses(THIS)");
+	{
+		Mob *THIS;
+		int32 RETVAL;
+		dXSTARG;
+
+		if (sv_derived_from(ST(0), "Mob")) {
+			IV tmp = SvIV((SV *) SvRV(ST(0)));
+			THIS = INT2PTR(Mob *, tmp);
+		} else
+			Perl_croak(aTHX_ "THIS is not of type Mob");
+		if (THIS == nullptr)
+			Perl_croak(aTHX_ "THIS is nullptr, avoiding crash.");
+
+		RETVAL = THIS->GetSpellCRBonuses();
+		XSprePUSH;
+		PUSHi((IV) RETVAL);
+	}
+	XSRETURN(1);
+}
+
+XS(XS_Mob_GetSpellDRBonuses); /* prototype to pass -Wmissing-prototypes */
+XS(XS_Mob_GetSpellDRBonuses) {
+	dXSARGS;
+	if (items != 1)
+		Perl_croak(aTHX_ "Usage: Mob::GetSpellDRBonuses(THIS)");
+	{
+		Mob *THIS;
+		int32 RETVAL;
+		dXSTARG;
+
+		if (sv_derived_from(ST(0), "Mob")) {
+			IV tmp = SvIV((SV *) SvRV(ST(0)));
+			THIS = INT2PTR(Mob *, tmp);
+		} else
+			Perl_croak(aTHX_ "THIS is not of type Mob");
+		if (THIS == nullptr)
+			Perl_croak(aTHX_ "THIS is nullptr, avoiding crash.");
+
+		RETVAL = THIS->GetSpellDRBonuses();
+		XSprePUSH;
+		PUSHi((IV) RETVAL);
+	}
+	XSRETURN(1);
+}
+
+XS(XS_Mob_GetSpellPRBonuses); /* prototype to pass -Wmissing-prototypes */
+XS(XS_Mob_GetSpellPRBonuses) {
+	dXSARGS;
+	if (items != 1)
+		Perl_croak(aTHX_ "Usage: Mob::GetSpellPRBonuses(THIS)");
+	{
+		Mob *THIS;
+		int32 RETVAL;
+		dXSTARG;
+
+		if (sv_derived_from(ST(0), "Mob")) {
+			IV tmp = SvIV((SV *) SvRV(ST(0)));
+			THIS = INT2PTR(Mob *, tmp);
+		} else
+			Perl_croak(aTHX_ "THIS is not of type Mob");
+		if (THIS == nullptr)
+			Perl_croak(aTHX_ "THIS is nullptr, avoiding crash.");
+
+		RETVAL = THIS->GetSpellPRBonuses();
+		XSprePUSH;
+		PUSHi((IV) RETVAL);
+	}
+	XSRETURN(1);
+}
+
+XS(XS_Mob_GetSpellMRBonuses); /* prototype to pass -Wmissing-prototypes */
+XS(XS_Mob_GetSpellMRBonuses) {
+	dXSARGS;
+	if (items != 1)
+		Perl_croak(aTHX_ "Usage: Mob::GetSpellMRBonuses(THIS)");
+	{
+		Mob *THIS;
+		int32 RETVAL;
+		dXSTARG;
+
+		if (sv_derived_from(ST(0), "Mob")) {
+			IV tmp = SvIV((SV *) SvRV(ST(0)));
+			THIS = INT2PTR(Mob *, tmp);
+		} else
+			Perl_croak(aTHX_ "THIS is not of type Mob");
+		if (THIS == nullptr)
+			Perl_croak(aTHX_ "THIS is nullptr, avoiding crash.");
+
+		RETVAL = THIS->GetSpellMRBonuses();
+		XSprePUSH;
+		PUSHi((IV) RETVAL);
+	}
+	XSRETURN(1);
+}
+
 XS(XS_Mob_GetSpellIDFromSlot); /* prototype to pass -Wmissing-prototypes */
 XS(XS_Mob_GetSpellIDFromSlot) {
 	dXSARGS;
@@ -6747,6 +7122,21 @@ XS(boot_Mob) {
 	newXSproto(strcpy(buf, "GetSpecialAbilityParam"), XS_Mob_GetSpecialAbilityParam, file, "$$$");
 	newXSproto(strcpy(buf, "GetSpecializeSkillValue"), XS_Mob_GetSpecializeSkillValue, file, "$$");
 	newXSproto(strcpy(buf, "GetSpellHPBonuses"), XS_Mob_GetSpellHPBonuses, file, "$");
+	newXSproto(strcpy(buf, "GetSpellACBonuses"), XS_Mob_GetSpellACBonuses, file, "$");
+	newXSproto(strcpy(buf, "GetSpellATKBonuses"), XS_Mob_GetSpellATKBonuses, file, "$");
+	newXSproto(strcpy(buf, "GetSpellManaBonuses"), XS_Mob_GetSpellManaBonuses, file, "$");
+	newXSproto(strcpy(buf, "GetSpellMRBonuses"), XS_Mob_GetSpellMRBonuses, file, "$");
+	newXSproto(strcpy(buf, "GetSpellFRBonuses"), XS_Mob_GetSpellFRBonuses, file, "$");
+	newXSproto(strcpy(buf, "GetSpellPRBonuses"), XS_Mob_GetSpellPRBonuses, file, "$");
+	newXSproto(strcpy(buf, "GetSpellDRBonuses"), XS_Mob_GetSpellDRBonuses, file, "$");
+	newXSproto(strcpy(buf, "GetSpellCRBonuses"), XS_Mob_GetSpellCRBonuses, file, "$");
+	newXSproto(strcpy(buf, "GetSpellSTRBonuses"), XS_Mob_GetSpellSTRBonuses, file, "$");
+	newXSproto(strcpy(buf, "GetSpellSTABonuses"), XS_Mob_GetSpellSTABonuses, file, "$");
+	newXSproto(strcpy(buf, "GetSpellDEXBonuses"), XS_Mob_GetSpellDEXBonuses, file, "$");
+	newXSproto(strcpy(buf, "GetSpellAGIBonuses"), XS_Mob_GetSpellAGIBonuses, file, "$");
+	newXSproto(strcpy(buf, "GetSpellINTBonuses"), XS_Mob_GetSpellINTBonuses, file, "$");
+	newXSproto(strcpy(buf, "GetSpellWISBonuses"), XS_Mob_GetSpellWISBonuses, file, "$");
+	newXSproto(strcpy(buf, "GetSpellCHABonuses"), XS_Mob_GetSpellCHABonuses, file, "$");
 	newXSproto(strcpy(buf, "GetSpellIDFromSlot"), XS_Mob_GetSpellIDFromSlot, file, "$$");
 	newXSproto(strcpy(buf, "GetSpellStat"), XS_Mob_GetSpellStat, file, "$$$$");
 	newXSproto(strcpy(buf, "GetTarget"), XS_Mob_GetTarget, file, "$");

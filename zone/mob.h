@@ -581,6 +581,21 @@ public:
 	virtual void SetEndurance(int32 newEnd) { return; }
 	int32 GetItemHPBonuses();
 	int32 GetSpellHPBonuses();
+	int32 GetSpellACBonuses();
+	int32 GetSpellATKBonuses();
+	int32 GetSpellManaBonuses();
+	int32 GetSpellMRBonuses();
+	int32 GetSpellFRBonuses();
+	int32 GetSpellPRBonuses();
+	int32 GetSpellDRBonuses();
+	int32 GetSpellCRBonuses();
+	int32 GetSpellSTRBonuses();
+	int32 GetSpellSTABonuses();
+	int32 GetSpellDEXBonuses();
+	int32 GetSpellAGIBonuses();
+	int32 GetSpellINTBonuses();
+	int32 GetSpellWISBonuses();
+	int32 GetSpellCHABonuses();
 	virtual const int32& SetMana(int32 amount);
 	inline float GetManaRatio() const { return max_mana == 0 ? 100 :
 		((static_cast<float>(current_mana) / max_mana) * 100); }
