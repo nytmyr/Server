@@ -647,6 +647,7 @@ RULE_INT(Bots, OOCHoTHealPercentLimit, 90, "90 Default. Percent at which bots wi
 RULE_INT(Bots, OOCHealPercentLimit, 75, "75 Default. Percent at which bots will STOP single healing when OOC.")
 RULE_INT(Bots, OOCGroupHealPercentLimit, 60, "60 Default. Percent at which bots will STOP group based healing.")
 RULE_INT(Bots, OOCPercentageHealPercentLimit, 40, "40 Default. Percent at which bots will STOP percentage based healing.")
+RULE_BOOL(Bots, CazicTouchBotsOwner, true, "Default True. Cazic Touch/DT will hit bot owner rather than bot.")
 
 RULE_CATEGORY_END()
 #endif
