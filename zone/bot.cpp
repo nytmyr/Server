@@ -6261,9 +6261,10 @@ void Bot::DoClassAttacks(Mob *target, bool IsRiposte) {
 				break;
 				}
 				else if ((botitem == 10652 && GetLevel() >= RuleI(Bots, BotsUseEpicMinLvl) && RuleI(Bots, BotsUseEpicMinLvl) != -1 && RuleB(Bots, MonkEpicEnabled)) || (botitem == 10652 && RuleI(Bots, BotsUseEpicMinLvl) == -1 && GetLevel() >= 50 && RuleB(Bots, MonkEpicEnabled))) {
-					CastSpell(SPELL_CELESTIAL_TRANQUILITY, GetID());
-					monkepic_timer.Start(11000);
-					break;
+					if (CanBuffStack(SPELL_CELESTIAL_TRANQUILITY, GetLevel(), true) >= 0) {
+						CastSpell(SPELL_CELESTIAL_TRANQUILITY, GetID());
+						break;
+					}
 				} else {
 					break;
 				}
