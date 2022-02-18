@@ -7470,6 +7470,8 @@ void Bot::CalcBonuses() {
 	CalcSpellBonuses(&spellbonuses);
 	CalcAABonuses(&aabonuses);
 	SetAttackTimer();
+	CalcSeeInvisibleLevel();
+	CalcInvisibleLevel();
 	CalcATK();
 	CalcSTR();
 	CalcSTA();

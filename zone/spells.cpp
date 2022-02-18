@@ -206,7 +206,7 @@ bool Mob::CastSpell(uint16 spell_id, uint16 target_id, CastingSlot slot,
 	}
 
 	//Added to prevent MQ2 exploitation of equipping normally-unequippable/clickable items with effects and clicking them for benefits.
-	if (item_slot && IsClient() && (slot == CastingSlot::Item || slot == CastingSlot::PotionBelt))
+	if (item_slot != 0xFFFFFFFF && IsClient() && (slot == CastingSlot::Item || slot == CastingSlot::PotionBelt))
 	{
 		if (!CheckItemRaceClassDietyRestrictionsOnCast(item_slot)) {
 			StopCastSpell(spell_id, send_spellbar_enable);
@@ -704,13 +704,16 @@ bool Mob::DoCastingChecksOnTarget(bool check_on_casting, int32 spell_id, Mob *sp
 	}
 
 	if (check_on_casting){
-		
+
+		if (spells[spell_id].target_type == ST_AEClientV1 ||
+			spells[spell_id].target_type == ST_AECaster ||
+			spells[spell_id].target_type == ST_Ring ||
+			spells[spell_id].target_type == ST_Beam) {
+			return true;
+		}
+
 		if (!spell_target) {
-			if (IsGroupSpell(spell_id) ||
-				spells[spell_id].target_type == ST_AEClientV1 ||
-				spells[spell_id].target_type == ST_AECaster ||
-				spells[spell_id].target_type == ST_Ring ||
-				spells[spell_id].target_type == ST_Beam) {
+			if (IsGroupSpell(spell_id)){
 				return true;
 			}
 			else if (spells[spell_id].target_type == ST_Self) {
@@ -728,7 +731,6 @@ bool Mob::DoCastingChecksOnTarget(bool check_on_casting, int32 spell_id, Mob *sp
 	if (!spell_target){
 		return false;
 	}
-
 	/*
 		Spells that use caster_restriction field which requires specific conditions on target to be met before casting.
 		[Insufficient mana first]
@@ -2285,12 +2287,25 @@ bool Mob::SpellFinished(uint16 spell_id, Mob *spell_target, CastingSlot slot, ui
 	LogSpells("Spell [{}]: target type [{}], target [{}], AE center [{}]", spell_id, CastAction, spell_target?spell_target->GetName():"NONE", ae_center?ae_center->GetName():"NONE");
 
 	// if a spell has the AEDuration flag, it becomes an AE on target
-	// spell that's recast every 2500 msec for AEDuration msec. There are
-	// spells of all kinds of target types that do this, strangely enough
-	// TODO: finish this
+	// spell that's recast every 2500 msec for AEDuration msec. 
 	if(IsAEDurationSpell(spell_id)) {
 		// the spells are AE target, but we aim them on a beacon
-		Mob *beacon_loc = spell_target ? spell_target : this;
+		glm::vec4 beacon_loc;
+		if (spells[spell_id].target_type == ST_Ring) {
+			beacon_loc = glm::vec4{ GetTargetRingX(),GetTargetRingY(), GetTargetRingZ(), GetHeading()};
+		}
+		else {
+			if (spell_target) {
+				beacon_loc = spell_target->GetPosition();
+			}
+			else {
+				beacon_loc = GetPosition();
+			}
+		}
+		// live has a bug where the heading is always north
+		if (!RuleB(Spells, FixBeaconHeading)) {
+			beacon_loc.w = 0.0f;
+		}
 		auto beacon = new Beacon(beacon_loc, spells[spell_id].aoe_duration);
 		entity_list.AddBeacon(beacon);
 		LogSpells("Spell [{}]: AE duration beacon created, entity id [{}]", spell_id, beacon->GetName());
@@ -2402,9 +2417,6 @@ bool Mob::SpellFinished(uint16 spell_id, Mob *spell_target, CastingSlot slot, ui
 
 				else if(!SpellOnTarget(spell_id, spell_target, 0, true, resist_adjust, false, level_override)) {
 					if(IsBuffSpell(spell_id) && IsBeneficialSpell(spell_id)) {
-						// Prevent mana usage/timers being set for beneficial buffs
-						if(casting_spell_aa_id)
-							InterruptSpell();
 						return false;
 					}
 				}
@@ -2595,7 +2607,8 @@ bool Mob::SpellFinished(uint16 spell_id, Mob *spell_target, CastingSlot slot, ui
 	/*
 		Set Recast Timer on spells.
 	*/
-	if(IsClient() && !isproc)
+
+	if(IsClient() && !isproc && !IsFromTriggeredSpell(slot, inventory_slot))
 	{
 		if (slot == CastingSlot::AltAbility) {
 			if (!aa_id) {
@@ -2618,11 +2631,6 @@ bool Mob::SpellFinished(uint16 spell_id, Mob *spell_target, CastingSlot slot, ui
 		}
 		//handles AA and Discipline recast timers
 		else if (spell_id == casting_spell_id && casting_spell_timer != 0xFFFFFFFF)
-		{
-			CastToClient()->GetPTimers().Start(casting_spell_timer, casting_spell_timer_duration);
-			LogSpells("Spell [{}]: Setting custom reuse timer [{}] to [{}]", spell_id, casting_spell_timer, casting_spell_timer_duration);
-		}
-		else if(spell_id == casting_spell_id && casting_spell_timer != 0xFFFFFFFF)
 		{
 			CastToClient()->GetPTimers().Start(casting_spell_timer, casting_spell_timer_duration);
 			LogSpells("Spell [{}]: Setting custom reuse timer [{}] to [{}]", spell_id, casting_spell_timer, casting_spell_timer_duration);
@@ -3214,9 +3222,8 @@ bool Mob::HasDiscBuff()
 // stacking problems, and -2 if this is not a buff
 // if caster is null, the buff will be added with the caster level being
 // the level of the mob
-int Mob::AddBuff(Mob *caster, uint16 spell_id, int duration, int32 level_override)
+int Mob::AddBuff(Mob *caster, uint16 spell_id, int duration, int32 level_override, bool disable_buff_overrwrite)
 {
-
 	int buffslot, ret, caster_level, emptyslot = -1;
 	bool will_overwrite = false;
 	std::vector<int> overwrite_slots;
@@ -3237,7 +3244,7 @@ int Mob::AddBuff(Mob *caster, uint16 spell_id, int duration, int32 level_overrid
 		LogSpells("Buff [{}] failed to add because its duration came back as 0", spell_id);
 		return -2;	// no duration? this isn't a buff
 	}
-
+	
 	LogSpells("Trying to add buff [{}] cast by [{}] (cast level [{}]) with duration [{}]",
 		spell_id, caster?caster->GetName():"UNKNOWN", caster_level, duration);
 
@@ -3311,7 +3318,7 @@ int Mob::AddBuff(Mob *caster, uint16 spell_id, int duration, int32 level_overrid
 
 	// at this point we know that this buff will stick, but we have
 	// to remove some other buffs already worn if will_overwrite is true
-	if (will_overwrite) {
+	if (will_overwrite && !disable_buff_overrwrite) {
 		std::vector<int>::iterator cur, end;
 		cur = overwrite_slots.begin();
 		end = overwrite_slots.end();
@@ -3327,9 +3334,6 @@ int Mob::AddBuff(Mob *caster, uint16 spell_id, int duration, int32 level_overrid
 				emptyslot = *cur;
 		}
 	}
-
-	// now add buff at emptyslot
-	assert(buffs[emptyslot].spellid == SPELL_UNKNOWN);	// sanity check
 
 	buffs[emptyslot].spellid = spell_id;
 	buffs[emptyslot].casterlevel = caster_level;
@@ -3460,7 +3464,7 @@ int Mob::CanBuffStack(uint16 spellid, uint8 caster_level, bool iFailIfOverwrite)
 // break stuff
 //
 bool Mob::SpellOnTarget(uint16 spell_id, Mob *spelltar, int reflect_effectiveness, bool use_resist_adjust, int16 resist_adjust,
-			bool isproc, int level_override, int32 duration_override)
+			bool isproc, int level_override, int32 duration_override, bool disable_buff_overrwrite)
 {
 	// well we can't cast a spell on target without a target
 	if(!spelltar)
@@ -3636,7 +3640,7 @@ bool Mob::SpellOnTarget(uint16 spell_id, Mob *spelltar, int reflect_effectivenes
 
 	// Prevent double invising, which made you uninvised
 	// Not sure if all 3 should be stacking
-
+	//This is not live like behavior (~Kayen confirmed 2/2/22)
 	if (!RuleB(Spells, AllowDoubleInvis)) {
 		if (IsEffectInSpell(spell_id, SE_Invisibility))
 		{
@@ -4008,13 +4012,14 @@ bool Mob::SpellOnTarget(uint16 spell_id, Mob *spelltar, int reflect_effectivenes
 	}
 
 	// cause the effects to the target
-	if(!spelltar->SpellEffect(this, spell_id, spell_effectiveness, level_override, reflect_effectiveness, duration_override))
+	if(!spelltar->SpellEffect(this, spell_id, spell_effectiveness, level_override, reflect_effectiveness, duration_override, disable_buff_overrwrite))
 	{
 		// if SpellEffect returned false there's a problem applying the
 		// spell. It's most likely a buff that can't stack.
 		LogSpells("Spell [{}] could not apply its effects [{}] -> [{}]\n", spell_id, GetName(), spelltar->GetName());
-		if(casting_spell_aa_id)
+		if (casting_spell_aa_id) {
 			MessageString(Chat::SpellFailure, SPELL_NO_HOLD);
+		}
 		safe_delete(action_packet);
 		return false;
 	}
@@ -5362,14 +5367,14 @@ void Client::UnscribeSpell(int slot, bool update_client, bool defer_save)
 	m_pp.spell_book[slot] = 0xFFFFFFFF;
 
 	if (!defer_save) {
-		database.DeleteCharacterSpell(this->CharacterID(), m_pp.spell_book[slot], slot);
+		database.DeleteCharacterSpell(CharacterID(), m_pp.spell_book[slot], slot);
 	}
 
 	if (update_client && slot < EQ::spells::DynamicLookup(ClientVersion(), GetGM())->SpellbookSize) {
-		auto               outapp = new EQApplicationPacket(OP_DeleteSpell, sizeof(DeleteSpell_Struct));
-		DeleteSpell_Struct *del   = (DeleteSpell_Struct *) outapp->pBuffer;
+		auto outapp = new EQApplicationPacket(OP_DeleteSpell, sizeof(DeleteSpell_Struct));
+		DeleteSpell_Struct *del = (DeleteSpell_Struct *) outapp->pBuffer;
 		del->spell_slot = slot;
-		del->success    = 1;
+		del->success = 1;
 		QueuePacket(outapp);
 		safe_delete(outapp);
 	}
@@ -5385,6 +5390,16 @@ void Client::UnscribeSpellAll(bool update_client)
 
 	// bulk save at end (this will only delete)
 	SaveSpells();
+}
+
+void Client::UnscribeSpellBySpellID(uint16 spell_id, bool update_client)
+{
+	for (int index = 0; index < EQ::spells::SPELLBOOK_SIZE; index++) {
+		if (IsValidSpell(m_pp.spell_book[index]) && m_pp.spell_book[index] == spell_id) {
+			UnscribeSpell(index, update_client, true);
+			break;
+		}
+	}
 }
 
 void Client::UntrainDisc(int slot, bool update_client, bool defer_save)
@@ -6514,7 +6529,6 @@ void Mob::DoBardCastingFromItemClick(bool is_casting_bard_song, uint32 cast_time
 			CastToClient()->QueuePacket(outapp);
 			safe_delete(outapp);
 
-			SendSpellBarDisable();
 			ZeroCastingVars();
 			ZeroBardPulseVars();
 		}
@@ -6650,4 +6664,12 @@ bool Mob::CheckItemRaceClassDietyRestrictionsOnCast(uint32 inventory_slot) {
 	}
 
 	return true;
+}
+
+bool Mob::IsFromTriggeredSpell(CastingSlot slot, uint32 item_slot) {
+	//spells triggered using spells finished use item slot, but there is no item set.
+	if ((slot == CastingSlot::Item) && (item_slot == 0xFFFFFFFF)) {
+		return true;
+	}
+	return false;
 }
