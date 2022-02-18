@@ -6260,7 +6260,7 @@ void Bot::DoClassAttacks(Mob *target, bool IsRiposte) {
 				if (!botitem) {
 				break;
 				}
-				else if ((botitem == 10652 && GetLevel() >= RuleI(Bots, BotsUseEpicMinLvl) && RuleI(Bots, BotsUseEpicMinLvl) != -1) || (botitem == 10652 && RuleI(Bots, BotsUseEpicMinLvl) == -1 && GetLevel() >= 50)) {
+				else if ((botitem == 10652 && GetLevel() >= RuleI(Bots, BotsUseEpicMinLvl) && RuleI(Bots, BotsUseEpicMinLvl) != -1 && RuleB(Bots, MonkEpicEnabled)) || (botitem == 10652 && RuleI(Bots, BotsUseEpicMinLvl) == -1 && GetLevel() >= 50 && RuleB(Bots, MonkEpicEnabled))) {
 					CastSpell(SPELL_CELESTIAL_TRANQUILITY, GetID());
 					monkepic_timer.Start(11000);
 					break;
