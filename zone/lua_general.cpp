@@ -1146,12 +1146,13 @@ const char *lua_get_zone_long_name() {
 
 const char *lua_get_zone_long_name_by_name(const char* zone_name) {
 	return ZoneLongName(
-		ZoneID(zone_name)
+		ZoneID(zone_name),
+		true
 	);
 }
 
 const char *lua_get_zone_long_name_by_id(uint32 zone_id) {
-	return ZoneLongName(zone_id);
+	return ZoneLongName(zone_id, true);
 }
 
 const char *lua_get_zone_short_name() {
@@ -1162,7 +1163,7 @@ const char *lua_get_zone_short_name() {
 }
 
 const char *lua_get_zone_short_name_by_id(uint32 zone_id) {
-	return ZoneName(zone_id);
+	return ZoneName(zone_id, true);
 }
 
 int lua_get_zone_instance_id() {
@@ -4212,7 +4213,9 @@ luabind::scope lua_register_events() {
 			luabind::value("test_buff", static_cast<int>(EVENT_TEST_BUFF)),
 			luabind::value("consider", static_cast<int>(EVENT_CONSIDER)),
 			luabind::value("consider_corpse", static_cast<int>(EVENT_CONSIDER_CORPSE)),
-			luabind::value("loot_zone", static_cast<int>(EVENT_LOOT_ZONE))
+			luabind::value("loot_zone", static_cast<int>(EVENT_LOOT_ZONE)),
+			luabind::value("equip_item_client", static_cast<int>(EVENT_EQUIP_ITEM_CLIENT)),
+			luabind::value("unequip_item_client", static_cast<int>(EVENT_UNEQUIP_ITEM_CLIENT))
 		];
 }
 

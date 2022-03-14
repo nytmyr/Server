@@ -313,8 +313,6 @@ Mob::Mob(
 		armor_tint.Slot[i].Color = in_armor_tint.Slot[i].Color;
 	}
 
-	std::fill(std::begin(m_spellHitsLeft), std::end(m_spellHitsLeft), 0);
-
 	m_Delta   = glm::vec4();
 	animation = 0;
 
@@ -1533,9 +1531,9 @@ void Mob::CreateHPPacket(EQApplicationPacket* app)
 	{
 		if (ds->hp < GetNextHPEvent())
 		{
-			std::string buf = fmt::format("{}", GetNextHPEvent());
+			std::string export_string = fmt::format("{}", GetNextHPEvent());
 			SetNextHPEvent(-1);
-			parse->EventNPC(EVENT_HP, CastToNPC(), nullptr, buf.c_str(), 0);
+			parse->EventNPC(EVENT_HP, CastToNPC(), nullptr, export_string, 0);
 		}
 	}
 
@@ -1543,9 +1541,9 @@ void Mob::CreateHPPacket(EQApplicationPacket* app)
 	{
 		if (ds->hp > GetNextIncHPEvent())
 		{
-			std::string buf = fmt::format("{}", GetNextIncHPEvent());
+			std::string export_string = fmt::format("{}", GetNextIncHPEvent());
 			SetNextIncHPEvent(-1);
-			parse->EventNPC(EVENT_HP, CastToNPC(), nullptr, buf.c_str(), 1);
+			parse->EventNPC(EVENT_HP, CastToNPC(), nullptr, export_string, 1);
 		}
 	}
 }
@@ -4672,7 +4670,7 @@ void Mob::ApplyHealthTransferDamage(Mob *caster, Mob *target, uint16 spell_id)
 	}
 }
 
-int32 Mob::GetVulnerability(Mob *caster, uint32 spell_id, uint32 ticsremaining)
+int32 Mob::GetVulnerability(Mob *caster, uint32 spell_id, uint32 ticsremaining, bool from_buff_tic)
 {
 	/*
 	Modifies incoming spell damage by percent, to increase or decrease damage, can be limited to specific resists.
@@ -4698,8 +4696,8 @@ int32 Mob::GetVulnerability(Mob *caster, uint32 spell_id, uint32 ticsremaining)
 		innate_mod = Vulnerability_Mod[HIGHEST_RESIST + 1];
 	}
 
-	fc_spell_vulnerability_mod = GetFocusEffect(focusSpellVulnerability, spell_id, caster);
-	fc_spell_damage_pct_incomingPC_mod = GetFocusEffect(focusFcSpellDamagePctIncomingPC, spell_id, caster);
+	fc_spell_vulnerability_mod = GetFocusEffect(focusSpellVulnerability, spell_id, caster, from_buff_tic);
+	fc_spell_damage_pct_incomingPC_mod = GetFocusEffect(focusFcSpellDamagePctIncomingPC, spell_id, caster, from_buff_tic);
 	
 	total_mod = fc_spell_vulnerability_mod + fc_spell_damage_pct_incomingPC_mod;
 

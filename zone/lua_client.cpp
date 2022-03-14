@@ -2346,6 +2346,57 @@ void Lua_Client::UnscribeSpellBySpellID(uint16 spell_id, bool update_client) {
 	self->UnscribeSpellBySpellID(spell_id, update_client);
 }
 
+int Lua_Client::GetEnvironmentDamageModifier() {
+	Lua_Safe_Call_Int();
+	return self->GetEnvironmentDamageModifier();
+}
+
+void Lua_Client::SetEnvironmentDamageModifier(int value) {
+	Lua_Safe_Call_Void();
+	self->SetEnvironmentDamageModifier(value);
+}
+
+bool Lua_Client::GetInvulnerableEnvironmentDamage() {
+	Lua_Safe_Call_Bool();
+	return self->GetInvulnerableEnvironmentDamage();
+}
+
+void Lua_Client::SetInvulnerableEnvironmentDamage(bool value) {
+	Lua_Safe_Call_Void();
+	self->SetInvulnerableEnvironmentDamage(value);
+}
+
+void Lua_Client::AddItem(luabind::object item_table) {
+	Lua_Safe_Call_Void();
+	if (luabind::type(item_table) != LUA_TTABLE) {
+		return;
+	}
+
+	uint32 item_id = luabind::object_cast<uint32>(item_table["item_id"]);
+	int16 charges = luabind::object_cast<uint32>(item_table["charges"]);
+	uint32 augment_one = luabind::type(item_table["augment_one"]) != LUA_TNIL ? luabind::object_cast<uint32>(item_table["augment_one"]) : 0;
+	uint32 augment_two = luabind::type(item_table["augment_two"]) != LUA_TNIL ? luabind::object_cast<uint32>(item_table["augment_two"]) : 0;
+	uint32 augment_three = luabind::type(item_table["augment_three"]) != LUA_TNIL ? luabind::object_cast<uint32>(item_table["augment_three"]) : 0;
+	uint32 augment_four = luabind::type(item_table["augment_four"]) != LUA_TNIL ? luabind::object_cast<uint32>(item_table["augment_four"]) : 0;
+	uint32 augment_five = luabind::type(item_table["augment_five"]) != LUA_TNIL ? luabind::object_cast<uint32>(item_table["augment_five"]) : 0;
+	uint32 augment_six = luabind::type(item_table["augment_six"]) != LUA_TNIL ? luabind::object_cast<uint32>(item_table["augment_six"]) : 0;
+	bool attuned = luabind::type(item_table["attuned"]) != LUA_TNIL ? luabind::object_cast<bool>(item_table["attuned"]) : false;
+	uint16 slot_id = luabind::type(item_table["slot_id"]) != LUA_TNIL ? luabind::object_cast<uint16>(item_table["slot_id"]) : EQ::invslot::slotCursor;
+
+	self->SummonItem(
+		item_id,
+		charges,
+		augment_one,
+		augment_two,
+		augment_three,
+		augment_four,
+		augment_five,
+		augment_six,
+		attuned,
+		slot_id
+	);
+}
+
 luabind::scope lua_register_client() {
 	return luabind::class_<Lua_Client, Lua_Mob>("Client")
 	.def(luabind::constructor<>())
@@ -2361,6 +2412,7 @@ luabind::scope lua_register_client() {
 	.def("AddExpeditionLockout", (void(Lua_Client::*)(std::string, std::string, uint32, std::string))&Lua_Client::AddExpeditionLockout)
 	.def("AddExpeditionLockoutDuration", (void(Lua_Client::*)(std::string, std::string, int))&Lua_Client::AddExpeditionLockoutDuration)
 	.def("AddExpeditionLockoutDuration", (void(Lua_Client::*)(std::string, std::string, int, std::string))&Lua_Client::AddExpeditionLockoutDuration)
+	.def("AddItem", (void(Lua_Client::*)(luabind::adl::object))&Lua_Client::AddItem)
 	.def("AddLDoNLoss", (void(Lua_Client::*)(uint32))&Lua_Client::AddLDoNLoss)
 	.def("AddLDoNWin", (void(Lua_Client::*)(uint32))&Lua_Client::AddLDoNWin)
 	.def("AddLevelBasedExp", (void(Lua_Client::*)(int))&Lua_Client::AddLevelBasedExp)
@@ -2470,6 +2522,7 @@ luabind::scope lua_register_client() {
 	.def("GetEbonCrystals", (uint32(Lua_Client::*)(void))&Lua_Client::GetEbonCrystals)
 	.def("GetEndurance", (int(Lua_Client::*)(void))&Lua_Client::GetEndurance)
 	.def("GetEndurancePercent", (int(Lua_Client::*)(void))&Lua_Client::GetEndurancePercent)
+	.def("GetEnvironmentDamageModifier", (int(Lua_Client::*)(void))&Lua_Client::GetEnvironmentDamageModifier)
 	.def("GetExpedition", (Lua_Expedition(Lua_Client::*)(void))&Lua_Client::GetExpedition)
 	.def("GetExpeditionLockouts", (luabind::object(Lua_Client::*)(lua_State* L))&Lua_Client::GetExpeditionLockouts)
 	.def("GetExpeditionLockouts", (luabind::object(Lua_Client::*)(lua_State* L, std::string))&Lua_Client::GetExpeditionLockouts)
@@ -2486,6 +2539,7 @@ luabind::scope lua_register_client() {
 	.def("GetIPString", (std::string(Lua_Client::*)(void))&Lua_Client::GetIPString)
 	.def("GetInstrumentMod", (int(Lua_Client::*)(int))&Lua_Client::GetInstrumentMod)
 	.def("GetInventory", (Lua_Inventory(Lua_Client::*)(void))&Lua_Client::GetInventory)
+	.def("GetInvulnerableEnvironmentDamage", (bool(Lua_Client::*)(void))&Lua_Client::GetInvulnerableEnvironmentDamage)
 	.def("GetItemIDAt", (int(Lua_Client::*)(int))&Lua_Client::GetItemIDAt)
 	.def("GetLDoNLosses", (int(Lua_Client::*)(void))&Lua_Client::GetLDoNLosses)
 	.def("GetLDoNLossesTheme", (int(Lua_Client::*)(int))&Lua_Client::GetLDoNLossesTheme)
@@ -2671,6 +2725,7 @@ luabind::scope lua_register_client() {
 	.def("SetEXPModifier", (void(Lua_Client::*)(uint32,double))&Lua_Client::SetEXPModifier)
 	.def("SetEbonCrystals", (void(Lua_Client::*)(uint32))&Lua_Client::SetEbonCrystals)
 	.def("SetEndurance", (void(Lua_Client::*)(int))&Lua_Client::SetEndurance)
+	.def("SetEnvironmentDamageModifier", (void(Lua_Client::*)(int))&Lua_Client::SetEnvironmentDamageModifier)
 	.def("SetFactionLevel", (void(Lua_Client::*)(uint32,uint32,int,int,int))&Lua_Client::SetFactionLevel)
 	.def("SetFactionLevel2", (void(Lua_Client::*)(uint32,int,int,int,int,int,int))&Lua_Client::SetFactionLevel2)
 	.def("SetFeigned", (void(Lua_Client::*)(bool))&Lua_Client::SetFeigned)
@@ -2679,6 +2734,7 @@ luabind::scope lua_register_client() {
 	.def("SetHideMe", (void(Lua_Client::*)(bool))&Lua_Client::SetHideMe)
 	.def("SetHorseId", (void(Lua_Client::*)(int))&Lua_Client::SetHorseId)
 	.def("SetHunger", (void(Lua_Client::*)(int))&Lua_Client::SetHunger)
+	.def("SetInvulnerableEnvironmentDamage", (void(Lua_Client::*)(int))&Lua_Client::SetInvulnerableEnvironmentDamage)
 	.def("SetIPExemption", (void(Lua_Client::*)(int))&Lua_Client::SetIPExemption)
 	.def("SetLanguageSkill", (void(Lua_Client::*)(int,int))&Lua_Client::SetLanguageSkill)
 	.def("SetMaterial", (void(Lua_Client::*)(int,uint32))&Lua_Client::SetMaterial)

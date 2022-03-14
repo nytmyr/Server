@@ -179,7 +179,30 @@ bool Mob::CastSpell(uint16 spell_id, uint16 target_id, CastingSlot slot,
 		return false;
 	}
 
-	if (!DoCastingChecksOnCaster(spell_id) ||
+	//Goal of Spells:UseSpellImpliedTargeting is to replicate the EQ2 feature where spells will 'pass through' invalid targets to target's target to try to find a valid target.
+    if (RuleB(Spells,UseSpellImpliedTargeting) && IsClient()) {
+		Mob* spell_target = entity_list.GetMobID(target_id);
+		if (spell_target) {
+			Mob* targets_target = spell_target->GetTarget();
+			if (targets_target) {
+				// If either this is beneficial and the target is not a player or player's pet or vis versa
+				if ((IsBeneficialSpell(spell_id) && (!(spell_target->IsClient() || (spell_target->HasOwner() && spell_target->GetOwner()->IsClient()))))
+					|| (IsDetrimentalSpell(spell_id) && (spell_target->IsClient() || (spell_target->HasOwner() && spell_target->GetOwner()->IsClient())))) {
+					//Check if the target's target is a valid target; we can use DoCastingChecksOnTarget() here because we can let it handle the failure as vanilla would
+					if (DoCastingChecksOnTarget(true, spell_id, targets_target)) {
+						target_id = targets_target->GetID();
+					}
+					else {
+						//Just return false here because we are going to fail the next check block anyway if we reach this point.
+						StopCastSpell(spell_id, send_spellbar_enable);
+						return false;
+					}
+				}
+			}
+		}
+    }
+
+	if (!DoCastingChecksOnCaster(spell_id, slot) ||
 		!DoCastingChecksZoneRestrictions(true, spell_id) ||
 		!DoCastingChecksOnTarget(true, spell_id, entity_list.GetMobID(target_id))) {
 		StopCastSpell(spell_id, send_spellbar_enable);
@@ -214,7 +237,12 @@ bool Mob::CastSpell(uint16 spell_id, uint16 target_id, CastingSlot slot,
 		}
 	}
 
-	std::string export_string = fmt::format("{}", spell_id);
+	std::string export_string = fmt::format(
+		"{} {} {}",
+		spell_id,
+		GetID(),
+		GetCasterLevel(spell_id)
+	);
 	if(IsClient()) {
 		if (parse->EventPlayer(EVENT_CAST_BEGIN, CastToClient(), export_string, 0) != 0) {
 			if (IsDiscipline(spell_id)) {
@@ -477,7 +505,7 @@ void Mob::SendBeginCast(uint16 spell_id, uint32 casttime)
 	safe_delete(outapp);
 }
 
-bool Mob::DoCastingChecksOnCaster(int32 spell_id) {
+bool Mob::DoCastingChecksOnCaster(int32 spell_id, CastingSlot slot) {
 
 	/*
 		These are casting requirements on the CASTER that will cancel a spell before spell finishes casting or prevent spell from casting.
@@ -531,7 +559,7 @@ bool Mob::DoCastingChecksOnCaster(int32 spell_id) {
 	/*
 		Linked Reused Timers that are not ready
 	*/
-	if (IsClient() && spells[spell_id].timer_id > 0 && casting_spell_slot < CastingSlot::MaxGems) {
+	if (IsClient() && spells[spell_id].timer_id > 0 && slot < CastingSlot::MaxGems) {
 		if (!CastToClient()->IsLinkedSpellReuseTimerReady(spells[spell_id].timer_id)) {
 			LogSpells("Spell casting canceled [{}] : linked reuse timer not ready.", spell_id);
 			return false;
@@ -1525,7 +1553,8 @@ void Mob::CastedSpellFinished(uint16 spell_id, uint32 target_id, CastingSlot slo
 
 				// handle the components for traditional casters
 				else {
-					if (!RuleB(Character, PetsUseReagents) && (IsEffectInSpell(spell_id, SE_SummonPet) || IsEffectInSpell(spell_id, SE_NecPet))) {
+					if (!RuleB(Character, PetsUseReagents) && (IsEffectInSpell(spell_id, SE_SummonPet) || IsEffectInSpell(spell_id, SE_NecPet)) ||
+						(IsBardSong(spell_id) && (slot == CastingSlot::Item|| slot == CastingSlot::PotionBelt))) {
 						//bypass reagent cost
 					}
 					else if(c->GetInv().HasItem(component, component_count, invWhereWorn|invWherePersonal) == -1) // item not found
@@ -1601,7 +1630,6 @@ void Mob::CastedSpellFinished(uint16 spell_id, uint32 target_id, CastingSlot slo
 	{
 		DeleteChargeFromSlot = GetItemSlotToConsumeCharge(spell_id, inventory_slot);
 	}
-
 	// we're done casting, now try to apply the spell
 	if(!SpellFinished(spell_id, spell_target, slot, mana_used, inventory_slot, resist_adjust, false,-1, 0xFFFFFFFF, 0, true))
 	{
@@ -1613,7 +1641,6 @@ void Mob::CastedSpellFinished(uint16 spell_id, uint32 target_id, CastingSlot slo
 	}
 
 	if(IsClient()) {
-		CheckNumHitsRemaining(NumHit::MatchingSpells);
 		TrySympatheticProc(target, spell_id);
 	}
 	
@@ -1629,7 +1656,12 @@ void Mob::CastedSpellFinished(uint16 spell_id, uint32 target_id, CastingSlot slo
 	// at this point the spell has successfully been cast
 	//
 
-	std::string export_string = fmt::format("{}", spell_id);
+	std::string export_string = fmt::format(
+		"{} {} {}",
+		spell_id,
+		GetID(),
+		GetCasterLevel(spell_id)
+	);
 	if(IsClient()) {
 		parse->EventPlayer(EVENT_CAST, CastToClient(), export_string, 0);
 	} else if(IsNPC()) {
@@ -3574,8 +3606,13 @@ bool Mob::SpellOnTarget(uint16 spell_id, Mob *spelltar, int reflect_effectivenes
 	);
 
 	/* Send the EVENT_CAST_ON event */
-	std::string export_string = fmt::format("{}", spell_id);
-	if(spelltar->IsNPC()) {
+	std::string export_string = fmt::format(
+		"{} {} {}",
+		spell_id,
+		GetID(),
+		caster_level
+	);
+	if (spelltar->IsNPC()) {
 		parse->EventNPC(EVENT_CAST_ON, spelltar->CastToNPC(), this, export_string, 0);
 	} else if (spelltar->IsClient()) {
 		parse->EventPlayer(EVENT_CAST_ON, spelltar->CastToClient(), export_string, 0);
@@ -5482,127 +5519,157 @@ uint32 Client::GetHighestScribedSpellinSpellGroup(uint32 spell_group)
 }
 
 bool Client::SpellGlobalCheck(uint16 spell_id, uint32 char_id) {
-	std::string spell_global_name;
-	int spell_global_value;
-	int global_value;
-	std::string query = StringFormat("SELECT qglobal, value FROM spell_globals WHERE spellid = %i", spell_id);
-    auto results = database.QueryDatabase(query);
-    if (!results.Success()) {
-		return false; // Query failed, so prevent spell from scribing just in case
-    }
+	std::string query = fmt::format(
+		"SELECT qglobal, value FROM spell_globals WHERE spellid = {}",
+		spell_id
+	);
 
-    if (results.RowCount() != 1)
-        return true; // Spell ID isn't listed in the spells_global table, so it is not restricted from scribing
+	auto results = database.QueryDatabase(query);
+	if (!results.Success()) {
+		return false; // Query failed, do not allow scribing.
+	}
 
-    auto row = results.begin();
-    spell_global_name = row[0];
-	spell_global_value = atoi(row[1]);
+	if (!results.RowCount()) {
+		return true; // Spell ID isn't listed in the spell_globals table, allow scribing,
+	}
 
-	if (spell_global_name.empty())
-        return true; // If the entry in the spell_globals table has nothing set for the qglobal name
+	auto row = results.begin();
+	std::string spell_global_name = row[0];
+	std::string spell_global_value = row[1];
 
-    query = StringFormat("SELECT value FROM quest_globals "
-                        "WHERE charid = %i AND name = '%s'",
-						 char_id, spell_global_name.c_str());
+	if (spell_global_name.empty()) {
+		return true; // If the entry in the spell_globals table has nothing set for the qglobal name, allow scribing.
+	}
+
+	query = fmt::format(
+		"SELECT value FROM quest_globals WHERE charid = {} AND name = '{}'",
+		char_id,
+		EscapeString(spell_global_name)
+	);
+
 	results = database.QueryDatabase(query);
 	if (!results.Success()) {
 		LogError(
-			"Spell ID [{}] query of spell_globals with Name: [{}] Value: [{}] failed",
+			"Spell global [{}] for spell ID [{}] for character ID [{}] query failed.",
+			spell_global_name,
 			spell_id,
-			spell_global_name.c_str(),
-			spell_global_value
+			char_id
 		);
 
-		return false;
+		return false; // Query failed, do not allow scribing.
 	}
 
-	if (results.RowCount() != 1) {
+	if (!results.RowCount()) {
 		LogError(
-			"Char ID: [{}] does not have the Qglobal Name: [{}] for Spell ID [{}]",
-			char_id,
-			spell_global_name.c_str(),
-			spell_id
+			"Spell global [{}] for spell ID [{}] for character ID [{}] does not exist.",
+			spell_global_name,
+			spell_id,
+			char_id
 		);
 
-		return false;
+		return false; // No rows found, do not allow scribing.
 	}
 
-	row          = results.begin();
-	global_value = atoi(row[0]);
-	if (global_value == spell_global_value) {
-		return true; // If the values match from both tables, allow the spell to be scribed
+	row = results.begin();
+	std::string global_value = row[0];
+	if (StringIsNumber(global_value) && StringIsNumber(spell_global_value)) {
+		if (std::stoi(global_value) >= std::stoi(spell_global_value)) {
+			return true; // If value is greater than or equal to spell global value, allow scribing.
+		}
+	} else {
+		if (global_value == spell_global_value) {
+			return true; // If value is equal to spell bucket value, allow scribing.
+		}
 	}
-	else if (global_value > spell_global_value) {
-		return true;
-	} // Check if the qglobal value is greater than the require spellglobal value
 
-	// If no matching result found in qglobals, don't scribe this spell
+	// If user's qglobal does not meet requirements, do not allow scribing.
 	LogError(
-		"Char ID: [{}] SpellGlobals Name: [{}] Value: [{}] did not match QGlobal Value: [{}] for Spell ID [{}]",
+		"Spell global [{}] for spell ID [{}] for character ID [{}] did not match value [{}] value found was [{}].",
+		spell_global_name,
+		spell_id,
 		char_id,
-		spell_global_name.c_str(),
 		spell_global_value,
-		global_value,
-		spell_id
+		global_value
 	);
 
 	return false;
 }
 
 bool Client::SpellBucketCheck(uint16 spell_id, uint32 char_id) {
-	std::string spell_bucket_name;
-	int spell_bucket_value;
-	int bucket_value;
-	std::string query = StringFormat("SELECT `key`, value FROM spell_buckets WHERE spellid = %i", spell_id);
-	auto results = database.QueryDatabase(query);
-	if (!results.Success())
-		return false;
+	auto query = fmt::format(
+		"SELECT `key`, value FROM spell_buckets WHERE spellid = {}",
+		spell_id
+	);
 
-	if (results.RowCount() != 1)
-		return true;
+	auto results = database.QueryDatabase(query);
+	if (!results.Success()) {
+		return false; // Query failed, do not allow scribing.
+	}
+
+	if (!results.RowCount()) {
+		return true; // Spell ID isn't listed in the spell_buckets table, allow scribing.
+	}
 
 	auto row = results.begin();
-	spell_bucket_name = row[0];
-	spell_bucket_value = atoi(row[1]);
-	if (spell_bucket_name.empty())
-		return true;
+	std::string spell_bucket_name = row[0];
+	std::string spell_bucket_value = row[1];
 
-	query   = StringFormat("SELECT value FROM data_buckets WHERE `key` = '%i-%s'", char_id, spell_bucket_name.c_str());
+	if (spell_bucket_name.empty()) {
+		return true; // If the entry in the spell_buckets table has nothing set for the qglobal name, allow scribing.
+	}
+
+	query = fmt::format(
+		"SELECT value FROM data_buckets WHERE `key` = '{}-{}'",
+		char_id,
+		EscapeString(spell_bucket_name)
+	);
+
 	results = database.QueryDatabase(query);
 	if (!results.Success()) {
 		LogError(
-			"Spell bucket [{}] for spell ID [{}] for char ID [{}] failed",
-			spell_bucket_name.c_str(),
+			"Spell bucket [{}] for spell ID [{}] for character ID [{}] query failed.",
+			spell_bucket_name,
 			spell_id,
 			char_id
 		);
 
-		return false;
+		return false; // Query failed, do not allow scribing.
 	}
 
-	if (results.RowCount() != 1) {
+	if (!results.RowCount()) {
 		LogError(
-			"Spell bucket [{}] does not exist for spell ID [{}] for char ID [{}]",
-			spell_bucket_name.c_str(),
+			"Spell bucket [{}] for spell ID [{}] for character ID [{}] does not exist.",
+			spell_bucket_name,
 			spell_id,
 			char_id
 		);
 
-		return false;
+		return false; // No rows found, do not allow scribing.
 	}
 
-    row = results.begin();
+	row = results.begin();
+	std::string bucket_value = row[0];
+	if (StringIsNumber(bucket_value) && StringIsNumber(spell_bucket_value)) {
+		if (std::stoi(bucket_value) >= std::stoi(spell_bucket_value)) {
+			return true; // If value is greater than or equal to spell bucket value, allow scribing.
+		}
+	} else {
+		if (bucket_value == spell_bucket_value) {
+			return true; // If value is equal to spell bucket value, allow scribing.
+		}
+	}
 
-    bucket_value = atoi(row[0]);
+	// If user's data bucket does not meet requirements, do not allow scribing.
+	LogError(
+		"Spell bucket [{}] for spell ID [{}] for character ID [{}] did not match value [{}] value found was [{}].",
+		spell_bucket_name,
+		spell_id,
+		char_id,
+		spell_bucket_value,
+		bucket_value
+	);
 
-    if (bucket_value == spell_bucket_value)
-        return true; // If the values match from both tables, allow the spell to be scribed
-    else if (bucket_value > spell_bucket_value)
-        return true; // Check if the data bucket value is greater than the required spell bucket value
-
-    // If no matching result found in spell buckets, don't scribe this spell
-  LogError("Spell bucket [{}] for spell ID [{}] for char ID [{}] did not match value [{}]", spell_bucket_name.c_str(), spell_id, char_id, spell_bucket_value);
-    return false;
+	return false;
 }
 
 // TODO get rid of this
@@ -6538,7 +6605,7 @@ void Mob::DoBardCastingFromItemClick(bool is_casting_bard_song, uint32 cast_time
 		CastSpell(spell_id, target_id, CastingSlot::Item, cast_time, 0, 0, item_slot);
 	}
 	//Instant cast items do not stop bard songs or interrupt casting.
-	else if (CheckItemRaceClassDietyRestrictionsOnCast(item_slot) && DoCastingChecksOnCaster(spell_id)) {
+	else if (CheckItemRaceClassDietyRestrictionsOnCast(item_slot) && DoCastingChecksOnCaster(spell_id, CastingSlot::Item)) {
 		int16 DeleteChargeFromSlot = GetItemSlotToConsumeCharge(spell_id, item_slot);
 		if (SpellFinished(spell_id, entity_list.GetMob(target_id), CastingSlot::Item, 0, item_slot)) {
 			if (IsClient() && DeleteChargeFromSlot >= 0) {

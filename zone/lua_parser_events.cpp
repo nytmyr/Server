@@ -376,7 +376,9 @@ void handle_player_pick_up(QuestInterface *parse, lua_State* L, Client* client, 
 
 void handle_player_cast(QuestInterface *parse, lua_State* L, Client* client, std::string data, uint32 extra_data,
 						std::vector<EQ::Any> *extra_pointers) {
-	int spell_id = std::stoi(data);
+	Seperator sep(data.c_str());
+
+	int spell_id = std::stoi(sep.arg[0]);
 	if(IsValidSpell(spell_id)) {
 		Lua_Spell l_spell(&spells[spell_id]);
 		luabind::adl::object l_spell_o = luabind::adl::object(L, l_spell);
@@ -388,6 +390,12 @@ void handle_player_cast(QuestInterface *parse, lua_State* L, Client* client, std
 	}
 
 	lua_setfield(L, -2, "spell");
+	
+	lua_pushinteger(L, std::stoi(sep.arg[1]));
+	lua_setfield(L, -2, "caster_id");
+	
+	lua_pushinteger(L, std::stoi(sep.arg[2]));
+	lua_setfield(L, -2, "caster_level");
 }
 
 void handle_player_task_fail(QuestInterface *parse, lua_State* L, Client* client, std::string data, uint32 extra_data,
@@ -398,7 +406,12 @@ void handle_player_task_fail(QuestInterface *parse, lua_State* L, Client* client
 
 void handle_player_zone(QuestInterface *parse, lua_State* L, Client* client, std::string data, uint32 extra_data,
 						std::vector<EQ::Any> *extra_pointers) {
-	lua_pushinteger(L, std::stoi(data));
+	Seperator sep(data.c_str());
+
+	lua_pushinteger(L, std::stoi(sep.arg[0]));
+	lua_setfield(L, -2, "from_zone_id");
+
+	lua_pushinteger(L, std::stoi(sep.arg[1]));
 	lua_setfield(L, -2, "zone_id");
 }
 
@@ -758,6 +771,24 @@ void handle_translocate_finish(QuestInterface *parse, lua_State* L, NPC* npc, Cl
 	}
 
 	lua_setfield(L, -2, "target");
+}
+
+void handle_player_equip_item(QuestInterface *parse, lua_State* L, Client* client, std::string data, uint32 extra_data, std::vector<EQ::Any> *extra_pointers) {
+	lua_pushnumber(L, extra_data);
+	lua_setfield(L, -2, "item_id");
+
+	Seperator sep(data.c_str());
+
+	lua_pushnumber(L, std::stoi(sep.arg[0]));
+	lua_setfield(L, -2, "item_quantity");
+
+	lua_pushnumber(L, std::stoi(sep.arg[1]));
+	lua_setfield(L, -2, "slot_id");
+	
+	Lua_ItemInst l_item(extra_data);
+	luabind::adl::object l_item_o = luabind::adl::object(L, l_item);
+	l_item_o.push(L);
+	lua_setfield(L, -2, "item");
 }
 
 void handle_spell_null(QuestInterface *parse, lua_State* L, NPC* npc, Client* client, uint32 spell_id, std::string data, uint32 extra_data, std::vector<EQ::Any> *extra_pointers) { }
