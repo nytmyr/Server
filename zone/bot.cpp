@@ -8969,9 +8969,23 @@ bool Bot::CheckLoreConflict(const EQ::ItemData* item) {
 	if (!item || !(item->LoreFlag))
 		return false;
 
-	if (item->LoreGroup == -1)	// Standard lore items; look everywhere except the shared bank, return the result
-		return (m_inv.HasItem(item->ID, 0, invWhereWorn) != INVALID_INDEX);
-
+	if (RuleI(Inventory, CustomItemsLoreIDStart) == 0) {
+		if (item->LoreGroup == -1)	// Standard lore items; look everywhere except the shared bank, return the result
+			return (m_inv.HasItem(item->ID, 0, invWhereWorn) != INVALID_INDEX);
+	}
+	else {
+		if (item->LoreGroup == -1) { // Standard lore items; look everywhere except the shared bank, return the result
+			if (m_inv.HasItem(item->ID, 0, ~invWhereSharedBank) == INVALID_INDEX) {
+				if (item->ID >= RuleI(Inventory, CustomItemsLoreIDStart) && m_inv.HasItem(item->ID - RuleI(Inventory, CustomItemsLoreIDStart), 0, ~invWhereSharedBank) != INVALID_INDEX) {
+					return (m_inv.HasItem(item->ID - RuleI(Inventory, CustomItemsLoreIDStart), 0, ~invWhereSharedBank) != INVALID_INDEX);
+				}
+				if (item->ID < RuleI(Inventory, CustomItemsLoreIDStart) && m_inv.HasItem(item->ID + RuleI(Inventory, CustomItemsLoreIDStart), 0, ~invWhereSharedBank) != INVALID_INDEX) {
+					return (m_inv.HasItem(item->ID + RuleI(Inventory, CustomItemsLoreIDStart), 0, ~invWhereSharedBank) != INVALID_INDEX);
+				}
+			}
+			return (m_inv.HasItem(item->ID, 0, ~invWhereSharedBank) != INVALID_INDEX);
+		}
+	}
 	//If the item has a lore group, we check for other items with the same group and return the result
 	return (m_inv.HasItemByLoreGroup(item->LoreGroup, invWhereWorn) != INVALID_INDEX);
 }
