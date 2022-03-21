@@ -4744,8 +4744,8 @@ void bot_command_summon_corpse(Client *c, const Seperator *sep)
 	// Same methodology as old command..but, does not appear to work... (note: didn't work there, either...)
 
 	// temp
-	c->Message(m_fail, "This command is currently unavailable...");
-	return;
+	// c->Message(m_fail, "This command is currently unavailable...");
+	// return;
 
 	bcst_list* local_list = &bot_command_spells[BCEnum::SpT_SummonCorpse];
 	if (helper_spell_list_fail(c, local_list, BCEnum::SpT_SummonCorpse) || helper_command_alias_fail(c, "bot_command_summon_corpse", sep->arg[0], "summoncorpse"))
