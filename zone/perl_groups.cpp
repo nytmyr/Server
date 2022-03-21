@@ -347,6 +347,23 @@ XS(XS_Group_GetHighestLevel) {
 	XSRETURN(1);
 }
 
+XS(XS_Group_GetLowestLevel); /* prototype to pass -Wmissing-prototypes */
+XS(XS_Group_GetLowestLevel) {
+	dXSARGS;
+	if (items != 1)
+		Perl_croak(aTHX_ "Usage: Group::GetLowestLevel(THIS)"); // @categories Script Utility, Group
+	{
+		Group* THIS;
+		uint32 RETVAL;
+		dXSTARG;
+		VALIDATE_THIS_IS_GROUP;
+		RETVAL = THIS->GetLowestLevel();
+		XSprePUSH;
+		PUSHu((UV)RETVAL);
+	}
+	XSRETURN(1);
+}
+
 XS(XS_Group_TeleportGroup); /* prototype to pass -Wmissing-prototypes */
 XS(XS_Group_TeleportGroup) {
 	dXSARGS;
@@ -456,6 +473,7 @@ XS(boot_Group) {
 	newXSproto(strcpy(buf, "DisbandGroup"), XS_Group_DisbandGroup, file, "$");
 	newXSproto(strcpy(buf, "DoesAnyMemberHaveExpeditionLockout"), XS_Group_DoesAnyMemberHaveExpeditionLockout, file, "$$$;$");
 	newXSproto(strcpy(buf, "GetHighestLevel"), XS_Group_GetHighestLevel, file, "$");
+	newXSproto(strcpy(buf, "GetLowestLevel"), XS_Group_GetLowestLevel, file, "$");
 	newXSproto(strcpy(buf, "GetID"), XS_Group_GetID, file, "$");
 	newXSproto(strcpy(buf, "GetLeader"), XS_Group_GetLeader, file, "$");
 	newXSproto(strcpy(buf, "GetLeaderName"), XS_Group_GetLeaderName, file, "$");
