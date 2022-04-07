@@ -3470,6 +3470,22 @@ XS(XS_Mob_GetOwnerID) {
 	XSRETURN(1);
 }
 
+XS(XS_Mob_GetUltimateOwner); /* prototype to pass -Wmissing-prototypes */
+XS(XS_Mob_GetUltimateOwner) {
+	dXSARGS;
+	if (items != 1)
+		Perl_croak(aTHX_ "Usage: Mob::GetUltimateOwner(THIS)"); // @categories Script Utility
+	{
+		Mob* THIS;
+		Mob* RETVAL;
+		VALIDATE_THIS_IS_MOB;
+		RETVAL = THIS->GetUltimateOwner();
+		ST(0) = sv_newmortal();
+		sv_setref_pv(ST(0), "Mob", (void*)RETVAL);
+	}
+	XSRETURN(1);
+}
+
 XS(XS_Mob_GetPetType); /* prototype to pass -Wmissing-prototypes */
 XS(XS_Mob_GetPetType) {
 	dXSARGS;
@@ -7252,6 +7268,7 @@ XS(boot_Mob) {
 	newXSproto(strcpy(buf, "GetNimbusEffect2"), XS_Mob_GetNimbusEffect2, file, "$");
 	newXSproto(strcpy(buf, "GetNimbusEffect3"), XS_Mob_GetNimbusEffect3, file, "$");
 	newXSproto(strcpy(buf, "GetOwnerID"), XS_Mob_GetOwnerID, file, "$");
+	newXSproto(strcpy(buf, "GetUltimateOwner"), XS_Mob_GetUltimateOwner, file, "$");
 	newXSproto(strcpy(buf, "GetPR"), XS_Mob_GetPR, file, "$");
 	newXSproto(strcpy(buf, "GetPetID"), XS_Mob_GetPetID, file, "$");
 	newXSproto(strcpy(buf, "GetPetOrder"), XS_Mob_GetPetOrder, file, "$");
