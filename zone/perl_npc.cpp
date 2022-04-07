@@ -1736,6 +1736,22 @@ XS(XS_NPC_IsRaidTarget) {
 	XSRETURN(1);
 }
 
+XS(XS_NPC_IsRareSpawn); /* prototype to pass -Wmissing-prototypes */
+XS(XS_NPC_IsRareSpawn) {
+	dXSARGS;
+	if (items != 1)
+		Perl_croak(aTHX_ "Usage: NPC::IsRareSpawn(THIS)"); // @categories Stats and Attributes
+	{
+		NPC* THIS;
+		bool is_rare_spawn;
+		VALIDATE_THIS_IS_NPC;
+		is_rare_spawn = THIS->IsRareSpawn();
+		ST(0) = boolSV(is_rare_spawn);
+		sv_2mortal(ST(0));
+	}
+	XSRETURN(1);
+}
+
 XS(XS_NPC_HasItem);  /* prototype to pass -Wmissing-prototypes */
 XS(XS_NPC_HasItem) {
 	dXSARGS;
@@ -2001,6 +2017,7 @@ XS(boot_NPC) {
 	newXSproto(strcpy(buf, "IsGuarding"), XS_NPC_IsGuarding, file, "$");
 	newXSproto(strcpy(buf, "IsOnHatelist"), XS_NPC_IsOnHatelist, file, "$$");
 	newXSproto(strcpy(buf, "IsRaidTarget"), XS_NPC_IsRaidTarget, file, "$");
+	newXSproto(strcpy(buf, "IsRareSpawn"), XS_NPC_IsRareSpawn, file, "$");
 	newXSproto(strcpy(buf, "IsTaunting"), XS_NPC_IsTaunting, file, "$");
 	newXSproto(strcpy(buf, "MerchantCloseShop"), XS_NPC_MerchantCloseShop, file, "$");
 	newXSproto(strcpy(buf, "MerchantOpenShop"), XS_NPC_MerchantOpenShop, file, "$");
