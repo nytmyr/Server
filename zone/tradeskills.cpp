@@ -1178,11 +1178,10 @@ void Client::CheckIncreaseTradeskill(int16 bonusstat, int16 stat_modifier, float
 		//Only if stage1 and stage2 succeeded you get a skillup.
 		SetSkill(tradeskill, current_raw_skill + 1);
 		std::string export_string = fmt::format(
-			"{} {} {} {} {}",
+			"{} {} {} {}",
 			tradeskill,
 			current_raw_skill + 1,
 			maxskill,
-			0,
 			1
 		);
 		parse->EventPlayer(EVENT_SKILL_UP, this, export_string, 0);

@@ -139,7 +139,8 @@ const char *LuaEvents[_LargestEventID] = {
 	"event_loot_zone",
 	"event_equip_item_client",
 	"event_unequip_item_client",
-	"event_skill_up"
+	"event_skill_up",
+	"event_language_skill_up"
 };
 
 extern Zone *zone;
@@ -234,6 +235,7 @@ LuaParser::LuaParser() {
 	PlayerArgumentDispatch[EVENT_EQUIP_ITEM_CLIENT] = handle_player_equip_item;
 	PlayerArgumentDispatch[EVENT_UNEQUIP_ITEM_CLIENT] = handle_player_equip_item;
 	PlayerArgumentDispatch[EVENT_SKILL_UP] = handle_player_skill_up;
+	PlayerArgumentDispatch[EVENT_LANGUAGE_SKILL_UP] = handle_player_skill_up;
 
 	ItemArgumentDispatch[EVENT_ITEM_CLICK] = handle_item_click;
 	ItemArgumentDispatch[EVENT_ITEM_CLICK_CAST] = handle_item_click;
