@@ -96,6 +96,7 @@ typedef enum {
 	EVENT_LOOT_ZONE,
 	EVENT_EQUIP_ITEM_CLIENT,
 	EVENT_UNEQUIP_ITEM_CLIENT,
+	EVENT_SKILL_UP,
 	_LargestEventID
 } QuestEventID;
 

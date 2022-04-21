@@ -4230,7 +4230,8 @@ luabind::scope lua_register_events() {
 			luabind::value("consider_corpse", static_cast<int>(EVENT_CONSIDER_CORPSE)),
 			luabind::value("loot_zone", static_cast<int>(EVENT_LOOT_ZONE)),
 			luabind::value("equip_item_client", static_cast<int>(EVENT_EQUIP_ITEM_CLIENT)),
-			luabind::value("unequip_item_client", static_cast<int>(EVENT_UNEQUIP_ITEM_CLIENT))
+			luabind::value("unequip_item_client", static_cast<int>(EVENT_UNEQUIP_ITEM_CLIENT)),
+			luabind::value("skill_up", static_cast<int>(EVENT_SKILL_UP))
 		];
 }
 

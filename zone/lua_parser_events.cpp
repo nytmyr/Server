@@ -828,4 +828,22 @@ void handle_encounter_null(QuestInterface *parse, lua_State* L, Encounter* encou
 
 }
 
+void handle_player_skill_up(QuestInterface* parse, lua_State* L, Client* client, std::string data, uint32 extra_data, std::vector<EQ::Any>* extra_pointers) {
+	Seperator sep(data.c_str());
+	lua_pushinteger(L, std::stoi(sep.arg[0]));
+	lua_setfield(L, -2, "skill_id");
+
+	lua_pushinteger(L, std::stoi(sep.arg[1]));
+	lua_setfield(L, -2, "skill_value");
+
+	lua_pushinteger(L, std::stoi(sep.arg[2]));
+	lua_setfield(L, -2, "skill_max");
+
+	lua_pushinteger(L, std::stoi(sep.arg[3]));
+	lua_setfield(L, -2, "is_lang");
+
+	lua_pushinteger(L, std::stoi(sep.arg[4]));
+	lua_setfield(L, -2, "is_tradeskill");
+}
+
 #endif
