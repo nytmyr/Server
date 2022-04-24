@@ -487,6 +487,7 @@ public:
 	void	SetHeroForgeModel(uint32 model) { herosforgemodel = model; }
 
 	bool IsRaidTarget() const { return raid_target; };
+	bool IsRareSpawn() const { return rare_spawn; };
 	void ResetHPUpdateTimer() { send_hp_update_timer.Start(); }
 
 	bool IgnoreDespawn() { return ignore_despawn; }
@@ -673,6 +674,7 @@ protected:
 	std::list<MercData> mercDataList;
 
 	bool raid_target;
+	bool rare_spawn;
 	bool ignore_despawn; //NPCs with this set to 1 will ignore the despawn value in spawngroup
 
 

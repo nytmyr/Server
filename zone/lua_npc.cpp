@@ -575,6 +575,12 @@ bool Lua_NPC::IsRaidTarget()
 	return self->IsRaidTarget();
 }
 
+bool Lua_NPC::IsRareSpawn()
+{
+	Lua_Safe_Call_Bool();
+	return self->IsRareSpawn();
+}
+
 void Lua_NPC::ChangeLastName(const char *lastname)
 {
 	Lua_Safe_Call_Void();
@@ -743,6 +749,7 @@ luabind::scope lua_register_npc() {
 	.def("IsGuarding", (bool(Lua_NPC::*)(void))&Lua_NPC::IsGuarding)
 	.def("IsOnHatelist", (bool(Lua_NPC::*)(Lua_Mob))&Lua_NPC::IsOnHatelist)
 	.def("IsRaidTarget", (bool(Lua_NPC::*)(void))&Lua_NPC::IsRaidTarget)
+	.def("IsRareSpawn", (bool(Lua_NPC::*)(void)) & Lua_NPC::IsRareSpawn)
 	.def("IsTaunting", (bool(Lua_NPC::*)(void))&Lua_NPC::IsTaunting)
 	.def("MerchantCloseShop", (void(Lua_NPC::*)(void))&Lua_NPC::MerchantCloseShop)
 	.def("MerchantOpenShop", (void(Lua_NPC::*)(void))&Lua_NPC::MerchantOpenShop)

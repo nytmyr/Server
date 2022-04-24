@@ -140,6 +140,7 @@ public:
 	void RecalculateSkills();
 	void ScaleNPC(uint8 npc_level);
 	bool IsRaidTarget();
+	bool IsRareSpawn();
 	void ChangeLastName(const char *lastname);
 	void ClearLastName();
 	bool HasItem(uint32 item_id);
