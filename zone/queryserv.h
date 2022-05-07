@@ -19,6 +19,7 @@ enum PlayerGenericLogEventTypes {
 	Player_Log_AA_Purchases,
 	Player_Log_Trade_Skill_Events,
 	Player_Log_Issued_Commands,
+	Player_Log_Issued_Bot_Commands,
 	Player_Log_Money_Transactions,
 	Player_Log_Alternate_Currency_Transactions,
 }; 
