@@ -587,8 +587,7 @@ bool BotDatabase::SaveNewBot(Bot* bot_inst, uint32& bot_id)
 		bot_inst->GetDR(),
 		bot_inst->GetCorrup(),
 		(uint32)BOT_FOLLOW_DISTANCE_DEFAULT,
-		(IsCasterClass(bot_inst->GetClass()) ? (uint8)RuleI(Bots, CasterStopMeleeLevel) : 255),
-		0
+		(IsCasterClass(bot_inst->GetClass()) ? (uint8)RuleI(Bots, CasterStopMeleeLevel) : 255)
 	);
 	auto results = database.QueryDatabase(query);
 	if (!results.Success())
