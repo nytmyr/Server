@@ -96,11 +96,13 @@ Mob::Mob(
 	uint8 in_legtexture,
 	uint8 in_feettexture,
 	uint16 in_usemodel,
-	bool in_always_aggro
+	bool in_always_aggro,
+	int64 in_hp_regen_per_second
 ) :
 	attack_timer(2000),
 	attack_dw_timer(2000),
 	ranged_timer(2000),
+	hp_regen_per_second_timer(1000),
 	tic_timer(6000),
 	mana_timer(2000),
 	spellend_timer(0),
@@ -249,37 +251,38 @@ Mob::Mob(
 		aa_title = 0xFF;
 	}
 
-	AC                = in_ac;
-	ATK               = in_atk;
-	STR               = in_str;
-	STA               = in_sta;
-	DEX               = in_dex;
-	AGI               = in_agi;
-	INT               = in_int;
-	WIS               = in_wis;
-	CHA               = in_cha;
-	MR                = CR = FR = DR = PR = Corrup = PhR = 0;
-	ExtraHaste        = 0;
-	bEnraged          = false;
-	current_mana      = 0;
-	max_mana          = 0;
-	hp_regen          = in_hp_regen;
-	mana_regen        = in_mana_regen;
-	ooc_regen         = RuleI(NPC, OOCRegen); //default Out of Combat Regen
-	maxlevel          = in_maxlevel;
-	scalerate         = in_scalerate;
-	invisible         = 0;
-	invisible_undead  = 0;
-	invisible_animals = 0;
-	sneaking          = false;
-	hidden            = false;
-	improved_hidden   = false;
-	invulnerable      = false;
-	IsFullHP          = (current_hp == max_hp);
-	qglobal           = 0;
-	spawned           = false;
-	rare_spawn        = false;
-	always_aggro      = in_always_aggro;
+	AC                  = in_ac;
+	ATK                 = in_atk;
+	STR                 = in_str;
+	STA                 = in_sta;
+	DEX                 = in_dex;
+	AGI                 = in_agi;
+	INT                 = in_int;
+	WIS                 = in_wis;
+	CHA                 = in_cha;
+	MR                  = CR = FR = DR = PR = Corrup = PhR = 0;
+	ExtraHaste          = 0;
+	bEnraged            = false;
+	current_mana        = 0;
+	max_mana            = 0;
+	hp_regen            = in_hp_regen;
+	hp_regen_per_second = in_hp_regen_per_second;
+	mana_regen          = in_mana_regen;
+	ooc_regen           = RuleI(NPC, OOCRegen); //default Out of Combat Regen
+	maxlevel            = in_maxlevel;
+	scalerate           = in_scalerate;
+	invisible           = 0;
+	invisible_undead    = 0;
+	invisible_animals   = 0;
+	sneaking            = false;
+	hidden              = false;
+	improved_hidden     = false;
+	invulnerable        = false;
+	IsFullHP            = (current_hp == max_hp);
+	qglobal             = 0;
+	spawned             = false;
+	rare_spawn          = false;
+	always_aggro        = in_always_aggro;
 
 	InitializeBuffSlots();
 
@@ -603,7 +606,7 @@ void Mob::CalcInvisibleLevel()
 		SetInvisible(Invisibility::Invisible, true);
 		return;
 	}
-	
+
 	if (is_invisible && !invisible) {
 		SetInvisible(invisible, true);
 		return;
@@ -624,7 +627,7 @@ void Mob::SetInvisible(uint8 state, bool set_on_bonus_calc)
 	}
 	else {
 		/*
-			if your setting invisible from a script, or escape/fading memories effect then 
+			if your setting invisible from a script, or escape/fading memories effect then
 			we use the internal invis variable which allows invisible without a buff on mob.
 		*/
 		if (!set_on_bonus_calc) {
@@ -644,10 +647,10 @@ void Mob::SetInvisible(uint8 state, bool set_on_bonus_calc)
 	}
 }
 
-void Mob::ZeroInvisibleVars(uint8 invisible_type) 
+void Mob::ZeroInvisibleVars(uint8 invisible_type)
 {
 	switch (invisible_type) {
-		
+
 		case T_INVISIBLE:
 			invisible = 0;
 			nobuff_invisible = 0;
@@ -1515,7 +1518,7 @@ void Mob::CreateDespawnPacket(EQApplicationPacket* app, bool Decay)
 
 void Mob::CreateHPPacket(EQApplicationPacket* app)
 {
-	this->IsFullHP=(current_hp>=max_hp);
+	IsFullHP=(current_hp>=max_hp);
 	app->SetOpcode(OP_MobHealth);
 	app->size = sizeof(SpawnHPUpdate_Struct2);
 	app->pBuffer = new uchar[app->size];
@@ -1774,9 +1777,9 @@ void Mob::MakeSpawnUpdate(PlayerPositionUpdateServer_Struct* spu) {
 	spu->delta_z = FloatToEQ13(m_Delta.z);
 	spu->heading = FloatToEQ12(m_Position.w);
 #ifdef BOTS
-	if (this->IsClient() || this->IsBot())
+	if (IsClient() || IsBot())
 #else
-	if (this->IsClient())
+	if (IsClient())
 #endif
 		spu->animation = animation;
 	else
@@ -1896,13 +1899,13 @@ void Mob::ShowStats(Client* client)
 				target_name,
 				(
 					!target_last_name.empty() ?
-					fmt::format(" ({})", target_last_name) : 
+					fmt::format(" ({})", target_last_name) :
 					""
 				),
 				target->GetLevel()
 			).c_str()
 		);
-		
+
 		// Race / Class / Gender
 		client->Message(
 			Chat::White,
@@ -1984,7 +1987,7 @@ void Mob::ShowStats(Client* client)
 				target->GetHairColor()
 			).c_str()
 		);
-		
+
 		// Beard
 		client->Message(
 			Chat::White,
@@ -2017,7 +2020,7 @@ void Mob::ShowStats(Client* client)
 				target->GetHelmTexture()
 			).c_str()
 		);
-		
+
 		if (
 			target->GetArmTexture() ||
 			target->GetBracerTexture() ||
@@ -2033,7 +2036,7 @@ void Mob::ShowStats(Client* client)
 				).c_str()
 			);
 		}
-		
+
 		if (
 			target->GetFeetTexture() ||
 			target->GetLegTexture()
@@ -2257,7 +2260,7 @@ void Mob::ShowStats(Client* client)
 				target->GetINT()
 			).c_str()
 		);
-		
+
 		client->Message(
 			Chat::White,
 			fmt::format(
@@ -2287,7 +2290,7 @@ void Mob::ShowStats(Client* client)
 					target->GetCharmedAvoidance()
 				).c_str()
 			);
-			
+
 			client->Message(
 				Chat::White,
 				fmt::format(
@@ -2429,7 +2432,7 @@ void Mob::ShowStats(Client* client)
 					(target->GetProximityMaxX() - target->GetProximityMinX())
 				).c_str()
 			);
-			
+
 			client->Message(
 				Chat::White,
 				fmt::format(
@@ -2439,7 +2442,7 @@ void Mob::ShowStats(Client* client)
 					(target->GetProximityMaxY() - target->GetProximityMinY())
 				).c_str()
 			);
-			
+
 			client->Message(
 				Chat::White,
 				fmt::format(
@@ -2488,7 +2491,7 @@ void Mob::DoAnim(const int animnum, int type, bool ackreq, eqFilterType filter)
 void Mob::ShowBuffs(Client* client) {
 	if(SPDAT_RECORDS <= 0)
 		return;
-	client->Message(Chat::White, "Buffs on: %s", this->GetName());
+	client->Message(Chat::White, "Buffs on: %s", GetName());
 	uint32 i;
 	uint32 buff_count = GetMaxTotalSlots();
 	for (i=0; i < buff_count; i++) {
@@ -2522,7 +2525,7 @@ void Mob::ShowBuffList(Client* client) {
 	if(SPDAT_RECORDS <= 0)
 		return;
 
-	client->Message(Chat::White, "Buffs on: %s", this->GetCleanName());
+	client->Message(Chat::White, "Buffs on: %s", GetCleanName());
 	uint32 i;
 	uint32 buff_count = GetMaxTotalSlots();
 	for (i = 0; i < buff_count; i++) {
@@ -2535,7 +2538,7 @@ void Mob::ShowBuffList(Client* client) {
 	}
 }
 
-void Mob::GMMove(float x, float y, float z, float heading, bool SendUpdate) {
+void Mob::GMMove(float x, float y, float z, float heading) {
 	m_Position.x = x;
 	m_Position.y = y;
 	m_Position.z = z;
@@ -2544,6 +2547,18 @@ void Mob::GMMove(float x, float y, float z, float heading, bool SendUpdate) {
 
 	if (IsNPC()) {
 		CastToNPC()->SaveGuardSpot(glm::vec4(x, y, z, heading));
+	}
+}
+
+void Mob::GMMove(const glm::vec4 &position) {
+	m_Position.x = position.x;
+	m_Position.y = position.y;
+	m_Position.z = position.z;
+	SetHeading(position.w);
+	mMovementManager->SendCommandToClients(this, 0.0, 0.0, 0.0, 0.0, 0, ClientRangeAny);
+
+	if (IsNPC()) {
+		CastToNPC()->SaveGuardSpot(position);
 	}
 }
 
@@ -2699,194 +2714,223 @@ void Mob::SendIllusionPacket(
 bool Mob::RandomizeFeatures(bool send_illusion, bool set_variables)
 {
 	if (IsPlayerRace(GetRace())) {
-		uint8 Gender = GetGender();
-		uint8 Texture = 0xFF;
-		uint8 HelmTexture = 0xFF;
-		uint8 HairColor = 0xFF;
-		uint8 BeardColor = 0xFF;
-		uint8 EyeColor1 = 0xFF;
-		uint8 EyeColor2 = 0xFF;
-		uint8 HairStyle = 0xFF;
-		uint8 LuclinFace = 0xFF;
-		uint8 Beard = 0xFF;
-		uint32 DrakkinHeritage = 0xFFFFFFFF;
-		uint32 DrakkinTattoo = 0xFFFFFFFF;
-		uint32 DrakkinDetails = 0xFFFFFFFF;
+		uint8 current_gender = GetGender();
+		uint8 new_texture = 0xFF;
+		uint8 new_helm_texture = 0xFF;
+		uint8 new_hair_color = 0xFF;
+		uint8 new_beard_color = 0xFF;
+		uint8 new_eye_color_one = 0xFF;
+		uint8 new_eye_color_two = 0xFF;
+		uint8 new_hair_style = 0xFF;
+		uint8 new_luclin_face = 0xFF;
+		uint8 new_beard = 0xFF;
+		uint32 new_drakkin_heritage = 0xFFFFFFFF;
+		uint32 new_drakkin_tattoo = 0xFFFFFFFF;
+		uint32 new_drakkin_details = 0xFFFFFFFF;
 
 		// Set some common feature settings
-		EyeColor1 = zone->random.Int(0, 9);
-		EyeColor2 = zone->random.Int(0, 9);
-		LuclinFace = zone->random.Int(0, 7);
+		new_eye_color_one = zone->random.Int(0, 9);
+		new_eye_color_two = zone->random.Int(0, 9);
+		new_luclin_face = zone->random.Int(0, 7);
 
 		// Adjust all settings based on the min and max for each feature of each race and gender
 		switch (GetRace()) {
-		case HUMAN:
-			HairColor = zone->random.Int(0, 19);
-			if (Gender == MALE) {
-				BeardColor = HairColor;
-				HairStyle = zone->random.Int(0, 3);
-				Beard = zone->random.Int(0, 5);
-			}
-			if (Gender == FEMALE) {
-				HairStyle = zone->random.Int(0, 2);
-			}
-			break;
-		case BARBARIAN:
-			HairColor = zone->random.Int(0, 19);
-			LuclinFace = zone->random.Int(0, 87);
-			if (Gender == MALE) {
-				BeardColor = HairColor;
-				HairStyle = zone->random.Int(0, 3);
-				Beard = zone->random.Int(0, 5);
-			}
-			if (Gender == FEMALE) {
-				HairStyle = zone->random.Int(0, 2);
-			}
-			break;
-		case ERUDITE:
-			if (Gender == MALE) {
-				BeardColor = zone->random.Int(0, 19);
-				Beard = zone->random.Int(0, 5);
-				LuclinFace = zone->random.Int(0, 57);
-			}
-			if (Gender == FEMALE) {
-				LuclinFace = zone->random.Int(0, 87);
-			}
-			break;
-		case WOOD_ELF:
-			HairColor = zone->random.Int(0, 19);
-			if (Gender == MALE) {
-				HairStyle = zone->random.Int(0, 3);
-			}
-			if (Gender == FEMALE) {
-				HairStyle = zone->random.Int(0, 2);
-			}
-			break;
-		case HIGH_ELF:
-			HairColor = zone->random.Int(0, 14);
-			if (Gender == MALE) {
-				HairStyle = zone->random.Int(0, 3);
-				LuclinFace = zone->random.Int(0, 37);
-				BeardColor = HairColor;
-			}
-			if (Gender == FEMALE) {
-				HairStyle = zone->random.Int(0, 2);
-			}
-			break;
-		case DARK_ELF:
-			HairColor = zone->random.Int(13, 18);
-			if (Gender == MALE) {
-				HairStyle = zone->random.Int(0, 3);
-				LuclinFace = zone->random.Int(0, 37);
-				BeardColor = HairColor;
-			}
-			if (Gender == FEMALE) {
-				HairStyle = zone->random.Int(0, 2);
-			}
-			break;
-		case HALF_ELF:
-			HairColor = zone->random.Int(0, 19);
-			if (Gender == MALE) {
-				HairStyle = zone->random.Int(0, 3);
-				LuclinFace = zone->random.Int(0, 37);
-				BeardColor = HairColor;
-			}
-			if (Gender == FEMALE) {
-				HairStyle = zone->random.Int(0, 2);
-			}
-			break;
-		case DWARF:
-			HairColor = zone->random.Int(0, 19);
-			BeardColor = HairColor;
-			if (Gender == MALE) {
-				HairStyle = zone->random.Int(0, 3);
-				Beard = zone->random.Int(0, 5);
-			}
-			if (Gender == FEMALE) {
-				HairStyle = zone->random.Int(0, 2);
-				LuclinFace = zone->random.Int(0, 17);
-			}
-			break;
-		case TROLL:
-			EyeColor1 = zone->random.Int(0, 10);
-			EyeColor2 = zone->random.Int(0, 10);
-			if (Gender == FEMALE) {
-				HairStyle = zone->random.Int(0, 3);
-				HairColor = zone->random.Int(0, 23);
-			}
-			break;
-		case OGRE:
-			if (Gender == FEMALE) {
-				HairStyle = zone->random.Int(0, 3);
-				HairColor = zone->random.Int(0, 23);
-			}
-			break;
-		case HALFLING:
-			HairColor = zone->random.Int(0, 19);
-			if (Gender == MALE) {
-				BeardColor = HairColor;
-				HairStyle = zone->random.Int(0, 3);
-				Beard = zone->random.Int(0, 5);
-			}
-			if (Gender == FEMALE) {
-				HairStyle = zone->random.Int(0, 2);
-			}
-			break;
-		case GNOME:
-			HairColor = zone->random.Int(0, 24);
-			if (Gender == MALE) {
-				BeardColor = HairColor;
-				HairStyle = zone->random.Int(0, 3);
-				Beard = zone->random.Int(0, 5);
-			}
-			if (Gender == FEMALE) {
-				HairStyle = zone->random.Int(0, 2);
-			}
-			break;
-		case IKSAR:
-		case VAHSHIR:
-			break;
-		case FROGLOK:
-			LuclinFace = zone->random.Int(0, 9);
-		case DRAKKIN:
-			HairColor = zone->random.Int(0, 3);
-			BeardColor = HairColor;
-			EyeColor1 = zone->random.Int(0, 11);
-			EyeColor2 = zone->random.Int(0, 11);
-			LuclinFace = zone->random.Int(0, 6);
-			DrakkinHeritage = zone->random.Int(0, 6);
-			DrakkinTattoo = zone->random.Int(0, 7);
-			DrakkinDetails = zone->random.Int(0, 7);
-			if (Gender == MALE) {
-				Beard = zone->random.Int(0, 12);
-				HairStyle = zone->random.Int(0, 8);
-			}
-			if (Gender == FEMALE) {
-				Beard = zone->random.Int(0, 3);
-				HairStyle = zone->random.Int(0, 7);
-			}
-			break;
-		default:
-			break;
+			case HUMAN:
+				new_hair_color = zone->random.Int(0, 19);
+
+				if (current_gender == MALE) {
+					new_beard_color = new_hair_color;
+					new_hair_style = zone->random.Int(0, 3);
+					new_beard = zone->random.Int(0, 5);
+				} else if (current_gender == FEMALE) {
+					new_hair_style = zone->random.Int(0, 2);
+				}
+
+				break;
+			case BARBARIAN:
+				new_hair_color = zone->random.Int(0, 19);
+				new_luclin_face = zone->random.Int(0, 87);
+
+				if (current_gender == MALE) {
+					new_beard_color = new_hair_color;
+					new_hair_style = zone->random.Int(0, 3);
+					new_beard = zone->random.Int(0, 5);
+				} else if (current_gender == FEMALE) {
+					new_hair_style = zone->random.Int(0, 2);
+				}
+
+				break;
+			case ERUDITE:
+				if (current_gender == MALE) {
+					new_beard_color = zone->random.Int(0, 19);
+					new_beard = zone->random.Int(0, 5);
+					new_luclin_face = zone->random.Int(0, 57);
+				} else if (current_gender == FEMALE) {
+					new_luclin_face = zone->random.Int(0, 87);
+				}
+
+				break;
+			case WOOD_ELF:
+				new_hair_color = zone->random.Int(0, 19);
+
+				if (current_gender == MALE) {
+					new_hair_style = zone->random.Int(0, 3);
+				} else if (current_gender == FEMALE) {
+					new_hair_style = zone->random.Int(0, 2);
+				}
+
+				break;
+			case HIGH_ELF:
+				new_hair_color = zone->random.Int(0, 14);
+
+				if (current_gender == MALE) {
+					new_hair_style = zone->random.Int(0, 3);
+					new_luclin_face = zone->random.Int(0, 37);
+					new_beard_color = new_hair_color;
+				} else if (current_gender == FEMALE) {
+					new_hair_style = zone->random.Int(0, 2);
+				}
+
+				break;
+			case DARK_ELF:
+				new_hair_color = zone->random.Int(13, 18);
+
+				if (current_gender == MALE) {
+					new_hair_style = zone->random.Int(0, 3);
+					new_luclin_face = zone->random.Int(0, 37);
+					new_beard_color = new_hair_color;
+				} else if (current_gender == FEMALE) {
+					new_hair_style = zone->random.Int(0, 2);
+				}
+
+				break;
+			case HALF_ELF:
+				new_hair_color = zone->random.Int(0, 19);
+
+				if (current_gender == MALE) {
+					new_hair_style = zone->random.Int(0, 3);
+					new_luclin_face = zone->random.Int(0, 37);
+					new_beard_color = new_hair_color;
+				} else if (current_gender == FEMALE) {
+					new_hair_style = zone->random.Int(0, 2);
+				}
+
+				break;
+			case DWARF:
+				new_hair_color = zone->random.Int(0, 19);
+				new_beard_color = new_hair_color;
+
+				if (current_gender == MALE) {
+					new_hair_style = zone->random.Int(0, 3);
+					new_beard = zone->random.Int(0, 5);
+				} else if (current_gender == FEMALE) {
+					new_hair_style = zone->random.Int(0, 2);
+					new_luclin_face = zone->random.Int(0, 17);
+				}
+
+				break;
+			case TROLL:
+				new_eye_color_one = zone->random.Int(0, 10);
+				new_eye_color_two = zone->random.Int(0, 10);
+
+				if (current_gender == FEMALE) {
+					new_hair_style = zone->random.Int(0, 3);
+					new_hair_color = zone->random.Int(0, 23);
+				}
+
+				break;
+			case OGRE:
+				if (current_gender == FEMALE) {
+					new_hair_style = zone->random.Int(0, 3);
+					new_hair_color = zone->random.Int(0, 23);
+				}
+
+				break;
+			case HALFLING:
+				new_hair_color = zone->random.Int(0, 19);
+
+				if (current_gender == MALE) {
+					new_beard_color = new_hair_color;
+					new_hair_style = zone->random.Int(0, 3);
+					new_beard = zone->random.Int(0, 5);
+				} else if (current_gender == FEMALE) {
+					new_hair_style = zone->random.Int(0, 2);
+				}
+
+				break;
+			case GNOME:
+				new_hair_color = zone->random.Int(0, 24);
+
+				if (current_gender == MALE) {
+					new_beard_color = new_hair_color;
+					new_hair_style = zone->random.Int(0, 3);
+					new_beard = zone->random.Int(0, 5);
+				} else if (current_gender == FEMALE) {
+					new_hair_style = zone->random.Int(0, 2);
+				}
+
+				break;
+			case IKSAR:
+			case VAHSHIR:
+				new_luclin_face = zone->random.Int(0, 7);
+				break;
+			case FROGLOK:
+				new_luclin_face = zone->random.Int(0, 9);
+				break;
+			case DRAKKIN:
+				new_hair_color = zone->random.Int(0, 3);
+				new_beard_color = new_hair_color;
+				new_eye_color_one = zone->random.Int(0, 11);
+				new_eye_color_two = zone->random.Int(0, 11);
+				new_luclin_face = zone->random.Int(0, 6);
+				new_drakkin_heritage = zone->random.Int(0, 6);
+				new_drakkin_tattoo = zone->random.Int(0, 7);
+				new_drakkin_details = zone->random.Int(0, 7);
+
+				if (current_gender == MALE) {
+					new_beard = zone->random.Int(0, 12);
+					new_hair_style = zone->random.Int(0, 8);
+				} else if (current_gender == FEMALE) {
+					new_beard = zone->random.Int(0, 3);
+					new_hair_style = zone->random.Int(0, 7);
+				}
+
+				break;
+			default:
+				break;
 		}
 
 		if (set_variables) {
-			haircolor = HairColor;
-			beardcolor = BeardColor;
-			eyecolor1 = EyeColor1;
-			eyecolor2 = EyeColor2;
-			hairstyle = HairStyle;
-			luclinface = LuclinFace;
-			beard = Beard;
-			drakkin_heritage = DrakkinHeritage;
-			drakkin_tattoo = DrakkinTattoo;
-			drakkin_details = DrakkinDetails;
+			haircolor = new_hair_color;
+			beardcolor = new_beard_color;
+			eyecolor1 = new_eye_color_one;
+			eyecolor2 = new_eye_color_two;
+			hairstyle = new_hair_style;
+			luclinface = new_luclin_face;
+			beard = new_beard;
+			drakkin_heritage = new_drakkin_heritage;
+			drakkin_tattoo = new_drakkin_tattoo;
+			drakkin_details = new_drakkin_details;
 		}
 
 		if (send_illusion) {
-			SendIllusionPacket(GetRace(), Gender, Texture, HelmTexture, HairColor, BeardColor,
-				EyeColor1, EyeColor2, HairStyle, LuclinFace, Beard, 0xFF, DrakkinHeritage,
-				DrakkinTattoo, DrakkinDetails);
+			SendIllusionPacket(
+				GetRace(),
+				current_gender,
+				new_texture,
+				new_helm_texture,
+				new_hair_color,
+				new_beard_color,
+				new_eye_color_one,
+				new_eye_color_two,
+				new_hair_style,
+				new_luclin_face,
+				new_beard,
+				0xFF,
+				new_drakkin_heritage,
+				new_drakkin_tattoo,
+				new_drakkin_details
+			);
 		}
 
 		return true;
@@ -2897,8 +2941,13 @@ bool Mob::RandomizeFeatures(bool send_illusion, bool set_variables)
 
 bool Mob::IsPlayerRace(uint16 in_race) {
 
-	if ((in_race >= HUMAN && in_race <= GNOME) || in_race == IKSAR || in_race == VAHSHIR || in_race == FROGLOK || in_race == DRAKKIN)
-	{
+	if (
+		(in_race >= HUMAN && in_race <= GNOME) ||
+		in_race == IKSAR ||
+		in_race == VAHSHIR ||
+		in_race == FROGLOK ||
+		in_race == DRAKKIN
+	) {
 		return true;
 	}
 
@@ -2990,15 +3039,15 @@ void Mob::SendAppearancePacket(uint32 type, uint32 value, bool WholeZone, bool i
 		return;
 	auto outapp = new EQApplicationPacket(OP_SpawnAppearance, sizeof(SpawnAppearance_Struct));
 	SpawnAppearance_Struct* appearance = (SpawnAppearance_Struct*)outapp->pBuffer;
-	appearance->spawn_id = this->GetID();
+	appearance->spawn_id = GetID();
 	appearance->type = type;
 	appearance->parameter = value;
 	if (WholeZone)
 		entity_list.QueueClients(this, outapp, iIgnoreSelf);
 	else if(specific_target != nullptr)
 		specific_target->QueuePacket(outapp, false, Client::CLIENT_CONNECTED);
-	else if (this->IsClient())
-		this->CastToClient()->QueuePacket(outapp, false, Client::CLIENT_CONNECTED);
+	else if (IsClient())
+		CastToClient()->QueuePacket(outapp, false, Client::CLIENT_CONNECTED);
 	safe_delete(outapp);
 }
 
@@ -3037,11 +3086,11 @@ void Mob::SendStunAppearance()
 	safe_delete(outapp);
 }
 
-void Mob::SendAppearanceEffect(uint32 parm1, uint32 parm2, uint32 parm3, uint32 parm4, uint32 parm5, Client *specific_target, 
-	uint32 value1slot, uint32 value1ground, uint32 value2slot, uint32 value2ground, uint32 value3slot, uint32 value3ground, 
+void Mob::SendAppearanceEffect(uint32 parm1, uint32 parm2, uint32 parm3, uint32 parm4, uint32 parm5, Client *specific_target,
+	uint32 value1slot, uint32 value1ground, uint32 value2slot, uint32 value2ground, uint32 value3slot, uint32 value3ground,
 	uint32 value4slot, uint32 value4ground, uint32 value5slot, uint32 value5ground){
 	auto outapp = new EQApplicationPacket(OP_LevelAppearance, sizeof(LevelAppearance_Struct));
-	
+
 	/* Location of the effect from value#slot, this is removed upon mob death/despawn.
 		0 = pelvis1
 		1 = pelvis2
@@ -3119,7 +3168,7 @@ void Mob::SendAppearanceEffect(uint32 parm1, uint32 parm2, uint32 parm3, uint32 
 	safe_delete(outapp);
 }
 
-void Mob::SetAppearenceEffects(int32 slot, int32 value) 
+void Mob::SetAppearenceEffects(int32 slot, int32 value)
 {
 	for (int i = 0; i < MAX_APPEARANCE_EFFECTS; i++) {
 		if (!appearance_effects_id[i]) {
@@ -3137,7 +3186,7 @@ void Mob::GetAppearenceEffects()
 		Message(Chat::Red, "No Appearance Effects exist on this mob");
 		return;
 	}
-	
+
 	for (int i = 0; i < MAX_APPEARANCE_EFFECTS; i++) {
 		Message(Chat::Red, "ID: %i :: App Effect ID %i :: Slot %i", i, appearance_effects_id[i], appearance_effects_slot[i]);
 	}
@@ -3355,12 +3404,12 @@ void Mob::ChangeSize(float in_size = 0, bool bNoRestriction) {
 	// Size Code
 	if (!bNoRestriction)
 	{
-		if (this->IsClient() || this->petid != 0)
+		if (IsClient() || petid != 0)
 			if (in_size < 3.0)
 				in_size = 3.0;
 
 
-			if (this->IsClient() || this->petid != 0)
+			if (IsClient() || petid != 0)
 				if (in_size > 15.0)
 					in_size = 15.0;
 	}
@@ -3379,12 +3428,12 @@ void Mob::ChangeSize(float in_size = 0, bool bNoRestriction) {
 Mob* Mob::GetOwnerOrSelf() {
 	if (!GetOwnerID())
 		return this;
-	Mob* owner = entity_list.GetMob(this->GetOwnerID());
+	Mob* owner = entity_list.GetMob(GetOwnerID());
 	if (!owner) {
 		SetOwnerID(0);
 		return(this);
 	}
-	if (owner->GetPetID() == this->GetID()) {
+	if (owner->GetPetID() == GetID()) {
 		return owner;
 	}
 	if(IsNPC() && CastToNPC()->GetSwarmInfo()){
@@ -3395,8 +3444,8 @@ Mob* Mob::GetOwnerOrSelf() {
 }
 
 Mob* Mob::GetOwner() {
-	Mob* owner = entity_list.GetMob(this->GetOwnerID());
-	if (owner && owner->GetPetID() == this->GetID()) {
+	Mob* owner = entity_list.GetMob(GetOwnerID());
+	if (owner && owner->GetPetID() == GetID()) {
 
 		return owner;
 	}
@@ -3761,7 +3810,7 @@ bool Mob::HateSummon() {
 		if(summon_level == 1) {
 			entity_list.MessageClose(this, true, 500, Chat::Say, "%s says 'You will not evade me, %s!' ", GetCleanName(), target->GetCleanName() );
 
-			float summoner_zoff = this->GetZOffset();
+			float summoner_zoff = GetZOffset();
 			float summoned_zoff = target->GetZOffset();
 			auto new_pos = m_Position;
 			new_pos.z -= (summoner_zoff - summoned_zoff);
@@ -4029,6 +4078,65 @@ const char *Mob::GetCleanName()
 	return clean_name;
 }
 
+std::string Mob::GetTargetDescription(Mob* target, uint8 description_type)
+{
+	std::string self_return = "yourself";
+
+	switch (description_type)
+	{
+		case TargetDescriptionType::LCSelf:
+		{
+			self_return = "yourself";
+			break;
+		}
+		case TargetDescriptionType::UCSelf:
+		{
+			self_return = "Yourself";
+			break;
+		}
+		case TargetDescriptionType::LCYou:
+		{
+			self_return = "you";
+			break;
+		}
+		case TargetDescriptionType::UCYou:
+		{
+			self_return = "You";
+			break;
+		}
+		case TargetDescriptionType::LCYour:
+		{
+			self_return = "your";
+			break;
+		}
+		case TargetDescriptionType::UCYour:
+		{
+			self_return = "Your";
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+
+
+	auto d = fmt::format(
+		"{}",
+		(			
+			this == target ?
+			self_return :
+			fmt::format(
+				"{} ({})",
+				target->GetCleanName(),
+				target->GetID()
+			)
+		)
+	);
+
+	return d;
+}
+
 // hp event
 void Mob::SetNextHPEvent( int hpevent )
 {
@@ -4146,7 +4254,7 @@ void Mob::ExecWeaponProc(const EQ::ItemInstance *inst, uint16 spell_id, Mob *on,
 	if(!IsValidSpell(spell_id)) { // Check for a valid spell otherwise it will crash through the function
 		if(IsClient()){
 			Message(0, "Invalid spell proc %u", spell_id);
-			LogSpells("Player [{}], Weapon Procced invalid spell [{}]", this->GetName(), spell_id);
+			LogSpells("Player [{}], Weapon Procced invalid spell [{}]", GetName(), spell_id);
 		}
 		return;
 	}
@@ -4469,7 +4577,7 @@ bool Mob::EntityVariableExists(const char *id)
 
 void Mob::SetFlyMode(GravityBehavior flymode)
 {
-	this->flymode = flymode;
+	flymode = flymode;
 }
 
 void Mob::Teleport(const glm::vec3 &pos)
@@ -4698,7 +4806,7 @@ int32 Mob::GetVulnerability(Mob *caster, uint32 spell_id, uint32 ticsremaining, 
 
 	fc_spell_vulnerability_mod = GetFocusEffect(focusSpellVulnerability, spell_id, caster, from_buff_tic);
 	fc_spell_damage_pct_incomingPC_mod = GetFocusEffect(focusFcSpellDamagePctIncomingPC, spell_id, caster, from_buff_tic);
-	
+
 	total_mod = fc_spell_vulnerability_mod + fc_spell_damage_pct_incomingPC_mod;
 
 	//Don't let focus derived mods reduce past 99% mitigation. Quest related can, and for custom functionality if negative will give a healing affect instead of damage.
@@ -4813,7 +4921,7 @@ void Mob::SetBottomRampageList()
 		if (mob->IsNPC() && mob->CheckAggro(this)) {
 			for (int i = 0; i < mob->RampageArray.size(); i++) {
 				// Find this mob in the rampage list
-				if (this->GetID() == mob->RampageArray[i]) {
+				if (GetID() == mob->RampageArray[i]) {
 					//Move to bottom of Rampage List
 					auto it = mob->RampageArray.begin() + i;
 					std::rotate(it, it + 1, mob->RampageArray.end());
@@ -4840,7 +4948,7 @@ void Mob::SetTopRampageList()
 		if (mob->IsNPC() && mob->CheckAggro(this)) {
 			for (int i = 0; i < mob->RampageArray.size(); i++) {
 				// Find this mob in the rampage list
-				if (this->GetID() == mob->RampageArray[i]) {
+				if (GetID() == mob->RampageArray[i]) {
 					//Move to Top of Rampage List
 					auto it = mob->RampageArray.begin() + i;
 					std::rotate(it, it + 1, mob->RampageArray.end());
@@ -4941,20 +5049,20 @@ std::string Mob::GetGlobal(const char *varname) {
 	int qgCharid = 0;
 	int qgNpcid = 0;
 
-	if (this->IsNPC())
-		qgNpcid = this->GetNPCTypeID();
+	if (IsNPC())
+		qgNpcid = GetNPCTypeID();
 
-	if (this->IsClient())
-		qgCharid = this->CastToClient()->CharacterID();
+	if (IsClient())
+		qgCharid = CastToClient()->CharacterID();
 
 	QGlobalCache *qglobals = nullptr;
 	std::list<QGlobal> globalMap;
 
-	if (this->IsClient())
-		qglobals = this->CastToClient()->GetQGlobals();
+	if (IsClient())
+		qglobals = CastToClient()->GetQGlobals();
 
-	if (this->IsNPC())
-		qglobals = this->CastToNPC()->GetQGlobals();
+	if (IsNPC())
+		qglobals = CastToNPC()->GetQGlobals();
 
 	if(qglobals)
 		QGlobalCache::Combine(globalMap, qglobals->GetBucket(), qgNpcid, qgCharid, zone->GetZoneID());
@@ -4976,18 +5084,18 @@ void Mob::SetGlobal(const char *varname, const char *newvalue, int options, cons
 	int qgCharid = 0;
 	int qgNpcid = 0;
 
-	if (this->IsNPC())
+	if (IsNPC())
 	{
-		qgNpcid = this->GetNPCTypeID();
+		qgNpcid = GetNPCTypeID();
 	}
 	else if (other && other->IsNPC())
 	{
 		qgNpcid = other->GetNPCTypeID();
 	}
 
-	if (this->IsClient())
+	if (IsClient())
 	{
-		qgCharid = this->CastToClient()->CharacterID();
+		qgCharid = CastToClient()->CharacterID();
 	}
 	else if (other && other->IsClient())
 	{
@@ -5027,11 +5135,11 @@ void Mob::DelGlobal(const char *varname) {
 	int qgCharid=0;
 	int qgNpcid=0;
 
-	if (this->IsNPC())
-		qgNpcid = this->GetNPCTypeID();
+	if (IsNPC())
+		qgNpcid = GetNPCTypeID();
 
-	if (this->IsClient())
-		qgCharid = this->CastToClient()->CharacterID();
+	if (IsClient())
+		qgCharid = CastToClient()->CharacterID();
 	else
 		qgCharid = -qgNpcid;		// make char id negative npc id as a fudge
 
@@ -5449,7 +5557,7 @@ int16 Mob::GetMeleeDmgPositionMod(Mob* defender)
 
 int16 Mob::GetSkillReuseTime(uint16 skill)
 {
-	int skill_reduction = this->itembonuses.SkillReuseTime[skill] + this->spellbonuses.SkillReuseTime[skill] + this->aabonuses.SkillReuseTime[skill];
+	int skill_reduction = itembonuses.SkillReuseTime[skill] + spellbonuses.SkillReuseTime[skill] + aabonuses.SkillReuseTime[skill];
 
 	return skill_reduction;
 }
@@ -5550,7 +5658,7 @@ void Mob::DoGravityEffect()
 					if(casterId)
 						caster = entity_list.GetMob(casterId);
 
-					if(!caster || casterId == this->GetID())
+					if(!caster || casterId == GetID())
 						continue;
 
 					caster_x = caster->GetX();
@@ -5610,9 +5718,9 @@ void Mob::DoGravityEffect()
 		}
 
 		if(IsClient())
-			this->CastToClient()->MovePC(zone->GetZoneID(), zone->GetInstanceID(), cur_x, cur_y, new_ground, GetHeading());
+			CastToClient()->MovePC(zone->GetZoneID(), zone->GetInstanceID(), cur_x, cur_y, new_ground, GetHeading());
 		else
-			this->GMMove(cur_x, cur_y, new_ground, GetHeading());
+			GMMove(cur_x, cur_y, new_ground, GetHeading());
 	}
 }
 
@@ -5995,7 +6103,7 @@ FACTION_VALUE Mob::GetSpecialFactionCon(Mob* iOther) {
 		return FACTION_INDIFFERENTLY;
 
 	iOther = iOther->GetOwnerOrSelf();
-	Mob* self = this->GetOwnerOrSelf();
+	Mob* self = GetOwnerOrSelf();
 
 	bool selfAIcontrolled = self->IsAIControlled();
 	bool iOtherAIControlled = iOther->IsAIControlled();
@@ -6295,7 +6403,7 @@ uint8 Mob::GetSeeInvisibleLevelFromNPCStat(uint16 in_see_invis)
 	if (in_see_invis == 1) {
 		return 1;
 	}
-	
+
 	//random chance to apply standard level 1 see invs
 	if (in_see_invis > 1 && in_see_invis < 100) {
 		if (zone->random.Int(0, 99) < in_see_invis) {
@@ -6655,7 +6763,7 @@ bool Mob::ShieldAbility(uint32 target_id, int shielder_max_distance, int shield_
 
 	if (shield_target->CalculateDistance(GetX(), GetY(), GetZ()) > static_cast<float>(shielder_max_distance)) {
 		MessageString(Chat::Blue, TARGET_TOO_FAR);
-		return false; 
+		return false;
 	}
 
 	entity_list.MessageCloseString(this, false, 100, 0, START_SHIELDING, GetCleanName(), shield_target->GetCleanName());
@@ -6722,7 +6830,7 @@ void Mob::ShieldAbilityClearVariables()
 }
 
 void Mob::SetFeigned(bool in_feigned) {
-	
+
 	if (in_feigned)	{
 		if (IsClient()) {
 			if (RuleB(Character, FeignKillsPet)){
