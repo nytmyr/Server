@@ -771,7 +771,7 @@ RULE_BOOL(QueryServ, PlayerLogQGlobalUpdate, false, "Log player QGlobal updates"
 RULE_BOOL(QueryServ, PlayerLogTaskUpdates, false, "Log player Task updates")
 RULE_BOOL(QueryServ, PlayerLogAAPurchases, false, "Log player AA purchases")
 RULE_BOOL(QueryServ, PlayerLogTradeSkillEvents, false, "Log player tradeskill transactions")
-RULE_BOOL(QueryServ, PlayerLogIssuedCommandes, false, "Log player issued commands")
+RULE_BOOL(QueryServ, PlayerLogIssuedCommands, false, "Log player issued commands")
 RULE_BOOL(QueryServ, PlayerLogAlternateCurrencyTransactions, false, "Log player alternate currency transactions")
 RULE_CATEGORY_END()
 
