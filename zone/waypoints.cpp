@@ -97,10 +97,10 @@ void NPC::DisplayWaypointInfo(Client *client) {
 			GetID(),
 			GetSpawnGroupId(),
 			GetSpawnPointID()
-		).c_str()		
+		).c_str()
 	);
 
-	
+
 	for (const auto& current_waypoint : Waypoints) {
 		client->Message(
 			Chat::White,
@@ -118,7 +118,7 @@ void NPC::DisplayWaypointInfo(Client *client) {
 						"{} ({})",
 						ConvertSecondsToTime(current_waypoint.pause),
 						current_waypoint.pause
-					) : 
+					) :
 					""
 				)
 			).c_str()
@@ -237,7 +237,7 @@ void NPC::MoveTo(const glm::vec4 &position, bool saveguardspot)
 		}        //hack to make IsGuarding simpler
 
 		if (m_GuardPoint.w == -1)
-			m_GuardPoint.w = this->CalculateHeadingToTarget(position.x, position.y);
+			m_GuardPoint.w = CalculateHeadingToTarget(position.x, position.y);
 
 		LogAI("Setting guard position to [{}]", to_string(static_cast<glm::vec3>(m_GuardPoint)).c_str());
 	}
@@ -632,7 +632,7 @@ void NPC::AssignWaypoints(int32 grid_id, int start_wp)
 
 	if (grid_id < 0) {
 		// Allow setting negative grid values for pausing pathing
-		this->CastToNPC()->SetGrid(grid_id);
+		CastToNPC()->SetGrid(grid_id);
 		return;
 	}
 
@@ -767,9 +767,9 @@ float Mob::GetFixedZ(const glm::vec3 &destination, int32 z_find_offset) {
 		/*
 		 * Any more than 5 in the offset makes NPC's hop/snap to ceiling in small corridors
 		 */
-		new_z = this->FindDestGroundZ(destination, z_find_offset);
+		new_z = FindDestGroundZ(destination, z_find_offset);
 		if (new_z != BEST_Z_INVALID) {
-			new_z += this->GetZOffset();
+			new_z += GetZOffset();
 
 			if (new_z < -2000) {
 				new_z = m_Position.z;
@@ -779,7 +779,7 @@ float Mob::GetFixedZ(const glm::vec3 &destination, int32 z_find_offset) {
 		auto duration = timer.elapsed();
 
 		LogFixZ("Mob::GetFixedZ() ([{}]) returned [{}] at [{}], [{}], [{}] - Took [{}]",
-			this->GetCleanName(),
+			GetCleanName(),
 			new_z,
 			destination.x,
 			destination.y,
@@ -811,17 +811,17 @@ void Mob::FixZ(int32 z_find_offset /*= 5*/, bool fix_client_z /*= false*/) {
 
 	if ((new_z > -2000) && new_z != BEST_Z_INVALID) {
 		if (RuleB(Map, MobZVisualDebug)) {
-			this->SendAppearanceEffect(78, 0, 0, 0, 0);
+			SendAppearanceEffect(78, 0, 0, 0, 0);
 		}
 
 		m_Position.z = new_z;
 	}
 	else {
 		if (RuleB(Map, MobZVisualDebug)) {
-			this->SendAppearanceEffect(103, 0, 0, 0, 0);
+			SendAppearanceEffect(103, 0, 0, 0, 0);
 		}
 
-		LogFixZ("[{}] is failing to find Z [{}]", this->GetCleanName(), std::abs(m_Position.z - new_z));
+		LogFixZ("[{}] is failing to find Z [{}]", GetCleanName(), std::abs(m_Position.z - new_z));
 	}
 }
 
@@ -1041,18 +1041,31 @@ bool ZoneDatabase::GetWaypoints(uint32 grid, uint16 zoneid, uint32 num, wplist* 
 	return true;
 }
 
-void ZoneDatabase::AssignGrid(Client *client, int grid, int spawn2id) {
-	std::string query = StringFormat("UPDATE spawn2 SET pathgrid = %d WHERE id = %d", grid, spawn2id);
-	auto results = QueryDatabase(query);
+void ZoneDatabase::AssignGrid(Client *client, uint32 grid_id, uint32 entity_id) {
+	auto target_npc = entity_list.GetNPCByID(entity_id);
+	auto spawn2_id = target_npc ? target_npc->GetSpawnPointID() : 0;
+	if (spawn2_id) {
+		std::string query = fmt::format(
+			"UPDATE spawn2 SET pathgrid = {} WHERE id = {}",
+			grid_id,
+			spawn2_id
+		);
+		auto results = QueryDatabase(query);
 
-	if (!results.Success())
-		return;
+		if (!results.Success() || results.RowsAffected() != 1) {
+			return;
+		}
 
-	if (results.RowsAffected() != 1) {
-		return;
+		client->Message(
+			Chat::White,
+			fmt::format(
+				"{} (Spawn2 ID {}) will now use Grid ID {}.",
+				target_npc->GetCleanName(),
+				spawn2_id,
+				grid_id
+			).c_str()
+		);
 	}
-
-	client->Message(Chat::White, "Grid assign: spawn2 id = %d updated", spawn2id);
 }
 
 
