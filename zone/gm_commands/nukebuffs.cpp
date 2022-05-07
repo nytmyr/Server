@@ -32,7 +32,15 @@ void command_nukebuffs(Client *c, const Seperator *sep)
 		fmt::format(
 			"Faded all{} buffs for {}.",
 			buff_type,
-			c->GetTargetDescription(target)
+			(
+				c == target ?
+				"yourself" :
+				fmt::format(
+					"{} ({})",
+					target->GetCleanName(),
+					target->GetID()
+				)
+			)
 		).c_str()
 	);
 }

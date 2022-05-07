@@ -44,7 +44,15 @@ void command_title(Client *c, const Seperator *sep)
 			"Title has been {}{} for {}{}",
 			is_remove ? "removed" : "changed",
 			!is_remove && save_title ? " and saved" : "",
-			c->GetTargetDescription(target),
+			(
+				c == target ?
+				"yourself" :
+				fmt::format(
+					"{} ({})",
+					target->GetCleanName(),
+					target->GetID()
+				)
+			),
 			(
 				is_remove ?
 				"." :

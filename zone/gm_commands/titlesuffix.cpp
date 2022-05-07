@@ -44,7 +44,15 @@ void command_titlesuffix(Client *c, const Seperator *sep)
 			"Title suffix has been {}{} for {}{}",
 			is_remove ? "removed" : "changed",
 			!is_remove && save_suffix ? " and saved" : "",
-			c->GetTargetDescription(target),
+			(
+				c == target ?
+				"yourself" :
+				fmt::format(
+					"{} ({})",
+					target->GetCleanName(),
+					target->GetID()
+				)
+			),
 			(
 				is_remove ?
 				"." :

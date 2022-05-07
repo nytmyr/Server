@@ -35,7 +35,15 @@ void command_setmana(Client *c, const Seperator *sep)
 		Chat::White,
 		fmt::format(
 			"Set {} to {} Mana{}.",
-			c->GetTargetDescription(target),
+			(
+				c == target ?
+				"yourself" :
+				fmt::format(
+					"{} ({})",
+					target->GetCleanName(),
+					target->GetID()
+				)
+			),
 			(
 				set_to_max ?
 				"full" :

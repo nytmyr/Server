@@ -33,9 +33,16 @@ void command_memspell(Client *c, const Seperator *sep)
 		c->Message(
 			Chat::White,
 			fmt::format(
-				"{} {} not have a place to memorize {} ({}).",
-				c->GetTargetDescription(target, TargetDescriptionType::UCYou),
-				c == target ? "do" : "does",
+				"{} not have a place to memorize {} ({}).",
+				(
+					c == target ?
+					"You do" :
+					fmt::format(
+						"{} ({}) does",
+						target->GetCleanName(),
+						target->GetID()
+					)
+				),
 				GetSpellName(spell_id),
 				spell_id
 			).c_str()
@@ -61,11 +68,12 @@ void command_memspell(Client *c, const Seperator *sep)
 		c->Message(
 			Chat::White,
 			fmt::format(
-				"{} ({}) memorized to spell gem {} for {}.",
+				"{} ({}) memorized to spell gem {} for {} ({}).",
 				GetSpellName(spell_id),
 				spell_id,
 				spell_gem,
-				c->GetTargetDescription(target)
+				target->GetCleanName(),
+				target->GetID()
 			).c_str()
 		);
 	}

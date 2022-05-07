@@ -2,25 +2,11 @@
 
 void command_freeze(Client *c, const Seperator *sep)
 {
-	if (!c->GetTarget()) {
-		c->Message(Chat::White, "You must have a target to use this command.");
-		return;
+	if (c->GetTarget() != 0) {
+		c->GetTarget()->SendAppearancePacket(AT_Anim, ANIM_FREEZE);
 	}
-
-	auto target = c->GetTarget();
-	if (c == target) {
-		c->Message(Chat::White, "You cannot freeze yourself.");
-		return;
+	else {
+		c->Message(Chat::White, "ERROR: Freeze requires a target.");
 	}
-
-	target->SendAppearancePacket(AT_Anim, ANIM_FREEZE);
-
-	c->Message(
-		Chat::White,
-		fmt::format(
-			"You have frozen {}.",
-			c->GetTargetDescription(target)
-		).c_str()
-	);
 }
 

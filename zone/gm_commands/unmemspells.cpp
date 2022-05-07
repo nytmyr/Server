@@ -12,9 +12,16 @@ void command_unmemspells(Client *c, const Seperator *sep)
 		c->Message(
 			Chat::White,
 			fmt::format(
-				"{} {} no spells to unmemorize.",
-				c->GetTargetDescription(target, TargetDescriptionType::UCYou),
-				c == target ? "have" : "has"
+				"{} no spells to unmemorize.",
+				(
+					c == target ?
+					"You have" :
+					fmt::format(
+						"{} ({}) has",
+						target->GetCleanName(),
+						target->GetID()
+					)
+				)
 			).c_str()
 		);
 		return;
@@ -26,8 +33,9 @@ void command_unmemspells(Client *c, const Seperator *sep)
 		c->Message(
 			Chat::White,
 			fmt::format(
-				"{} has had {} spells unmemorized.",
-				c->GetTargetDescription(target),
+				"{} ({}) has had {} spells unmemorized.",
+				target->GetCleanName(),
+				target->GetID(),
 				memmed_count
 			).c_str()
 		);

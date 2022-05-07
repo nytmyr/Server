@@ -21,7 +21,7 @@ void command_setskillall(Client *c, const Seperator *sep)
 			LogInfo(
 				"Set ALL skill request from [{}], target:[{}]",
 				c->GetCleanName(),
-				c->GetTargetDescription(target)
+				target->GetCleanName()
 			);
 
 			auto skill_level = static_cast<uint16>(std::stoul(sep->arg[1]));
@@ -31,7 +31,13 @@ void command_setskillall(Client *c, const Seperator *sep)
 				fmt::format(
 					"Setting all skills to {} for {}.",
 					skill_level,
-					c->GetTargetDescription(target)
+					c == target ?
+					"yourself" :
+					fmt::format(
+						"{} ({})",
+						target->GetCleanName(),
+						target->GetID()
+					)
 				).c_str()
 			);
 

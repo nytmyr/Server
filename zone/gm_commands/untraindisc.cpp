@@ -38,16 +38,27 @@ void command_untraindisc(Client *c, const Seperator *sep)
 				"Untraining {} ({}) for {}.",
 				spell_name,
 				spell_id,
-				c->GetTargetDescription(target)
+				c == target ?
+				"yourself" :
+				fmt::format(
+					"{} ({})",
+					target->GetCleanName(),
+					target->GetID()
+				)
 			).c_str()
 		);
 	} else {
 		c->Message(
 			Chat::White,
 			fmt::format(
-				"{} {} not have {} ({}) trained.",
-				c->GetTargetDescription(target),
-				c == target ? "do" : "does",
+				"{} not have {} ({}) trained.",
+				c == target ?
+				"You do" :
+				fmt::format(
+					"{} ({}) does",
+					target->GetCleanName(),
+					target->GetID()
+				),
 				spell_name,
 				spell_id
 			).c_str()

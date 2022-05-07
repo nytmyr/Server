@@ -28,7 +28,15 @@ void command_flymode(Client *c, const Seperator *sep)
 		Chat::White,
 		fmt::format(
 			"Fly Mode for {} is now {} ({}).",
-			c->GetTargetDescription(target),
+			(
+				c == target ?
+				"yourself" :
+				fmt::format(
+					"{} ({})",
+					target->GetCleanName(),
+					target->GetID()
+				)
+			),
 			EQ::constants::GetFlyModeName(flymode_id),
 			flymode_id
 		).c_str()

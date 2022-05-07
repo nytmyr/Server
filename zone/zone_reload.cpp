@@ -30,7 +30,7 @@ void ZoneReload::HotReloadQuests()
 	parse->ReloadQuests(RuleB(HotReload, QuestsResetTimersWithReload));
 
 	if (RuleB(HotReload, QuestsRepopWithReload)) {
-		zone->Repop();
+		zone->Repop(0);
 	}
 	
 	zone->SetQuestHotReloadQueued(false);

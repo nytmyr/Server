@@ -12,9 +12,16 @@ void command_getplayerburiedcorpsecount(Client *c, const Seperator *sep)
 	c->Message(
 		Chat::White,
 		fmt::format(
-			"{} {} {} buried corpse{}.",
-			c->GetTargetDescription(target, TargetDescriptionType::UCYou),
-			c == target ? "have" : "has",
+			"{} {} buried corpse{}.",
+			(
+				c == target ?
+				"You have" :
+				fmt::format(
+					"{} ({}) has",
+					target->GetCleanName(),
+					target->GetID()
+				)
+			),
 			(
 				corpse_count ?
 				std::to_string(corpse_count) :

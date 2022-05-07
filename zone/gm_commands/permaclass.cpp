@@ -17,7 +17,7 @@ void command_permaclass(Client *c, const Seperator *sep)
 	
 	LogInfo("Class changed by {} for {} to {} ({})",
 		c->GetCleanName(),
-		c->GetTargetDescription(target),
+		target->GetCleanName(),
 		GetClassIDName(class_id),
 		class_id
 	);
@@ -31,7 +31,7 @@ void command_permaclass(Client *c, const Seperator *sep)
 			Chat::White,
 			fmt::format(
 				"Class changed for {} to {} ({}).",
-				c->GetTargetDescription(target),
+				target->GetCleanName(),
 				GetClassIDName(class_id),
 				class_id
 			).c_str()

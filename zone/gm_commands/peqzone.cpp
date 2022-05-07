@@ -68,22 +68,16 @@ void command_peqzone(Client *c, const Seperator *sep)
 		return;
 	}
 
-	uint8 peqzone_flag = content_db.GetPEQZone(zone_id, 0);
-	if (peqzone_flag == 0) {
+	bool allows_peqzone = (
+		content_db.GetPEQZone(zone_id, 0) ?
+		true :
+		false
+	);
+	if (!allows_peqzone) {
 		c->Message(
 			Chat::White,
 			fmt::format(
 				"You cannot use this command to enter {} ({}).",
-				zone_long_name,
-				zone_short_name
-			).c_str()
-		);
-		return;
-	} else if (peqzone_flag == 2 && !c->HasPEQZoneFlag(zone_id)) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"You do not have the required PEQZone flag to use this command to enter {} ({}).",
 				zone_long_name,
 				zone_short_name
 			).c_str()
@@ -95,8 +89,9 @@ void command_peqzone(Client *c, const Seperator *sep)
 		c->Message(
 			Chat::White,
 			fmt::format(
-				"You are already in {}.",
-				zone->GetZoneDescription()
+				"You are already in {} ({}).",
+				zone->GetLongName(),
+				zone->GetShortName()
 			).c_str()
 		);
 		return;

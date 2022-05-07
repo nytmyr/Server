@@ -5,9 +5,12 @@ extern WorldServer worldserver;
 
 void command_reloadallrules(Client *c, const Seperator *sep)
 {
-	c->Message(Chat::White, "Attempting to reload all rules globally.");
-	auto pack = new ServerPacket(ServerOP_ReloadRules, 0);
-	worldserver.SendPacket(pack);
-	safe_delete(pack);
+	if (c) {
+		auto pack = new ServerPacket(ServerOP_ReloadRules, 0);
+		worldserver.SendPacket(pack);
+		c->Message(Chat::Red, "Successfully sent the packet to world to reload rules globally. (including world)");
+		safe_delete(pack);
+
+	}
 }
 

@@ -29,8 +29,9 @@ void command_zunderworld(Client *c, const Seperator *sep)
 	c->Message(
 		Chat::White,
 		fmt::format(
-			"Underworld Z Changed | Zone: {} Z: {:.2f} Permanent: {}",
-			zone->GetZoneDescription(),
+			"Underworld Z Changed | Zone: {} ({}) Z: {:.2f} Permanent: {}",
+			zone->GetLongName(),
+			zone->GetZoneID(),
 			z,
 			permanent ? "Yes" : "No"
 		).c_str()

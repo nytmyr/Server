@@ -19,9 +19,8 @@ void command_pvp(Client *c, const Seperator *sep)
 		c->Message(
 			Chat::White,
 			fmt::format(
-				"{} now follow{} the ways of {}.",
-				c->GetTargetDescription(target, TargetDescriptionType::UCYou),
-				c != target ? "s" : "",
+				"{} now follows the ways of {}.",
+				target->GetCleanName(),
 				pvp_state ? "Discord" : "Order"
 			).c_str()
 		);

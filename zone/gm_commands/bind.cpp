@@ -7,27 +7,39 @@ void command_bind(Client *c, const Seperator *sep)
 		target = c->GetTarget()->CastToClient();
 	}
 
-	bool bind_allowed = (
-		!zone->GetInstanceID() ||
-		(
-			zone->GetInstanceID() != 0 &&
-			zone->IsInstancePersistent()
-		)
+	target->SetBindPoint();
+
+	bool in_persistent_instance = (
+		zone->GetInstanceID() != 0 &&
+		zone->IsInstancePersistent()
 	);
 
-	if (!bind_allowed) {
-		c->Message(Chat::White, "Yu cannot bind here.");
-		return;
-	}
-
-	target->SetBindPoint();
+	auto target_string = (
+		c == target ?
+		"Yourself" :
+		fmt::format(
+			"{} ({})",
+			target->GetCleanName(),
+			target->GetID()
+		)
+	);
 
 	c->Message(
 		Chat::White,
 		fmt::format(
-			"Set Bind Point for {} | Zone: {}",
-			c->GetTargetDescription(target),
-			zone->GetZoneDescription()
+			"Set Bind Point for {} | Zone: {} ({}) ID: {} {}",
+			target_string,
+			zone->GetLongName(),
+			zone->GetShortName(),
+			zone->GetZoneID(),
+			(
+				in_persistent_instance ?
+				fmt::format(
+					" Instance ID: {}",
+					zone->GetInstanceID()
+				) :
+				""
+			)
 		).c_str()
 	);
 
@@ -35,7 +47,7 @@ void command_bind(Client *c, const Seperator *sep)
 		Chat::White,
 		fmt::format(
 			"Set Bind Point for {} | XYZ: {:.2f}, {:.2f}, {:.2f}",
-			c->GetTargetDescription(target),
+			target_string,
 			target->GetX(),
 			target->GetY(),
 			target->GetZ()

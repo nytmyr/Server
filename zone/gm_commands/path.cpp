@@ -22,6 +22,6 @@ void Client::Undye()
 		SendWearChange(cur_slot);
 	}
 
-	database.DeleteCharacterDye(CharacterID());
+	database.DeleteCharacterDye(this->CharacterID());
 }
 

@@ -43,7 +43,15 @@ void command_setanim(Client *c, const Seperator *sep)
 			"Set animation to {} ({}) for {}.",
 			animation_name,
 			animation_id,
-			c->GetTargetDescription(target)
+			(
+				c == target ?
+				"yourself" :
+				fmt::format(
+					"{} ({})",
+					target->GetCleanName(),
+					target->GetID()
+				).c_str()
+			)
 		).c_str()
 	);
 }

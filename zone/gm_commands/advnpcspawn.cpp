@@ -206,8 +206,10 @@ void command_advnpcspawn(Client *c, const Seperator *sep)
 		c->Message(
 			Chat::White,
 			fmt::format(
-				"Spawn2 {} Deleted | Name: {}",
-				spawn2_id,c->GetTargetDescription(target)
+				"Spawn2 {} Deleted | Name: {} ({})",
+				spawn2_id,
+				target->GetCleanName(),
+				target->GetID()
 			).c_str()
 		);
 		target->Depop(false);
@@ -322,9 +324,10 @@ void command_advnpcspawn(Client *c, const Seperator *sep)
 		c->Message(
 			Chat::White,
 			fmt::format(
-				"Spawn2 {} Respawn Modified | Name: {} Respawn Timer: {} Variance: {}",
+				"Spawn2 {} Respawn Modified | Name: {} ({}) Respawn Timer: {} Variance: {}",
 				spawn2_id,
-				c->GetTargetDescription(target),
+				target->GetCleanName(),
+				target->GetID(),
 				respawn_timer,
 				variance
 			).c_str()
@@ -465,9 +468,10 @@ void command_advnpcspawn(Client *c, const Seperator *sep)
 		c->Message(
 			Chat::White,
 			fmt::format(
-				"Spawn2 {} Moved | Name: {}",
+				"Spawn2 {} Moved | Name: {} ({})",
 				spawn2_id,
-				c->GetTargetDescription(target)
+				target->GetCleanName(),
+				target->GetID()
 			).c_str()
 		);
 		c->Message(
@@ -516,9 +520,10 @@ void command_advnpcspawn(Client *c, const Seperator *sep)
 		c->Message(
 			Chat::White,
 			fmt::format(
-				"Spawngroup {} Version Modified | Name: {} Version: {}",
+				"Spawngroup {} Version Modified | Name: {} ({}) Version: {}",
 				target->GetSpawnGroupId(),
-				c->GetTargetDescription(target),
+				target->GetCleanName(),
+				target->GetID(),
 				version
 			).c_str()
 		);

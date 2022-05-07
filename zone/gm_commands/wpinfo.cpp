@@ -13,8 +13,9 @@ void command_wpinfo(Client *c, const Seperator *sep)
 		c->Message(
 			Chat::White,
 			fmt::format(
-				"{} is not a part of any grid.",
-				c->GetTargetDescription(target)
+				"{} ({}) is not a part of any grid.",
+				target->GetCleanName(),
+				target->GetID()
 			).c_str()
 		);
 		return;

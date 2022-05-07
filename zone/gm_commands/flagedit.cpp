@@ -99,7 +99,13 @@ void command_flagedit(Client *c, const Seperator *sep)
 				Chat::White,
 				fmt::format(
 					"{} now {} the flag for {} ({}).",
-					c->GetTargetDescription(target, TargetDescriptionType::UCYou),
+					c == target ?
+					"You" :
+					fmt::format(
+						"{} ({})",
+						target->GetCleanName(),
+						target->GetID()
+					),
 					c == target ? "have" : "has",
 					zone_long_name,
 					zone_id
@@ -223,7 +229,13 @@ void command_flagedit(Client *c, const Seperator *sep)
 				Chat::White,
 				fmt::format(
 					"{} no longer {} the flag for {} ({}).",
-					c->GetTargetDescription(target, TargetDescriptionType::UCYou),
+					c == target ?
+					"You" :
+					fmt::format(
+						"{} ({})",
+						target->GetCleanName(),
+						target->GetID()
+					),
 					c == target ? "have" : "has",
 					zone_long_name,
 					zone_id

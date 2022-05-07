@@ -12,7 +12,13 @@ void command_timers(Client *c, const Seperator *sep)
 
 	std::string popup_title = fmt::format(
 		"Recast Timers for {}",
-		c->GetTargetDescription(target, TargetDescriptionType::UCSelf)
+		c == target ?
+		"Yourself" :
+		fmt::format(
+			"{} ({})",
+			target->GetCleanName(),
+			target->GetID()
+		)
 	);
 
 	std::string popup_text = "<table>";

@@ -37,7 +37,7 @@ void command_setlanguage(Client *c, const Seperator *sep)
 		LogInfo(
 			"Set language request from [{}], Target: [{}] Language ID: [{}] Language Value: [{}]",
 			c->GetCleanName(),
-			c->GetTargetDescription(target),
+			target->GetCleanName(),
 			language_id,
 			language_value
 		);
@@ -52,7 +52,7 @@ void command_setlanguage(Client *c, const Seperator *sep)
 					EQ::constants::GetLanguageName(language_id),
 					language_id,
 					language_value,
-					c->GetTargetDescription(target)
+					target->GetCleanName()
 				).c_str()
 			);
 		}

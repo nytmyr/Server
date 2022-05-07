@@ -3,24 +3,21 @@
 
 void command_questerrors(Client *c, const Seperator *sep)
 {
-	std::list<std::string> quest_errors;
-	parse->GetErrors(quest_errors);
+	std::list<std::string> err;
+	parse->GetErrors(err);
+	c->Message(Chat::White, "Current Quest Errors:");
 
-	if (quest_errors.size()) {
-		c->Message(Chat::White, "Quest errors currently are as follows:");
-
-		int error_index = 0;
-		for (auto quest_error : quest_errors) {
-			if (error_index >= 30) {
-				c->Message(Chat::White, "Maximum of 30 errors shown.");
-				break;
-			}
-
-			c->Message(Chat::White, quest_error.c_str());
-			error_index++;
+	auto iter = err.begin();
+	int  i    = 0;
+	while (iter != err.end()) {
+		if (i >= 30) {
+			c->Message(Chat::White, "Maximum of 30 Errors shown...");
+			break;
 		}
-	} else {
-		c->Message(Chat::White, "There are no Quest errors currently.");
+
+		c->Message(Chat::White, iter->c_str());
+		++i;
+		++iter;
 	}
 }
 

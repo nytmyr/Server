@@ -991,11 +991,11 @@ QuestInterface *QuestParserCollection::GetQIByEncounterQuest(std::string encount
 	return nullptr;
 }
 
-void QuestParserCollection::GetErrors(std::list<std::string> &quest_errors) {
-	quest_errors.clear();
+void QuestParserCollection::GetErrors(std::list<std::string> &err) {
+	err.clear();
 	auto iter = _load_precedence.begin();
-	while (iter != _load_precedence.end()) {
-		(*iter)->GetErrors(quest_errors);
+	while(iter != _load_precedence.end()) {
+		(*iter)->GetErrors(err);
 		++iter;
 	}
 }

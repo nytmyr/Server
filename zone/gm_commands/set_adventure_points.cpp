@@ -68,7 +68,15 @@ void command_set_adventure_points(Client *c, const Seperator *sep)
 					EQ::constants::GetLDoNThemeName(theme_id)
 				)
 			),
-			c->GetTargetDescription(target)
+			(
+				c == target ?
+				"Yourself" :
+				fmt::format(
+					"{} ({})",
+					target->GetCleanName(),
+					target->GetID()
+				)
+			)
 		).c_str()
 	);
 

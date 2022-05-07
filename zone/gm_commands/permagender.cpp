@@ -23,7 +23,7 @@ void command_permagender(Client *c, const Seperator *sep)
 	
 	LogInfo("Gender changed by {} for {} to {} ({})",
 		c->GetCleanName(),
-		c->GetTargetDescription(target),
+		target->GetCleanName(),
 		GetGenderName(gender_id),
 		gender_id
 	);
@@ -36,7 +36,15 @@ void command_permagender(Client *c, const Seperator *sep)
 		Chat::White,
 		fmt::format(
 			"Gender changed for {} to {} ({}).",
-			c->GetTargetDescription(target),
+			(
+				c == target ?
+				"yourself" :
+				fmt::format(
+					"{} ({})",
+					target->GetCleanName(),
+					target->GetID()
+				)
+			),
 			GetGenderName(gender_id),
 			gender_id
 		).c_str()

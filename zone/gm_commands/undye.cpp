@@ -12,7 +12,13 @@ void command_undye(Client *c, const Seperator *sep)
 		Chat::White,
 		fmt::format(
 			"Undyed armor for {}.",
-			c->GetTargetDescription(target)
+			c == target ?
+			"yourself" :
+			fmt::format(
+				"{} ({})",
+				target->GetCleanName(),
+				target->GetID()
+			)
 		).c_str()
 	);
 }

@@ -889,7 +889,7 @@ void ConsoleReloadWorld(
 	connection->SendLine("Reloading World...");
 	auto               pack = new ServerPacket(ServerOP_ReloadWorld, sizeof(ReloadWorld_Struct));
 	ReloadWorld_Struct *RW  = (ReloadWorld_Struct *) pack->pBuffer;
-	RW->global_repop = ReloadWorld::Repop;
+	RW->Option = 1;
 	zoneserver_list.SendPacket(pack);
 	safe_delete(pack);
 }

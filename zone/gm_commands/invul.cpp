@@ -19,7 +19,7 @@ void command_invul(Client *c, const Seperator *sep)
 		Chat::White,
 		fmt::format(
 			"{} {} now {}.",
-			c->GetTargetDescription(target, TargetDescriptionType::UCYou),
+			c == target ? "You" : target->GetCleanName(),
 			c == target ? "are" : "is",
 			invul_flag ? "invulnerable" : "vulnerable"
 		).c_str()

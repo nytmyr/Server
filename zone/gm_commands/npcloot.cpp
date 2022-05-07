@@ -65,9 +65,7 @@ void command_npcloot(Client *c, const Seperator *sep)
 			return;
 		}
 
-		auto target = c->GetTarget();
-
-		target->CastToNPC()->AddItem(
+		c->GetTarget()->CastToNPC()->AddItem(
 			item_id,
 			item_charges,
 			equip_item,
@@ -99,10 +97,11 @@ void command_npcloot(Client *c, const Seperator *sep)
 		c->Message(
 			Chat::White,
 			fmt::format(
-				"Added {} ({}) to {}.",
+				"Added {} ({}) to {} ({}).",
 				item_link,
 				item_id,
-				c->GetTargetDescription(target)
+				c->GetTarget()->GetCleanName(),
+				c->GetTarget()->GetID()
 			).c_str()
 		);
 	} else if (is_money) {
@@ -144,8 +143,9 @@ void command_npcloot(Client *c, const Seperator *sep)
 			c->Message(
 				Chat::White,
 				fmt::format(
-					"{} now has {}.",
-					c->GetTargetDescription(target),
+					"{} ({}) now has {}.",
+					target->GetCleanName(),
+					target->GetID(),
 					money_string
 				).c_str()
 			);
@@ -172,11 +172,12 @@ void command_npcloot(Client *c, const Seperator *sep)
 				c->Message(
 					Chat::White,
 					fmt::format(
-						"Removed {} {} ({}) from {}.",
+						"Removed {} {} ({}) from {} ({}).",
 						item_count,
 						database.CreateItemLink(item_id),
 						item_id,
-						c->GetTargetDescription(target)
+						target->GetCleanName(),
+						target->GetID()
 					).c_str()
 				);
 
@@ -187,18 +188,20 @@ void command_npcloot(Client *c, const Seperator *sep)
 				c->Message(
 					Chat::White,
 					fmt::format(
-						"{} has no items to remove.",
-						c->GetTargetDescription(target)
+						"{} ({}) has no items to remove.",
+						target->GetCleanName(),
+						target->GetID()
 					).c_str()
 				);
 			} else {
 				c->Message(
 					Chat::White,
 					fmt::format(
-						"{} Item{} removed from {}.",
+						"{} Item{} removed from {} ({}).",
 						total_item_count,
 						total_item_count != 1 ? "s" : "",
-						c->GetTargetDescription(target)
+						target->GetCleanName(),
+						target->GetID()
 					).c_str()
 				);
 			}
@@ -211,19 +214,21 @@ void command_npcloot(Client *c, const Seperator *sep)
 					c->Message(
 						Chat::White,
 						fmt::format(
-							"Removed {} {} ({}) from {}.",
+							"Removed {} {} ({}) from {} ({}).",
 							item_count,
 							database.CreateItemLink(item_id),
 							item_id,
-							c->GetTargetDescription(target)
+							target->GetCleanName(),
+							target->GetID()
 						).c_str()
 					);
 				} else {
 					c->Message(
 						Chat::White,
 						fmt::format(
-							"{} does not have any {} ({}).",
-							c->GetTargetDescription(target),
+							"{} ({}) does not have any {} ({}).",
+							target->GetCleanName(),
+							target->GetID(),
 							database.CreateItemLink(item_id),
 							item_id
 						).c_str()

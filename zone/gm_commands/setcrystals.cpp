@@ -42,7 +42,15 @@ void command_setcrystals(Client *c, const Seperator *sep)
 		Chat::White,
 		fmt::format(
 			"{} now {} {} {}.",
-			c->GetTargetDescription(target, TargetDescriptionType::UCYou),
+			(
+				c == target ?
+				"You" :
+				fmt::format(
+					"{} ({})",
+					target->GetCleanName(),
+					target->GetID()
+				)
+			),
 			c == target ? "have" : "has",
 			crystal_amount,
 			crystal_link

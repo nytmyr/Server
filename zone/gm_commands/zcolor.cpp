@@ -56,8 +56,9 @@ void command_zcolor(Client *c, const Seperator *sep)
 	c->Message(
 		Chat::White,
 		fmt::format(
-			"Fog Color Changed | Zone: {} Red: {} Green: {} Blue: {} Permanent: {}",
-			zone->GetZoneDescription(),
+			"Fog Color Changed | Zone: {} ({}) Red: {} Green: {} Blue: {} Permanent: {}",
+			zone->GetLongName(),
+			zone->GetZoneID(),
 			red,
 			green,
 			blue,

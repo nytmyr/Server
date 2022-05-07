@@ -13,7 +13,15 @@ void command_heal(Client *c, const Seperator *sep)
 		Chat::White,
 		fmt::format(
 			"Set {} to full Health ({}).",
-			c->GetTargetDescription(target),
+			(
+				c == target ?
+				"yourself" :
+				fmt::format(
+					"{} ({})",
+					target->GetCleanName(),
+					target->GetID()
+				)
+			),
 			target->GetMaxHP()
 		).c_str()
 	);

@@ -91,7 +91,7 @@ Merc::Merc(const NPCType* d, float x, float y, float z, float heading)
 
 Merc::~Merc() {
 	AI_Stop();
-	//entity_list.RemoveMerc(GetID());
+	//entity_list.RemoveMerc(this->GetID());
 	UninitializeBuffSlots();
 }
 
@@ -132,7 +132,7 @@ float Merc::GetDefaultSize() {
 
 	float MercSize = GetSize();
 
-	switch(GetRace())
+	switch(this->GetRace())
 	{
 		case 1: // Humans
 			MercSize = 6.0;
@@ -946,7 +946,7 @@ int32 Merc::CalcManaRegen()
 	{
 		BuffFadeBySitModifier();
 		if (HasSkill(EQ::skills::SkillMeditate)) {
-			_medding = true;
+			this->_medding = true;
 			regen = ((GetSkill(EQ::skills::SkillMeditate) / 10) + mana_regen);
 			regen += spellbonuses.ManaRegen + itembonuses.ManaRegen;
 		}
@@ -954,7 +954,7 @@ int32 Merc::CalcManaRegen()
 			regen = mana_regen + spellbonuses.ManaRegen + itembonuses.ManaRegen;
 	}
 	else {
-		_medding = false;
+		this->_medding = false;
 		regen = mana_regen + spellbonuses.ManaRegen + itembonuses.ManaRegen;
 	}
 
@@ -1636,13 +1636,13 @@ void Merc::AI_Process() {
 
 				// TODO: Do mercs berserk? Find this out on live...
 				//if (GetClass() == WARRIOR || GetClass() == BERSERKER) {
-				//      if(GetHP() > 0 && !berserk && GetHPRatio() < 30) {
+				//      if(GetHP() > 0 && !berserk && this->GetHPRatio() < 30) {
 				//              entity_list.MessageCloseString(this, false, 200, 0, BERSERK_START, GetName());
-				//              berserk = true;
+				//              this->berserk = true;
 				//      }
-				//      if (berserk && GetHPRatio() > 30) {
+				//      if (berserk && this->GetHPRatio() > 30) {
 				//              entity_list.MessageCloseString(this, false, 200, 0, BERSERK_END, GetName());
-				//              berserk = false;
+				//              this->berserk = false;
 				//      }
 				//}
 
@@ -1862,7 +1862,7 @@ bool Merc::AI_IdleCastCheck() {
 
 	if (AIautocastspell_timer->Check(false)) {
 #if MercAI_DEBUG_Spells >= 25
-		LogAI("Merc Non-Engaged autocast check triggered: [{}]", GetCleanName());
+		LogAI("Merc Non-Engaged autocast check triggered: [{}]", this->GetCleanName());
 #endif
 		AIautocastspell_timer->Disable();       //prevent the timer from going off AGAIN while we are casting.
 
@@ -2184,14 +2184,14 @@ bool Merc::AICastSpell(int8 iChance, uint32 iSpellTypes) {
 									}
 
 									if(spells[selectedMercSpell.spellid].target_type == ST_Self) {
-										if( !IsImmuneToSpell(selectedMercSpell.spellid, this)
-											&& (CanBuffStack(selectedMercSpell.spellid, mercLevel, true) >= 0)) {
+										if( !this->IsImmuneToSpell(selectedMercSpell.spellid, this)
+											&& (this->CanBuffStack(selectedMercSpell.spellid, mercLevel, true) >= 0)) {
 
-												if( GetArchetype() == ARCHETYPE_MELEE && IsEffectInSpell(selectedMercSpell.spellid, SE_IncreaseSpellHaste)) {
+												if( this->GetArchetype() == ARCHETYPE_MELEE && IsEffectInSpell(selectedMercSpell.spellid, SE_IncreaseSpellHaste)) {
 													continue;
 												}
 
-												uint32 TempDontBuffMeBeforeTime = DontBuffMeBefore();
+												uint32 TempDontBuffMeBeforeTime = this->DontBuffMeBefore();
 
 												if(selectedMercSpell.spellid > 0) {
 													if(isDiscipline) {
@@ -2200,8 +2200,8 @@ bool Merc::AICastSpell(int8 iChance, uint32 iSpellTypes) {
 													else {
 														castedSpell = AIDoSpellCast(selectedMercSpell.spellid, this, -1, &TempDontBuffMeBeforeTime);
 
-														if(TempDontBuffMeBeforeTime != DontBuffMeBefore())
-															SetDontBuffMeBefore(TempDontBuffMeBeforeTime);
+														if(TempDontBuffMeBeforeTime != this->DontBuffMeBefore())
+															this->SetDontBuffMeBefore(TempDontBuffMeBeforeTime);
 													}
 												}
 										}
@@ -2388,8 +2388,8 @@ bool Merc::AICastSpell(int8 iChance, uint32 iSpellTypes) {
 									if(castedSpell) {
 										if(IsGroupSpell(selectedMercSpell.spellid)){
 
-											if(HasGroup()) {
-												Group *g = GetGroup();
+											if(this->HasGroup()) {
+												Group *g = this->GetGroup();
 
 												if(g) {
 													for( int i = 0; i<MAX_GROUP_MEMBERS; i++) {
@@ -2682,8 +2682,8 @@ int32 Merc::GetFocusEffect(focusType type, uint16 spell_id, bool from_buff_tic) 
 
 	for (int i = 0; i < MAX_PP_AA_ARRAY; i++)
 	{
-	aa_AA = aa[i]->AA;
-	aa_value = aa[i]->value;
+	aa_AA = this->aa[i]->AA;
+	aa_value = this->aa[i]->value;
 	if (aa_AA < 1 || aa_value < 1)
 	continue;
 
@@ -2711,9 +2711,9 @@ int32 Merc::GetFocusEffect(focusType type, uint16 spell_id, bool from_buff_tic) 
 int32 Merc::GetActSpellCost(uint16 spell_id, int32 cost)
 {
 	// Formula = Unknown exact, based off a random percent chance up to mana cost(after focuses) of the cast spell
-	if(itembonuses.Clairvoyance && spells[spell_id].classes[(GetClass()%17) - 1] >= GetLevel() - 5)
+	if(this->itembonuses.Clairvoyance && spells[spell_id].classes[(GetClass()%17) - 1] >= GetLevel() - 5)
 	{
-		int16 mana_back = itembonuses.Clairvoyance * zone->random.Int(1, 100) / 100;
+		int16 mana_back = this->itembonuses.Clairvoyance * zone->random.Int(1, 100) / 100;
 		// Doesnt generate mana, so best case is a free spell
 		if(mana_back > cost)
 			mana_back = cost;
@@ -4240,7 +4240,7 @@ bool Merc::CheckConfidence() {
 
 		if(DistanceSquared(m_Position, mob->GetPosition()) > AggroRange) continue;
 
-		CurrentCon = GetLevelCon(mob->GetLevel());
+		CurrentCon = this->GetLevelCon(mob->GetLevel());
 		switch(CurrentCon) {
 
 
@@ -4513,7 +4513,7 @@ void Merc::SetTarget(Mob* mob) {
 Mob* Merc::GetOwnerOrSelf() {
 	Mob* Result = nullptr;
 
-	if(GetMercOwner())
+	if(this->GetMercOwner())
 		Result = GetMercOwner();
 	else
 		Result = this;
@@ -4565,7 +4565,7 @@ Mob* Merc::GetOwner() {
 	Result = entity_list.GetMob(GetOwnerID());
 
 	if(!Result) {
-		SetOwnerID(0);
+		this->SetOwnerID(0);
 	}
 
 	return Result->CastToMob();
@@ -4880,7 +4880,6 @@ void Merc::UpdateMercStats(Client *c, bool setmax)
 			max_end = npc_type->max_hp;  // Hack since Endurance does not exist for NPCType yet
 			base_end = npc_type->max_hp; // Hack since Endurance does not exist for NPCType yet
 			hp_regen = npc_type->hp_regen;
-			hp_regen_per_second = npc_type->hp_regen_per_second;
 			mana_regen = npc_type->mana_regen;
 			max_dmg = npc_type->max_dmg;
 			min_dmg = npc_type->min_dmg;
@@ -5053,7 +5052,7 @@ void Merc::UpdateMercAppearance() {
 		if(itemID != 0) {
 			materialFromSlot = EQ::InventoryProfile::CalcMaterialFromSlot(i);
 			if (materialFromSlot != EQ::textures::materialInvalid)
-				SendWearChange(materialFromSlot);
+				this->SendWearChange(materialFromSlot);
 		}
 	}
 
@@ -5791,7 +5790,7 @@ void Merc::Depop() {
 		RemoveMercFromGroup(this, GetGroup());
 	}
 
-	entity_list.RemoveMerc(GetID());
+	entity_list.RemoveMerc(this->GetID());
 
 	if(HasPet())
 	{
@@ -6065,9 +6064,9 @@ void Client::SetMerc(Merc* newmerc) {
 	{
 		SetMercID(newmerc->GetID());
 		//Client* oldowner = entity_list.GetClientByID(newmerc->GetOwnerID());
-		newmerc->SetOwnerID(GetID());
-		newmerc->SetMercCharacterID(CharacterID());
-		newmerc->SetClientVersion((uint8)ClientVersion());
+		newmerc->SetOwnerID(this->GetID());
+		newmerc->SetMercCharacterID(this->CharacterID());
+		newmerc->SetClientVersion((uint8)this->ClientVersion());
 		GetMercInfo().mercid = newmerc->GetMercID();
 		GetMercInfo().MercTemplateID = newmerc->GetMercTemplateID();
 		GetMercInfo().myTemplate = zone->GetMercTemplate(GetMercInfo().MercTemplateID);

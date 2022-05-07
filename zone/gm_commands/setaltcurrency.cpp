@@ -37,7 +37,15 @@ void command_setaltcurrency(Client *c, const Seperator *sep)
 		Chat::White,
 		fmt::format(
 			"{} now {} {} {}.",
-			c->GetTargetDescription(target, TargetDescriptionType::UCYou),
+			(
+				c == target ?
+				"You" :
+				fmt::format(
+					"{} ({})",
+					target->GetCleanName(),
+					target->GetID()
+				)
+			),
 			c == target ? "have" : "has",
 			(
 				amount ?

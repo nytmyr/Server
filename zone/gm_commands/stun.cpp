@@ -30,12 +30,28 @@ void command_stun(Client *c, const Seperator *sep)
 		duration ?
 			fmt::format(
 				"You stunned {} for {}.",
-				c->GetTargetDescription(target),
+				(
+					c == target ?
+					"yourself" :
+					fmt::format(
+						"{} ({})",
+						target->GetCleanName(),
+						target->GetID()
+					)
+				),
 				ConvertMillisecondsToTime(duration)
 			) :
 			fmt::format(
 				"You unstunned {}.",
-				c->GetTargetDescription(target)
+				(
+					c == target ?
+					"yourself" :
+					fmt::format(
+						"{} ({})",
+						target->GetCleanName(),
+						target->GetID()
+					)
+				)
 			)
 	);
 	c->Message(
