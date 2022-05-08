@@ -1268,6 +1268,7 @@ void ZoneServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p) {
 			loginserverlist.SendAccountUpdate(pack);
 			break;
 		}
+		case ServerOP_DiscordWebhookMessage:
 		case ServerOP_UCSMailMessage: {
 			UCSLink.SendPacket(pack);
 			break;
