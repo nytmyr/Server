@@ -3392,6 +3392,10 @@ std::string lua_commify(std::string number) {
 	return commify(number);
 }
 
+void lua_discord_send(std::string webhook_name, std::string message) {
+	zone->SendDiscordMessage(webhook_name, message);
+}
+
 #define LuaCreateNPCParse(name, c_type, default_value) do { \
 	cur = table[#name]; \
 	if(luabind::type(cur) != LUA_TNIL) { \
@@ -3845,6 +3849,7 @@ luabind::scope lua_register_general() {
 		luabind::def("get_consider_level_name", &lua_get_consider_level_name),
 		luabind::def("get_environmental_damage_name", &lua_get_environmental_damage_name),
 		luabind::def("commify", &lua_commify),
+		luabind::def("discord_send", &lua_discord_send),
 
 		/*
 			Cross Zone
