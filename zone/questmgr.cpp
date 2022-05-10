@@ -1957,9 +1957,9 @@ void QuestManager::clear_zone_flag(int zone_id) {
 	initiator->ClearZoneFlag(zone_id);
 }
 
-void QuestManager::sethp(int hpperc) {
+void QuestManager::sethp(int64 hpperc) {
 	QuestManagerCurrentQuestVars();
-	int newhp = (owner->GetMaxHP() * (100 - hpperc)) / 100;
+	int64 newhp = (owner->GetMaxHP() * (100 - hpperc)) / 100;
 	owner->Damage(owner, newhp, SPELL_UNKNOWN, EQ::skills::SkillHandtoHand, false, 0, false);
 }
 
@@ -2555,7 +2555,7 @@ void QuestManager::whisper(const char *message) {
 
 	std::string mob_name = owner->GetCleanName();
 	std::string new_message = fmt::format("{} whispers, '{}'", mob_name, message);
-	initiator->Message(315, new_message.c_str());
+	initiator->Message(Chat::EchoChat1, new_message.c_str());
 }
 
 int QuestManager::getlevel(uint8 type)

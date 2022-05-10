@@ -56,8 +56,8 @@ extern SharedTaskManager shared_task_manager;
 
 void CatchSignal(int sig_num);
 
-ZoneServer::ZoneServer(std::shared_ptr<EQ::Net::ServertalkServerConnection> connection, EQ::Net::ConsoleServer *console)
-	: tcpc(connection), zone_boot_timer(5000) {
+ZoneServer::ZoneServer(std::shared_ptr<EQ::Net::ServertalkServerConnection> in_connection, EQ::Net::ConsoleServer *in_console)
+	: tcpc(in_connection), zone_boot_timer(5000) {
 
 	/* Set Process tracking variable defaults */
 	memset(zone_name, 0, sizeof(zone_name));
@@ -84,7 +84,7 @@ ZoneServer::ZoneServer(std::shared_ptr<EQ::Net::ServertalkServerConnection> conn
 		}
 	});
 
-	console = console;
+	console = in_console;
 }
 
 ZoneServer::~ZoneServer() {
@@ -640,7 +640,7 @@ void ZoneServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p) {
 
 				ServerPacket p(ServerOP_SetConnectInfo, sizeof(ServerConnectInfo));
 				memset(p.pBuffer, 0, sizeof(ServerConnectInfo));
-				sci = (ServerConnectInfo*)p.pBuffer;
+				ServerConnectInfo* sci = (ServerConnectInfo*)p.pBuffer;
 				sci->port = client_port;
 				SendPacket(&p);
 				LogInfo("Auto zone port configuration. Telling zone to use port [{}]", client_port);
