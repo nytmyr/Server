@@ -599,7 +599,7 @@ int command_realdispatch(Client *c, const char *message)
 	}
 
 	/* QS: Player_Log_Issued_Commands */
-	if (RuleB(QueryServ, PlayerLogIssuedCommands)){
+	if (RuleB(QueryServ, PlayerLogIssuedCommandes)){
 		std::string event_desc = StringFormat("Issued command :: '%s' in zoneid:%i instid:%i",  message, c->GetZoneID(), c->GetInstanceID());
 		QServ->PlayerLogEvent(Player_Log_Issued_Commands, c->CharacterID(), event_desc);
 	}
