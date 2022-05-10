@@ -225,6 +225,9 @@ Bot::Bot(uint32 botID, uint32 botOwnerCharacterID, uint32 botSpellsID, double to
 	if (GetClass() == ROGUE) {
 		m_evade_timer.Start();
 	}
+	if (GetClass() == MONK) {
+		m_monk_evade_timer.Start();
+	}
 
 	m_CastingRoles.GroupHealer = false;
 	m_CastingRoles.GroupSlower = false;
@@ -3062,10 +3065,39 @@ void Bot::AI_Process()
 									}
 
 									m_evade_timer.Start(timer_duration);
+									BotGroupSay(this, "Attempting to evade %s", tar->GetCleanName());
 									if (zone->random.Int(0, 260) < (int)GetSkill(EQ::skills::SkillHide)) {
+										SendAppearancePacket(AT_Invis, Invisibility::Invisible);
 										RogueEvade(tar);
 									}
+									SendAppearancePacket(AT_Invis, Invisibility::Visible);
+									return;
+								}
+							}
 
+							if (GetClass() == MONK && GetLevel() >= 17) {
+
+								if (m_monk_evade_timer.Check(false)) { // Attempt to evade
+
+									int timer_duration = (FeignDeathReuseTime - GetSkillReuseTime(EQ::skills::SkillFeignDeath)) * 1000;
+									if (timer_duration < 0) {
+										timer_duration = 0;
+									}
+
+									m_monk_evade_timer.Start(timer_duration);
+									if (zone->random.Int(0, 260) < (int)GetSkill(EQ::skills::SkillFeignDeath)) {
+										BotGroupSay(this, "Attempting to evade %s", tar->GetCleanName());
+										if (zone->random.Int(0, 260) < (int)GetSkill(EQ::skills::SkillFeignDeath)) {
+											SetFeigned(false);
+											SendAppearancePacket(AT_Anim, ANIM_DEATH);
+											entity_list.MessageCloseString(this, false, 200, 10, STRING_FEIGNFAILED, GetName());
+										}
+										else {
+											SetFeigned(true);
+											SendAppearancePacket(AT_Anim, ANIM_DEATH);
+										}
+									}
+									SendAppearancePacket(AT_Anim, ANIM_STAND);
 									return;
 								}
 							}
@@ -4483,16 +4515,33 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 			return;
 		}
 
-		if (trade_instance->IsStackable() && trade_instance->GetCharges() < trade_instance->GetItem()->StackSize) { // temp until partial stacks are implemented
-			client->Message(
+		// if (trade_instance->IsStackable() && trade_instance->GetCharges() < trade_instance->GetItem()->StackSize) { // temp until partial stacks are implemented
+		if (RuleI(Bots, StackSizeMin) != -1) {
+			if (trade_instance->IsStackable() && trade_instance->GetCharges() < RuleI(Bots, StackSizeMin)) { // temp until partial stacks are implemented
+				client->Message(
+					Chat::Yellow,
+					fmt::format(
+						"{} is too small of a stack, you need atleast {}. The trade has been cancelled!",
+						item_link,
+						RuleI(Bots, StackSizeMin)
+					).c_str()
+				);
+				client->ResetTrade();
+				return;
+			}
+		}
+		else { 
+			if (trade_instance->IsStackable() && trade_instance->GetCharges() < trade_instance->GetItem()->StackSize) {
+				client->Message(
 				Chat::Yellow,
 				fmt::format(
 					"{} is only a partially stacked item, the trade has been cancelled!",
 					item_link
 				).c_str()
-			);
-			client->ResetTrade();
-			return;
+				);
+				client->ResetTrade();
+				return;
+			}
 		}
 
 		if (CheckLoreConflict(trade_instance->GetItem())) {
@@ -6391,7 +6440,8 @@ void Bot::DoClassAttacks(Mob *target, bool IsRiposte) {
 	}
 
 	if(taunting && target && target->IsNPC() && taunt_time) {
-		if(GetTarget() && GetTarget()->GetHateTop() && GetTarget()->GetHateTop() != this) {
+		//if(GetTarget() && GetTarget()->GetHateTop() && GetTarget()->GetHateTop() != this) {
+		if(GetTarget()) {
 			BotGroupSay(this, "Taunting %s", target->GetCleanName());
 			Taunt(target->CastToNPC(), false);
 			taunt_timer.Start(TauntReuseTime * 1000);
@@ -9822,6 +9872,9 @@ bool Bot::GetNeedsHateRedux(Mob *tar) {
 		switch (tar->GetClass()) {
 		case ROGUE:
 			if (tar->CanFacestab() || tar->CastToBot()->m_evade_timer.Check(false))
+				return false;
+		case MONK:
+			if (tar->CastToBot()->m_monk_evade_timer.Check(false))
 				return false;
 		case CLERIC:
 		case DRUID:

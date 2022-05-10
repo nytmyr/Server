@@ -674,6 +674,7 @@ private:
 	uint32 timers[MaxTimer];
 
 	Timer m_evade_timer; // can be moved to pTimers at some point
+	Timer m_monk_evade_timer;
 	Timer m_alt_combat_hate_timer;
 	Timer m_auto_defend_timer;
 	//Timer m_combat_jitter_timer;
