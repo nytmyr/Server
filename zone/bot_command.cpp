@@ -1632,7 +1632,7 @@ int bot_command_real_dispatch(Client *c, const char *message)
 	}
 
 	/* QS: Player_Log_Issued_Commands */
-	if (RuleB(QueryServ, PlayerLogIssuedCommandes)){
+	if (RuleB(QueryServ, PlayerLogIssuedCommands)){
 		std::string event_desc = StringFormat("Issued bot command :: '%s' in zoneid:%i instid:%i",  message, c->GetZoneID(), c->GetInstanceID());
 		QServ->PlayerLogEvent(Player_Log_Issued_Commands, c->CharacterID(), event_desc);
 	}
