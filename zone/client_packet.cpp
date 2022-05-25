@@ -6375,7 +6375,7 @@ void Client::Handle_OP_GMNameChange(const EQApplicationPacket *app)
 	}
 	Client* client = entity_list.GetClientByName(gmn->oldname);
 	LogInfo("GM([{}]) changeing players name. Old:[{}] New:[{}]", GetName(), gmn->oldname, gmn->newname);
-	bool usedname = database.CheckUsedName((const char*)gmn->newname);
+	bool usedname = database.CheckUsedName(gmn->newname);
 	if (client == 0) {
 		Message(Chat::Red, "%s not found for name change. Operation failed!", gmn->oldname);
 		return;
@@ -12875,7 +12875,7 @@ void Client::Handle_OP_SetTitle(const EQApplicationPacket *app)
 		return;
 	}
 
-	SetTitle_Struct *sts = (SetTitle_Struct *)app->pBuffer;
+	auto sts = (SetTitle_Struct *) app->pBuffer;
 
 	if (sts->title_id && !title_manager.HasTitle(this, sts->title_id)) {
 		return;
@@ -12892,9 +12892,9 @@ void Client::Handle_OP_SetTitle(const EQApplicationPacket *app)
 	);
 
 	if (!sts->is_suffix) {
-		SetAATitle(title.c_str());
+		SetAATitle(title);
 	} else {
-		SetTitleSuffix(title.c_str());
+		SetTitleSuffix(title);
 	}
 }
 

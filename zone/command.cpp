@@ -145,7 +145,6 @@ int command_init(void)
 		command_add("date", "[yyyy] [mm] [dd] [HH] [MM] - Set EQ time", AccountStatus::EQSupport, command_date) ||
 		command_add("dbspawn2", "[spawngroup] [respawn] [variance] - Spawn an NPC from a predefined row in the spawn2 table", AccountStatus::GMAdmin, command_dbspawn2) ||
 		command_add("delacct", "[accountname] - Delete an account", AccountStatus::GMLeadAdmin, command_delacct) ||
-		command_add("deletegraveyard", "[zone name] - Deletes the graveyard for the specified zone.", AccountStatus::GMMgmt, command_deletegraveyard) ||
 		command_add("delpetition", "[petition number] - Delete a petition", AccountStatus::ApprenticeGuide, command_delpetition) ||
 		command_add("depop", "- Depop your NPC target", AccountStatus::Guide, command_depop) ||
 		command_add("depopzone", "- Depop the zone", AccountStatus::GMAdmin, command_depopzone) ||
@@ -229,7 +228,6 @@ int command_init(void)
 		command_add("listpetition", "- List petitions", AccountStatus::Guide, command_listpetition) ||
 		command_add("load_shared_memory", "[shared_memory_name] - Reloads shared memory and uses the input as output", AccountStatus::GMImpossible, command_load_shared_memory) ||
 		command_add("loc", "- Print out your or your target's current location and heading", AccountStatus::Player, command_loc) ||
-		command_add("lock", "- Lock the worldserver", AccountStatus::GMLeadAdmin, command_lock) ||
 		command_add("logs",  "Manage anything to do with logs", AccountStatus::GMImpossible, command_logs) ||
 		command_add("makepet", "[Pet Name] - Make a pet", AccountStatus::Guide, command_makepet) ||
 		command_add("mana", "- Fill your or your target's mana", AccountStatus::Guide, command_mana) ||
@@ -238,7 +236,7 @@ int command_init(void)
 		command_add("merchant_close_shop",  "Closes a merchant shop", AccountStatus::GMAdmin, command_merchantcloseshop) ||
 		command_add("merchant_open_shop",  "Opens a merchants shop", AccountStatus::GMAdmin, command_merchantopenshop) ||
 		command_add("modifynpcstat", "- Modifys a NPC's stats", AccountStatus::GMLeadAdmin, command_modifynpcstat) ||
-		command_add("motd", "[new motd] - Set message of the day", AccountStatus::GMLeadAdmin, command_motd) ||
+		command_add("motd", "[Message of the Day] - Set Message of the Day (leave empty to have no Message of the Day)", AccountStatus::GMLeadAdmin, command_motd) ||
 		command_add("movechar", "[Character ID|Character Name] [Zone ID|Zone Short Name] - Move an offline character to the specified zone", AccountStatus::Guide, command_movechar) ||
 		command_add("movement", "Various movement commands", AccountStatus::GMMgmt, command_movement) ||
 		command_add("myskills", "- Show details about your current skill levels", AccountStatus::Player, command_myskills) ||
@@ -299,6 +297,7 @@ int command_init(void)
 		command_add("sendzonespawns", "- Refresh spawn list for all clients in zone", AccountStatus::GMLeadAdmin, command_sendzonespawns) ||
 		command_add("sensetrap",  "Analog for ldon sense trap for the newer clients since we still don't have it working.", AccountStatus::Player, command_sensetrap) ||
 		command_add("serverinfo", "- Get CPU, Operating System, and Process Information about the server", AccountStatus::GMMgmt, command_serverinfo) ||
+		command_add("serverlock", "[0|1] - Lock or Unlock the World Server (0 = Unlocked, 1 = Locked)", AccountStatus::GMLeadAdmin, command_serverlock) ||
 		command_add("serverrules", "- Read this server's rules", AccountStatus::Player, command_serverrules) ||
 		command_add("setaapts", "[AA|Group|Raid] [AA Amount] - Set your or your player target's Available AA Points by Type", AccountStatus::GMAdmin, command_setaapts) ||
 		command_add("setaaxp", "[AA|Group|Raid] [AA Experience] - Set your or your player target's AA Experience by Type", AccountStatus::GMAdmin, command_setaaxp) ||
@@ -308,7 +307,6 @@ int command_init(void)
 		command_add("setcrystals", "[value] - Set your or your player target's available radiant or ebon crystals", AccountStatus::GMAdmin, command_setcrystals) ||
 		command_add("setendurance", "[Endurance] - Set your or your target's Endurance", AccountStatus::GMAdmin, command_setendurance) ||
 		command_add("setfaction", "[Faction ID] - Sets targeted NPC's faction in the database", AccountStatus::GMAreas, command_setfaction) ||
-		command_add("setgraveyard", "[zone name] - Creates a graveyard for the specified zone based on your target's LOC.", AccountStatus::GMMgmt, command_setgraveyard) ||
 		command_add("sethp", "[Health] - Set your or your target's Health", AccountStatus::GMAdmin, command_sethp) ||
 		command_add("setlanguage", "[language ID] [value] - Set your target's language skillnum to value", AccountStatus::Guide, command_setlanguage) ||
 		command_add("setlsinfo", "[Email] [Password] - Set loginserver email address and password (if supported by loginserver)", AccountStatus::Steward, command_setlsinfo) ||
@@ -355,7 +353,6 @@ int command_init(void)
 		command_add("undye", "- Remove dye from all of your or your target's armor slots", AccountStatus::GMAdmin, command_undye) ||
 		command_add("undyeme", "- Remove dye from all of your armor slots", AccountStatus::Player, command_undyeme) ||
 		command_add("unfreeze", "- Unfreeze your target", AccountStatus::QuestTroupe, command_unfreeze) ||
-		command_add("unlock", "- Unlock the worldserver", AccountStatus::GMLeadAdmin, command_unlock) ||
 		command_add("unmemspell", "[Spell ID] - Unmemorize a Spell by ID for you or your target", AccountStatus::Guide, command_unmemspell) ||
 		command_add("unmemspells", " - Unmemorize all spells for you or your target", AccountStatus::Guide, command_unmemspells) ||
 		command_add("unscribespell", "[Spell ID] - Unscribe a spell from your or your target's spell book by Spell ID", AccountStatus::GMCoder, command_unscribespell) ||
@@ -1162,7 +1159,6 @@ void command_bot(Client *c, const Seperator *sep)
 #include "gm_commands/date.cpp"
 #include "gm_commands/dbspawn2.cpp"
 #include "gm_commands/delacct.cpp"
-#include "gm_commands/deletegraveyard.cpp"
 #include "gm_commands/delpetition.cpp"
 #include "gm_commands/depop.cpp"
 #include "gm_commands/depopzone.cpp"
@@ -1242,7 +1238,6 @@ void command_bot(Client *c, const Seperator *sep)
 #include "gm_commands/list.cpp"
 #include "gm_commands/listpetition.cpp"
 #include "gm_commands/loc.cpp"
-#include "gm_commands/lock.cpp"
 #include "gm_commands/logcommand.cpp"
 #include "gm_commands/logs.cpp"
 #include "gm_commands/makepet.cpp"
@@ -1314,6 +1309,7 @@ void command_bot(Client *c, const Seperator *sep)
 #include "gm_commands/sendzonespawns.cpp"
 #include "gm_commands/sensetrap.cpp"
 #include "gm_commands/serverinfo.cpp"
+#include "gm_commands/serverlock.cpp"
 #include "gm_commands/serverrules.cpp"
 #include "gm_commands/set_adventure_points.cpp"
 #include "gm_commands/setaapts.cpp"
@@ -1323,7 +1319,6 @@ void command_bot(Client *c, const Seperator *sep)
 #include "gm_commands/setcrystals.cpp"
 #include "gm_commands/setendurance.cpp"
 #include "gm_commands/setfaction.cpp"
-#include "gm_commands/setgraveyard.cpp"
 #include "gm_commands/sethp.cpp"
 #include "gm_commands/setlanguage.cpp"
 #include "gm_commands/setlsinfo.cpp"
@@ -1368,7 +1363,6 @@ void command_bot(Client *c, const Seperator *sep)
 #include "gm_commands/undye.cpp"
 #include "gm_commands/undyeme.cpp"
 #include "gm_commands/unfreeze.cpp"
-#include "gm_commands/unlock.cpp"
 #include "gm_commands/unmemspell.cpp"
 #include "gm_commands/unmemspells.cpp"
 #include "gm_commands/unscribespell.cpp"

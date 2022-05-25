@@ -2020,20 +2020,22 @@ void Client::Sit() {
     SetAppearance(eaSitting, false);
 }
 
-void Client::ChangeLastName(const char* in_lastname) {
+void Client::ChangeLastName(std::string last_name) {
 	memset(m_pp.last_name, 0, sizeof(m_pp.last_name));
-	strn0cpy(m_pp.last_name, in_lastname, sizeof(m_pp.last_name));
+	strn0cpy(m_pp.last_name, last_name.c_str(), sizeof(m_pp.last_name));
 	auto outapp = new EQApplicationPacket(OP_GMLastName, sizeof(GMLastName_Struct));
-	GMLastName_Struct* gmn = (GMLastName_Struct*)outapp->pBuffer;
-	strcpy(gmn->name, name);
-	strcpy(gmn->gmname, name);
-	strcpy(gmn->lastname, in_lastname);
-	gmn->unknown[0]=1;
-	gmn->unknown[1]=1;
-	gmn->unknown[2]=1;
-	gmn->unknown[3]=1;
+	auto gmn = (GMLastName_Struct*) outapp->pBuffer;
+	strn0cpy(gmn->name, name, sizeof(gmn->name));
+	strn0cpy(gmn->gmname, name, sizeof(gmn->gmname));
+	strn0cpy(gmn->lastname, last_name.c_str(), sizeof(gmn->lastname));
+
+	gmn->unknown[0] = 1;
+	gmn->unknown[1] = 1;
+	gmn->unknown[2] = 1;
+	gmn->unknown[3] = 1;
+
 	entity_list.QueueClients(this, outapp, false);
-	// Send name update packet here... once know what it is
+
 	safe_delete(outapp);
 }
 
@@ -11727,4 +11729,22 @@ std::map<std::string,std::string> Client::GetMerchantDataBuckets()
 	}
 
 	return merchant_data_buckets;
+}
+
+void Client::Undye()
+{
+	for (uint8 slot = EQ::textures::textureBegin; slot <= EQ::textures::LastTexture; slot++) {
+		auto inventory_slot = SlotConvert(slot);
+		auto inst = m_inv.GetItem(inventory_slot);
+
+		if (inst) {
+			inst->SetColor(inst->GetItem()->Color);
+			database.SaveInventory(CharacterID(), inst, inventory_slot);
+		}
+
+		m_pp.item_tint.Slot[slot].Color = 0;
+		SendWearChange(slot);
+	}
+
+	database.DeleteCharacterDye(CharacterID());
 }

@@ -6867,7 +6867,7 @@ bool Bot::ProcessGuildRemoval(Client* guildOfficer, std::string botName) {
 	if(guildOfficer && !botName.empty()) {
 		Bot* botToUnGuild = entity_list.GetBotByBotName(botName);
 		if(botToUnGuild) {
-			if (database.botdb.DeleteGuildMembership(botToUnGuild->GetBotID())) //was if (database.botdb.SaveGuildMembership(botToUnGuild->GetBotID(), 0, 0))
+			if (database.botdb.DeleteGuildMembership(botToUnGuild->GetBotID()))
 				Result = true;
 		} else {
 			uint32 ownerId = 0;

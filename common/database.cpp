@@ -1107,21 +1107,6 @@ bool Database::GetZoneLongName(const char* short_name, char** long_name, char* f
 	return true;
 }
 
-uint32 Database::GetZoneGraveyardID(uint32 zone_id, uint32 version) {
-
-	std::string query = StringFormat("SELECT graveyard_id FROM zone WHERE zoneidnumber='%u' AND (version=%i OR version=0) ORDER BY version DESC", zone_id, version);
-	auto results = QueryDatabase(query);
-
-	if (!results.Success())
-		return 0;
-
-	if (results.RowCount() == 0)
-		return 0;
-
-	auto row = results.begin();
-	return atoi(row[0]);
-}
-
 bool Database::GetZoneGraveyard(const uint32 graveyard_id, uint32* graveyard_zoneid, float* graveyard_x, float* graveyard_y, float* graveyard_z, float* graveyard_heading) {
 
 	std::string query = StringFormat("SELECT zone_id, x, y, z, heading FROM graveyard WHERE id=%i", graveyard_id);
@@ -1167,90 +1152,66 @@ uint8 Database::GetPEQZone(uint32 zone_id, uint32 version){
 	return static_cast<uint8>(std::stoi(row[0]));
 }
 
-bool Database::CheckNameFilter(const char* name, bool surname)
+bool Database::CheckNameFilter(std::string name, bool surname)
 {
-	std::string str_name = name;
+	name = str_tolower(name);
 
 	// the minimum 4 is enforced by the client too
-	if (!name || strlen(name) < 4)
-	{
+	if (name.empty() || name.size() < 4) {
 		return false;
 	}
 
 	// Given name length is enforced by the client too
-	if (!surname && strlen(name) > 15)
-	{
+	if (!surname && name.size() > 15) {
 		return false;
 	}
 
-	for (size_t i = 0; i < str_name.size(); i++)
-	{
-		if(!isalpha(str_name[i]))
-		{
+	for (size_t i = 0; i < name.size(); i++) {
+		if (!isalpha(name[i])) {
 			return false;
 		}
-	}
-
-	for(size_t x = 0; x < str_name.size(); ++x)
-	{
-		str_name[x] = tolower(str_name[x]);
 	}
 
 	char c = '\0';
 	uint8 num_c = 0;
-	for(size_t x = 0; x < str_name.size(); ++x)
-	{
-		if(str_name[x] == c)
-		{
+	for (size_t x = 0; x < name.size(); ++x) {
+		if (name[x] == c) {
 			num_c++;
-		}
-		else
-		{
+		} else {
 			num_c = 1;
-			c = str_name[x];
+			c = name[x];
 		}
-		if(num_c > 2)
-		{
+
+		if (num_c > 2) {
 			return false;
 		}
 	}
 
-
-	std::string query("SELECT name FROM name_filter");
+	std::string query = "SELECT name FROM name_filter";
 	auto results = QueryDatabase(query);
-
-	if (!results.Success())
-	{
-		// false through to true? shouldn't it be falls through to false?
+	if (!results.Success()) {
 		return true;
 	}
 
-	for (auto row = results.begin();row != results.end();++row)
-	{
-		std::string current_row = row[0];
-
-		for(size_t x = 0; x < current_row.size(); ++x)
-			current_row[x] = tolower(current_row[x]);
-
-		if(str_name.find(current_row) != std::string::npos)
+	for (auto row : results) {
+		std::string current_row = str_tolower(row[0]);
+		if (name.find(current_row) != std::string::npos) {
 			return false;
+		}
 	}
 
 	return true;
 }
 
-bool Database::AddToNameFilter(const char* name) {
-
-	std::string query = StringFormat("INSERT INTO name_filter (name) values ('%s')", name);
+bool Database::AddToNameFilter(std::string name) {
+	auto query = fmt::format(
+		"INSERT INTO name_filter (name) values ('{}')",
+		name
+	);
 	auto results = QueryDatabase(query);
-
-	if (!results.Success())
-	{
+	if (!results.Success() || !results.RowsAffected()) {
 		return false;
 	}
-
-	if (results.RowsAffected() == 0)
-		return false;
 
 	return true;
 }
@@ -1339,15 +1300,15 @@ bool Database::UpdateName(const char* oldname, const char* newname) {
 }
 
 // If the name is used or an error occurs, it returns false, otherwise it returns true
-bool Database::CheckUsedName(const char* name) {
-	std::string query = StringFormat("SELECT `id` FROM `character_data` WHERE `name` = '%s'", name);
+bool Database::CheckUsedName(std::string name) {
+	auto query = fmt::format(
+		"SELECT `id` FROM `character_data` WHERE `name` = '{}'",
+		name
+	);
 	auto results = QueryDatabase(query);
-	if (!results.Success()) {
+	if (!results.Success() || results.RowCount()) {
 		return false;
 	}
-
-	if (results.RowCount() > 0)
-		return false;
 
 	return true;
 }

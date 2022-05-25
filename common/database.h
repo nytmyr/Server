@@ -88,7 +88,6 @@ public:
 
 	/* Character Creation */
 
-	bool AddToNameFilter(const char *name);
 	bool CreateCharacter(
 		uint32 account_id,
 		char *name,
@@ -122,10 +121,11 @@ public:
 	/* General Information Queries */
 
 	bool	AddBannedIP(std::string banned_ip, std::string notes); //Add IP address to the banned_ips table.
+	bool	AddToNameFilter(std::string name);
 	bool	CheckBannedIPs(std::string login_ip); //Check incoming connection against banned IP table.
 	bool	CheckGMIPs(std::string login_ip, uint32 account_id);
-	bool	CheckNameFilter(const char* name, bool surname = false);
-	bool	CheckUsedName(const char* name);
+	bool	CheckNameFilter(std::string name, bool surname = false);
+	bool	CheckUsedName(std::string name);
 
 	uint32	GetAccountIDByChar(const char* charname, uint32* oCharID = 0);
 	uint32	GetAccountIDByChar(uint32 char_id);
@@ -250,8 +250,6 @@ public:
 	bool	GetZoneGraveyard(const uint32 graveyard_id, uint32* graveyard_zoneid = 0, float* graveyard_x = 0, float* graveyard_y = 0, float* graveyard_z = 0, float* graveyard_heading = 0);
 	bool	GetZoneLongName(const char* short_name, char** long_name, char* file_name = 0, float* safe_x = 0, float* safe_y = 0, float* safe_z = 0, uint32* graveyard_id = 0, uint32* maxclients = 0);
 	bool	LoadPTimers(uint32 charid, PTimerList &into);
-
-	uint32	GetZoneGraveyardID(uint32 zone_id, uint32 version);
 
 	uint8	GetPEQZone(uint32 zone_id, uint32 version);
 	uint8	GetRaceSkill(uint8 skillid, uint8 in_race);
