@@ -320,7 +320,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 					botSpell = GetFirstBotSpellBySpellType(this, iSpellTypes);
 
-					uint32 resist_limit = RuleI(Bots, RootResistLimit);
+					int32 resist_limit = RuleI(Bots, RootResistLimit);
 					uint16 botspellid = botSpell.SpellId;
 					bool resistcheck = DoResistCheck(botspellid, tar, resist_limit);
 					if (!resistcheck)
@@ -543,7 +543,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				if(botSpell.SpellId == 0)
 					botSpell = GetBestBotSpellForNukeByTargetType(this, ST_Target);
 
-				uint32 resist_limit = RuleI(Bots, NukeResistLimit);
+				int32 resist_limit = RuleI(Bots, NukeResistLimit);
 				uint16 botspellid = botSpell.SpellId;
 				bool resistcheck = DoResistCheck(botspellid, tar, resist_limit);
 				if (!resistcheck)
@@ -578,7 +578,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 				botSpell = GetFirstBotSpellBySpellType(this, iSpellTypes);
 
-				uint32 resist_limit = RuleI(Bots, DispelResistLimit);
+				int32 resist_limit = RuleI(Bots, DispelResistLimit);
 				uint16 botspellid = botSpell.SpellId;
 				bool resistcheck = DoResistCheck(botspellid, tar, resist_limit);
 				if (!resistcheck)
@@ -786,7 +786,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 					botSpell = GetFirstBotSpellBySpellType(this, iSpellTypes);
 
-					uint32 resist_limit = RuleI(Bots, SnareResistLimit);
+					int32 resist_limit = RuleI(Bots, SnareResistLimit);
 					uint16 botspellid = botSpell.SpellId;
 					bool resistcheck = DoResistCheck(botspellid, tar, resist_limit);
 					if (!resistcheck)
@@ -868,7 +868,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 							uint32 TempDontDotMeBefore = tar->DontDotMeBefore();
 
-							uint32 resist_limit = RuleI(Bots, DoTResistLimit);
+							int32 resist_limit = RuleI(Bots, DoTResistLimit);
 							uint16 botspellid = botSpell.SpellId;
 							bool resistcheck = DoResistCheck(botspellid, tar, resist_limit);
 							if (!resistcheck)
@@ -915,7 +915,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 							if (tar->CanBuffStack(iter.SpellId, botLevel, true) < 0)
 								continue;
 
-							uint32 resist_limit = RuleI(Bots, SlowResistLimit);
+							int32 resist_limit = RuleI(Bots, SlowResistLimit);
 							uint16 botspellid = botSpell.SpellId;
 							bool resistcheck = DoResistCheck(botspellid, tar, resist_limit);
 							if (!resistcheck)
@@ -931,7 +931,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					case ENCHANTER: {
 						botSpell = GetBestBotSpellForMagicBasedSlow(this);
 
-						uint32 resist_limit = RuleI(Bots, SlowResistLimit);
+						int32 resist_limit = RuleI(Bots, SlowResistLimit);
 						uint16 botspellid = botSpell.SpellId;
 						bool resistcheck = DoResistCheck(botspellid, tar, resist_limit);
 						if (!resistcheck)
@@ -945,7 +945,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						if(botSpell.SpellId == 0 || ((tar->GetMR() - 50) < (tar->GetDR() + spells[botSpell.SpellId].resist_difficulty)))
 							botSpell = GetBestBotSpellForMagicBasedSlow(this);
 
-						uint32 resist_limit = RuleI(Bots, SlowResistLimit);
+						int32 resist_limit = RuleI(Bots, SlowResistLimit);
 						uint16 botspellid = botSpell.SpellId;
 						bool resistcheck = DoResistCheck(botspellid, tar, resist_limit);
 						if (!resistcheck)
@@ -984,7 +984,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				if(botSpell.SpellId == 0)
 					botSpell = GetDebuffBotSpell(this, tar);
 
-				uint32 resist_limit = RuleI(Bots, DebuffResistLimit);
+				int32 resist_limit = RuleI(Bots, DebuffResistLimit);
 				uint16 botspellid = botSpell.SpellId;
 				bool resistcheck = DoResistCheck(botspellid, tar, resist_limit);
 				if (!resistcheck)
@@ -2488,7 +2488,7 @@ BotSpell Bot::GetBestBotSpellForResistDebuff(Bot* botCaster, Mob *tar) {
 	return result;
 }
 
-bool Bot::DoResistCheck(uint16 botspellid, Mob* target, uint32 resist_limit) {
+bool Bot::DoResistCheck(uint16 botspellid, Mob* target, int32 resist_limit) {
 	if (botspellid == 0)
 		return false;
 	if ((GetSpellResistType(botspellid) == RESIST_MAGIC) && (target->GetMR() > (resist_limit - spells[botspellid].resist_difficulty)))

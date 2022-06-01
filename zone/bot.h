@@ -404,7 +404,7 @@ public:
 	static BotSpell GetDebuffBotSpell(Bot* botCaster, Mob* target);
 	static BotSpell GetBestBotSpellForCure(Bot* botCaster, Mob* target);
 	static BotSpell GetBestBotSpellForResistDebuff(Bot* botCaster, Mob* target);
-	bool DoResistCheck(uint16 botspellid, Mob* target, uint32 resist_limit);
+	bool DoResistCheck(uint16 botspellid, Mob* target, int32 resist_limit);
 	
 	static NPCType *CreateDefaultNPCTypeStructForBot(std::string botName, std::string botLastName, uint8 botLevel, uint16 botRace, uint8 botClass, uint8 gender);
 
