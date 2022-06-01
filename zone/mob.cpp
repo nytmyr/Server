@@ -988,105 +988,105 @@ int64 Mob::GetSpellHPBonuses() {
 	return spell_hp;
 }
 
-int32 Mob::GetSpellACBonuses()
+int64 Mob::GetSpellACBonuses()
 {
 	uint32 spell_ac = 0;
 	spell_ac = spellbonuses.AC;
 	return spell_ac;
 }
 
-int32 Mob::GetSpellATKBonuses()
+int64 Mob::GetSpellATKBonuses()
 {
 	uint32 spell_atk = 0;
 	spell_atk = spellbonuses.ATK;
 	return spell_atk;
 }
 
-int32 Mob::GetSpellManaBonuses()
+int64 Mob::GetSpellManaBonuses()
 {
 	uint32 spell_mana = 0;
 	spell_mana = spellbonuses.Mana;
 	return spell_mana;
 }
 
-int32 Mob::GetSpellMRBonuses()
+int64 Mob::GetSpellMRBonuses()
 {
 	uint32 spell_mr = 0;
 	spell_mr = spellbonuses.MR;
 	return spell_mr;
 }
 
-int32 Mob::GetSpellFRBonuses()
+int64 Mob::GetSpellFRBonuses()
 {
 	uint32 spell_fr = 0;
 	spell_fr = spellbonuses.FR;
 	return spell_fr;
 }
 
-int32 Mob::GetSpellCRBonuses()
+int64 Mob::GetSpellCRBonuses()
 {
 	uint32 spell_cr = 0;
 	spell_cr = spellbonuses.CR;
 	return spell_cr;
 }
 
-int32 Mob::GetSpellPRBonuses()
+int64 Mob::GetSpellPRBonuses()
 {
 	uint32 spell_pr = 0;
 	spell_pr = spellbonuses.PR;
 	return spell_pr;
 }
 
-int32 Mob::GetSpellDRBonuses()
+int64 Mob::GetSpellDRBonuses()
 {
 	uint32 spell_dr = 0;
 	spell_dr = spellbonuses.DR;
 	return spell_dr;
 }
 
-int32 Mob::GetSpellSTRBonuses()
+int64 Mob::GetSpellSTRBonuses()
 {
 	uint32 spell_str = 0;
 	spell_str = spellbonuses.STR;
 	return spell_str;
 }
 
-int32 Mob::GetSpellSTABonuses()
+int64 Mob::GetSpellSTABonuses()
 {
 	uint32 spell_sta = 0;
 	spell_sta = spellbonuses.STA;
 	return spell_sta;
 }
 
-int32 Mob::GetSpellDEXBonuses()
+int64 Mob::GetSpellDEXBonuses()
 {
 	uint32 spell_dex = 0;
 	spell_dex = spellbonuses.DEX;
 	return spell_dex;
 }
 
-int32 Mob::GetSpellAGIBonuses()
+int64 Mob::GetSpellAGIBonuses()
 {
 	uint32 spell_agi = 0;
 	spell_agi = spellbonuses.AGI;
 	return spell_agi;
 }
 
-int32 Mob::GetSpellINTBonuses()
+int64 Mob::GetSpellINTBonuses()
 {
 	uint32 spell_int = 0;
 	spell_int = spellbonuses.INT;
 	return spell_int;
 }
 
-int32 Mob::GetSpellWISBonuses()
+int64 Mob::GetSpellWISBonuses()
 {
 	uint32 spell_wis = 0;
 	spell_wis = spellbonuses.WIS;
 	return spell_wis;
 }
 
-int32 Mob::GetSpellCHABonuses()
+int64 Mob::GetSpellCHABonuses()
 {
 	uint32 spell_cha = 0;
 	spell_cha = spellbonuses.CHA;
