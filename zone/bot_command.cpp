@@ -3503,41 +3503,50 @@ void bot_command_hold_nukes(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_nukes", sep->arg[0], "holdnukes"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(m_usage, "usage: <target_bot> %s [current | reset | value: 0-1]", sep->arg[0]);
-		c->Message(m_note, "note: Only used for Clerics");
-		c->Message(m_note, "note: Use [reset] to disable hold nukes");
-		c->Message(m_note, "note: Set to 0 to prevent holding nukes");
-		c->Message(m_note, "note: Set to 1 to hold nukes");
-		c->Message(m_note, "note: Anything other than 1 results in no hold");
+		c->Message(m_usage, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(m_note, "note: Can only be used for Casters or Hybrids.");
+		c->Message(m_note, "note: Use [current] to check the current setting.");
+		c->Message(m_note, "note: Set to 0 to prevent holding nukes.");
+		c->Message(m_note, "note: Set to 1 to hold nukes.");
 		return;
 	}
 
 	auto my_bot = ActionableBots::AsTarget_ByBot(c);
 	if (!my_bot) {
-		c->Message(m_fail, "You must <target> a bot that you own to use this command");
+		c->Message(m_fail, "You must <target> a bot that you own to use this command.");
 		return;
 	}
-	if (!(my_bot->GetClass() == CLERIC)) {
-		c->Message(m_fail, "You must <target> a Cleric to use this command");
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(m_fail, "You must <target> a caster or hybrid class to use this command.");
 		return;
 	}
 
 	uint8 hn = 0;
-
 	if (sep->IsNumber(1)) {
 		hn = atoi(sep->arg[1]);
+		int hncheck = hn;
+		if (hncheck == 0 || hncheck == 1) {
+			my_bot->SetHoldNukes(hn);
+			if (!database.botdb.SaveHoldNukes(c->CharacterID(), my_bot->GetBotID(), hn)) {
+				c->Message(m_fail, "%s for '%s'", BotDatabase::fail::SaveHoldNukes(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(m_action, "Successfully set Hold Nuke for %s to %u.", my_bot->GetCleanName(), hn);
+			}
+		}
+		else {
+			c->Message(m_message, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(m_message, "My current hold status is %u", my_bot->GetHoldNukes());
-		return;
+		c->Message(m_message, "My current hold status is %u.", my_bot->GetHoldNukes());
 	}
-	// [reset] falls through with initialization value
+	else {
+		c->Message(m_message, "Incorrect argument, use help for a list of options.");
+	}
 
-	my_bot->SetHoldNukes(hn);
-	if (!database.botdb.SaveHoldNukes(c->CharacterID(), my_bot->GetBotID(), hn))
-		c->Message(m_fail, "%s for '%s'", BotDatabase::fail::SaveHoldNukes(), my_bot->GetCleanName());
-
-	c->Message(m_action, "Successfully set Hold Nuke for %s to %u", my_bot->GetCleanName(), hn);
 }
 
 void bot_command_identify(Client *c, const Seperator *sep)

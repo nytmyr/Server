@@ -472,92 +472,92 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 			break;
 		}
 		case SpellType_Nuke: {
-			if((tar->GetHPRatio() <= 95.0f) || ((botClass == BARD) || (botClass == SHAMAN) || (botClass == ENCHANTER)))
-			{
-				if(!checked_los) {
-					if(!CheckLosFN(tar))
-						break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
-
-					checked_los = true;
-				}
-
-				if(botClass == CLERIC || botClass == ENCHANTER)
+			if (GetHoldNukes() == 0) {
+				if ((tar->GetHPRatio() <= 95.0f) || ((botClass == BARD) || (botClass == SHAMAN) || (botClass == ENCHANTER)))
 				{
-					float manaRatioToCast = 75.0f;
+					if (!checked_los) {
+						if (!CheckLosFN(tar))
+							break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
 
-					switch(GetBotStance()) {
-					case EQ::constants::stanceEfficient:
-						manaRatioToCast = 90.0f;
-						break;
-					case EQ::constants::stanceBalanced:
-						manaRatioToCast = 75.0f;
-						break;
-					case EQ::constants::stanceReactive:
-					case EQ::constants::stanceAggressive:
-						manaRatioToCast = 50.0f;
-						break;
-					case EQ::constants::stanceBurn:
-					case EQ::constants::stanceBurnAE:
-						manaRatioToCast = 25.0f;
-						break;
-					default:
-						manaRatioToCast = 50.0f;
-						break;
+						checked_los = true;
 					}
 
-					//If we're at specified mana % or below, don't nuke as cleric or enchanter
-					if(GetManaRatio() <= manaRatioToCast)
-						break;
-				}
+					if (botClass == CLERIC || botClass == ENCHANTER)
+					{
+						float manaRatioToCast = 75.0f;
 
-				if(botClass == MAGICIAN || botClass == SHADOWKNIGHT || botClass == NECROMANCER || botClass == PALADIN || botClass == RANGER || botClass == DRUID || botClass == CLERIC) {
-					if(tar->GetBodyType() == BT_Undead || tar->GetBodyType() == BT_SummonedUndead || tar->GetBodyType() == BT_Vampire)
-						botSpell = GetBestBotSpellForNukeByTargetType(this, ST_Undead);
-					else if(tar->GetBodyType() == BT_Summoned || tar->GetBodyType() == BT_Summoned2 || tar->GetBodyType() == BT_Summoned3)
-						botSpell = GetBestBotSpellForNukeByTargetType(this, ST_Summoned);
-				}
-
-				if(botClass == PALADIN || botClass == DRUID || botClass == CLERIC || botClass == ENCHANTER || botClass == WIZARD) {
-					if(botSpell.SpellId == 0) {
-						uint8 stunChance = (tar->IsCasting() ? 30: 15);
-
-						if(botClass == PALADIN)
-							stunChance = 50;
-
-						if(!tar->GetSpecialAbility(UNSTUNABLE) && !tar->IsStunned() && (zone->random.Int(1, 100) <= stunChance)) {
-							botSpell = GetBestBotSpellForStunByTargetType(this, ST_Target);
+						switch (GetBotStance()) {
+						case EQ::constants::stanceEfficient:
+							manaRatioToCast = 90.0f;
+							break;
+						case EQ::constants::stanceBalanced:
+							manaRatioToCast = 75.0f;
+							break;
+						case EQ::constants::stanceReactive:
+						case EQ::constants::stanceAggressive:
+							manaRatioToCast = 50.0f;
+							break;
+						case EQ::constants::stanceBurn:
+						case EQ::constants::stanceBurnAE:
+							manaRatioToCast = 25.0f;
+							break;
+						default:
+							manaRatioToCast = 50.0f;
+							break;
 						}
-					}
-				}
 
-				if (botClass == CLERIC && GetHoldNukes() == 1)
-					break;
-
-				if(botClass == WIZARD && botSpell.SpellId == 0) {
-					botSpell = GetBestBotWizardNukeSpellByTargetResists(this, tar);
-				}
-
-				if(botSpell.SpellId == 0)
-					botSpell = GetBestBotSpellForNukeByTargetType(this, ST_Target);
-
-				if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, NukeResistLimit)))
-					return botSpell.SpellId = 0;
-
-				if(botSpell.SpellId == 0)
-					break;
-
-				if(!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && (tar->CanBuffStack(botSpell.SpellId, botLevel, true) >= 0)))
-					break;
-
-				if(IsFearSpell(botSpell.SpellId)) {
-					// don't let fear cast if the npc isn't snared or rooted
-					if(tar->GetSnaredAmount() == -1) {
-						if(!tar->IsRooted())
+						//If we're at specified mana % or below, don't nuke as cleric or enchanter
+						if (GetManaRatio() <= manaRatioToCast)
 							break;
 					}
-				}
 
-				castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
+					if (botClass == MAGICIAN || botClass == SHADOWKNIGHT || botClass == NECROMANCER || botClass == PALADIN || botClass == RANGER || botClass == DRUID || botClass == CLERIC) {
+						if (tar->GetBodyType() == BT_Undead || tar->GetBodyType() == BT_SummonedUndead || tar->GetBodyType() == BT_Vampire)
+							botSpell = GetBestBotSpellForNukeByTargetType(this, ST_Undead);
+						else if (tar->GetBodyType() == BT_Summoned || tar->GetBodyType() == BT_Summoned2 || tar->GetBodyType() == BT_Summoned3)
+							botSpell = GetBestBotSpellForNukeByTargetType(this, ST_Summoned);
+					}
+
+					if (botClass == PALADIN || botClass == DRUID || botClass == CLERIC || botClass == ENCHANTER || botClass == WIZARD) {
+						if (botSpell.SpellId == 0) {
+							uint8 stunChance = (tar->IsCasting() ? 30 : 15);
+
+							if (botClass == PALADIN)
+								stunChance = 50;
+
+							if (!tar->GetSpecialAbility(UNSTUNABLE) && !tar->IsStunned() && (zone->random.Int(1, 100) <= stunChance)) {
+								botSpell = GetBestBotSpellForStunByTargetType(this, ST_Target);
+							}
+						}
+					}
+
+					if (botClass == WIZARD && botSpell.SpellId == 0) {
+						botSpell = GetBestBotWizardNukeSpellByTargetResists(this, tar);
+					}
+
+					if (botSpell.SpellId == 0)
+						botSpell = GetBestBotSpellForNukeByTargetType(this, ST_Target);
+
+					if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, NukeResistLimit)))
+						return botSpell.SpellId = 0;
+
+					if (botSpell.SpellId == 0)
+						break;
+
+					if (!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && (tar->CanBuffStack(botSpell.SpellId, botLevel, true) >= 0)))
+						break;
+
+					if (IsFearSpell(botSpell.SpellId)) {
+						// don't let fear cast if the npc isn't snared or rooted
+						if (tar->GetSnaredAmount() == -1) {
+							if (!tar->IsRooted())
+								break;
+						}
+					}
+
+					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
+				}
+				break;
 			}
 			break;
 		}
