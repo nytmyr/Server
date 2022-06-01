@@ -981,8 +981,8 @@ int64 Mob::GetItemHPBonuses() {
 	return item_hp;
 }
 
-int32 Mob::GetSpellHPBonuses() {
-	int32 spell_hp = 0;
+int64 Mob::GetSpellHPBonuses() {
+	int64 spell_hp = 0;
 	spell_hp = spellbonuses.HP;
 	spell_hp += spell_hp * spellbonuses.MaxHPChange / 10000;
 	return spell_hp;
@@ -2959,6 +2959,16 @@ bool Mob::RandomizeFeatures(bool send_illusion, bool set_variables)
 	return false;
 }
 
+bool Mob::IsPlayerClass(uint16 in_class) {
+	if (
+		in_class >= WARRIOR &&
+		in_class <= BERSERKER
+	) {
+		return true;
+	}
+
+	return false;
+}
 
 bool Mob::IsPlayerRace(uint16 in_race) {
 
@@ -5425,11 +5435,14 @@ bool Mob::TrySpellOnDeath()
 		if(spellbonuses.SpellOnDeath[i] && IsValidSpell(spellbonuses.SpellOnDeath[i])) {
 			if(zone->random.Roll(static_cast<int>(spellbonuses.SpellOnDeath[i + 1]))) {
 				SpellFinished(spellbonuses.SpellOnDeath[i], this, EQ::spells::CastingSlot::Item, 0, -1, spells[spellbonuses.SpellOnDeath[i]].resist_difficulty);
-				}
 			}
 		}
+	}
 
-	BuffFadeNonPersistDeath();
+	if (RuleB(Spells, BuffsFadeOnDeath)) {
+		BuffFadeNonPersistDeath();
+	}
+
 	return false;
 	//You should not be able to use this effect and survive (ALWAYS return false),
 	//attempting to place a heal in these effects will still result

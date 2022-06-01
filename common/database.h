@@ -131,7 +131,7 @@ public:
 	uint32	GetAccountIDByChar(uint32 char_id);
 	uint32	GetAccountIDByName(std::string account_name, std::string loginserver, int16* status = 0, uint32* lsid = 0);
 	uint32	GetCharacterID(const char *name);
-	uint32	GetCharacterInfo(const char* iName, uint32* oAccID = 0, uint32* oZoneID = 0, uint32* oInstanceID = 0, float* oX = 0, float* oY = 0, float* oZ = 0);
+	uint32	GetCharacterInfo(std::string character_name, uint32 *account_id, uint32 *zone_id, uint32 *instance_id);
 	uint32	GetGuildIDByCharID(uint32 char_id);
 	uint32  GetGroupIDByCharID(uint32 char_id);
 	uint32  GetRaidIDByCharID(uint32 char_id);
@@ -207,8 +207,8 @@ public:
 
 	/* Groups */
 
-	char*	GetGroupLeaderForLogin(const char* name,char* leaderbuf);
-	char*	GetGroupLeadershipInfo(uint32 gid, char* leaderbuf, char* maintank = nullptr, char* assist = nullptr, char* puller = nullptr, char *marknpc = nullptr, char *mentoree = nullptr, int *mentor_percent = nullptr, GroupLeadershipAA_Struct* GLAA = nullptr);
+	std::string GetGroupLeaderForLogin(std::string character_name);
+	char* GetGroupLeadershipInfo(uint32 gid, char* leaderbuf, char* maintank = nullptr, char* assist = nullptr, char* puller = nullptr, char *marknpc = nullptr, char *mentoree = nullptr, int *mentor_percent = nullptr, GroupLeadershipAA_Struct* GLAA = nullptr);
 
 	uint32	GetGroupID(const char* name);
 
@@ -252,6 +252,7 @@ public:
 	bool	LoadPTimers(uint32 charid, PTimerList &into);
 
 	uint8	GetPEQZone(uint32 zone_id, uint32 version);
+	uint8	GetMinStatus(uint32 zone_id, uint32 instance_version);
 	uint8	GetRaceSkill(uint8 skillid, uint8 in_race);
 	uint8	GetServerType();
 	uint8	GetSkillCap(uint8 skillid, uint8 in_race, uint8 in_class, uint16 in_level);
