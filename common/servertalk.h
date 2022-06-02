@@ -242,6 +242,8 @@
 #define ServerOP_ReloadWorld 0x4119
 #define ServerOP_ReloadZonePoints 0x4120
 
+#define ServerOP_DiscordWebhookMessage 0x4021
+
 #define ServerOP_CZDialogueWindow 0x4500
 #define ServerOP_CZLDoNUpdate 0x4501
 #define ServerOP_CZMarquee 0x4502
@@ -1447,6 +1449,11 @@ struct QSMerchantLogTransaction_Struct {
 	MoneyUpdate_Struct		char_money;
 	uint16 char_count;
 	QSTransactionItems_Struct items[0];
+};
+
+struct DiscordWebhookMessage_Struct {
+	uint32 webhook_id;
+	char message[2000];
 };
 
 struct QSGeneralQuery_Struct {

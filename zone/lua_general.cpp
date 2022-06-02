@@ -3396,6 +3396,10 @@ bool lua_check_name_filter(std::string name) {
 	return database.CheckNameFilter(name);
 }
 
+void lua_discord_send(std::string webhook_name, std::string message) {
+	zone->SendDiscordMessage(webhook_name, message);
+}
+
 #define LuaCreateNPCParse(name, c_type, default_value) do { \
 	cur = table[#name]; \
 	if(luabind::type(cur) != LUA_TNIL) { \
@@ -3850,6 +3854,7 @@ luabind::scope lua_register_general() {
 		luabind::def("get_environmental_damage_name", &lua_get_environmental_damage_name),
 		luabind::def("commify", &lua_commify),
 		luabind::def("check_name_filter", &lua_check_name_filter),
+		luabind::def("discord_send", &lua_discord_send),
 
 		/*
 			Cross Zone

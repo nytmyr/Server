@@ -22,7 +22,7 @@ enum PlayerGenericLogEventTypes {
 	Player_Log_Issued_Bot_Commands,
 	Player_Log_Money_Transactions,
 	Player_Log_Alternate_Currency_Transactions,
-}; 
+};
 
 
 class QueryServ{
