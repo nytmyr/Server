@@ -724,6 +724,8 @@
 #define LogHateDetail(message, ...) do {\
     if (LogSys.log_settings[Logs::Hate].is_category_enabled == 1)\
         OutF(LogSys, Logs::Detail, Logs::Hate, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
+} while (0)
+
 #define LogDiscord(message, ...) do {\
     if (LogSys.log_settings[Logs::Discord].is_category_enabled == 1)\
         OutF(LogSys, Logs::General, Logs::Discord, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
