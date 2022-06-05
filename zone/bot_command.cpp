@@ -2599,7 +2599,7 @@ void bot_command_aggressive(Client *c, const Seperator *sep)
 
 			my_bot->InterruptSpell();
 			if (candidate_count == 1)
-				Bot::BotGroupSay(my_bot, "Using '%s'", spells[local_entry->spell_id].name);
+				c->Message(Chat::Tell, "%s tells you, using '%s'", my_bot->GetCleanName(), spells[local_entry->spell_id].name);
 			my_bot->UseDiscipline(local_entry->spell_id, my_bot->GetID());
 			++success_count;
 
@@ -3090,7 +3090,7 @@ void bot_command_defensive(Client *c, const Seperator *sep)
 
 			my_bot->InterruptSpell();
 			if (candidate_count == 1)
-				Bot::BotGroupSay(my_bot, "Using '%s'", spells[local_entry->spell_id].name);
+				c->Message(Chat::Tell, "%s tells you, using '%s'", my_bot->GetCleanName(), spells[local_entry->spell_id].name);
 			my_bot->UseDiscipline(local_entry->spell_id, my_bot->GetID());
 			++success_count;
 
@@ -3311,7 +3311,7 @@ void bot_command_follow(Client *c, const Seperator *sep)
 	}
 	if (sbl.size() == 1) {
 		Mob* follow_mob = entity_list.GetMob(sbl.front()->GetFollowID());
-		Bot::BotGroupSay(sbl.front(), "Following %s", ((follow_mob) ? (follow_mob->GetCleanName()) : ("'nullptr'")));
+		c->Message(Chat::Tell, "%i bot(s) tell you, following %s", sbl.size(), ((follow_mob) ? (follow_mob->GetCleanName()) : ("'nullptr'")));
 	}
 	else {
 		if (reset)
@@ -3362,7 +3362,7 @@ void bot_command_guard(Client *c, const Seperator *sep)
 	}
 
 	if (sbl.size() == 1) {
-		Bot::BotGroupSay(sbl.front(), "%suarding this position.", (clear ? "No longer g" : "G"));
+		c->Message(Chat::Tell, "%i bot(s) tell you, %suarding this position.", sbl.size(), (clear ? "no longer g" : "g"));
 	}
 	else {
 		c->Message(m_action, "%i of your bots are %sguarding their positions.", sbl.size(), (clear ? "no longer " : ""));
@@ -3493,7 +3493,7 @@ void bot_command_hold(Client *c, const Seperator *sep)
 	}
 
 	if (sbl.size() == 1) {
-		Bot::BotGroupSay(sbl.front(), "%solding my attacks.", (clear ? "No longer h" : "H"));
+		c->Message(Chat::Tell, "%i bot(s) tell you, %solding my attacks.", sbl.size(), (clear ? "no longer h" : "h"));
 	}
 	else {
 		c->Message(m_action, "%i of your bots are %sholding their attacks.", sbl.size(), (clear ? "no longer " : ""));
@@ -4286,7 +4286,7 @@ void bot_command_pick_lock(Client *c, const Seperator *sep)
 	Bot* my_bot = sbl.front();
 
 	my_bot->InterruptSpell();
-	Bot::BotGroupSay(my_bot, "Attempting to pick the lock..");
+	c->Message(Chat::Tell, "%s tells you, attempting to pick the lock..", my_bot->GetCleanName());
 
 	std::list<Doors*> door_list;
 	entity_list.GetDoorsList(door_list);
@@ -4313,7 +4313,7 @@ void bot_command_pick_lock(Client *c, const Seperator *sep)
 			++open_count;
 		}
 		else {
-			Bot::BotGroupSay(my_bot, "I am not skilled enough for this lock...");
+			c->Message(Chat::Tell, "%s tells you, I am not skilled enough for this lock...", my_bot->GetCleanName());
 		}
 	}
 	c->Message(m_action, "%i door%s attempted - %i door%s successful", door_count, ((door_count != 1) ? ("s") : ("")), open_count, ((open_count != 1) ? ("s") : ("")));
@@ -4862,7 +4862,7 @@ void bot_command_taunt(Client *c, const Seperator *sep)
 			bot_iter->SetTaunting(taunt_state);
 
 		if (sbl.size() == 1)
-			Bot::BotGroupSay(bot_iter, "I am %s taunting", bot_iter->IsTaunting() ? "now" : "no longer");
+			c->Message(Chat::Tell, "%s tells you, I am %s taunting", bot_iter->GetCleanName(), bot_iter->IsTaunting() ? "now" : "no longer");
 
 		++taunting_count;
 	}
@@ -4876,7 +4876,7 @@ void bot_command_taunt(Client *c, const Seperator *sep)
 		else
 			bot_iter->GetPet()->CastToNPC()->SetTaunting(taunt_state);
 		if (sbl.size() == 1)
-			Bot::BotGroupSay(bot_iter, "My Pet is %s taunting", bot_iter->GetPet()->CastToNPC()->IsTaunting() ? "now" : "no longer");
+			c->Message(Chat::Tell, "%s tells you, my pet is %s taunting", bot_iter->GetCleanName(), bot_iter->GetPet()->CastToNPC()->IsTaunting() ? "now" : "no longer");
 		++taunting_count;
 	}
 
@@ -4958,7 +4958,7 @@ void bot_command_track(Client *c, const Seperator *sep)
 	}
 
 	my_bot->InterruptSpell();
-	Bot::BotGroupSay(my_bot, tracking_msg.c_str());
+	c->Message(Chat::Tell, tracking_msg.c_str());
 	entity_list.ShowSpawnWindow(c, (c->GetLevel() * base_distance), track_named);
 }
 
@@ -6501,9 +6501,9 @@ void bot_subcommand_bot_stance(Client *c, const Seperator *sep)
 			bot_iter->Save();
 		}
 
-		Bot::BotGroupSay(
-			bot_iter,
-			"My current stance is '%s' (%i)",
+		c->Message(Chat::Tell,
+			"%s tells you, my current stance is '%s' (%i)",
+			bot_iter->GetCleanName(),
 			EQ::constants::GetStanceName(bot_iter->GetBotStance()),
 			bot_iter->GetBotStance()
 		);
@@ -8770,7 +8770,7 @@ void bot_subcommand_pet_remove(Client *c, const Seperator *sep)
 		if (bot_iter->IsBotCharmer()) {
 			bot_iter->SetBotCharmer(false);
 			if (sbl.size() == 1)
-				Bot::BotGroupSay(bot_iter, "Using a summoned pet");
+				c->Message(Chat::Tell, "%s tells you, using a summoned pet", bot_iter->GetCleanName());
 			++summoned_pet;
 			continue;
 		}
@@ -8782,7 +8782,7 @@ void bot_subcommand_pet_remove(Client *c, const Seperator *sep)
 		}
 		bot_iter->SetBotCharmer(true);
 		if (sbl.size() == 1)
-			Bot::BotGroupSay(bot_iter, "Available for Charming");
+			c->Message(Chat::Tell, "%s tells you, available for Charming", bot_iter->GetCleanName());
 		++charmed_pet;
 	}
 
