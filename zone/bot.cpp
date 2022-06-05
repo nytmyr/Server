@@ -4566,6 +4566,14 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 
 		if (!trade_instance->IsEquipable(GetBaseRace(), GetClass()) || (GetLevel() < trade_instance->GetItem()->ReqLevel)) { // deity checks will be handled within IsEquipable()
 			client_return.push_back(ClientReturn(trade_instance, trade_index));
+			client->Message(
+				Chat::Tell,
+				fmt::format(
+					"{} tells you, I cannot use {}.",
+					GetCleanName(),
+					item_link
+				).c_str()
+			);
 			continue;
 		}
 

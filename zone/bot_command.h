@@ -570,7 +570,6 @@ void bot_command_guard(Client *c, const Seperator *sep);
 void bot_command_heal_rotation(Client *c, const Seperator *sep);
 void bot_command_help(Client *c, const Seperator *sep);
 void bot_command_hold(Client *c, const Seperator *sep);
-void bot_command_hold_nukes(Client* c, const Seperator* sep);
 void bot_command_identify(Client *c, const Seperator *sep);
 void bot_command_inventory(Client *c, const Seperator *sep);
 void bot_command_invisibility(Client *c, const Seperator *sep);
@@ -594,10 +593,12 @@ void bot_command_summon_corpse(Client *c, const Seperator *sep);
 void bot_command_suspend(Client *c, const Seperator *sep);
 void bot_command_taunt(Client *c, const Seperator *sep);
 void bot_command_track(Client *c, const Seperator *sep);
-void bot_command_use_epic(Client *c, const Seperator *sep);
 void bot_command_view_combos(Client *c, const Seperator *sep);
 void bot_command_water_breathing(Client *c, const Seperator *sep);
 
+// custom bot commands
+void bot_command_hold_nukes(Client* c, const Seperator* sep);
+void bot_command_use_epic(Client* c, const Seperator* sep);
 
 // bot subcommands
 void bot_subcommand_bot_appearance(Client *c, const Seperator *sep);

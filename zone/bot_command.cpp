@@ -1398,7 +1398,6 @@ int bot_command_init(void)
 		bot_command_add("healrotationstop", "Stops a heal rotation", AccountStatus::Player, bot_subcommand_heal_rotation_stop) ||
 		bot_command_add("help", "List available commands and their description - specify partial command as argument to search", AccountStatus::Player, bot_command_help) ||
 		bot_command_add("hold", "Prevents a bot from attacking until released", AccountStatus::Player, bot_command_hold) ||
-		bot_command_add("holdnukes", "Sets Clerics to hold their nukes", AccountStatus::Player, bot_command_hold_nukes) ||
 		bot_command_add("identify", "Orders a bot to cast an item identification spell", AccountStatus::Player, bot_command_identify) ||
 		bot_command_add("inventory", "Lists the available bot inventory [subcommands]", AccountStatus::Player, bot_command_inventory) ||
 		bot_command_add("inventorygive", "Gives the item on your cursor to a bot", AccountStatus::Player, bot_subcommand_inventory_give) ||
@@ -1430,9 +1429,12 @@ int bot_command_init(void)
 		bot_command_add("suspend", "Suspends a bot's AI processing until released", AccountStatus::Player, bot_command_suspend) ||
 		bot_command_add("taunt", "Toggles taunt use by a bot", AccountStatus::Player, bot_command_taunt) ||
 		bot_command_add("track", "Orders a capable bot to track enemies", AccountStatus::Player, bot_command_track) ||
-		bot_command_add("useepic", "Orders your targeted bot to use their epic if it is equipped", AccountStatus::Player, bot_command_use_epic) ||
 		bot_command_add("viewcombos", "Views bot race class combinations", AccountStatus::Player, bot_command_view_combos) ||
-		bot_command_add("waterbreathing", "Orders a bot to cast a water breathing spell", AccountStatus::Player, bot_command_water_breathing)
+		bot_command_add("waterbreathing", "Orders a bot to cast a water breathing spell", AccountStatus::Player, bot_command_water_breathing) ||
+
+		// custom bot commands
+		bot_command_add("holdnukes", "Sets Clerics to hold their nukes", AccountStatus::Player, bot_command_hold_nukes) ||
+		bot_command_add("useepic", "Orders your targeted bot to use their epic if it is equipped", AccountStatus::Player, bot_command_use_epic)
 	) {
 		bot_command_deinit();
 		return -1;
