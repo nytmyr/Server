@@ -748,6 +748,7 @@ RULE_BOOL(Inventory, AllowAnyWeaponTransformation, false, "Weapons can use any w
 RULE_BOOL(Inventory, TransformSummonedBags, false, "Transforms summoned bags into disenchanted ones instead of deleting")
 RULE_BOOL(Inventory, AllowMultipleOfSameAugment, false, "Allows multiple of the same augment to be placed in an item via #augmentitem or MQ2, set to true to allow")
 RULE_INT(Inventory, CustomItemsLoreIDStart, 0, "Disabled: 0 | Start of custom item IDs to do Lore Checks on. IE, ID 601001 is a dupe of ID 1001, set to 600000 to check for lore IDs matching 600000+")
+RULE_INT(Inventory, SecondCustomItemsLoreIDStart, 0, "Disabled: 0 | Start of second set of custom item IDs to do Lore Checks on. IE, ID 801001 is a dupe of ID 1001, set to 800000 to check for lore IDs matching 800000+")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(Client)
