@@ -27,7 +27,12 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 			if (m_time_since_last_warp_detection.GetRemainingTime() == 0 && RuleB(Cheat, EnableMQWarpDetector) &&
 				((m_target->Admin() < RuleI(Cheat, MQWarpExemptStatus) || (RuleI(Cheat, MQWarpExemptStatus)) == -1))) {
 				std::string message = fmt::format(
-					"/MQWarp (large warp detection) with location from x [{:.2f}] y [{:.2f}] z [{:.2f}] to x [{:.2f}] y [{:.2f}] z [{:.2f}] Distance [{:.2f}]",
+					"/MQWarp (large warp detection) Player [{}-ID:{}]-[Account:{}|ID:{}] in zone [{}] with location from x [{:.2f}] y [{:.2f}] z [{:.2f}] to x [{:.2f}] y [{:.2f}] z [{:.2f}] Distance [{:.2f}]",
+					m_target->GetName(),
+					m_target->CharacterID(),
+					m_target->AccountName(),
+					m_target->AccountID(),
+					zone->GetShortName(),
 					position1.x,
 					position1.y,
 					position1.z,
@@ -56,7 +61,12 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 			if (RuleB(Cheat, EnableMQWarpDetector) &&
 				((m_target->Admin() < RuleI(Cheat, MQWarpExemptStatus) || (RuleI(Cheat, MQWarpExemptStatus)) == -1))) {
 				std::string message = fmt::format(
-					"/MQWarp (Absolute) with location from x [{:.2f}] y [{:.2f}] z [{:.2f}] to x [{:.2f}] y [{:.2f}] z [{:.2f}] Distance [{:.2f}]",
+					"/MQWarp (Absolute) Player [{}-ID:{}]-[Account:{}|ID:{}] in zone [{}] with location from x [{:.2f}] y [{:.2f}] z [{:.2f}] to x [{:.2f}] y [{:.2f}] z [{:.2f}] Distance [{:.2f}]",
+					m_target->GetName(),
+					m_target->CharacterID(),
+					m_target->AccountName(),
+					m_target->AccountID(),
+					zone->GetShortName(),
 					position1.x,
 					position1.y,
 					position1.z,
@@ -86,7 +96,12 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 			if (RuleB(Cheat, EnableMQWarpDetector) &&
 				((m_target->Admin() < RuleI(Cheat, MQWarpExemptStatus) || (RuleI(Cheat, MQWarpExemptStatus)) == -1))) {
 				std::string message = fmt::format(
-					"/MQWarp (ShadowStep) with location from x [{:.2f}] y [{:.2f}] z [{:.2f}] the target was shadow step exempt but we still found this suspicious.",
+					"/MQWarp (ShadowStep) Player [{}-ID:{}]-[Account:{}|ID:{}] in zone [{}] with location from x [{:.2f}] y [{:.2f}] z [{:.2f}] the target was shadow step exempt but we still found this suspicious.",
+					m_target->GetName(),
+					m_target->CharacterID(),
+					m_target->AccountName(),
+					m_target->AccountID(),
+					zone->GetShortName(),
 					position1.x,
 					position1.y,
 					position1.z
@@ -104,7 +119,12 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 			if (RuleB(Cheat, EnableMQWarpDetector) &&
 				((m_target->Admin() < RuleI(Cheat, MQWarpExemptStatus) || (RuleI(Cheat, MQWarpExemptStatus)) == -1))) {
 				std::string message = fmt::format(
-					"/MQWarp (Knockback) with location from x [{:.2f}] y [{:.2f}] z [{:.2f}] the target was Knock Back exempt but we still found this suspicious.",
+					"/MQWarp (Knockback) Player [{}-ID:{}]-[Account:{}|ID:{}] in zone [{}] with location from x [{:.2f}] y [{:.2f}] z [{:.2f}] the target was Knock Back exempt but we still found this suspicious.",
+					m_target->GetName(),
+					m_target->CharacterID(),
+					m_target->AccountName(),
+					m_target->AccountID(),
+					zone->GetShortName(),
 					position1.x,
 					position1.y,
 					position1.z
@@ -124,7 +144,12 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 				((m_target->Admin() < RuleI(Cheat, MQWarpExemptStatus) || (RuleI(Cheat, MQWarpExemptStatus)) == -1))) {
 				if (RuleB(Cheat, MarkMQWarpLT)) {
 					std::string message = fmt::format(
-						"/MQWarp(Knockback) with location from x [{:.2f}] y [{:.2f}] z [{:.2f}] running fast but not fast enough to get killed, possibly: small warp, speed hack, excessive lag, marked as suspicious.",
+						"/MQWarp(Knockback) Player [{}-ID:{}]-[Account:{}|ID:{}] in zone [{}] with location from x [{:.2f}] y [{:.2f}] z [{:.2f}] running fast but not fast enough to get killed, possibly: small warp, speed hack, excessive lag, marked as suspicious.",
+						m_target->GetName(),
+						m_target->CharacterID(),
+						m_target->AccountName(),
+						m_target->AccountID(),
+						zone->GetShortName(),
 						position1.x,
 						position1.y,
 						position1.z
@@ -144,7 +169,12 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 			if (RuleB(Cheat, EnableMQZoneDetector) &&
 				((m_target->Admin() < RuleI(Cheat, MQZoneExemptStatus) || (RuleI(Cheat, MQZoneExemptStatus)) == -1))) {
 				std::string message = fmt::format(
-					"/MQZone used at x [{:.2f}] y [{:.2f}] z [{:.2f}]",
+					"/MQZone Player [{}-ID:{}]-[Account:{}|ID:{}] in zone [{}] used at x [{:.2f}] y [{:.2f}] z [{:.2f}]",
+					m_target->GetName(),
+					m_target->CharacterID(),
+					m_target->AccountName(),
+					m_target->AccountID(),
+					zone->GetShortName(),
 					position1.x,
 					position1.y,
 					position1.z
@@ -162,7 +192,12 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 			if (RuleB(Cheat, EnableMQZoneDetector) &&
 				((m_target->Admin() < RuleI(Cheat, MQZoneExemptStatus) || (RuleI(Cheat, MQZoneExemptStatus)) == -1))) {
 				std::string message = fmt::format(
-					"/MQZone used at x [{:.2f}] y [{:.2f}] z [{:.2f}] with Unknown Destination",
+					"/MQZone Player [{}-ID:{}]-[Account:{}|ID:{}] in zone [{}] used at x [{:.2f}] y [{:.2f}] z [{:.2f}] with Unknown Destination",
+					m_target->GetName(),
+					m_target->CharacterID(),
+					m_target->AccountName(),
+					m_target->AccountID(),
+					zone->GetShortName(),
 					position1.x,
 					position1.y,
 					position1.z
@@ -180,7 +215,12 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 			if (RuleB(Cheat, EnableMQGateDetector) &&
 				((m_target->Admin() < RuleI(Cheat, MQGateExemptStatus) || (RuleI(Cheat, MQGateExemptStatus)) == -1))) {
 				std::string message = fmt::format(
-					"/MQGate used at x [{:.2f}] y [{:.2f}] z [{:.2f}]",
+					"/MQGate Player [{}-ID:{}]-[Account:{}|ID:{}] in zone [{}] used at x [{:.2f}] y [{:.2f}] z [{:.2f}]",
+					m_target->GetName(),
+					m_target->CharacterID(),
+					m_target->AccountName(),
+					m_target->AccountID(),
+					zone->GetShortName(),
 					position1.x,
 					position1.y,
 					position1.z
@@ -217,7 +257,12 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 				((m_target->Admin() < RuleI(Cheat, MQFastMemExemptStatus) ||
 				  (RuleI(Cheat, MQFastMemExemptStatus)) == -1))) {
 				std::string message = fmt::format(
-					"/MQFastMem used at x [{:.2f}] y [{:.2f}] z [{:.2f}]",
+					"/MQFastMem Player [{}-ID:{}]-[Account:{}|ID:{}] in zone [{}] used at x [{:.2f}] y [{:.2f}] z [{:.2f}]",
+					m_target->GetName(),
+					m_target->CharacterID(),
+					m_target->AccountName(),
+					m_target->AccountID(),
+					zone->GetShortName(),
 					position1.x,
 					position1.y,
 					position1.z
@@ -233,7 +278,12 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 			break;
 		default:
 			std::string message = fmt::format(
-				"Unhandled HackerDetection flag with location from x [{:.2f}] y [{:.2f}] z [{:.2f}]",
+				"Unhandled HackerDetection flag | Player [{}-ID:{}]-[Account:{}|ID:{}] in zone [{}] with location from x [{:.2f}] y [{:.2f}] z [{:.2f}]",
+				m_target->GetName(),
+				m_target->CharacterID(),
+				m_target->AccountName(),
+				m_target->AccountID(),
+				zone->GetShortName(),
 				position1.x,
 				position1.y,
 				position1.z
