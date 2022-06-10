@@ -2465,7 +2465,7 @@ XS(XS__istaskenabled) {
 	} else {
 		Perl_croak(aTHX_ "Usage: quest::istaskenabled(int task_id)");
 	}
-	
+
 	ST(0) = boolSV(RETVAL);
 	sv_2mortal(ST(0));
 	XSRETURN(1);
@@ -2483,7 +2483,7 @@ XS(XS__istaskactive) {
 	} else {
 		Perl_croak(aTHX_ "Usage: quest::istaskactive(int task_id)");
 	}
-	
+
 	ST(0) = boolSV(RETVAL);
 	sv_2mortal(ST(0));
 	XSRETURN(1);
@@ -2502,7 +2502,7 @@ XS(XS__istaskactivityactive) {
 	} else {
 		Perl_croak(aTHX_ "Usage: quest::istaskactivityactive(int task_id, int activity_id)");
 	}
-	
+
 	ST(0) = boolSV(RETVAL);
 	sv_2mortal(ST(0));
 	XSRETURN(1);
@@ -2818,7 +2818,7 @@ XS(XS__istaskappropriate) {
 	} else {
 		Perl_croak(aTHX_ "Usage: quest::istaskaappropriate(int task_id)");
 	}
-	
+
 	ST(0) = boolSV(RETVAL);
 	sv_2mortal(ST(0));
 	XSRETURN(1);
@@ -3386,7 +3386,7 @@ XS(XS__CheckInstanceByCharID) {
 
 	uint16 instance_id = (int) SvUV(ST(0));
 	uint32 char_id = (int) SvUV(ST(1));
-	RETVAL = quest_manager.CheckInstanceByCharID(instance_id, char_id);	
+	RETVAL = quest_manager.CheckInstanceByCharID(instance_id, char_id);
 	ST(0) = boolSV(RETVAL);
 	sv_2mortal(ST(0));
 	XSRETURN(1);
@@ -3660,7 +3660,7 @@ XS(XS__IsRunning) {
 	bool RETVAL;
 	dXSTARG;
 
-	RETVAL = quest_manager.IsRunning();	
+	RETVAL = quest_manager.IsRunning();
 	ST(0) = boolSV(RETVAL);
 	sv_2mortal(ST(0));
 	XSRETURN(1);
@@ -8426,16 +8426,17 @@ XS(XS__commify) {
 }
 
 XS(XS__checknamefilter);
-XS(XS__checknamefilter) {
+XS(XS__checknamefilter)
+{
 	dXSARGS;
 	if (items != 1) {
 		Perl_croak(aTHX_ "Usage: quest::checknamefilter(string name)");
 	}
 
 	dXSTARG;
-	std::string name = (std::string) SvPV_nolen(ST(0));
-	bool passes = database.CheckNameFilter(name);
-	ST(0) = boolSV(passes);
+	std::string name   = (std::string) SvPV_nolen(ST(0));
+	bool        passes = database.CheckNameFilter(name);
+	ST(0)              = boolSV(passes);
 	sv_2mortal(ST(0));
 	XSRETURN(1);
 }

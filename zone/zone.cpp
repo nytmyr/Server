@@ -655,7 +655,7 @@ void Zone::LoadNewMerchantData(uint32 merchantid) {
 
 void Zone::GetMerchantDataForZoneLoad() {
 	LogInfo("Loading Merchant Lists");
-	
+
 	auto query = fmt::format(
 		SQL (
 			SELECT
