@@ -3182,7 +3182,7 @@ void EntityList::RemoveDebuffs(Mob *caster)
 
 char *EntityList::MakeNameUnique(char *name)
 {
-	bool used[300];
+	bool used[999];
 	memset(used, 0, sizeof(used));
 	name[61] = 0; name[62] = 0; name[63] = 0;
 
@@ -3199,7 +3199,7 @@ char *EntityList::MakeNameUnique(char *name)
 		}
 		++it;
 	}
-	for (int i=0; i < 300; i++) {
+	for (int i=0; i < 999; i++) {
 		if (!used[i]) {
 			#ifdef _WINDOWS
 			snprintf(name, 64, "%s%03d", name, i);
