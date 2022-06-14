@@ -3068,7 +3068,8 @@ void Bot::AI_Process()
 									}
 
 									m_evade_timer.Start(timer_duration);
-									BotGroupSay(this, "Attempting to evade %s", tar->GetCleanName());
+									//BotGroupSay(this, "Attempting to evade %s", tar->GetCleanName());
+									bot_owner->Message(Chat::Tell, "%s tells you, attempting to evade %s", GetCleanName(), tar->GetCleanName());
 									if (zone->random.Int(0, 260) < (int)GetSkill(EQ::skills::SkillHide)) {
 										SendAppearancePacket(AT_Invis, Invisibility::Invisible);
 										RogueEvade(tar);
@@ -3089,7 +3090,8 @@ void Bot::AI_Process()
 
 									m_monk_evade_timer.Start(timer_duration);
 									if (zone->random.Int(0, 260) < (int)GetSkill(EQ::skills::SkillFeignDeath)) {
-										BotGroupSay(this, "Attempting to evade %s", tar->GetCleanName());
+										//BotGroupSay(this, "Attempting to evade %s", tar->GetCleanName());
+										bot_owner->Message(Chat::Tell, "%s tells you, attempting to evade %s", GetCleanName(), tar->GetCleanName());
 										if (zone->random.Int(0, 260) < (int)GetSkill(EQ::skills::SkillFeignDeath)) {
 											SetFeigned(false);
 											SendAppearancePacket(AT_Anim, ANIM_DEATH);
