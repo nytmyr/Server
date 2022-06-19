@@ -598,6 +598,7 @@ void bot_command_water_breathing(Client *c, const Seperator *sep);
 
 // custom bot commands
 void bot_command_hold_nukes(Client* c, const Seperator* sep);
+void bot_command_nuke_delay(Client* c, const Seperator* sep);
 void bot_command_use_epic(Client* c, const Seperator* sep);
 
 // bot subcommands

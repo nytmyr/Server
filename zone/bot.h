@@ -318,8 +318,10 @@ public:
 	void SetPauseAI(bool pause_flag) { _pauseAI = pause_flag; }
 	uint8 GetStopMeleeLevel() { return _stopMeleeLevel; }
 	uint8 GetHoldNukes() { return _holdNukes; }
+	uint32 GetNukeDelay() { return _nukeDelay; }
 	void SetStopMeleeLevel(uint8 level);
 	void SetHoldNukes(uint8 holdstatus);
+	void SetNukeDelay(uint32 nukedelay);
 	void SetGuardMode();
 	void SetHoldMode();
 
@@ -677,6 +679,7 @@ private:
 	Timer m_monk_evade_timer;
 	Timer m_alt_combat_hate_timer;
 	Timer m_auto_defend_timer;
+	Timer m_nuke_delay_timer; //timer for nuke delays set by ^nukedelay/^nd
 	//Timer m_combat_jitter_timer;
 	//bool m_combat_jitter_flag;
 	bool m_guard_flag;
@@ -699,6 +702,7 @@ private:
 	bool _pauseAI;
 	uint8 _stopMeleeLevel;
 	uint8 _holdNukes;
+	uint32 _nukeDelay;
 
 	// Private "base stats" Members
 	int32 _baseMR;

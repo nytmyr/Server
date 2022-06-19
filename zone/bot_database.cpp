@@ -381,7 +381,8 @@ bool BotDatabase::LoadBot(const uint32 bot_id, Bot*& loaded_bot)
 		" `show_helm`," // 43
 		" `follow_distance`," // 44
 		" `stop_melee_level`," // 45
-		" `hold_nukes`" // 46
+		" `hold_nukes`," // 46
+		" `nuke_delay`" // 47
 		" FROM `bot_data`"
 		" WHERE `bot_id` = '%u'"
 		" LIMIT 1",
@@ -452,6 +453,8 @@ bool BotDatabase::LoadBot(const uint32 bot_id, Bot*& loaded_bot)
 		loaded_bot->SetStopMeleeLevel(sml);
 		uint8 hn = atoi(row[46]);
 		loaded_bot->SetHoldNukes(hn);
+		uint32 nd = atoi(row[47]);
+		loaded_bot->SetNukeDelay(nd);
 	}
 
 	return true;
@@ -507,7 +510,8 @@ bool BotDatabase::SaveNewBot(Bot* bot_inst, uint32& bot_id)
 		" `show_helm`,"
 		" `follow_distance`,"
 		" `stop_melee_level`,"
-		" `hold_nukes`"
+		" `hold_nukes`,"
+		" `nuke_delay`"
 		")"
 		" VALUES ("
 		"'%u',"					/* owner_id */
@@ -552,8 +556,9 @@ bool BotDatabase::SaveNewBot(Bot* bot_inst, uint32& bot_id)
 		" '%i',"				/* corruption */
 		" '1',"					/* show_helm */
 		" '%i',"				/* follow_distance */
-		" '%u',"					/* stop_melee_level */
-		" '%u'"					/* hold_nukes*/
+		" '%u',"				/* stop_melee_level */
+		" '%u',"				/* hold_nukes*/
+		" '%u'"					/* nuke_delay */
 		")",
 		bot_inst->GetBotOwnerCharacterID(),
 		bot_inst->GetBotSpellID(),
@@ -656,6 +661,7 @@ bool BotDatabase::SaveBot(Bot* bot_inst)
 		" `follow_distance` = '%i',"
 		" `stop_melee_level` = '%u',"
 		" `hold_nukes` = '%u',"
+		" `nuke_delay` = '%u',"
 		" `title` = '%s',"
 		" `suffix` = '%s'"
 		" WHERE `bot_id` = '%u'",
@@ -701,6 +707,7 @@ bool BotDatabase::SaveBot(Bot* bot_inst)
 		bot_inst->GetFollowDistance(),
 		bot_inst->GetStopMeleeLevel(),
 		bot_inst->GetHoldNukes(),
+		bot_inst->GetNukeDelay(),
 		bot_inst->GetTitle().c_str(),
 		bot_inst->GetSuffix().c_str(),
 		bot_inst->GetBotID()
@@ -2089,7 +2096,8 @@ bool BotDatabase::CreateCloneBot(const uint32 owner_id, const uint32 bot_id, con
 		" `show_helm`,"
 		" `follow_distance`,"
 		" `stop_melee_level`,"
-		" `hold_nukes`"
+		" `hold_nukes`,"
+		" `nuke_delay`"
 		")"
 		" SELECT"
 		" bd.`owner_id`,"
@@ -2138,7 +2146,8 @@ bool BotDatabase::CreateCloneBot(const uint32 owner_id, const uint32 bot_id, con
 		" bd.`show_helm`,"
 		" bd.`follow_distance`,"
 		" bd.`stop_melee_level`,"
-		" bd.`hold_nukes`"
+		" bd.`hold_nukes`,"
+		" bd.`nuke_delay`"
 		" FROM `bot_data` bd"
 		" WHERE"
 		" bd.`owner_id` = '%u'"
@@ -2250,6 +2259,27 @@ bool BotDatabase::SaveHoldNukes(const uint32 owner_id, const uint32 bot_id, cons
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
 		hn_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveNukeDelay(const uint32 owner_id, const uint32 bot_id, const uint32 nd_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `nuke_delay` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		nd_value,
 		owner_id,
 		bot_id
 	);
@@ -3070,6 +3100,7 @@ const char* BotDatabase::fail::CreateCloneBot() { return "Failed to create clone
 const char* BotDatabase::fail::CreateCloneBotInventory() { return "Failed to create clone bot inventory"; }
 const char* BotDatabase::fail::SaveStopMeleeLevel() { return "Failed to save stop melee level"; }
 const char* BotDatabase::fail::SaveHoldNukes() { return "Failed to save hold nukes status"; }
+const char* BotDatabase::fail::SaveNukeDelay() { return "Failed to save nuke delay timer"; }
 
 /* fail::Bot bot-group functions   */
 const char* BotDatabase::fail::QueryBotGroupExistence() { return "Failed to query bot-group existence"; }

@@ -2303,6 +2303,10 @@ void Bot::SetHoldNukes(uint8 holdstatus) {
 	_holdNukes = holdstatus;
 }
 
+void Bot::SetNukeDelay(uint32 nukedelay) {
+	_nukeDelay = nukedelay;
+}
+
 void Bot::SetGuardMode() {
 
 	StopMoving();

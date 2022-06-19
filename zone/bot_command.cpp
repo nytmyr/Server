@@ -1434,6 +1434,7 @@ int bot_command_init(void)
 
 		// custom bot commands
 		bot_command_add("holdnukes", "Sets Clerics to hold their nukes", AccountStatus::Player, bot_command_hold_nukes) ||
+		bot_command_add("nukedelay", "Sets a timer that controls the frequency of bot nukes", AccountStatus::Player, bot_command_nuke_delay) ||
 		bot_command_add("useepic", "Orders your targeted bot to use their epic if it is equipped", AccountStatus::Player, bot_command_use_epic)
 	) {
 		bot_command_deinit();
@@ -3931,6 +3932,56 @@ void bot_command_movement_speed(Client *c, const Seperator *sep)
 	}
 
 	helper_no_available_bots(c, my_bot);
+}
+
+void bot_command_nuke_delay(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_nuke_delay", sep->arg[0], "nukedelay"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(m_usage, "usage: <target_bot> %s [current | value in ms. For example, 5000 = 5 seconds.].", sep->arg[0]);
+		c->Message(m_note, "note: Can only be used for Casters or Hybrids.");
+		c->Message(m_note, "note: Use [current] to check the current setting.");
+		c->Message(m_note, "note: Set to 0 to remove timer.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(m_fail, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(m_fail, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint64 nd = 0;
+	if (sep->IsNumber(1)) {
+		nd = atoi(sep->arg[1]);
+		int ntcheck = nd;
+		if (ntcheck >= 0 && ntcheck <= 60000) {
+			my_bot->SetNukeDelay(nd);
+			if (!database.botdb.SaveNukeDelay(c->CharacterID(), my_bot->GetBotID(), nd)) {
+				c->Message(m_fail, "%s for '%s'", BotDatabase::fail::SaveNukeDelay(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(m_action, "Successfully set a Nuke Timer for %s to %u.", my_bot->GetCleanName(), nd);
+			}
+		}
+		else {
+			c->Message(m_message, "You must enter enter a value greater than 0 and less than 60000.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(m_message, "My current Nuke Timer is %lf seconds.", my_bot->GetNukeDelay()/1000.00);
+	}
+	else {
+		c->Message(m_message, "Incorrect argument, use help for a list of options.");
+	}
+
 }
 
 void bot_command_owner_option(Client *c, const Seperator *sep)
