@@ -625,6 +625,17 @@ RULE_INT(Bots, OOCPercentageHealPercentLimit, 60, "60 Default. Percent at which 
 RULE_BOOL(Bots, CazicTouchBotsOwner, true, "Default True. Cazic Touch/DT will hit bot owner rather than bot.")
 RULE_BOOL(Bots, MonkEpicEnabled, true, "Default True. Determines whether or not Monk Bots will use their epic if equipped.")
 RULE_INT(Bots, StackSizeMin, 100, "100 Default. -1 to disable and use default max stack size. Minimum stack size to give a bot (Arrows).")
+RULE_BOOL(Bots, TieredSpawnLimitUnlocks, false, "Default false. Determines whether or not bot spawn limits are unlocked by levels.")
+RULE_INT(Bots, TierOneBotSpawnLimitUnlock, 1, "1 Default. 0 Disabled. Spawn limit of bots unlocked once a player hits the Tier 1 level requirement.")
+RULE_INT(Bots, TierTwoBotSpawnLimitUnlock, 2, "2 Default. 0 Disabled. Spawn limit of bots unlocked once a player hits the Tier 2 level requirement.")
+RULE_INT(Bots, TierThreeBotSpawnLimitUnlock, 3, "3 Default. 0 Disabled. Spawn limit of bots unlocked once a player hits the Tier 3 level requirement.")
+RULE_INT(Bots, TierFourBotSpawnLimitUnlock, 4, "4 Default. 0 Disabled. Spawn limit of bots unlocked once a player hits the Tier 4 level requirement.")
+RULE_INT(Bots, TierFiveBotSpawnLimitUnlock, 5, "5 Default. 0 Disabled. Spawn limit of bots unlocked once a player hits the Tier 5 level requirement.")
+RULE_INT(Bots, TierOneBotSpawnLimitUnlockLevelRequirement, 5, "5 Default. 0 Disabled. Level requirement to unlock the Tier 1 bot spawn limit.")
+RULE_INT(Bots, TierTwoBotSpawnLimitUnlockLevelRequirement, 10, "10 Default. 0 Disabled. Level requirement to unlock the Tier 2 bot spawn limit.")
+RULE_INT(Bots, TierThreeBotSpawnLimitUnlockLevelRequirement, 20, "20 Default. 0 Disabled. Level requirement to unlock the Tier 3 bot spawn limit.")
+RULE_INT(Bots, TierFourBotSpawnLimitUnlockLevelRequirement, 30, "30 Default. 0 Disabled. Level requirement to unlock the Tier 4 bot spawn limit.")
+RULE_INT(Bots, TierFiveBotSpawnLimitUnlockLevelRequirement, 40, "40 Default. 0 Disabled. Level requirement to unlock the Tier 5 bot spawn limit.")
 
 RULE_CATEGORY_END()
 #endif

@@ -6388,11 +6388,48 @@ void bot_subcommand_bot_spawn(Client *c, const Seperator *sep)
 
 	int spawned_bot_count = Bot::SpawnedBotCount(c->CharacterID());
 
-	int rule_limit = RuleI(Bots, SpawnLimit);
+	int rule_limit;
+	int level_requirement;
+	if (!RuleB(Bots, TieredSpawnLimitUnlocks)) {
+		rule_limit = RuleI(Bots, SpawnLimit);
+	}
+	else {
+		if (c->GetLevel() < RuleI(Bots, TierOneBotSpawnLimitUnlockLevelRequirement)) {
+			rule_limit = 0;
+			c->Message(m_fail, "You must reach level %i to unlock the ability to spawn %i bot(s).", RuleI(Bots, TierOneBotSpawnLimitUnlockLevelRequirement), RuleI(Bots, TierOneBotSpawnLimitUnlock));
+			return;
+		}
+		else if (c->GetLevel() >= RuleI(Bots, TierOneBotSpawnLimitUnlockLevelRequirement) && c->GetLevel() < RuleI(Bots, TierTwoBotSpawnLimitUnlockLevelRequirement)) {
+			rule_limit = RuleI(Bots, TierOneBotSpawnLimitUnlock);
+			level_requirement = RuleI(Bots, TierTwoBotSpawnLimitUnlockLevelRequirement);
+		}
+		else if (c->GetLevel() >= RuleI(Bots, TierTwoBotSpawnLimitUnlockLevelRequirement) && c->GetLevel() < RuleI(Bots, TierThreeBotSpawnLimitUnlockLevelRequirement)) {
+			rule_limit = RuleI(Bots, TierTwoBotSpawnLimitUnlock);
+			level_requirement = RuleI(Bots, TierThreeBotSpawnLimitUnlockLevelRequirement);
+		}
+		else if (c->GetLevel() >= RuleI(Bots, TierThreeBotSpawnLimitUnlockLevelRequirement) && c->GetLevel() < RuleI(Bots, TierFourBotSpawnLimitUnlockLevelRequirement)) {
+			rule_limit = RuleI(Bots, TierThreeBotSpawnLimitUnlock);
+			level_requirement = RuleI(Bots, TierFourBotSpawnLimitUnlockLevelRequirement);
+		}
+		else if (c->GetLevel() >= RuleI(Bots, TierFourBotSpawnLimitUnlockLevelRequirement) && c->GetLevel() < RuleI(Bots, TierFiveBotSpawnLimitUnlockLevelRequirement)) {
+			rule_limit = RuleI(Bots, TierFourBotSpawnLimitUnlock);
+			level_requirement = RuleI(Bots, TierFiveBotSpawnLimitUnlockLevelRequirement);
+		}
+		else if (c->GetLevel() >= RuleI(Bots, TierFiveBotSpawnLimitUnlockLevelRequirement)) {
+			rule_limit = RuleI(Bots, TierFiveBotSpawnLimitUnlock);
+			level_requirement = 0;
+		}
+	}
 	int status_limit = RuleI(Bots,StatusSpawnLimit);
-if (spawned_bot_count >= rule_limit && !c->GetGM() && c->Admin() < status_limit) {
-		c->Message(m_fail, "You can not have more than %i spawned bots", rule_limit);
-		return;
+	if (spawned_bot_count >= rule_limit && !c->GetGM() && c->Admin() < status_limit) {
+		if (!RuleB(Bots, TieredSpawnLimitUnlocks) || level_requirement == 0) {
+			c->Message(m_fail, "You can not spawn more than %i spawned bot(s).", rule_limit);
+			return;
+		}
+		else {
+			c->Message(m_fail, "You can not spawn more than %i spawned bot(s) until you reach level %i.", rule_limit, level_requirement);
+			return;
+		}
 	}
 
 	if (RuleB(Bots, QuestableSpawnLimit) && !c->GetGM()) {
