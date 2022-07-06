@@ -91,6 +91,11 @@ uint32_t Perl_Group_GetHighestLevel(Group* self) // @categories Script Utility, 
 	return self->GetHighestLevel();
 }
 
+uint32_t Perl_Group_GetLowestLevel(Group* self) // @categories Script Utility, Group
+{
+	return self->GetLowestLevel();
+}
+
 void Perl_Group_TeleportGroup(Group* self, Mob* sender, uint32 zone_id, float x, float y, float z, float heading) // @categories Script Utility, Group
 {
 	self->TeleportGroup(sender, zone_id, 0, x, y, z, heading);
@@ -131,6 +136,7 @@ void perl_register_group()
 	package.add("DoesAnyMemberHaveExpeditionLockout", (bool(*)(Group*, std::string, std::string))&Perl_Group_DoesAnyMemberHaveExpeditionLockout);
 	package.add("DoesAnyMemberHaveExpeditionLockout", (bool(*)(Group*, std::string, std::string, int))&Perl_Group_DoesAnyMemberHaveExpeditionLockout);
 	package.add("GetHighestLevel", &Perl_Group_GetHighestLevel);
+	package.add("GetLowestLevel", &Perl_Group_GetLowestLevel);
 	package.add("GetID", &Perl_Group_GetID);
 	package.add("GetLeader", &Perl_Group_GetLeader);
 	package.add("GetLeaderName", &Perl_Group_GetLeaderName);

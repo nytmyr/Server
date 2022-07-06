@@ -1420,7 +1420,12 @@ int bot_command_init(void)
 		bot_command_add("taunt", "Toggles taunt use by a bot", AccountStatus::Player, bot_command_taunt) ||
 		bot_command_add("track", "Orders a capable bot to track enemies", AccountStatus::Player, bot_command_track) ||
 		bot_command_add("viewcombos", "Views bot race class combinations", AccountStatus::Player, bot_command_view_combos) ||
-		bot_command_add("waterbreathing", "Orders a bot to cast a water breathing spell", AccountStatus::Player, bot_command_water_breathing)
+		bot_command_add("waterbreathing", "Orders a bot to cast a water breathing spell", AccountStatus::Player, bot_command_water_breathing) ||
+		
+		// custom bot commands
+		bot_command_add("holdnukes", "Sets Clerics to hold their nukes", AccountStatus::Player, bot_command_hold_nukes) ||
+		bot_command_add("nukedelay", "Sets a timer that controls the frequency of bot nukes", AccountStatus::Player, bot_command_nuke_delay) ||
+		bot_command_add("useepic", "Orders your targeted bot to use their epic if it is equipped", AccountStatus::Player, bot_command_use_epic)
 	) {
 		bot_command_deinit();
 		return -1;
@@ -1621,9 +1626,9 @@ int bot_command_real_dispatch(Client *c, const char *message)
 	}
 
 	/* QS: Player_Log_Issued_Commands */
-	if (RuleB(QueryServ, PlayerLogIssuedCommandes)){
+	if (RuleB(QueryServ, PlayerLogIssuedBotCommands)){
 		std::string event_desc = StringFormat("Issued bot command :: '%s' in zoneid:%i instid:%i",  message, c->GetZoneID(), c->GetInstanceID());
-		QServ->PlayerLogEvent(Player_Log_Issued_Commands, c->CharacterID(), event_desc);
+		QServ->PlayerLogEvent(Player_Log_Issued_Bot_Commands, c->CharacterID(), event_desc);
 	}
 
 	if(cur->access >= COMMANDS_LOGGING_MIN_STATUS) {
@@ -2585,7 +2590,7 @@ void bot_command_aggressive(Client *c, const Seperator *sep)
 
 			my_bot->InterruptSpell();
 			if (candidate_count == 1)
-				Bot::BotGroupSay(my_bot, "Using '%s'", spells[local_entry->spell_id].name);
+				c->Message(Chat::Tell, "%s tells you, 'Using '%s''", my_bot->GetCleanName(), spells[local_entry->spell_id].name);
 			my_bot->UseDiscipline(local_entry->spell_id, my_bot->GetID());
 			++success_count;
 
@@ -2802,7 +2807,7 @@ void bot_command_attack(Client *c, const Seperator *sep)
 	}
 
 	if (attacker_count == 1 && first_attacker) {
-		Bot::BotGroupSay(first_attacker, "Attacking %s!", target_mob->GetCleanName());
+		c->Message(Chat::Tell, "%s tells you, 'Attacking %s!'", first_attacker, target_mob->GetCleanName());
 	}
 	else {
 		c->Message(Chat::White, "%i of your bots are attacking %s!", sbl.size(), target_mob->GetCleanName());
@@ -3049,7 +3054,7 @@ void bot_command_defensive(Client *c, const Seperator *sep)
 		auto local_entry = list_iter->SafeCastToStance();
 		if (helper_spell_check_fail(local_entry))
 			continue;
-		if (local_entry->stance_type != BCEnum::StT_Aggressive)
+		if (local_entry->stance_type != BCEnum::StT_Defensive)
 			continue;
 
 		for (auto bot_iter = sbl.begin(); bot_iter != sbl.end(); ) {
@@ -3065,7 +3070,7 @@ void bot_command_defensive(Client *c, const Seperator *sep)
 
 			my_bot->InterruptSpell();
 			if (candidate_count == 1)
-				Bot::BotGroupSay(my_bot, "Using '%s'", spells[local_entry->spell_id].name);
+				c->Message(Chat::Tell, "%s tells you, 'Using '%s''", my_bot->GetCleanName(), spells[local_entry->spell_id].name);
 			my_bot->UseDiscipline(local_entry->spell_id, my_bot->GetID());
 			++success_count;
 
@@ -3286,7 +3291,7 @@ void bot_command_follow(Client *c, const Seperator *sep)
 	}
 	if (sbl.size() == 1) {
 		Mob* follow_mob = entity_list.GetMob(sbl.front()->GetFollowID());
-		Bot::BotGroupSay(sbl.front(), "Following %s", ((follow_mob) ? (follow_mob->GetCleanName()) : ("'nullptr'")));
+		c->Message(Chat::Tell, "%i bot(s) tell you, following %s", sbl.size(), ((follow_mob) ? (follow_mob->GetCleanName()) : ("'nullptr'")));
 	}
 	else {
 		if (reset)
@@ -3337,7 +3342,7 @@ void bot_command_guard(Client *c, const Seperator *sep)
 	}
 
 	if (sbl.size() == 1) {
-		Bot::BotGroupSay(sbl.front(), "%suarding this position.", (clear ? "No longer g" : "G"));
+		c->Message(Chat::Tell, "%i bot(s) tell you, %suarding this position.", sbl.size(), (clear ? "no longer g" : "g"));
 	}
 	else {
 		c->Message(Chat::White, "%i of your bots are %sguarding their positions.", sbl.size(), (clear ? "no longer " : ""));
@@ -3468,11 +3473,62 @@ void bot_command_hold(Client *c, const Seperator *sep)
 	}
 
 	if (sbl.size() == 1) {
-		Bot::BotGroupSay(sbl.front(), "%solding my attacks.", (clear ? "No longer h" : "H"));
+		c->Message(Chat::Tell, "%i bot(s) tell you, %solding my attacks.", sbl.size(), (clear ? "no longer h" : "h"));
 	}
 	else {
 		c->Message(Chat::White, "%i of your bots are %sholding their attacks.", sbl.size(), (clear ? "no longer " : ""));
 	}
+}
+
+void bot_command_hold_nukes(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_nukes", sep->arg[0], "holdnukes"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to prevent holding nukes.");
+		c->Message(Chat::White, "note: Set to 1 to hold nukes.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 hn = 0;
+	if (sep->IsNumber(1)) {
+		hn = atoi(sep->arg[1]);
+		int hncheck = hn;
+		if (hncheck == 0 || hncheck == 1) {
+			my_bot->SetHoldNukes(hn);
+			if (!database.botdb.SaveHoldNukes(c->CharacterID(), my_bot->GetBotID(), hn)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldNukes(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold Nuke for %s to %u.", my_bot->GetCleanName(), hn);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current hold status is %u.", my_bot->GetHoldNukes());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
 }
 
 void bot_command_identify(Client *c, const Seperator *sep)
@@ -3857,6 +3913,56 @@ void bot_command_movement_speed(Client *c, const Seperator *sep)
 	helper_no_available_bots(c, my_bot);
 }
 
+void bot_command_nuke_delay(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_nuke_delay", sep->arg[0], "nukedelay"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in ms. For example, 5000 = 5 seconds.].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to remove timer.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint64 nd = 0;
+	if (sep->IsNumber(1)) {
+		nd = atoi(sep->arg[1]);
+		int ntcheck = nd;
+		if (ntcheck >= 0 && ntcheck <= 60000) {
+			my_bot->SetNukeDelay(nd);
+			if (!database.botdb.SaveNukeDelay(c->CharacterID(), my_bot->GetBotID(), nd)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveNukeDelay(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Nuke Timer for %s to %u.", my_bot->GetCleanName(), nd);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a value greater than 0 and less than 60000.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Nuke Timer is %lf seconds.", my_bot->GetNukeDelay()/1000.00);
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
 void bot_command_owner_option(Client *c, const Seperator *sep)
 {
 	if (helper_is_help_or_usage(sep->arg[1])) {
@@ -4210,7 +4316,7 @@ void bot_command_pick_lock(Client *c, const Seperator *sep)
 	Bot* my_bot = sbl.front();
 
 	my_bot->InterruptSpell();
-	Bot::BotGroupSay(my_bot, "Attempting to pick the lock..");
+	c->Message(Chat::Tell, "%s tells you, 'Attempting to pick the lock...'", my_bot->GetCleanName());
 
 	std::list<Doors*> door_list;
 	entity_list.GetDoorsList(door_list);
@@ -4237,7 +4343,7 @@ void bot_command_pick_lock(Client *c, const Seperator *sep)
 			++open_count;
 		}
 		else {
-			Bot::BotGroupSay(my_bot, "I am not skilled enough for this lock...");
+			c->Message(Chat::Tell, "%s tells you, 'I am not skilled enough for this lock...'", my_bot->GetCleanName());
 		}
 	}
 	c->Message(Chat::White, "%i door%s attempted - %i door%s successful", door_count, ((door_count != 1) ? ("s") : ("")), open_count, ((open_count != 1) ? ("s") : ("")));
@@ -4680,8 +4786,8 @@ void bot_command_summon_corpse(Client *c, const Seperator *sep)
 	// Same methodology as old command..but, does not appear to work... (note: didn't work there, either...)
 
 	// temp
-	c->Message(Chat::White, "This command is currently unavailable...");
-	return;
+	// c->Message(Chat::White, "This command is currently unavailable...");
+	// return;
 
 	bcst_list* local_list = &bot_command_spells[BCEnum::SpT_SummonCorpse];
 	if (helper_spell_list_fail(c, local_list, BCEnum::SpT_SummonCorpse) || helper_command_alias_fail(c, "bot_command_summon_corpse", sep->arg[0], "summoncorpse"))
@@ -4786,7 +4892,7 @@ void bot_command_taunt(Client *c, const Seperator *sep)
 			bot_iter->SetTaunting(taunt_state);
 
 		if (sbl.size() == 1)
-			Bot::BotGroupSay(bot_iter, "I am %s taunting", bot_iter->IsTaunting() ? "now" : "no longer");
+			c->Message(Chat::Tell, "%s tells you, 'I am %s taunting'", bot_iter->GetCleanName(), bot_iter->IsTaunting() ? "now" : "no longer");
 
 		++taunting_count;
 	}
@@ -4800,7 +4906,7 @@ void bot_command_taunt(Client *c, const Seperator *sep)
 		else
 			bot_iter->GetPet()->CastToNPC()->SetTaunting(taunt_state);
 		if (sbl.size() == 1)
-			Bot::BotGroupSay(bot_iter, "My Pet is %s taunting", bot_iter->GetPet()->CastToNPC()->IsTaunting() ? "now" : "no longer");
+			c->Message(Chat::Tell, "%s tells you, 'My pet is %s taunting'", bot_iter->GetCleanName(), bot_iter->GetPet()->CastToNPC()->IsTaunting() ? "now" : "no longer");
 		++taunting_count;
 	}
 
@@ -4882,8 +4988,193 @@ void bot_command_track(Client *c, const Seperator *sep)
 	}
 
 	my_bot->InterruptSpell();
-	Bot::BotGroupSay(my_bot, tracking_msg.c_str());
+	c->Message(Chat::Tell, tracking_msg.c_str());
 	entity_list.ShowSpawnWindow(c, (c->GetLevel() * base_distance), track_named);
+}
+
+void bot_command_use_epic(Client *c, const Seperator *sep)
+{
+	if (!RuleB(Bots, BotsUseEpics)) {
+			c->Message(Chat::White, "The ability to use a bot's epic is currently disabled.");
+			return;
+	}
+	if (RuleB(Bots, BotsUseEpics)) {
+		if (RuleI(Bots, BotsUseEpicMinLvl) > c->GetLevel()) {
+		c->Message(Chat::White, "You must be level %i to use your bot's epic", RuleI(Bots, BotsUseEpicMinLvl));
+		return;
+		} else { 
+			if (RuleI(Bots, BotsUseEpicMinLvl) == -1 && c->GetLevel() < 50) {
+				c->Message(Chat::White, "You must be level 50 to use your bot's epic");
+				return;
+			}
+				if (helper_is_help_or_usage(sep->arg[1])) {
+					c->Message(Chat::White, "usage: target the corpse or NPC you want the bot to cast on and type %s <bot name>", sep->arg[0]);
+					return;
+				}
+				Bot* my_bot = nullptr;
+				std::list<Bot*> sbl;
+				MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[1]);
+					if (sbl.empty()) {
+						c->Message(Chat::White, "You do not own or have a bot spawned a bot by that name.");
+						return;
+					}
+				auto selected_bot = sbl.front();
+				auto bot_class = selected_bot->GetClass();	
+				auto target_mob = c->GetTarget();
+				if (bot_class == WIZARD) {
+					//check and use 14341 | 1931 | 25101
+					auto instp = selected_bot->CastToBot()->GetBotItem(13);
+						if (!instp || !instp->GetItem()) {
+							c->Message(Chat::White, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
+							return;
+						}
+					auto insts = selected_bot->CastToBot()->GetBotItem(13);
+						if (!insts || !insts->GetItem()) {
+							c->Message(Chat::White, "I need something for my %s (slot 14)", EQ::invslot::GetInvPossessionsSlotName(14), 14);
+							return;
+						}
+					auto pitem = instp->GetItem()->ID;	
+						if (pitem == 14341) {
+							uint32 dont_root_before = 0;
+							if (helper_cast_standard_spell(selected_bot, selected_bot, 25101, true, &dont_root_before))
+								target_mob->SetDontRootMeBefore(dont_root_before);
+								return;
+						} else if (pitem != 14341) {
+							c->Message(Chat::White, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
+							return;
+						}
+				}
+				auto target_corpse = target_mob->IsPlayerCorpse();
+				if (target_mob && bot_class == CLERIC){
+					//check and use 5532 | 1524 | 25102
+					if (target_corpse) {
+					auto instp = selected_bot->CastToBot()->GetBotItem(13);
+						if (!instp || !instp->GetItem()) {
+							c->Message(Chat::White, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
+							return;
+						}
+					auto insts = selected_bot->CastToBot()->GetBotItem(13);
+						if (!insts || !insts->GetItem()) {
+							c->Message(Chat::White, "I need something for my %s (slot 14)", EQ::invslot::GetInvPossessionsSlotName(14), 14);
+							return;
+						}
+					auto pitem = instp->GetItem()->ID;	
+						if (pitem == 5532) {
+							uint32 dont_root_before = 0;
+							if (helper_cast_standard_spell(selected_bot, target_mob, 25102, true, &dont_root_before))
+								target_mob->SetDontRootMeBefore(dont_root_before);
+								return;
+						} else if (pitem != 5532) {
+							c->Message(Chat::White, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
+							return;
+						}
+					} else {
+						c->Message(Chat::White, "Target is not a player corpse.");
+						return;
+					}
+				}
+				auto target_enemy = ActionableTarget::VerifyEnemy(c, BCEnum::TT_Single);
+				if (!target_enemy && !target_corpse && bot_class == ENCHANTER) {
+					//check and use 10650 | 1939 | 25103
+					auto instp = selected_bot->CastToBot()->GetBotItem(13);
+						if (!instp || !instp->GetItem()) {
+							c->Message(Chat::White, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
+							return;
+						}
+					auto insts = selected_bot->CastToBot()->GetBotItem(13);
+						if (!insts || !insts->GetItem()) {
+							c->Message(Chat::White, "I need something for my %s (slot 14)", EQ::invslot::GetInvPossessionsSlotName(14), 14);
+							return;
+						}
+					auto pitem = instp->GetItem()->ID;	
+						if (pitem == 10650) {
+							uint32 dont_root_before = 0;
+							if (helper_cast_standard_spell(selected_bot, target_mob, 25103, true, &dont_root_before))
+								target_mob->SetDontRootMeBefore(dont_root_before);
+								return;
+						} else if (pitem != 10650) {
+							c->Message(Chat::White, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
+							return;
+						}
+				}
+				if (target_enemy && bot_class == ENCHANTER) {
+					c->Message(Chat::White, "Your target is not a friendly target.");
+					return;
+				}
+				if (target_enemy && bot_class == DRUID) {
+					//check and use 20490 | 1926 | 25104
+					auto instp = selected_bot->CastToBot()->GetBotItem(13);
+						if (!instp || !instp->GetItem()) {
+							c->Message(Chat::White, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
+							return;
+						}
+					auto insts = selected_bot->CastToBot()->GetBotItem(13);
+						if (!insts || !insts->GetItem()) {
+							c->Message(Chat::White, "I need something for my %s (slot 14)", EQ::invslot::GetInvPossessionsSlotName(14), 14);
+							return;
+						}
+					auto pitem = instp->GetItem()->ID;	
+						if (pitem == 20490) {
+							uint32 dont_root_before = 0;
+							if (helper_cast_standard_spell(selected_bot, target_mob, 25104, true, &dont_root_before))
+								target_mob->SetDontRootMeBefore(dont_root_before);
+								return;
+						} else if (pitem != 20490) {
+							c->Message(Chat::White, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
+							return;
+						}
+				}
+				if (target_enemy && bot_class == NECROMANCER) {
+					//check and use 20544 | 1938 | 25107
+					auto instp = selected_bot->CastToBot()->GetBotItem(13);
+						if (!instp || !instp->GetItem()) {
+							c->Message(Chat::White, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
+							return;
+						}
+					auto insts = selected_bot->CastToBot()->GetBotItem(13);
+						if (!insts || !insts->GetItem()) {
+							c->Message(Chat::White, "I need something for my %s (slot 14)", EQ::invslot::GetInvPossessionsSlotName(14), 14);
+							return;
+						}
+					auto pitem = instp->GetItem()->ID;	
+						if (pitem == 20544) {
+							uint32 dont_root_before = 0;
+							if (helper_cast_standard_spell(selected_bot, target_mob, 25107, true, &dont_root_before))
+								target_mob->SetDontRootMeBefore(dont_root_before);
+								return;
+						} else if (pitem != 20544) {
+							c->Message(Chat::White, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
+							return;
+						}
+				}
+				if (target_enemy && bot_class == SHAMAN) {
+					//check and use 10651 | 1932 | 25106
+					auto instp = selected_bot->CastToBot()->GetBotItem(13);
+						if (!instp || !instp->GetItem()) {
+							c->Message(Chat::White, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
+							return;
+						}
+					auto insts = selected_bot->CastToBot()->GetBotItem(13);
+						if (!insts || !insts->GetItem()) {
+							c->Message(Chat::White, "I need something for my %s (slot 14)", EQ::invslot::GetInvPossessionsSlotName(14), 14);
+							return;
+						}
+					auto pitem = instp->GetItem()->ID;	
+						if (pitem == 10651) {
+							uint32 dont_root_before = 0;
+							if (helper_cast_standard_spell(selected_bot, target_mob, 25106, true, &dont_root_before))
+								target_mob->SetDontRootMeBefore(dont_root_before);
+								return;
+						} else if (pitem != 10651) {
+							c->Message(Chat::White, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
+							return;
+						}
+				} else {
+					c->Message(Chat::White, "No bots have an epic usable on this target");
+					return;
+				}
+		}
+	}
 }
 
 void bot_command_water_breathing(Client *c, const Seperator *sep)
@@ -5093,13 +5384,14 @@ void bot_subcommand_bot_clone(Client *c, const Seperator *sep)
 	}
 
 	uint32 max_bot_count = RuleI(Bots, CreationLimit);
-
+	uint32 max_bot_bypass = RuleI(Bots, CreationLimitStatusBypass);
+	
 	uint32 bot_count = 0;
 	if (!database.botdb.QueryBotCount(c->CharacterID(), bot_count)) {
 		c->Message(Chat::White, "%s", BotDatabase::fail::QueryBotCount());
 		return;
 	}
-	if (bot_count >= max_bot_count) {
+	if (bot_count >= max_bot_count && c->Admin() < max_bot_bypass) {
 		c->Message(Chat::White, "You have reached the maximum limit of %i bots", max_bot_count);
 		return;
 	}
@@ -6187,10 +6479,48 @@ void bot_subcommand_bot_spawn(Client *c, const Seperator *sep)
 
 	int spawned_bot_count = Bot::SpawnedBotCount(c->CharacterID());
 
-	int rule_limit = RuleI(Bots, SpawnLimit);
-	if (spawned_bot_count >= rule_limit && !c->GetGM()) {
-		c->Message(Chat::White, "You can not have more than %i spawned bots", rule_limit);
-		return;
+	int rule_limit;
+	int level_requirement;
+	if (!RuleB(Bots, TieredSpawnLimitUnlocks)) {
+		rule_limit = RuleI(Bots, SpawnLimit);
+	}
+	else {
+		if (c->GetLevel() < RuleI(Bots, TierOneBotSpawnLimitUnlockLevelRequirement)) {
+			rule_limit = 0;
+			c->Message(Chat::White, "You must reach level %i to unlock the ability to spawn %i bot(s).", RuleI(Bots, TierOneBotSpawnLimitUnlockLevelRequirement), RuleI(Bots, TierOneBotSpawnLimitUnlock));
+			return;
+		}
+		else if (c->GetLevel() >= RuleI(Bots, TierOneBotSpawnLimitUnlockLevelRequirement) && c->GetLevel() < RuleI(Bots, TierTwoBotSpawnLimitUnlockLevelRequirement)) {
+			rule_limit = RuleI(Bots, TierOneBotSpawnLimitUnlock);
+			level_requirement = RuleI(Bots, TierTwoBotSpawnLimitUnlockLevelRequirement);
+		}
+		else if (c->GetLevel() >= RuleI(Bots, TierTwoBotSpawnLimitUnlockLevelRequirement) && c->GetLevel() < RuleI(Bots, TierThreeBotSpawnLimitUnlockLevelRequirement)) {
+			rule_limit = RuleI(Bots, TierTwoBotSpawnLimitUnlock);
+			level_requirement = RuleI(Bots, TierThreeBotSpawnLimitUnlockLevelRequirement);
+		}
+		else if (c->GetLevel() >= RuleI(Bots, TierThreeBotSpawnLimitUnlockLevelRequirement) && c->GetLevel() < RuleI(Bots, TierFourBotSpawnLimitUnlockLevelRequirement)) {
+			rule_limit = RuleI(Bots, TierThreeBotSpawnLimitUnlock);
+			level_requirement = RuleI(Bots, TierFourBotSpawnLimitUnlockLevelRequirement);
+		}
+		else if (c->GetLevel() >= RuleI(Bots, TierFourBotSpawnLimitUnlockLevelRequirement) && c->GetLevel() < RuleI(Bots, TierFiveBotSpawnLimitUnlockLevelRequirement)) {
+			rule_limit = RuleI(Bots, TierFourBotSpawnLimitUnlock);
+			level_requirement = RuleI(Bots, TierFiveBotSpawnLimitUnlockLevelRequirement);
+		}
+		else if (c->GetLevel() >= RuleI(Bots, TierFiveBotSpawnLimitUnlockLevelRequirement)) {
+			rule_limit = RuleI(Bots, TierFiveBotSpawnLimitUnlock);
+			level_requirement = 0;
+		}
+	}
+	int status_limit = RuleI(Bots,StatusSpawnLimit);
+	if (spawned_bot_count >= rule_limit && !c->GetGM() && c->Admin() < status_limit) {
+		if (!RuleB(Bots, TieredSpawnLimitUnlocks) || level_requirement == 0) {
+			c->Message(Chat::White, "You can not spawn more than %i spawned bot(s).", rule_limit);
+			return;
+		}
+		else {
+			c->Message(Chat::White, "You can not spawn more than %i spawned bot(s) until you reach level %i.", rule_limit, level_requirement);
+			return;
+		}
 	}
 
 	if (RuleB(Bots, QuestableSpawnLimit) && !c->GetGM()) {
@@ -6303,7 +6633,7 @@ void bot_subcommand_bot_spawn(Client *c, const Seperator *sep)
 	}
 
 	if (c->GetBotOption(Client::booSpawnMessageSay)) {
-		Bot::BotGroupSay(my_bot, "%s", bot_spawn_message[message_index]);
+		c->Message(Chat::Tell, "%s tells you, '%s'", my_bot, bot_spawn_message[message_index]);
 	}
 	else if (c->GetBotOption(Client::booSpawnMessageTell)) {
 		c->Message(Chat::Tell, "%s tells you, \"%s\"", my_bot->GetCleanName(), bot_spawn_message[message_index]);
@@ -6360,9 +6690,9 @@ void bot_subcommand_bot_stance(Client *c, const Seperator *sep)
 			bot_iter->Save();
 		}
 
-		Bot::BotGroupSay(
-			bot_iter,
-			"My current stance is '%s' (%i)",
+		c->Message(Chat::Tell,
+			"%s tells you, 'My current stance is '%s' (%i)'",
+			bot_iter->GetCleanName(),
 			EQ::constants::GetStanceName(bot_iter->GetBotStance()),
 			bot_iter->GetBotStance()
 		);
@@ -9119,7 +9449,7 @@ void bot_subcommand_pet_remove(Client *c, const Seperator *sep)
 		if (bot_iter->IsBotCharmer()) {
 			bot_iter->SetBotCharmer(false);
 			if (sbl.size() == 1)
-				Bot::BotGroupSay(bot_iter, "Using a summoned pet");
+				c->Message(Chat::Tell, "%s tells you, 'Using a summoned pet'", bot_iter->GetCleanName());
 			++summoned_pet;
 			continue;
 		}
@@ -9131,7 +9461,7 @@ void bot_subcommand_pet_remove(Client *c, const Seperator *sep)
 		}
 		bot_iter->SetBotCharmer(true);
 		if (sbl.size() == 1)
-			Bot::BotGroupSay(bot_iter, "Available for Charming");
+			c->Message(Chat::Tell, "%s tells you, 'Available for Charming'", bot_iter->GetCleanName());
 		++charmed_pet;
 	}
 
@@ -9144,7 +9474,7 @@ void bot_subcommand_pet_set_type(Client *c, const Seperator *sep)
 	if (helper_command_alias_fail(c, "bot_subcommand_pet_set_type", sep->arg[0], "petsettype"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s [type: water | fire | air | earth | monster] ([actionable: target | byname] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [type: water | fire | air | earth | monster | epic] ([actionable: target | byname] ([actionable_name]))", sep->arg[0]);
 		c->Message(Chat::White, "requires one of the following bot classes:");
 		c->Message(Chat::White, "Magician(1)");
 		return;
@@ -9175,9 +9505,67 @@ void bot_subcommand_pet_set_type(Client *c, const Seperator *sep)
 		pet_type = 4;
 		level_req = 30;
 	}
+	
+	else if (!pet_arg.compare("epic")) {
+		pet_type = 5;
+		level_req = RuleI(Bots, MageEpicPetMinLvl);
+
+		if (RuleI(Bots, MageEpicPet) == 0)  {
+			c->Message(Chat::White, "Epic Pets for bots are currently disabled.");
+			return;
+		}
+		else if (RuleI(Bots, MageEpicPet) == 1) {
+				std::list<Bot*> sbl;
+					if (ActionableBots::PopulateSBL(c, sep->arg[2], sbl, ab_mask, sep->arg[3]) == ActionableBots::ABT_None)
+					return;
+		
+				uint16 class_mask = PLAYER_CLASS_MAGICIAN_BIT;
+				ActionableBots::Filter_ByClasses(c, sbl, class_mask);
+					if (sbl.empty()) {
+						c->Message(Chat::White, "You have no spawned Magician bots");
+					return;
+					}
+				ActionableBots::Filter_ByMinLevel(c, sbl, level_req);
+					if (sbl.empty()) {
+						c->Message(Chat::White, "Your Mage bots must be level %i or higher to use their Epic pet", level_req);
+					return;
+					}
+				auto my_bot = sbl.front();
+				auto inst = my_bot->CastToBot()->GetBotItem(13);
+					if (!inst || !inst->GetItem()) {
+					c->Message(Chat::White, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
+					return;
+					}
+					auto botitem = inst->GetItem()->ID;	
+					if (botitem == 550005) {
+					}
+					else {
+						c->Message(Chat::White, "Your bot does not currently have their epic equipped.");
+						return;
+					}
+				}
+			else if (RuleI(Bots, MageEpicPet) == 2) {
+				std::list<Bot*> sbl;
+					if (ActionableBots::PopulateSBL(c, sep->arg[2], sbl, ab_mask, sep->arg[3]) == ActionableBots::ABT_None)
+					return;
+		
+				uint16 class_mask = PLAYER_CLASS_MAGICIAN_BIT;
+				ActionableBots::Filter_ByClasses(c, sbl, class_mask);
+					if (sbl.empty()) {
+						c->Message(Chat::White, "You have no spawned Magician bots");
+					return;
+					}
+		
+				ActionableBots::Filter_ByMinLevel(c, sbl, level_req);
+					if (sbl.empty()) {
+						c->Message(Chat::White, "Your Mage bots must be level %i or higher to use their Epic pet", level_req);
+					return;
+					}
+			}
+		}
 
 	if (pet_type == 255) {
-		c->Message(Chat::White, "You must specify a pet [type: water | fire | air | earth | monster]");
+		c->Message(Chat::White, "You must specify a pet [type: water | fire | air | earth | monster | epic]");
 		return;
 	}
 
@@ -9374,13 +9762,14 @@ uint32 helper_bot_create(Client *bot_owner, std::string bot_name, uint8 bot_clas
 	}
 
 	uint32 max_bot_count = RuleI(Bots, CreationLimit);
+	uint32 max_bot_bypass = RuleI(Bots, CreationLimitStatusBypass);
 
 	uint32 bot_count = 0;
 	if (!database.botdb.QueryBotCount(bot_owner->CharacterID(), bot_count)) {
 		bot_owner->Message(Chat::White, "%s", BotDatabase::fail::QueryBotCount());
 		return bot_id;
 	}
-	if (bot_count >= max_bot_count) {
+	if (bot_count >= max_bot_count && bot_owner->Admin() < max_bot_bypass) {
 		bot_owner->Message(Chat::White, "You have reached the maximum limit of %i bots.", max_bot_count);
 		return bot_id;
 	}

@@ -599,6 +599,11 @@ bool Perl_NPC_IsRaidTarget(NPC* self)
 	return self->IsRaidTarget();
 }
 
+bool Perl_NPC_IsRareSpawn(NPC* self)
+{
+	return self->IsRareSpawn();
+}
+
 bool Perl_NPC_HasItem(NPC* self, uint32 item_id) // @categories Script Utility
 {
 	return self->HasItem(item_id);
@@ -742,6 +747,7 @@ void perl_register_npc()
 	package.add("IsGuarding", &Perl_NPC_IsGuarding);
 	package.add("IsOnHatelist", &Perl_NPC_IsOnHatelist);
 	package.add("IsRaidTarget", &Perl_NPC_IsRaidTarget);
+	package.add("IsRareSpawn", &Perl_NPC_IsRareSpawn);
 	package.add("IsTaunting", &Perl_NPC_IsTaunting);
 	package.add("MerchantCloseShop", &Perl_NPC_MerchantCloseShop);
 	package.add("MerchantOpenShop", &Perl_NPC_MerchantOpenShop);
