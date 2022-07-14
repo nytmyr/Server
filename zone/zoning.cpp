@@ -19,7 +19,7 @@
 #include "../common/global_define.h"
 #include "../common/eqemu_logsys.h"
 #include "../common/rulesys.h"
-#include "../common/string_util.h"
+#include "../common/strings.h"
 
 #include "expedition.h"
 #include "queryserv.h"
@@ -347,7 +347,7 @@ void Client::Handle_OP_ZoneChange(const EQApplicationPacket *app) {
 		for (auto &z: zone_store.zones) {
 			if (z.short_name == target_zone_name && z.version == 0) {
 				found_zone = true;
-				if (z.expansion <= (content_service.GetCurrentExpansion() + 1)) {
+				if (z.min_expansion <= (content_service.GetCurrentExpansion() + 1)) {
 					meets_zone_expansion_check = true;
 					break;
 				}
@@ -361,7 +361,7 @@ void Client::Handle_OP_ZoneChange(const EQApplicationPacket *app) {
 		if (!found_zone) {
 			auto zones = ZoneRepository::GetWhere(content_db,
 				fmt::format(
-					"expansion <= {} AND short_name = '{}' and version = 0",
+					"min_expansion <= {} AND short_name = '{}' and version = 0",
 					(content_service.GetCurrentExpansion() + 1),
 					target_zone_name
 				)
@@ -1044,7 +1044,7 @@ void Client::SendZoneFlagInfo(Client *to) const {
 	for (const auto& zone_id : zone_flags) {
 		int flag_number = (flag_count + 1);
 		const char* zone_short_name = ZoneName(zone_id, true);
-		if (zone_short_name != "UNKNOWN") {
+		if (strncmp(zone_short_name, "UNKNOWN", strlen(zone_short_name)) != 0) {
 			std::string zone_long_name = ZoneLongName(zone_id);
 			float safe_x, safe_y, safe_z, safe_heading;
 			int16 min_status = AccountStatus::Player;
@@ -1073,7 +1073,7 @@ void Client::SendZoneFlagInfo(Client *to) const {
 					zone_long_name,
 					zone_short_name,
 					(
-						flag_name != "" ?
+						flag_name[0] != '\0' ?
 						fmt::format(
 							" Flag Required: {}",
 							flag_name

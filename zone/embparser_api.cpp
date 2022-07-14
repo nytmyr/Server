@@ -857,7 +857,7 @@ void Perl__set_proximity(float min_x, float max_x, float min_y, float max_y, flo
 
 void Perl__set_proximity(float min_x, float max_x, float min_y, float max_y, float min_z, float max_z, bool say)
 {
-	quest_manager.set_proximity(min_x, max_x, min_y, max_y, max_z, say);
+	quest_manager.set_proximity(min_x, max_x, min_y, max_y, min_z, max_z, say);
 }
 
 void Perl__clear_proximity()
@@ -3638,7 +3638,7 @@ std::string Perl__getenvironmentaldamagename(uint8 damage_type)
 
 std::string Perl__commify(perl::scalar number)
 {
-	return commify(number.c_str());
+	return Strings::Commify(number.c_str());
 }
 
 bool Perl__checknamefilter(std::string name)

@@ -31,7 +31,7 @@
 #include "../common/patches/patches.h"
 #include "../common/rulesys.h"
 #include "../common/profanity_manager.h"
-#include "../common/string_util.h"
+#include "../common/strings.h"
 #include "../common/crash.h"
 #include "../common/memory_mapped_file.h"
 #include "../common/spdat.h"
@@ -158,7 +158,7 @@ int main(int argc, char** argv) {
 	if (argc == 4) {
 		instance_id = atoi(argv[3]);
 		worldserver.SetLauncherName(argv[2]);
-		auto zone_port = SplitString(argv[1], ':');
+		auto zone_port = Strings::Split(argv[1], ':');
 
 		if (!zone_port.empty()) {
 			z_name = zone_port[0];
@@ -179,7 +179,7 @@ int main(int argc, char** argv) {
 	}
 	else if (argc == 3) {
 		worldserver.SetLauncherName(argv[2]);
-		auto zone_port = SplitString(argv[1], ':');
+		auto zone_port = Strings::Split(argv[1], ':');
 
 		if (!zone_port.empty()) {
 			z_name = zone_port[0];
@@ -200,7 +200,7 @@ int main(int argc, char** argv) {
 	}
 	else if (argc == 2) {
 		worldserver.SetLauncherName("NONE");
-		auto zone_port = SplitString(argv[1], ':');
+		auto zone_port = Strings::Split(argv[1], ':');
 
 		if (!zone_port.empty()) {
 			z_name = zone_port[0];

@@ -46,7 +46,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #include "../common/rulesys.h"
 #include "../common/skills.h"
 #include "../common/spdat.h"
-#include "../common/string_util.h"
+#include "../common/strings.h"
 #include "../common/zone_numbers.h"
 #include "data_bucket.h"
 #include "event_codes.h"
@@ -822,7 +822,7 @@ void Client::CompleteConnect()
 	if (zone && zone->GetInstanceTimer()) {
 		bool is_permanent = false;
 		uint32 remaining_time = database.GetTimeRemainingInstance(zone->GetInstanceID(), is_permanent);
-		auto time_string = ConvertSecondsToTime(remaining_time);
+		auto time_string = Strings::SecondsToTime(remaining_time);
 		Message(
 			Chat::Yellow,
 			fmt::format(
@@ -4281,7 +4281,7 @@ void Client::Handle_OP_ClickDoor(const EQApplicationPacket *app)
 			fmt::format(
 				"Door ({}) [{}]",
 				currentdoor->GetEntityID(),
-				EQ::SayLinkEngine::GenerateQuestSaylink("#door edit", false, "#door edit")
+				Saylink::Create("#door edit", false, "#door edit")
 			).c_str()
 		);
 	}
@@ -4903,7 +4903,7 @@ void Client::Handle_OP_ConsiderCorpse(const EQApplicationPacket *app)
 
 	uint32 decay_time = target->GetDecayTime();
 	if (decay_time) {
-		auto time_string = ConvertSecondsToTime(decay_time, true);
+		auto time_string = Strings::SecondsToTime(decay_time, true);
 		Message(
 			Chat::NPCQuestSay,
 			fmt::format(
@@ -13180,7 +13180,7 @@ void Client::Handle_OP_Shielding(const EQApplicationPacket *app)
 			Chat::White,
 			fmt::format(
 				"You can use the ability /shield in {}.",
-				ConvertSecondsToTime(remaining_time)
+				Strings::SecondsToTime(remaining_time)
 			).c_str()
 		);
 		return;
@@ -13335,7 +13335,7 @@ void Client::Handle_OP_ShopPlayerBuy(const EQApplicationPacket *app)
 		auto hacker_str = fmt::format("Vendor Cheat: attempted to buy {} of {}: {} that cost {} cp but only has {} pp {} gp {} sp {} cp",
 			mpo->quantity, item->ID, item->Name,
 			mpo->price, m_pp.platinum, m_pp.gold, m_pp.silver, m_pp.copper);
-		database.SetMQDetectionFlag(AccountName(), GetName(), EscapeString(hacker_str), zone->GetShortName());
+		database.SetMQDetectionFlag(AccountName(), GetName(), Strings::Escape(hacker_str), zone->GetShortName());
 		safe_delete(outapp);
 		safe_delete(inst);
 		return;
@@ -14294,7 +14294,7 @@ void Client::Handle_OP_TargetCommand(const EQApplicationPacket *app)
 			{
 				auto hacker_str = fmt::format("{} attempting to target something untargetable, {} bodytype: {}",
 					GetName(), GetTarget()->GetName(), (int)GetTarget()->GetBodyType());
-				database.SetMQDetectionFlag(AccountName(), GetName(), EscapeString(hacker_str), zone->GetShortName());
+				database.SetMQDetectionFlag(AccountName(), GetName(), Strings::Escape(hacker_str), zone->GetShortName());
 				SetTarget((Mob*)nullptr);
 				return;
 			}
@@ -14331,7 +14331,7 @@ void Client::Handle_OP_TargetCommand(const EQApplicationPacket *app)
 						    (zone->newzone_data.maxclip * zone->newzone_data.maxclip), GetX(),
 						    GetY(), GetZ(), GetTarget()->GetName(), GetTarget()->GetX(),
 						    GetTarget()->GetY(), GetTarget()->GetZ());
-						database.SetMQDetectionFlag(AccountName(), GetName(), EscapeString(hacker_str), zone->GetShortName());
+						database.SetMQDetectionFlag(AccountName(), GetName(), Strings::Escape(hacker_str), zone->GetShortName());
 						SetTarget(nullptr);
 						return;
 					}
@@ -14345,7 +14345,7 @@ void Client::Handle_OP_TargetCommand(const EQApplicationPacket *app)
 						GetName(), (zone->newzone_data.maxclip * zone->newzone_data.maxclip),
 						GetX(), GetY(), GetZ(), GetTarget()->GetName(), GetTarget()->GetX(),
 						GetTarget()->GetY(), GetTarget()->GetZ());
-				database.SetMQDetectionFlag(AccountName(), GetName(), EscapeString(hacker_str), zone->GetShortName());
+				database.SetMQDetectionFlag(AccountName(), GetName(), Strings::Escape(hacker_str), zone->GetShortName());
 				SetTarget(nullptr);
 				return;
 			}

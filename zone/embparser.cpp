@@ -21,7 +21,7 @@
 #include "../common/global_define.h"
 #include "../common/seperator.h"
 #include "../common/misc_functions.h"
-#include "../common/string_util.h"
+#include "../common/strings.h"
 #include "../common/features.h"
 #include "masterentity.h"
 #include "embparser.h"
@@ -938,7 +938,7 @@ int PerlembParser::SendCommands(
 				"Script Error | Package [{}] Event [{}] Error [{}]",
 				pkgprefix,
 				event,
-				trim(e)
+				Strings::Trim(e)
 			)
 		);
 	}
@@ -1417,7 +1417,7 @@ void PerlembParser::ExportEventVariables(
 			ExportVar(package_name.c_str(), "version", zone->GetInstanceVersion());
 			break;
 		}
-		
+
 		case EVENT_LOOT_ZONE:
 		case EVENT_LOOT: {
 			Seperator sep(data);
@@ -1670,12 +1670,12 @@ void PerlembParser::ExportEventVariables(
 			ExportVar(package_name.c_str(), "from_z", sep.arg[2]);
 			break;
 		}
-    
+
 		case EVENT_CONSIDER: {
 			ExportVar(package_name.c_str(), "entity_id", std::stoi(data));
 			break;
 		}
-    
+
 		case EVENT_CONSIDER_CORPSE: {
 			ExportVar(package_name.c_str(), "corpse_entity_id", std::stoi(data));
 			break;
