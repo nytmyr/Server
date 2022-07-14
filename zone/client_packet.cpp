@@ -11479,8 +11479,9 @@ void Client::Handle_OP_RaidCommand(const EQApplicationPacket* app)
 			// Not allowed: Invite a bot that is not owned by the invitor
 			if (player_to_invite->IsBot() &&
 					player_to_invite->CastToBot()->GetOwner()->CastToClient()->CharacterID() !=
-					player_to_invite_owner->CharacterID()) {
+					this->CharacterID()) {
 					Message(Chat::Red, "%s is not your Bot.  You can only invite your Bots, or players grouped with bots.", player_to_invite->GetName());
+					break;
 			}
 
 			// Not allowed: Invite a bot that is in a group but the bot is not the group leader

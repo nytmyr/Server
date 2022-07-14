@@ -187,7 +187,7 @@ void Raid::AddBot(Bot* b, uint32 group, bool rleader, bool groupleader, bool loo
 	if (!b)
 		return;
 
-	std::string query = StringFormat("INSERT INTO raid_members SET raidid = %lu, charid = %lu, "
+	std::string query = StringFormat("INSERT IGNORE INTO raid_members SET raidid = %lu, charid = %lu, "
 		"groupid = %lu, _class = %d, level = %d, name = '%s', "
 		"isgroupleader = %d, israidleader = %d, islooter = %d, isbot = 1",
 		(unsigned long)GetID(), (unsigned long)b->GetBotID(),
@@ -1171,7 +1171,9 @@ void Raid::SendBulkRaid(Client *to)
 		return;
 
 #ifdef BOTS
-	if (members[GetPlayerIndex(to)].IsBot)
+	//if (members[GetPlayerIndex(to)].IsBot)
+	//	return;
+	if (to->IsBot())
 		return;
 #endif
 
@@ -1223,7 +1225,9 @@ void Raid::SendMakeLeaderPacketTo(const char *who, Client *to)
 		return;
 
 #ifdef BOTS
-	if (members[GetPlayerIndex(who)].IsBot)
+	//if (members[GetPlayerIndex(who)].IsBot)
+	//	return;
+	if (to->IsBot())
 		return;
 #endif
 
@@ -1451,7 +1455,9 @@ void Raid::SendRaidMOTDToWorld()
 void Raid::SendGroupLeadershipAA(Client *c, uint32 gid)
 {
 #ifdef BOTS
-	if (members[GetPlayerIndex(c)].IsBot)
+	//if (members[GetPlayerIndex(c)].IsBot)
+	//	return;
+	if (c->IsBot())
 		return;
 #endif
 
@@ -1801,7 +1807,7 @@ void Raid::SendEndurancePacketFrom(Mob *mob)
 	EQApplicationPacket outapp(OP_MobManaUpdate, sizeof(MobManaUpdate_Struct));
 
 	for (int x = 0; x < MAX_RAID_MEMBERS; x++) {
-#ifdef BTOS
+#ifdef BOTS
 		if (members[x].member && !members[x].IsBot) {
 #else
 		if (members[x].member) {
@@ -1939,13 +1945,14 @@ void Raid::QueueClients(Mob *sender, const EQApplicationPacket *app, bool ack_re
 			if (!members[i].member)
 				continue;
 
-			if (!members[i].member->IsClient())
-				continue;
-
 #ifdef BOTS
 			if (members[i].IsBot)
 				continue;
 #endif
+
+			if (!members[i].member->IsClient())
+				continue;
+
 			if (ignore_sender && members[i].member == sender)
 				continue;
 

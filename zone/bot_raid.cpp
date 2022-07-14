@@ -1593,7 +1593,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 	case SpellType_Mez: {
 		if (tar->GetBodyType() != BT_Giant) {
 			if (!checked_los) {
-				if (!CheckLosFN(tar))
+				if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
 					break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
 
 				checked_los = true;
@@ -1637,51 +1637,64 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				isPrimaryHealer = IsGroupHealer();
 			}
 
-			if (hpr < 95 || (tar->IsClient() && (hpr < 95)) || (botClass == BARD)) {
+			if (hpr < RuleI(Bots, HealPercentLimit) || (tar->IsClient() && hpr < (RuleI(Bots, HealPercentLimit))) || (botClass == BARD)) {
 				if (tar->GetClass() == NECROMANCER) {
 					// Give necromancers a chance to go lifetap something or cleric can spend too much mana on a necro
-					if (hpr >= 40) {
+					if (hpr >= RuleI(Bots, HealPercentLimitNecro)) {
 						break;
 					}
 				}
 
 				if (tar->GetClass() == SHAMAN) {
 					// Give shaman the chance to canni without wasting the cleric's mana
-					if (hpr >= 80) {
+					if (hpr >= RuleI(Bots, HealPercentLimitShaman)) {
 						break;
 					}
 				}
-
+				//FastHeal->SingleTargetHeal->PercentageHeal->HoT
 				// Evaluate the situation
 				if ((IsEngaged()) && ((botClass == CLERIC) || (botClass == DRUID) || (botClass == SHAMAN) || (botClass == PALADIN))) {
 					if (tar->GetTarget() && tar->GetTarget()->GetHateTop() && tar->GetTarget()->GetHateTop() == tar) {
 						hasAggro = true;
 					}
 
-					if (hpr < 35) {
+					if (hpr < RuleI(Bots, FastHealPercentLimit)) {
 						botSpell = GetBestBotSpellForFastHeal(this);
 					}
-					else if (hpr >= 35 && hpr < 70) {
-						if (GetNumberNeedingHealedInRaidGroup(60, false) >= 3)
+					else if (hpr >= RuleI(Bots, FastHealPercentLimit) && hpr < RuleI(Bots, SingleTargetHealLimit)) {
+						if (GetNumberNeedingHealedInRaidGroup(80, false) >= 3)
+							botSpell = GetBestBotSpellForGroupHealOverTime(this);
+
+						if (hasAggro)
+							botSpell = GetBestBotSpellForRegularSingleTargetHeal(this);
+					}
+					else if (hpr >= RuleI(Bots, SingleTargetHealLimit) && hpr < RuleI(Bots, PercentageHealPercentLimit)) {
+						if (GetNumberNeedingHealedInRaidGroup(RuleI(Bots, GroupHealPercentLimit), false) >= 3)
 							botSpell = GetBestBotSpellForGroupHeal(this);
 
 						if (botSpell.SpellId == 0)
 							botSpell = GetBestBotSpellForPercentageHeal(this);
 					}
-					else if (hpr >= 70 && hpr < 95) {
+					else if (hpr >= RuleI(Bots, PercentageHealPercentLimit) && hpr < RuleI(Bots, HoTHealPercentLimit)) {
 						if (GetNumberNeedingHealedInRaidGroup(80, false) >= 3)
 							botSpell = GetBestBotSpellForGroupHealOverTime(this);
 
 						if (hasAggro)
-							botSpell = GetBestBotSpellForPercentageHeal(this);
+							botSpell = GetBestBotSpellForHealOverTime(this);
 					}
 					else {
-						if (!tar->FindType(SE_HealOverTime))
-							botSpell = GetBestBotSpellForHealOverTime(this);
+						if (hpr < RuleI(Bots, HoTHealPercentLimit)) {
+							if (!tar->FindType(SE_HealOverTime))
+								botSpell = GetBestBotSpellForHealOverTime(this);
+						}
+						else {
+							break;
+						}
 					}
 				}
 				else if ((botClass == CLERIC) || (botClass == DRUID) || (botClass == SHAMAN) || (botClass == PALADIN)) {
-					if (GetNumberNeedingHealedInRaidGroup(40, true) >= 2) {
+					//Percentage->SingleTarget->HoT
+					if (GetNumberNeedingHealedInRaidGroup(RuleI(Bots, OOCPercentageHealPercentLimit), true) >= 2) {
 						botSpell = GetBestBotSpellForGroupCompleteHeal(this);
 
 						if (botSpell.SpellId == 0)
@@ -1690,41 +1703,47 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						if (botSpell.SpellId == 0)
 							botSpell = GetBestBotSpellForGroupHealOverTime(this);
 
-						if (hpr < 40) {
+						if (GetNumberNeedingHealedInRaidGroup(RuleI(Bots, OOCPercentageHealPercentLimit), true) >= 2) {
 							if (botSpell.SpellId == 0)
 								botSpell = GetBestBotSpellForPercentageHeal(this);
 						}
 					}
-					else if (GetNumberNeedingHealedInRaidGroup(60, true) >= 2) {
+					else if (GetNumberNeedingHealedInRaidGroup(RuleI(Bots, OOCGroupHealPercentLimit), true) >= 2) {
 						botSpell = GetBestBotSpellForGroupHeal(this);
 
 						if (botSpell.SpellId == 0)
 							botSpell = GetBestBotSpellForGroupHealOverTime(this);
 
-						if (hpr < 40) {
+						if (hpr < RuleI(Bots, OOCPercentageHealPercentLimit)) {
 							if (botSpell.SpellId == 0)
 								botSpell = GetBestBotSpellForPercentageHeal(this);
 						}
 					}
-					else if (hpr < 40)
+					else if (hpr < RuleI(Bots, OOCPercentageHealPercentLimit))
 						botSpell = GetBestBotSpellForPercentageHeal(this);
-					else if (hpr >= 40 && hpr < 75)
+					else if (hpr >= RuleI(Bots, OOCPercentageHealPercentLimit) && hpr < RuleI(Bots, OOCHealPercentLimit))
 						botSpell = GetBestBotSpellForRegularSingleTargetHeal(this);
 					else {
-						if (hpr < 90 && !tar->FindType(SE_HealOverTime))
+						if (hpr < RuleI(Bots, OOCHoTHealPercentLimit) && !tar->FindType(SE_HealOverTime)) {
 							botSpell = GetBestBotSpellForHealOverTime(this);
+						}
+						else {
+							break;
+						}
 					}
 				}
 				else {
 					float hpRatioToCast = 0.0f;
 
-					switch (this->GetBotStance()) {
+					switch (GetBotStance()) {
 					case EQ::constants::stanceEfficient:
+						hpRatioToCast = isPrimaryHealer ? 60.0f : 50.0f;
+						break;
 					case EQ::constants::stanceAggressive:
 						hpRatioToCast = isPrimaryHealer ? 90.0f : 50.0f;
 						break;
 					case EQ::constants::stanceBalanced:
-						hpRatioToCast = isPrimaryHealer ? 95.0f : 75.0f;
+						hpRatioToCast = isPrimaryHealer ? 70.0f : 60.0f;
 						break;
 					case EQ::constants::stanceReactive:
 						hpRatioToCast = isPrimaryHealer ? 100.0f : 90.0f;
@@ -1734,13 +1753,17 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						hpRatioToCast = isPrimaryHealer ? 75.0f : 25.0f;
 						break;
 					default:
-						hpRatioToCast = isPrimaryHealer ? 100.0f : 0.0f;
+						hpRatioToCast = isPrimaryHealer ? 100.0f : 90.0f;
 						break;
 					}
 
 					//If we're at specified mana % or below, don't heal as hybrid
-					if (tar->GetHPRatio() <= hpRatioToCast)
+					if (tar->GetHPRatio() <= hpRatioToCast) {
 						botSpell = GetBestBotSpellForRegularSingleTargetHeal(this);
+					}
+					else {
+						break;
+					}
 				}
 
 				if (botSpell.SpellId == 0)
@@ -1790,7 +1813,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 								//raid->RaidBotGroupSay(this, 0, 100, "Casting %s.", spells[botSpell.SpellId].name);
 								std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(r_group);
 								//for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
-								for (int i = 0; i < raid_group_members.size(); ++i){
+								for (int i = 0; i < raid_group_members.size(); ++i) {
 									if (raid_group_members.at(i).member && !raid_group_members.at(i).member->qglobal) {
 										raid_group_members.at(i).member->SetDontHealMeBefore(Timer::GetCurrentTime() + 1000);
 									}
@@ -1811,7 +1834,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 	case SpellType_Root: {
 		if (!tar->IsRooted() && tar->DontRootMeBefore() < Timer::GetCurrentTime()) {
 			if (!checked_los) {
-				if (!CheckLosFN(tar))
+				if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
 					break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
 
 				checked_los = true;
@@ -1820,6 +1843,9 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 			// TODO: If there is a ranger in the group then don't allow root spells
 
 			botSpell = GetFirstBotSpellBySpellType(this, iSpellTypes);
+
+			if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, RootResistLimit)))
+				return botSpell.SpellId = 0;
 
 			if (botSpell.SpellId == 0)
 				break;
@@ -1855,7 +1881,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					continue;
 
 				// can not cast buffs for your own pet only on another pet that isn't yours
-				if ((spells[selectedBotSpell.SpellId].target_type == ST_Pet) && (tar != this->GetPet()))
+				if ((spells[selectedBotSpell.SpellId].target_type == ST_Pet) && (tar != GetPet()))
 					continue;
 
 				// Validate target
@@ -1904,7 +1930,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				{
 					float manaRatioToCast = 75.0f;
 
-					switch (this->GetBotStance()) {
+					switch (GetBotStance()) {
 					case EQ::constants::stanceEfficient:
 						manaRatioToCast = 90.0f;
 						break;
@@ -1923,7 +1949,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					}
 
 					//If we're at specified mana % or below, don't rune as enchanter
-					if (this->GetManaRatio() <= manaRatioToCast)
+					if (GetManaRatio() <= manaRatioToCast)
 						break;
 				}
 
@@ -1970,99 +1996,112 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 		break;
 	}
 	case SpellType_Nuke: {
-		if ((tar->GetHPRatio() <= 95.0f) || ((botClass == BARD) || (botClass == SHAMAN) || (botClass == ENCHANTER)))
-		{
-			if (!checked_los) {
-				if (!CheckLosFN(tar))
-					break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
+		if (GetHoldNukes() == 0) {
+			if (!m_nuke_delay_timer.Enabled() || m_nuke_delay_timer.Check()) {
+				if ((tar->GetHPRatio() <= 95.0f) || ((botClass == BARD) || (botClass == SHAMAN) || (botClass == ENCHANTER)))
+				{
+					if (!checked_los) {
+						if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
+							break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
 
-				checked_los = true;
-			}
-
-			if (botClass == CLERIC || botClass == ENCHANTER)
-			{
-				float manaRatioToCast = 75.0f;
-
-				switch (this->GetBotStance()) {
-				case EQ::constants::stanceEfficient:
-					manaRatioToCast = 90.0f;
-					break;
-				case EQ::constants::stanceBalanced:
-					manaRatioToCast = 75.0f;
-					break;
-				case EQ::constants::stanceReactive:
-				case EQ::constants::stanceAggressive:
-					manaRatioToCast = 50.0f;
-					break;
-				case EQ::constants::stanceBurn:
-				case EQ::constants::stanceBurnAE:
-					manaRatioToCast = 25.0f;
-					break;
-				default:
-					manaRatioToCast = 50.0f;
-					break;
-				}
-
-				//If we're at specified mana % or below, don't nuke as cleric or enchanter
-				if (this->GetManaRatio() <= manaRatioToCast)
-					break;
-			}
-
-			if (botClass == MAGICIAN || botClass == SHADOWKNIGHT || botClass == NECROMANCER || botClass == PALADIN || botClass == RANGER || botClass == DRUID || botClass == CLERIC) {
-				if (tar->GetBodyType() == BT_Undead || tar->GetBodyType() == BT_SummonedUndead || tar->GetBodyType() == BT_Vampire)
-					botSpell = GetBestBotSpellForNukeByTargetType(this, ST_Undead);
-				else if (tar->GetBodyType() == BT_Summoned || tar->GetBodyType() == BT_Summoned2 || tar->GetBodyType() == BT_Summoned3)
-					botSpell = GetBestBotSpellForNukeByTargetType(this, ST_Summoned);
-			}
-
-			if (botClass == PALADIN || botClass == DRUID || botClass == CLERIC || botClass == ENCHANTER || botClass == WIZARD) {
-				if (botSpell.SpellId == 0) {
-					uint8 stunChance = (tar->IsCasting() ? 30 : 15);
-
-					if (botClass == PALADIN)
-						stunChance = 50;
-
-					if (!tar->GetSpecialAbility(UNSTUNABLE) && !tar->IsStunned() && (zone->random.Int(1, 100) <= stunChance)) {
-						botSpell = GetBestBotSpellForStunByTargetType(this, ST_Target);
+						checked_los = true;
 					}
-				}
-			}
 
-			if (botClass == WIZARD && botSpell.SpellId == 0) {
-				botSpell = GetBestBotWizardNukeSpellByTargetResists(this, tar);
-			}
+					if (botClass == CLERIC || botClass == ENCHANTER)
+					{
+						float manaRatioToCast = 75.0f;
 
-			if (botSpell.SpellId == 0)
-				botSpell = GetBestBotSpellForNukeByTargetType(this, ST_Target);
+						switch (GetBotStance()) {
+						case EQ::constants::stanceEfficient:
+							manaRatioToCast = 90.0f;
+							break;
+						case EQ::constants::stanceBalanced:
+							manaRatioToCast = 75.0f;
+							break;
+						case EQ::constants::stanceReactive:
+						case EQ::constants::stanceAggressive:
+							manaRatioToCast = 50.0f;
+							break;
+						case EQ::constants::stanceBurn:
+						case EQ::constants::stanceBurnAE:
+							manaRatioToCast = 25.0f;
+							break;
+						default:
+							manaRatioToCast = 50.0f;
+							break;
+						}
 
-			if (botSpell.SpellId == 0)
-				break;
+						//If we're at specified mana % or below, don't nuke as cleric or enchanter
+						if (GetManaRatio() <= manaRatioToCast)
+							break;
+					}
 
-			if (!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && (tar->CanBuffStack(botSpell.SpellId, botLevel, true) >= 0)))
-				break;
+					if (botClass == MAGICIAN || botClass == SHADOWKNIGHT || botClass == NECROMANCER || botClass == PALADIN || botClass == RANGER || botClass == DRUID || botClass == CLERIC) {
+						if (tar->GetBodyType() == BT_Undead || tar->GetBodyType() == BT_SummonedUndead || tar->GetBodyType() == BT_Vampire)
+							botSpell = GetBestBotSpellForNukeByTargetType(this, ST_Undead);
+						else if (tar->GetBodyType() == BT_Summoned || tar->GetBodyType() == BT_Summoned2 || tar->GetBodyType() == BT_Summoned3)
+							botSpell = GetBestBotSpellForNukeByTargetType(this, ST_Summoned);
+					}
 
-			if (IsFearSpell(botSpell.SpellId)) {
-				// don't let fear cast if the npc isn't snared or rooted
-				if (tar->GetSnaredAmount() == -1) {
-					if (!tar->IsRooted())
+					if (botClass == PALADIN || botClass == DRUID || botClass == CLERIC || botClass == ENCHANTER || botClass == WIZARD) {
+						if (botSpell.SpellId == 0) {
+							uint8 stunChance = (tar->IsCasting() ? 30 : 15);
+
+							if (botClass == PALADIN)
+								stunChance = 50;
+
+							if (!tar->GetSpecialAbility(UNSTUNABLE) && !tar->IsStunned() && (zone->random.Int(1, 100) <= stunChance)) {
+								botSpell = GetBestBotSpellForStunByTargetType(this, ST_Target);
+							}
+						}
+					}
+
+					if (botClass == WIZARD && botSpell.SpellId == 0) {
+						botSpell = GetBestBotWizardNukeSpellByTargetResists(this, tar);
+					}
+
+					if (botSpell.SpellId == 0)
+						botSpell = GetBestBotSpellForNukeByTargetType(this, ST_Target);
+
+					if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, NukeResistLimit)))
+						return botSpell.SpellId = 0;
+
+					if (botSpell.SpellId == 0)
 						break;
-				}
-			}
 
-			castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
+					if (!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && (tar->CanBuffStack(botSpell.SpellId, botLevel, true) >= 0)))
+						break;
+
+					if (IsFearSpell(botSpell.SpellId)) {
+						// don't let fear cast if the npc isn't snared or rooted
+						if (tar->GetSnaredAmount() == -1) {
+							if (!tar->IsRooted())
+								break;
+						}
+					}
+
+					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
+					m_nuke_delay_timer.Start(GetNukeDelay());
+				}
+				break;
+			}
+			break;
 		}
 		break;
 	}
 	case SpellType_Dispel: {
 		if (tar->GetHPRatio() > 95.0f) {
 			if (!checked_los) {
-				if (!CheckLosFN(tar))
+				if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
 					break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
 
 				checked_los = true;
 			}
 
 			botSpell = GetFirstBotSpellBySpellType(this, iSpellTypes);
+
+			if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, DispelResistLimit)))
+				return botSpell.SpellId = 0;
 
 			if (botSpell.SpellId == 0)
 				break;
@@ -2168,7 +2207,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 							continue;
 
 						// can not cast buffs for your own pet only on another pet that isn't yours
-						if ((spells[selectedBotSpell.SpellId].target_type == ST_Pet) && (tar != this->GetPet()))
+						if ((spells[selectedBotSpell.SpellId].target_type == ST_Pet) && (tar != GetPet()))
 							continue;
 
 						// Validate target
@@ -2231,13 +2270,16 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 	case SpellType_Lifetap: {
 		if (GetHPRatio() < 90.0f) {
 			if (!checked_los) {
-				if (!CheckLosFN(tar))
+				if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
 					break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
 
 				checked_los = true;
 			}
 
 			botSpell = GetFirstBotSpellBySpellType(this, iSpellTypes);
+
+			if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, LifetapResistLimit)))
+				return botSpell.SpellId = 0;
 
 			if (botSpell.SpellId == 0)
 				break;
@@ -2252,13 +2294,16 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 	case SpellType_Snare: {
 		if (tar->DontSnareMeBefore() < Timer::GetCurrentTime()) {
 			if (!checked_los) {
-				if (!CheckLosFN(tar))
+				if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
 					break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
 
 				checked_los = true;
 			}
 
 			botSpell = GetFirstBotSpellBySpellType(this, iSpellTypes);
+
+			if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, SnareResistLimit)))
+				return botSpell.SpellId = 0;
 
 			if (botSpell.SpellId == 0)
 				break;
@@ -2278,7 +2323,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 	case SpellType_DOT: {
 		if ((tar->GetHPRatio() <= 98.0f) && (tar->DontDotMeBefore() < Timer::GetCurrentTime()) && (tar->GetHPRatio() > 15.0f)) {
 			if (!checked_los) {
-				if (!CheckLosFN(tar))
+				if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
 					break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
 
 				checked_los = true;
@@ -2336,6 +2381,9 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 						uint32 TempDontDotMeBefore = tar->DontDotMeBefore();
 
+						if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, DoTResistLimit)))
+							return botSpell.SpellId = 0;
+
 						castedSpell = AIDoSpellCast(selectedBotSpell.SpellIndex, tar, selectedBotSpell.ManaCost, &TempDontDotMeBefore);
 
 						if (TempDontDotMeBefore != tar->DontDotMeBefore())
@@ -2355,7 +2403,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 		if (tar->GetHPRatio() <= 99.0f) {
 
 			if (!checked_los) {
-				if (!CheckLosFN(tar))
+				if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
 					break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
 
 				checked_los = true;
@@ -2377,6 +2425,9 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					if (tar->CanBuffStack(iter.SpellId, botLevel, true) < 0)
 						continue;
 
+					if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, SlowResistLimit)))
+						return botSpell.SpellId = 0;
+
 					castedSpell = AIDoSpellCast(iter.SpellIndex, tar, iter.ManaCost);
 					if (castedSpell)
 						break;
@@ -2386,14 +2437,21 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 			}
 			case ENCHANTER: {
 				botSpell = GetBestBotSpellForMagicBasedSlow(this);
+
+				if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, SlowResistLimit)))
+					return botSpell.SpellId = 0;
+
 				break;
 			}
 			case SHAMAN:
 			case BEASTLORD: {
 				botSpell = GetBestBotSpellForDiseaseBasedSlow(this);
-
 				if (botSpell.SpellId == 0 || ((tar->GetMR() - 50) < (tar->GetDR() + spells[botSpell.SpellId].resist_difficulty)))
 					botSpell = GetBestBotSpellForMagicBasedSlow(this);
+
+				if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, SlowResistLimit)))
+					return botSpell.SpellId = 0;
+
 				break;
 			}
 			}
@@ -2409,13 +2467,14 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 			if (castedSpell && GetClass() != BARD)
 				BotGroupSay(this, "Attempting to slow %s.", tar->GetCleanName());
 		}
+
 		break;
 	}
 	case SpellType_Debuff: {
 		if ((tar->GetHPRatio() <= 99.0f) || ((botClass == BARD) || (botClass == SHAMAN) || (botClass == ENCHANTER) || (botClass == DRUID)) && (tar->GetHPRatio() > 40.0f))
 		{
 			if (!checked_los) {
-				if (!CheckLosFN(tar))
+				if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
 					break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
 
 				checked_los = true;
@@ -2425,6 +2484,9 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 			if (botSpell.SpellId == 0)
 				botSpell = GetDebuffBotSpell(this, tar);
+
+			if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, DebuffResistLimit)))
+				return botSpell.SpellId = 0;
 
 			if (botSpell.SpellId == 0)
 				break;
