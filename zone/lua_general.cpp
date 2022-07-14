@@ -4252,7 +4252,11 @@ luabind::scope lua_register_events() {
 			luabind::value("equip_item_client", static_cast<int>(EVENT_EQUIP_ITEM_CLIENT)),
 			luabind::value("unequip_item_client", static_cast<int>(EVENT_UNEQUIP_ITEM_CLIENT)),
 			luabind::value("skill_up", static_cast<int>(EVENT_SKILL_UP)),
-			luabind::value("language_skill_up", static_cast<int>(EVENT_LANGUAGE_SKILL_UP))
+			luabind::value("language_skill_up", static_cast<int>(EVENT_LANGUAGE_SKILL_UP)),
+			luabind::value("merchant_transaction_buy", static_cast<int>(EVENT_MERCHANT_TRANSACTION_BUY)),
+			luabind::value("merchant_transaction_sell", static_cast<int>(EVENT_MERCHANT_TRANSACTION_SELL)),
+			luabind::value("alt_merchant_transaction_buy", static_cast<int>(EVENT_ALT_MERCHANT_TRANSACTION_BUY)),
+			luabind::value("alt_merchant_transaction_sell", static_cast<int>(EVENT_ALT_MERCHANT_TRANSACTION_SELL))
 		];
 }
 

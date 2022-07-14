@@ -140,7 +140,11 @@ const char *LuaEvents[_LargestEventID] = {
 	"event_equip_item_client",
 	"event_unequip_item_client",
 	"event_skill_up",
-	"event_language_skill_up"
+	"event_language_skill_up",
+	"event_merchant_transaction_buy",
+	"event_merchant_transaction_sell",
+	"event_alt_merchant_transaction_buy",
+	"event_alt_merchant_transaction_sell"
 };
 
 extern Zone *zone;
@@ -236,6 +240,10 @@ LuaParser::LuaParser() {
 	PlayerArgumentDispatch[EVENT_UNEQUIP_ITEM_CLIENT] = handle_player_equip_item;
 	PlayerArgumentDispatch[EVENT_SKILL_UP] = handle_player_skill_up;
 	PlayerArgumentDispatch[EVENT_LANGUAGE_SKILL_UP] = handle_player_skill_up;
+	PlayerArgumentDispatch[EVENT_MERCHANT_TRANSACTION_BUY] = handle_player_merchant_transaction_buy;
+	PlayerArgumentDispatch[EVENT_MERCHANT_TRANSACTION_SELL] = handle_player_merchant_transaction_sell;
+	PlayerArgumentDispatch[EVENT_ALT_MERCHANT_TRANSACTION_BUY] = handle_player_alt_merchant_transaction_buy;
+	PlayerArgumentDispatch[EVENT_ALT_MERCHANT_TRANSACTION_SELL] = handle_player_alt_merchant_transaction_sell;
 
 	ItemArgumentDispatch[EVENT_ITEM_CLICK] = handle_item_click;
 	ItemArgumentDispatch[EVENT_ITEM_CLICK_CAST] = handle_item_click;
