@@ -2373,7 +2373,7 @@ void Client::SendGuildLFGuildStatus()
 
 bool Client::CheckWaterAutoFireLoS(Mob* los_attacker, Mob* los_target) // checks if both attacker and target are both in or out of the water
 {
-	if (!RuleB(Combat, WaterMatchRequiredForAutoFireLoS)) { // if rule is set to false, bypass check
+	if (!RuleB(Combat, WaterMatchRequiredForAutoFireLoS) || zone->watermap == nullptr) { // if rule is set to false, bypass check
 		return true;
 	}
 	return zone->watermap->InLiquid(los_attacker->GetPosition()) == zone->watermap->InLiquid(los_target->GetPosition());
