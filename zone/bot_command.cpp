@@ -2807,7 +2807,7 @@ void bot_command_attack(Client *c, const Seperator *sep)
 	}
 
 	if (attacker_count == 1 && first_attacker) {
-		c->Message(Chat::Tell, "%s tells you, 'Attacking %s!'", first_attacker, target_mob->GetCleanName());
+		c->Message(Chat::Tell, "%s tells you, 'Attacking %s!'", first_attacker->GetCleanName(), target_mob->GetCleanName());
 	}
 	else {
 		c->Message(Chat::White, "%i of your bots are attacking %s!", sbl.size(), target_mob->GetCleanName());
@@ -6633,7 +6633,7 @@ void bot_subcommand_bot_spawn(Client *c, const Seperator *sep)
 	}
 
 	if (c->GetBotOption(Client::booSpawnMessageSay)) {
-		c->Message(Chat::Tell, "%s tells you, '%s'", my_bot, bot_spawn_message[message_index]);
+		c->Message(Chat::Tell, "%s tells you, '%s'", my_bot->GetCleanName(), bot_spawn_message[message_index]);
 	}
 	else if (c->GetBotOption(Client::booSpawnMessageTell)) {
 		c->Message(Chat::Tell, "%s tells you, \"%s\"", my_bot->GetCleanName(), bot_spawn_message[message_index]);
