@@ -130,6 +130,7 @@ void command_iplookup(Client *c, const Seperator *sep);
 void command_iteminfo(Client *c, const Seperator *sep);
 void command_itemsearch(Client *c, const Seperator *sep);
 void command_kick(Client *c, const Seperator *sep);
+void command_kick_linkdead(Client* c, const Seperator* sep);
 void command_killallnpcs(Client *c, const Seperator *sep);
 void command_kill(Client *c, const Seperator *sep);
 void command_lastname(Client *c, const Seperator *sep);

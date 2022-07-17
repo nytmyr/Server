@@ -191,6 +191,7 @@ int command_init(void)
 		command_add("iteminfo", "Get information about the item on your cursor", AccountStatus::Steward, command_iteminfo) ||
 		command_add("itemsearch", "[Search Criteria] - Search for an item", AccountStatus::Steward, command_itemsearch) ||
 		command_add("kick", "[Character Name] - Disconnect a player by name", AccountStatus::GMLeadAdmin, command_kick) ||
+		command_add("kicklinkdead", "[Character Name] - Disconnect a player by name and make them go Link Dead", AccountStatus::GMLeadAdmin, command_kick_linkdead) ||
 		command_add("kill", "Kill your target", AccountStatus::GMAdmin, command_kill) ||
 		command_add("killallnpcs", "[npc_name] - Kills all npcs by search name, leave blank for all attackable NPC's", AccountStatus::GMMgmt, command_killallnpcs) ||
 		command_add("lastname", "[Last Name] - Set your or your player target's last name (use \"-1\" to remove last name)", AccountStatus::Guide, command_lastname) ||
@@ -1030,6 +1031,7 @@ void command_bot(Client *c, const Seperator *sep)
 #include "gm_commands/iteminfo.cpp"
 #include "gm_commands/itemsearch.cpp"
 #include "gm_commands/kick.cpp"
+#include "gm_commands/kicklinkdead.cpp"
 #include "gm_commands/kill.cpp"
 #include "gm_commands/killallnpcs.cpp"
 #include "gm_commands/lastname.cpp"
