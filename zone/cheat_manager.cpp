@@ -49,10 +49,11 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 				);
 				LogCheat(message);
 				std::string export_string = fmt::format(
-					"{} {} {}",
+					"{} {} {} {}",
 					position1.x,
 					position1.y,
-					position1.z
+					position1.z,
+					1
 				);
 				parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
 			}
@@ -83,10 +84,11 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 				);
 				LogCheat(message);
 				std::string export_string = fmt::format(
-					"{} {} {}",
+					"{} {} {} {}",
 					position1.x,
 					position1.y,
-					position1.z
+					position1.z,
+					2
 				);
 				parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
 				m_time_since_last_warp_detection.Start(2500);
@@ -113,6 +115,14 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 					zone->GetShortName()
 				);
 				LogCheat(message);
+				std::string export_string = fmt::format(
+					"{} {} {} {}",
+					position1.x,
+					position1.y,
+					position1.z,
+					3
+				);
+				parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
 			}
 			break;
 		case MQWarpKnockBack:
@@ -135,6 +145,14 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 					message.c_str(),
 					zone->GetShortName()
 				);
+				std::string export_string = fmt::format(
+					"{} {} {} {}",
+					position1.x,
+					position1.y,
+					position1.z,
+					4
+				);
+				parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
 				LogCheat(message);
 			}
 			break;
@@ -161,6 +179,14 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 						zone->GetShortName()
 					);
 					LogCheat(message);
+					std::string export_string = fmt::format(
+						"{} {} {} {}",
+						position1.x,
+						position1.y,
+						position1.z,
+						5
+					);
+					parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
 				}
 			}
 			break;
@@ -186,6 +212,14 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 					zone->GetShortName()
 				);
 				LogCheat(message);
+				std::string export_string = fmt::format(
+					"{} {} {} {}",
+					position1.x,
+					position1.y,
+					position1.z,
+					6
+				);
+				parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
 			}
 			break;
 		case MQZoneUnknownDest:
@@ -209,6 +243,14 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 					zone->GetShortName()
 				);
 				LogCheat(message);
+				std::string export_string = fmt::format(
+					"{} {} {} {}",
+					position1.x,
+					position1.y,
+					position1.z,
+					7
+				);
+				parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
 			}
 			break;
 		case MQGate:
@@ -232,6 +274,14 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 					zone->GetShortName()
 				);
 				LogCheat(message);
+				std::string export_string = fmt::format(
+					"{} {} {} {}",
+					position1.x,
+					position1.y,
+					position1.z,
+					8
+				);
+				parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
 			}
 			break;
 		case MQGhost:
@@ -250,6 +300,14 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 					m_target->AccountName(),
 					m_target->GetName()
 				);
+				std::string export_string = fmt::format(
+					"{} {} {} {}",
+					position1.x,
+					position1.y,
+					position1.z,
+					9
+				);
+				parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
 			}
 			break;
 		case MQFastMem:
@@ -274,6 +332,14 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 					zone->GetShortName()
 				);
 				LogCheat(message);
+				std::string export_string = fmt::format(
+					"{} {} {} {}",
+					position1.x,
+					position1.y,
+					position1.z,
+					10
+				);
+				parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
 			}
 			break;
 		default:
@@ -295,6 +361,14 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 				zone->GetShortName()
 			);
 			LogCheat(message);
+			std::string export_string = fmt::format(
+				"{} {} {} {}",
+				position1.x,
+				position1.y,
+				position1.z,
+				11
+			);
+			parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
 			break;
 	}
 }

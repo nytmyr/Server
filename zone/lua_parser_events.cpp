@@ -602,6 +602,9 @@ void handle_player_warp(QuestInterface* parse, lua_State* L, Client* client, std
 
 	lua_pushnumber(L, std::stof(sep.arg[2]));
 	lua_setfield(L, -2, "from_z");
+
+	lua_pushnumber(L, std::stof(sep.arg[3]));
+	lua_setfield(L, -2, "warptype");
 }
 
 void handle_player_quest_combine(QuestInterface* parse, lua_State* L, Client* client, std::string data, uint32 extra_data, std::vector<EQ::Any>* extra_pointers) {

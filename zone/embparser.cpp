@@ -1668,6 +1668,7 @@ void PerlembParser::ExportEventVariables(
 			ExportVar(package_name.c_str(), "from_x", sep.arg[0]);
 			ExportVar(package_name.c_str(), "from_y", sep.arg[1]);
 			ExportVar(package_name.c_str(), "from_z", sep.arg[2]);
+			ExportVar(package_name.c_str(), "warptype", sep.arg[3]);
 			break;
 		}
 

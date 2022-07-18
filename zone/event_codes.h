@@ -88,7 +88,7 @@ typedef enum {
 	EVENT_USE_SKILL,
 	EVENT_COMBINE_VALIDATE,
 	EVENT_BOT_COMMAND,
-	EVENT_WARP,
+	EVENT_WARP, //1 large warp | 2 absolute | 3 shadowstep  (suspicion) | 4 knockback (suspicion) | 5 light knockback (suspicion) | 6 zone | 7 zoneunknown | 8 gate | 9 ghost | 10 fastmem | 11 unhandled (possible linux?) 
 	EVENT_TEST_BUFF,
 	EVENT_COMBINE,
 	EVENT_CONSIDER,
