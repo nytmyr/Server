@@ -3997,6 +3997,9 @@ bool Mob::SpellOnTarget(uint16 spell_id, Mob *spelltar, int reflect_effectivenes
 						}
 					}
 					else {
+						if (this->IsBot()) {
+							this->CastToBot()->GetBotOwner()->Message(Chat::SpellFailure, "%s resisted %s's spell: %s", spelltar->GetCleanName(), this->GetCleanName(), spells[spell_id].name);
+						}
 						MessageString(Chat::SpellFailure, TARGET_RESISTED, spells[spell_id].name);
 						spelltar->MessageString(Chat::SpellFailure, YOU_RESIST, spells[spell_id].name);
 					}
