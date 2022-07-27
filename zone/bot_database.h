@@ -142,6 +142,8 @@ public:
 
 	bool SaveHoldNukes(const uint32 owner_id, const uint32 bot_id, const uint8 hn_value);
 	bool SaveNukeDelay(const uint32 owner_id, const uint32 bot_id, const uint32 nd_value);
+	bool SaveAutoResist(const uint32 owner_id, const uint32 bot_id, const uint8 ar_value);
+	bool SaveAutoDS(const uint32 owner_id, const uint32 bot_id, const uint8 ad_value);
 
 	bool LoadOwnerOptions(Client *owner);
 	bool SaveOwnerOption(const uint32 owner_id, size_t type, const bool flag);
@@ -263,6 +265,8 @@ public:
 		static const char* SaveStopMeleeLevel();
 		static const char* SaveHoldNukes();
 		static const char* SaveNukeDelay();
+		static const char* SaveAutoResist();
+		static const char* SaveAutoDS();
 
 		/* fail::Bot bot-group functions   */
 		static const char* QueryBotGroupExistence();

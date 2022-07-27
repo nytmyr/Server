@@ -2355,6 +2355,14 @@ void Bot::SetNukeDelay(uint32 nukedelay) {
 	_nukeDelay = nukedelay;
 }
 
+void Bot::SetAutoResist(uint8 autoresist) {
+	_autoResist = autoresist;
+}
+
+void Bot::SetAutoDS(uint8 autods) {
+	_autoDS = autods;
+}
+
 void Bot::SetGuardMode() {
 
 	StopMoving();

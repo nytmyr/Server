@@ -47,6 +47,7 @@ public:
 		SpT_MovementSpeed,
 		SpT_Resistance,
 		SpT_Resurrect,
+		SpT_Root,
 		SpT_Rune,
 		SpT_SendHome,
 		SpT_Size,
@@ -168,6 +169,8 @@ public:
 			return "SpT_Resistance";
 		case SpT_Resurrect:
 			return "SpT_Resurrect";
+		case SpT_Root:
+			return "SpT_Root";
 		case SpT_Rune:
 			return "SpT_Rune";
 		case SpT_SendHome:
@@ -241,6 +244,7 @@ public:
 	uint8 spell_level;
 	uint8 caster_class;
 	BCEnum::TType target_type;
+	uint8 buff_duration;
 
 	// A non-polymorphic constructor requires an appropriate, non-'ST_None' BCEnum::SType
 	STBaseEntry(BCEnum::SpType init_bcst = BCEnum::SpT_None) {
@@ -248,6 +252,7 @@ public:
 		spell_level = 255;
 		caster_class = 255;
 		target_type = BCEnum::TT_None;
+		buff_duration = 255;
 		m_bcst = init_bcst;
 	}
 	STBaseEntry(STBaseEntry* prototype) {
@@ -255,6 +260,7 @@ public:
 		spell_level = 255;
 		caster_class = 255;
 		target_type = prototype->target_type;
+		buff_duration = prototype->buff_duration;
 		m_bcst = prototype->BCST();
 	}
 	virtual ~STBaseEntry() { return; };
@@ -586,6 +592,7 @@ void bot_command_pull(Client *c, const Seperator *sep);
 void bot_command_release(Client *c, const Seperator *sep);
 void bot_command_resistance(Client *c, const Seperator *sep);
 void bot_command_resurrect(Client *c, const Seperator *sep);
+void bot_command_root(Client* c, const Seperator* sep);
 void bot_command_rune(Client *c, const Seperator *sep);
 void bot_command_send_home(Client *c, const Seperator *sep);
 void bot_command_size(Client *c, const Seperator *sep);
@@ -597,6 +604,8 @@ void bot_command_view_combos(Client *c, const Seperator *sep);
 void bot_command_water_breathing(Client *c, const Seperator *sep);
 
 // custom bot commands
+void bot_command_auto_resist(Client* c, const Seperator* sep);
+void bot_command_auto_ds(Client* c, const Seperator* sep);
 void bot_command_hold_nukes(Client* c, const Seperator* sep);
 void bot_command_nuke_delay(Client* c, const Seperator* sep);
 void bot_command_use_epic(Client* c, const Seperator* sep);

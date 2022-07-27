@@ -307,6 +307,11 @@ public:
 					break;
 
 				switch (spells[spell_id].effect_id[EFFECTIDTOINDEX(2)]) {
+				case SE_Root:
+					if (spells[spell_id].spell_affect_index != 16)
+						break;
+					entry_prototype = new STBaseEntry(BCEnum::SpT_Root);
+					break;
 				case SE_Succor:
 					entry_prototype = new STEscapeEntry;
 					std::string is_lesser = spells[spell_id].name;
@@ -532,6 +537,7 @@ public:
 
 				spell_entry->caster_class = class_type;
 				spell_entry->spell_level = class_levels[class_index];
+				spell_entry->buff_duration = spells[spell_id].buff_duration;
 
 				bot_command_spells[spell_entry->BCST()].push_back(spell_entry);
 
@@ -956,6 +962,22 @@ private:
 
 					return false;
 				});
+				continue;
+			case BCEnum::SpT_Root:
+				spell_list->sort([](const STBaseEntry* l, const STBaseEntry* r) {
+					if (LT_SPELLS(l, r, resist_difficulty))
+						return true;
+					if (EQ_SPELLS(l, r, resist_difficulty) && LT_SPELLS(l, r, target_type))
+						return true;
+					if (EQ_SPELLS(l, r, resist_difficulty) && EQ_STBASE(l, r, target_type) && GT_SPELLS(l, r, buff_duration))
+						return true;
+					if (EQ_SPELLS(l, r, resist_difficulty) && EQ_STBASE(l, r, target_type) && EQ_STBASE(l, r, buff_duration) && GT_STBASE(l, r, spell_level))
+						return true;
+					if (EQ_SPELLS(l, r, resist_difficulty) && EQ_STBASE(l, r, target_type) && EQ_STBASE(l, r, buff_duration) && EQ_STBASE(l, r, spell_level) && LT_STBASE(l, r, caster_class))
+						return true;
+
+					return false;
+					});
 				continue;
 			case BCEnum::SpT_Rune:
 				spell_list->sort([](const STBaseEntry* l, const STBaseEntry* r) {
@@ -1412,6 +1434,7 @@ int bot_command_init(void)
 		bot_command_add("release", "Releases a suspended bot's AI processing (with hate list wipe)", AccountStatus::Player, bot_command_release) ||
 		bot_command_add("resistance", "Orders a bot to cast a specified resistance buff", AccountStatus::Player, bot_command_resistance) ||
 		bot_command_add("resurrect", "Orders a bot to resurrect a player's (players') corpse(s)", AccountStatus::Player, bot_command_resurrect) ||
+		bot_command_add("root", "Orders a bot to root the target", AccountStatus::Player, bot_command_root) ||
 		bot_command_add("rune", "Orders a bot to cast a rune of protection", AccountStatus::Player, bot_command_rune) ||
 		bot_command_add("sendhome", "Orders a bot to open a magical doorway home", AccountStatus::Player, bot_command_send_home) ||
 		bot_command_add("size", "Orders a bot to change a player's size", AccountStatus::Player, bot_command_size) ||
@@ -1423,7 +1446,9 @@ int bot_command_init(void)
 		bot_command_add("waterbreathing", "Orders a bot to cast a water breathing spell", AccountStatus::Player, bot_command_water_breathing) ||
 		
 		// custom bot commands
-		bot_command_add("holdnukes", "Sets Clerics to hold their nukes", AccountStatus::Player, bot_command_hold_nukes) ||
+		bot_command_add("autoresist", "Toggles the ability for casters to automatically cast resist buffs", AccountStatus::Player, bot_command_auto_resist) ||
+		bot_command_add("autods", "Toggles the ability for casters to automatically cast damage shield buffs", AccountStatus::Player, bot_command_auto_ds) ||
+		bot_command_add("holdnukes", "Toggles a bots ability to cast nukes", AccountStatus::Player, bot_command_hold_nukes) ||
 		bot_command_add("nukedelay", "Sets a timer that controls the frequency of bot nukes", AccountStatus::Player, bot_command_nuke_delay) ||
 		bot_command_add("useepic", "Orders your targeted bot to use their epic if it is equipped", AccountStatus::Player, bot_command_use_epic)
 	) {
@@ -2812,6 +2837,108 @@ void bot_command_attack(Client *c, const Seperator *sep)
 	else {
 		c->Message(Chat::White, "%i of your bots are attacking %s!", sbl.size(), target_mob->GetCleanName());
 	}
+}
+
+void bot_command_auto_ds(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_auto_ds", sep->arg[0], "autods"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to prevent automatic buffing of damage shields.");
+		c->Message(Chat::White, "note: Set to 1 to resume automatic damage shield buffing.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 ad = 0;
+	if (sep->IsNumber(1)) {
+		ad = atoi(sep->arg[1]);
+		int adcheck = ad;
+		if (adcheck == 0 || adcheck == 1) {
+			my_bot->SetAutoDS(ad);
+			if (!database.botdb.SaveAutoDS(c->CharacterID(), my_bot->GetBotID(), ad)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveAutoDS(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Auto DS for %s to %u.", my_bot->GetCleanName(), ad);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Auto DS status is %u.", my_bot->GetAutoDS());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
+void bot_command_auto_resist(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_auto_resist", sep->arg[0], "autoresist"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to prevent automatic buffing of resists.");
+		c->Message(Chat::White, "note: Set to 1 to resume automatic resist buffing.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 ar = 0;
+	if (sep->IsNumber(1)) {
+		ar = atoi(sep->arg[1]);
+		int archeck = ar;
+		if (archeck == 0 || archeck == 1) {
+			my_bot->SetAutoResist(ar);
+			if (!database.botdb.SaveAutoResist(c->CharacterID(), my_bot->GetBotID(), ar)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveAutoResist(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Auto Resist for %s to %u.", my_bot->GetCleanName(), ar);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Auto Resist status is %u.", my_bot->GetAutoResist());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
 }
 
 void bot_command_bind_affinity(Client *c, const Seperator *sep)
@@ -4638,6 +4765,45 @@ void bot_command_resurrect(Client *c, const Seperator *sep)
 
 		//if (local_entry->aoe)
 		//	target_mob = my_bot;
+
+		uint32 dont_root_before = 0;
+		if (helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id, true, &dont_root_before))
+			target_mob->SetDontRootMeBefore(dont_root_before);
+
+		break;
+	}
+
+	helper_no_available_bots(c, my_bot);
+}
+
+void bot_command_root(Client *c, const Seperator *sep)
+{
+	bcst_list* local_list = &bot_command_spells[BCEnum::SpT_Root];
+	if (helper_spell_list_fail(c, local_list, BCEnum::SpT_Root) || helper_command_alias_fail(c, "bot_command_root", sep->arg[0], "root"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <enemy_target> %s", sep->arg[0]);
+		helper_send_usage_required_bots(c, BCEnum::SpT_Root);
+		return;
+	}
+
+	ActionableTarget::Types actionable_targets;
+	Bot* my_bot = nullptr;
+	std::list<Bot*> sbl;
+	MyBots::PopulateSBL_BySpawnedBots(c, sbl);
+
+	for (auto list_iter : *local_list) {
+		auto local_entry = list_iter;
+		if (helper_spell_check_fail(local_entry))
+			continue;
+
+		auto target_mob = actionable_targets.Select(c, local_entry->target_type, ENEMY);
+		if (!target_mob)
+			continue;
+
+		my_bot = ActionableBots::Select_ByMinLevelAndClass(c, local_entry->target_type, sbl, local_entry->spell_level, local_entry->caster_class, target_mob);
+		if (!my_bot)
+			continue;
 
 		uint32 dont_root_before = 0;
 		if (helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id, true, &dont_root_before))

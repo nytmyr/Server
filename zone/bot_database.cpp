@@ -382,7 +382,9 @@ bool BotDatabase::LoadBot(const uint32 bot_id, Bot*& loaded_bot)
 		" `follow_distance`," // 44
 		" `stop_melee_level`," // 45
 		" `hold_nukes`," // 46
-		" `nuke_delay`" // 47
+		" `nuke_delay`," // 47
+		" `auto_resist`," // 48
+		" `auto_ds`" // 49
 		" FROM `bot_data`"
 		" WHERE `bot_id` = '%u'"
 		" LIMIT 1",
@@ -457,6 +459,10 @@ bool BotDatabase::LoadBot(const uint32 bot_id, Bot*& loaded_bot)
 		loaded_bot->SetHoldNukes(hn);
 		uint32 nd = atoi(row[47]);
 		loaded_bot->SetNukeDelay(nd);
+		uint8 ar = atoi(row[48]);
+		loaded_bot->SetAutoResist(ar);
+		uint8 ad = atoi(row[49]);
+		loaded_bot->SetAutoDS(ad);
 	}
 
 	return true;
@@ -513,7 +519,9 @@ bool BotDatabase::SaveNewBot(Bot* bot_inst, uint32& bot_id)
 		" `follow_distance`,"
 		" `stop_melee_level`,"
 		" `hold_nukes`,"
-		" `nuke_delay`"
+		" `nuke_delay`,"
+		" `auto_resist`,"
+		" `auto_ds`"
 		")"
 		" VALUES ("
 		"'%u',"					/* owner_id */
@@ -560,7 +568,9 @@ bool BotDatabase::SaveNewBot(Bot* bot_inst, uint32& bot_id)
 		" '%i',"				/* follow_distance */
 		" '%u',"				/* stop_melee_level */
 		" '%u',"				/* hold_nukes*/
-		" '%u'"					/* nuke_delay */
+		" '%u',"					/* nuke_delay */
+		" '%u',"					/* auto resist */
+		" '%u'"					/* auto ds */
 		")",
 		bot_inst->GetBotOwnerCharacterID(),
 		bot_inst->GetBotSpellID(),
@@ -664,6 +674,8 @@ bool BotDatabase::SaveBot(Bot* bot_inst)
 		" `stop_melee_level` = '%u',"
 		" `hold_nukes` = '%u',"
 		" `nuke_delay` = '%u',"
+		" `auto_resist` = '%u',"
+		" `auto_ds` = '%u',"
 		" `title` = '%s',"
 		" `suffix` = '%s'"
 		" WHERE `bot_id` = '%u'",
@@ -710,6 +722,8 @@ bool BotDatabase::SaveBot(Bot* bot_inst)
 		bot_inst->GetStopMeleeLevel(),
 		bot_inst->GetHoldNukes(),
 		bot_inst->GetNukeDelay(),
+		bot_inst->GetAutoResist(),
+		bot_inst->GetAutoDS(),
 		bot_inst->GetTitle().c_str(),
 		bot_inst->GetSuffix().c_str(),
 		bot_inst->GetBotID()
@@ -2099,7 +2113,9 @@ bool BotDatabase::CreateCloneBot(const uint32 owner_id, const uint32 bot_id, con
 		" `follow_distance`,"
 		" `stop_melee_level`,"
 		" `hold_nukes`,"
-		" `nuke_delay`"
+		" `nuke_delay`,"
+		" `auto_resist`,"
+		" `auto_ds`"
 		")"
 		" SELECT"
 		" bd.`owner_id`,"
@@ -2149,7 +2165,9 @@ bool BotDatabase::CreateCloneBot(const uint32 owner_id, const uint32 bot_id, con
 		" bd.`follow_distance`,"
 		" bd.`stop_melee_level`,"
 		" bd.`hold_nukes`,"
-		" bd.`nuke_delay`"
+		" bd.`nuke_delay`,"
+		" bd.`auto_resist`,"
+		" bd.`auto_ds`"
 		" FROM `bot_data` bd"
 		" WHERE"
 		" bd.`owner_id` = '%u'"
@@ -2282,6 +2300,48 @@ bool BotDatabase::SaveNukeDelay(const uint32 owner_id, const uint32 bot_id, cons
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
 		nd_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveAutoResist(const uint32 owner_id, const uint32 bot_id, const uint8 ar_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `auto_resist` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		ar_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveAutoDS(const uint32 owner_id, const uint32 bot_id, const uint8 ad_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `auto_ds` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		ad_value,
 		owner_id,
 		bot_id
 	);
@@ -3313,6 +3373,8 @@ const char* BotDatabase::fail::CreateCloneBotInventory() { return "Failed to cre
 const char* BotDatabase::fail::SaveStopMeleeLevel() { return "Failed to save stop melee level"; }
 const char* BotDatabase::fail::SaveHoldNukes() { return "Failed to save hold nukes status"; }
 const char* BotDatabase::fail::SaveNukeDelay() { return "Failed to save nuke delay timer"; }
+const char* BotDatabase::fail::SaveAutoResist() { return "Failed to save auto resists"; }
+const char* BotDatabase::fail::SaveAutoDS() { return "Failed to save auto damage shields"; }
 
 /* fail::Bot heal rotation functions   */
 const char* BotDatabase::fail::LoadHealRotationIDByBotID() { return "Failed to load heal rotation ID by bot ID"; }

@@ -1844,7 +1844,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 			botSpell = GetFirstBotSpellBySpellType(this, iSpellTypes);
 
-			if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, RootResistLimit)))
+			if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, RootResistLimit)) && GetSpellResistType(botSpell.SpellId) != RESIST_NONE)
 				return botSpell.SpellId = 0;
 
 			if (botSpell.SpellId == 0)
@@ -1951,6 +1951,22 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					//If we're at specified mana % or below, don't rune as enchanter
 					if (GetManaRatio() <= manaRatioToCast)
 						break;
+				}
+
+				if ((IsEffectInSpell(selectedBotSpell.SpellId, SE_ResistMagic) ||
+					IsEffectInSpell(selectedBotSpell.SpellId, SE_ResistFire) ||
+					IsEffectInSpell(selectedBotSpell.SpellId, SE_ResistCold) ||
+					IsEffectInSpell(selectedBotSpell.SpellId, SE_ResistPoison) ||
+					IsEffectInSpell(selectedBotSpell.SpellId, SE_ResistDisease) ||
+					IsEffectInSpell(selectedBotSpell.SpellId, SE_ResistCorruption) ||
+					IsEffectInSpell(selectedBotSpell.SpellId, SE_ResistAll))
+					&& !GetAutoResist()) {
+					continue;
+				}
+
+				if (IsEffectInSpell(selectedBotSpell.SpellId, SE_DamageShield)
+					&& !GetAutoDS()) {
+					continue;
 				}
 
 				if (CheckSpellRecastTimers(this, itr->SpellIndex))
@@ -2063,7 +2079,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					if (botSpell.SpellId == 0)
 						botSpell = GetBestBotSpellForNukeByTargetType(this, ST_Target);
 
-					if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, NukeResistLimit)))
+					if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, NukeResistLimit)) && GetSpellResistType(botSpell.SpellId) != RESIST_NONE)
 						return botSpell.SpellId = 0;
 
 					if (botSpell.SpellId == 0)
@@ -2100,7 +2116,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 			botSpell = GetFirstBotSpellBySpellType(this, iSpellTypes);
 
-			if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, DispelResistLimit)))
+			if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, DispelResistLimit)) && GetSpellResistType(botSpell.SpellId) != RESIST_NONE)
 				return botSpell.SpellId = 0;
 
 			if (botSpell.SpellId == 0)
@@ -2278,7 +2294,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 			botSpell = GetFirstBotSpellBySpellType(this, iSpellTypes);
 
-			if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, LifetapResistLimit)))
+			if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, LifetapResistLimit)) && GetSpellResistType(botSpell.SpellId) != RESIST_NONE)
 				return botSpell.SpellId = 0;
 
 			if (botSpell.SpellId == 0)
@@ -2302,7 +2318,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 			botSpell = GetFirstBotSpellBySpellType(this, iSpellTypes);
 
-			if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, SnareResistLimit)))
+			if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, SnareResistLimit)) && GetSpellResistType(botSpell.SpellId) != RESIST_NONE)
 				return botSpell.SpellId = 0;
 
 			if (botSpell.SpellId == 0)
@@ -2349,6 +2365,9 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 						uint32 TempDontDotMeBefore = tar->DontDotMeBefore();
 
+						if (!DoResistCheck(selectedBotSpell.SpellId, tar, RuleI(Bots, DoTResistLimit)) && GetSpellResistType(selectedBotSpell.SpellId) != RESIST_NONE)
+							return selectedBotSpell.SpellId = 0;
+
 						castedSpell = AIDoSpellCast(selectedBotSpell.SpellIndex, tar, selectedBotSpell.ManaCost, &TempDontDotMeBefore);
 
 						if (TempDontDotMeBefore != tar->DontDotMeBefore())
@@ -2381,8 +2400,8 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 						uint32 TempDontDotMeBefore = tar->DontDotMeBefore();
 
-						if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, DoTResistLimit)))
-							return botSpell.SpellId = 0;
+						if (!DoResistCheck(selectedBotSpell.SpellId, tar, RuleI(Bots, DoTResistLimit)) && GetSpellResistType(selectedBotSpell.SpellId) != RESIST_NONE)
+							return selectedBotSpell.SpellId = 0;
 
 						castedSpell = AIDoSpellCast(selectedBotSpell.SpellIndex, tar, selectedBotSpell.ManaCost, &TempDontDotMeBefore);
 
@@ -2425,8 +2444,8 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					if (tar->CanBuffStack(iter.SpellId, botLevel, true) < 0)
 						continue;
 
-					if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, SlowResistLimit)))
-						return botSpell.SpellId = 0;
+					if (!DoResistCheck(iter.SpellId, tar, RuleI(Bots, SlowResistLimit)) && GetSpellResistType(iter.SpellId) != RESIST_NONE)
+						return iter.SpellId = 0;
 
 					castedSpell = AIDoSpellCast(iter.SpellIndex, tar, iter.ManaCost);
 					if (castedSpell)
@@ -2438,7 +2457,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 			case ENCHANTER: {
 				botSpell = GetBestBotSpellForMagicBasedSlow(this);
 
-				if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, SlowResistLimit)))
+				if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, SlowResistLimit)) && GetSpellResistType(botSpell.SpellId) != RESIST_NONE)
 					return botSpell.SpellId = 0;
 
 				break;
@@ -2449,7 +2468,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				if (botSpell.SpellId == 0 || ((tar->GetMR() - 50) < (tar->GetDR() + spells[botSpell.SpellId].resist_difficulty)))
 					botSpell = GetBestBotSpellForMagicBasedSlow(this);
 
-				if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, SlowResistLimit)))
+				if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, SlowResistLimit)) && GetSpellResistType(botSpell.SpellId) != RESIST_NONE)
 					return botSpell.SpellId = 0;
 
 				break;
@@ -2485,7 +2504,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 			if (botSpell.SpellId == 0)
 				botSpell = GetDebuffBotSpell(this, tar);
 
-			if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, DebuffResistLimit)))
+			if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, DebuffResistLimit)) && GetSpellResistType(botSpell.SpellId) != RESIST_NONE)
 				return botSpell.SpellId = 0;
 
 			if (botSpell.SpellId == 0)
