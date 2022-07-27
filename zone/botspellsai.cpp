@@ -864,8 +864,8 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 							uint32 TempDontDotMeBefore = tar->DontDotMeBefore();
 
-							if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, DoTResistLimit)))
-								return botSpell.SpellId = 0;
+							if (!DoResistCheck(selectedBotSpell.SpellId, tar, RuleI(Bots, DoTResistLimit)))
+								return selectedBotSpell.SpellId = 0;
 
 							castedSpell = AIDoSpellCast(selectedBotSpell.SpellIndex, tar, selectedBotSpell.ManaCost, &TempDontDotMeBefore);
 
@@ -908,8 +908,8 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 							if (tar->CanBuffStack(iter.SpellId, botLevel, true) < 0)
 								continue;
 
-							if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, SlowResistLimit)))
-								return botSpell.SpellId = 0;
+							if (!DoResistCheck(iter.SpellId, tar, RuleI(Bots, SlowResistLimit)))
+								return iter.SpellId = 0;
 
 							castedSpell = AIDoSpellCast(iter.SpellIndex, tar, iter.ManaCost);
 							if (castedSpell)
