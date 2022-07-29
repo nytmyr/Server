@@ -545,6 +545,14 @@ bool Client::Process() {
 		OnDisconnect(true);
 		std::cout << "Client disconnected (cs=d): " << GetName() << std::endl;
 		database.SetMQDetectionFlag(AccountName(), GetName(), "/MQInstantCamp: Possible instant camp disconnect.", zone->GetShortName());
+		std::string export_string = fmt::format(
+			"{} {} {} {}",
+			GetX(),
+			GetY(),
+			GetZ(),
+			28
+		);
+		parse->EventPlayer(EVENT_WARP, this, export_string, 0);
 		return false;
 	}
 
@@ -1146,6 +1154,14 @@ void Client::OPMemorizeSpell(const EQApplicationPacket* app)
 			else
 			{
 				database.SetMQDetectionFlag(AccountName(), GetName(), "OP_MemorizeSpell but we don't have this spell scribed...", zone->GetShortName());
+				std::string export_string = fmt::format(
+					"{} {} {} {}",
+					GetX(),
+					GetY(),
+					GetZ(),
+					29
+				);
+				parse->EventPlayer(EVENT_WARP, this, export_string, 0);
 			}
 			break;
 		}
@@ -1288,6 +1304,14 @@ void Client::OPMoveCoin(const EQApplicationPacket* app)
 								 "{} is non-existant or too far away ({} units).",
 								 banker ? banker->GetName() : "UNKNOWN NPC", distance);
 				database.SetMQDetectionFlag(AccountName(), GetName(), hacked_string, zone->GetShortName());
+				std::string export_string = fmt::format(
+					"{} {} {} {}",
+					GetX(),
+					GetY(),
+					GetZ(),
+					30
+				);
+				parse->EventPlayer(EVENT_WARP, this, export_string, 0);
 				return;
 			}
 
@@ -1320,6 +1344,14 @@ void Client::OPMoveCoin(const EQApplicationPacket* app)
 						"non-existant or too far away ({} units).",
 						banker ? banker->GetName() : "UNKNOWN NPC", distance);
 				database.SetMQDetectionFlag(AccountName(), GetName(), hacked_string, zone->GetShortName());
+				std::string export_string = fmt::format(
+					"{} {} {} {}",
+					GetX(),
+					GetY(),
+					GetZ(),
+					31
+				);
+				parse->EventPlayer(EVENT_WARP, this, export_string, 0);
 				return;
 			}
 			if(mc->cointype1 == COINTYPE_PP)	// there's only platinum here
@@ -1375,6 +1407,14 @@ void Client::OPMoveCoin(const EQApplicationPacket* app)
 								 "{} is non-existant or too far away ({} units).",
 								 banker ? banker->GetName() : "UNKNOWN NPC", distance);
 				database.SetMQDetectionFlag(AccountName(), GetName(), hacked_string, zone->GetShortName());
+				std::string export_string = fmt::format(
+					"{} {} {} {}",
+					GetX(),
+					GetY(),
+					GetZ(),
+					32
+				);
+				parse->EventPlayer(EVENT_WARP, this, export_string, 0);
 				return;
 			}
 			switch(mc->cointype2)
@@ -1419,6 +1459,14 @@ void Client::OPMoveCoin(const EQApplicationPacket* app)
 						"non-existant or too far away ({} units).",
 						banker ? banker->GetName() : "UNKNOWN NPC", distance);
 				database.SetMQDetectionFlag(AccountName(), GetName(), hacked_string, zone->GetShortName());
+				std::string export_string = fmt::format(
+					"{} {} {} {}",
+					GetX(),
+					GetY(),
+					GetZ(),
+					33
+				);
+				parse->EventPlayer(EVENT_WARP, this, export_string, 0);
 				return;
 			}
 			if(mc->cointype2 == COINTYPE_PP)	// there's only platinum here

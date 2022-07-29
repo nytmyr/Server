@@ -88,7 +88,17 @@ typedef enum {
 	EVENT_USE_SKILL,
 	EVENT_COMBINE_VALIDATE,
 	EVENT_BOT_COMMAND,
-	EVENT_WARP, //1 large warp | 2 absolute | 3 shadowstep  (suspicion) | 4 knockback (suspicion) | 5 light knockback (suspicion) | 6 zone | 7 zoneunknown | 8 gate | 9 ghost | 10 fastmem | 11 unhandled (possible linux?) 
+	EVENT_WARP, //1 large warp | 2 absolute | 3 shadowstep  (suspicion) | 4 knockback (suspicion) | 5 light knockback (suspicion) | 6 zone | 7 zoneunknown | 8 gate | 9 ghost | 10 fastmem
+				//11 unhandled (possible linux?) | 12 OP_BankerChange/Non-Banker | 13 OP_CastSpell with item, tried to cast a different spell | 14 OP_CastSpell with item, did not meet req level
+				//15 OP_Control Boat was sent | 16 OP_Disarm | 17 OP_Illusion sent by non Game Master. | 18 Player issued a move item while casting | 19 OP_PickPocket was sent again too quickly
+				//20 OP_PickPocket was sent from outside combat range | 21 Vendor Cheat: attempted to buy  | 22 Player sent OP_SpawnAppearance with AT_Invis:
+				//23 Player sent OP_SpawnAppearance with AT_Sneak: | 24 Player sent OP_SpawnAppearance with AT_Size:  | 25 attempting to target something untargetable
+				//26 attempting to target something beyond the clip plane of | 27 attempting to target something beyond the clip plane of | 28 /MQInstantCamp: Possible instant camp disconnect.
+				//29 OP_MemorizeSpell but we don't have this spell scribed... | 30 Player tried to make use of a banker(coin move) but {} is non-existant or too far away ({} units).
+				//31 Player tried to make use of a banker(shared coin move) but {} is non-existant or too far away ({} units).
+				//32 Player tried to make use of a banker(coin move) but is non-existant or too far away ({} units)
+				//33 Player tried to make use of a banker(shared coin move) but {} is non-existant or too far away ({} units).
+				//34 Player tried to make use of a banker(items) but {} is non-existant or too far away ({} units).
 	EVENT_TEST_BUFF,
 	EVENT_COMBINE,
 	EVENT_CONSIDER,

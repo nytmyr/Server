@@ -1891,6 +1891,14 @@ bool Client::SwapItem(MoveItem_Struct* move_in) {
 							 "non-existant or too far away ({} units).",
 							 banker ? banker->GetName() : "UNKNOWN NPC", distance);
 			database.SetMQDetectionFlag(AccountName(), GetName(), hacked_string, zone->GetShortName());
+			std::string export_string = fmt::format(
+				"{} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				34
+			);
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
 			Kick("Inventory desync");	// Kicking player to avoid item loss do to client and server inventories not being sync'd
 			return false;
 		}

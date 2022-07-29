@@ -3357,6 +3357,14 @@ void Client::Handle_OP_BankerChange(const EQApplicationPacket *app)
 		    "Player tried to make use of a banker(money) but {} is non-existant or too far away ({} units).",
 		    banker ? banker->GetName() : "UNKNOWN NPC", distance);
 		database.SetMQDetectionFlag(AccountName(), GetName(), hacked_string, zone->GetShortName());
+		std::string export_string = fmt::format(
+			"{} {} {} {}",
+			GetX(),
+			GetY(),
+			GetZ(),
+			12
+		);
+		parse->EventPlayer(EVENT_WARP, this, export_string, 0);
 		return;
 	}
 
@@ -4088,6 +4096,14 @@ void Client::Handle_OP_CastSpell(const EQApplicationPacket *app)
 				{
 					database.SetMQDetectionFlag(account_name, name, "OP_CastSpell with item, tried to cast a different spell.", zone->GetShortName());
 					InterruptSpell(castspell->spell_id);	//CHEATER!!
+					std::string export_string = fmt::format(
+						"{} {} {} {}",
+						GetX(),
+						GetY(),
+						GetZ(),
+						13
+					);
+					parse->EventPlayer(EVENT_WARP, this, export_string, 0);
 					return;
 				}
 
@@ -4112,6 +4128,14 @@ void Client::Handle_OP_CastSpell(const EQApplicationPacket *app)
 							database.SetMQDetectionFlag(account_name, name, "OP_CastSpell with item, did not meet req level.", zone->GetShortName());
 							Message(0, "Error: level not high enough.", castspell->inventoryslot);
 							InterruptSpell(castspell->spell_id);
+							std::string export_string = fmt::format(
+								"{} {} {} {}",
+								GetX(),
+								GetY(),
+								GetZ(),
+								14
+							);
+							parse->EventPlayer(EVENT_WARP, this, export_string, 0);
 						}
 					}
 					else
@@ -5016,6 +5040,14 @@ void Client::Handle_OP_ControlBoat(const EQApplicationPacket *app)
 	{
 		auto hacked_string = fmt::format("OP_Control Boat was sent against {} which is of race {}", boat->GetName(), boat->GetRace());
 		database.SetMQDetectionFlag(AccountName(), GetName(), hacked_string, zone->GetShortName());
+		std::string export_string = fmt::format(
+			"{} {} {} {}",
+			GetX(),
+			GetY(),
+			GetZ(),
+			15
+		);
+		parse->EventPlayer(EVENT_WARP, this, export_string, 0);
 		return;
 	}
 
@@ -5337,6 +5369,14 @@ void Client::Handle_OP_Disarm(const EQApplicationPacket *app) {
 		// Client sent a disarm request with an originator ID not matching their own ID.
 		auto hack_str = fmt::format("Player {} ({}) sent OP_Disarm with source ID of: {}", GetCleanName(), GetID(), pmob->GetID());
 		database.SetMQDetectionFlag(account_name, name, hack_str, zone->GetShortName());
+		std::string export_string = fmt::format(
+			"{} {} {} {}",
+			GetX(),
+			GetY(),
+			GetZ(),
+			16
+		);
+		parse->EventPlayer(EVENT_WARP, this, export_string, 0);
 		return;
 	}
 	// No disarm on corpses
@@ -8384,6 +8424,14 @@ void Client::Handle_OP_Illusion(const EQApplicationPacket *app)
 	if (!GetGM())
 	{
 		database.SetMQDetectionFlag(AccountName(), GetName(), "OP_Illusion sent by non Game Master.", zone->GetShortName());
+		std::string export_string = fmt::format(
+			"{} {} {} {}",
+			GetX(),
+			GetY(),
+			GetZ(),
+			17
+		);
+		parse->EventPlayer(EVENT_WARP, this, export_string, 0);
 		return;
 	}
 
@@ -10139,6 +10187,14 @@ void Client::Handle_OP_MoveItem(const EQApplicationPacket *app)
 				casting_spell_id);
 			database.SetMQDetectionFlag(AccountName(), GetName(), detect, zone->GetShortName());
 			Kick("Inventory desync"); // Kick client to prevent client and server from getting out-of-sync inventory slots
+			std::string export_string = fmt::format(
+				"{} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				18
+			);
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
 			return;
 		}
 	}
@@ -11121,6 +11177,14 @@ void Client::Handle_OP_PickPocket(const EQApplicationPacket *app)
 	{
 		Message(Chat::Red, "Ability recovery time not yet met.");
 		database.SetMQDetectionFlag(AccountName(), GetName(), "OP_PickPocket was sent again too quickly.", zone->GetShortName());
+		std::string export_string = fmt::format(
+			"{} {} {} {}",
+			GetX(),
+			GetY(),
+			GetZ(),
+			19
+		);
+		parse->EventPlayer(EVENT_WARP, this, export_string, 0);
 		return;
 	}
 	PickPocket_Struct* pick_in = (PickPocket_Struct*)app->pBuffer;
@@ -11143,6 +11207,14 @@ void Client::Handle_OP_PickPocket(const EQApplicationPacket *app)
 	else if (Distance(GetPosition(), victim->GetPosition()) > 20) {
 		Message(Chat::Red, "Attempt to pickpocket out of range detected.");
 		database.SetMQDetectionFlag(AccountName(), GetName(), "OP_PickPocket was sent from outside combat range.", zone->GetShortName());
+		std::string export_string = fmt::format(
+			"{} {} {} {}",
+			GetX(),
+			GetY(),
+			GetZ(),
+			20
+		);
+		parse->EventPlayer(EVENT_WARP, this, export_string, 0);
 	}
 	else if (victim->IsNPC()) {
 		auto body = victim->GetBodyType();
@@ -13336,6 +13408,14 @@ void Client::Handle_OP_ShopPlayerBuy(const EQApplicationPacket *app)
 			mpo->quantity, item->ID, item->Name,
 			mpo->price, m_pp.platinum, m_pp.gold, m_pp.silver, m_pp.copper);
 		database.SetMQDetectionFlag(AccountName(), GetName(), Strings::Escape(hacker_str), zone->GetShortName());
+		std::string export_string = fmt::format(
+			"{} {} {} {}",
+			GetX(),
+			GetY(),
+			GetZ(),
+			21
+		);
+		parse->EventPlayer(EVENT_WARP, this, export_string, 0);
 		safe_delete(outapp);
 		safe_delete(inst);
 		return;
@@ -13838,6 +13918,14 @@ void Client::Handle_OP_SpawnAppearance(const EQApplicationPacket *app)
 				{
 					auto hack_str = fmt::format("Player sent OP_SpawnAppearance with AT_Invis: {}", sa->parameter);
 					database.SetMQDetectionFlag(account_name, name, hack_str, zone->GetShortName());
+					std::string export_string = fmt::format(
+						"{} {} {} {}",
+						GetX(),
+						GetY(),
+						GetZ(),
+						22
+					);
+					parse->EventPlayer(EVENT_WARP, this, export_string, 0);
 				}
 			}
 			return;
@@ -13938,6 +14026,14 @@ void Client::Handle_OP_SpawnAppearance(const EQApplicationPacket *app)
 			{
 				auto hack_str = fmt::format("Player sent OP_SpawnAppearance with AT_Sneak: {}", sa->parameter);
 				database.SetMQDetectionFlag(account_name, name, hack_str, zone->GetShortName());
+				std::string export_string = fmt::format(
+					"{} {} {} {}",
+					GetX(),
+					GetY(),
+					GetZ(),
+					23
+				);
+				parse->EventPlayer(EVENT_WARP, this, export_string, 0);
 			}
 			return;
 		}
@@ -13948,6 +14044,14 @@ void Client::Handle_OP_SpawnAppearance(const EQApplicationPacket *app)
 	{
 		auto hack_str = fmt::format("Player sent OP_SpawnAppearance with AT_Size: {}", sa->parameter);
 		database.SetMQDetectionFlag(account_name, name, hack_str, zone->GetShortName());
+		std::string export_string = fmt::format(
+			"{} {} {} {}",
+			GetX(),
+			GetY(),
+			GetZ(),
+			24
+		);
+		parse->EventPlayer(EVENT_WARP, this, export_string, 0);
 	}
 	else if (sa->type == AT_Light)	// client emitting light (lightstone, shiny shield)
 	{
@@ -14295,6 +14399,14 @@ void Client::Handle_OP_TargetCommand(const EQApplicationPacket *app)
 				auto hacker_str = fmt::format("{} attempting to target something untargetable, {} bodytype: {}",
 					GetName(), GetTarget()->GetName(), (int)GetTarget()->GetBodyType());
 				database.SetMQDetectionFlag(AccountName(), GetName(), Strings::Escape(hacker_str), zone->GetShortName());
+				std::string export_string = fmt::format(
+					"{} {} {} {}",
+					GetX(),
+					GetY(),
+					GetZ(),
+					25
+				);
+				parse->EventPlayer(EVENT_WARP, this, export_string, 0);
 				SetTarget((Mob*)nullptr);
 				return;
 			}
@@ -14332,6 +14444,14 @@ void Client::Handle_OP_TargetCommand(const EQApplicationPacket *app)
 						    GetY(), GetZ(), GetTarget()->GetName(), GetTarget()->GetX(),
 						    GetTarget()->GetY(), GetTarget()->GetZ());
 						database.SetMQDetectionFlag(AccountName(), GetName(), Strings::Escape(hacker_str), zone->GetShortName());
+						std::string export_string = fmt::format(
+							"{} {} {} {}",
+							GetX(),
+							GetY(),
+							GetZ(),
+							26
+						);
+						parse->EventPlayer(EVENT_WARP, this, export_string, 0);
 						SetTarget(nullptr);
 						return;
 					}
@@ -14346,6 +14466,14 @@ void Client::Handle_OP_TargetCommand(const EQApplicationPacket *app)
 						GetX(), GetY(), GetZ(), GetTarget()->GetName(), GetTarget()->GetX(),
 						GetTarget()->GetY(), GetTarget()->GetZ());
 				database.SetMQDetectionFlag(AccountName(), GetName(), Strings::Escape(hacker_str), zone->GetShortName());
+				std::string export_string = fmt::format(
+					"{} {} {} {}",
+					GetX(),
+					GetY(),
+					GetZ(),
+					27
+				);
+				parse->EventPlayer(EVENT_WARP, this, export_string, 0);
 				SetTarget(nullptr);
 				return;
 			}
