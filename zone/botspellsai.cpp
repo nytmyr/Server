@@ -948,7 +948,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					case SHAMAN:
 					case BEASTLORD: {
 						botSpell = GetBestBotSpellForDiseaseBasedSlow(this);
-						if(botSpell.SpellId == 0 || ((tar->GetMR() - 50) < (tar->GetDR() + spells[botSpell.SpellId].resist_difficulty)))
+						if(botSpell.SpellId == 0 || tar->GetMR() <= RuleI(Bots, SlowResistLimit))
 							botSpell = GetBestBotSpellForMagicBasedSlow(this);
 
 						if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, SlowResistLimit)) && GetSpellResistType(botSpell.SpellId) != RESIST_NONE)
@@ -2337,7 +2337,7 @@ BotSpell Bot::GetBestBotWizardNukeSpellByTargetResists(Bot* botCaster, Mob* targ
 
 	if(botCaster && target) {
 		const int lureResisValue = -100;
-		const int maxTargetResistValue = 300;
+		const int maxTargetResistValue = RuleI(Bots, NukeResistLimit);
 		bool selectLureNuke = false;
 
 		if((target->GetMR() > maxTargetResistValue) && (target->GetCR() > maxTargetResistValue) && (target->GetFR() > maxTargetResistValue))
@@ -2357,9 +2357,14 @@ BotSpell Bot::GetBestBotWizardNukeSpellByTargetResists(Bot* botCaster, Mob* targ
 
 			if(CheckSpellRecastTimers(botCaster, botSpellListItr->SpellIndex)) {
 				if(selectLureNuke && (spells[botSpellListItr->SpellId].resist_difficulty < lureResisValue)) {
-					spellSelected = true;
+					if (DoResistCheck(botSpellListItr->SpellId, target, RuleI(Bots, NukeResistLimit)) && GetSpellResistType(botSpellListItr->SpellId) == RESIST_MAGIC)
+						spellSelected = true;
+					if (DoResistCheck(botSpellListItr->SpellId, target, RuleI(Bots, NukeResistLimit)) && GetSpellResistType(botSpellListItr->SpellId) == RESIST_FIRE)
+						spellSelected = true;
+					if (DoResistCheck(botSpellListItr->SpellId, target, RuleI(Bots, NukeResistLimit)) && GetSpellResistType(botSpellListItr->SpellId) == RESIST_COLD)
+						spellSelected = true;
 				}
-				else if(IsPureNukeSpell(botSpellListItr->SpellId)) {
+				else if(!selectLureNuke && IsPureNukeSpell(botSpellListItr->SpellId)) {
 					if(((target->GetMR() < target->GetCR()) || (target->GetMR() < target->GetFR())) && (GetSpellResistType(botSpellListItr->SpellId) == RESIST_MAGIC)
 						&& (spells[botSpellListItr->SpellId].resist_difficulty > lureResisValue))
 					{
