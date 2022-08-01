@@ -2154,8 +2154,13 @@ void Mob::InstillDoubt(Mob *who) {
 int Mob::TryHeadShot(Mob *defender, EQ::skills::SkillType skillInUse)
 {
 	// Only works on YOUR target.
-	if (defender && defender->GetBodyType() == BT_Humanoid && !defender->IsClient() &&
-	    skillInUse == EQ::skills::SkillArchery && GetTarget() == defender) {
+	if (
+		defender &&
+		!defender->IsClient() &&
+		skillInUse == EQ::skills::SkillArchery &&
+		GetTarget() == defender &&
+		(defender->GetBodyType() == BT_Humanoid || !RuleB(Combat, HeadshotOnlyHumanoids))
+	) {
 		uint32 HeadShot_Dmg = aabonuses.HeadShot[SBIndex::FINISHING_EFFECT_DMG] + spellbonuses.HeadShot[SBIndex::FINISHING_EFFECT_DMG] + itembonuses.HeadShot[SBIndex::FINISHING_EFFECT_DMG];
 		uint8 HeadShot_Level = 0; // Get Highest Headshot Level
 		HeadShot_Level = std::max({aabonuses.HSLevel[SBIndex::FINISHING_EFFECT_LEVEL_MAX], spellbonuses.HSLevel[SBIndex::FINISHING_EFFECT_LEVEL_MAX], itembonuses.HSLevel[SBIndex::FINISHING_EFFECT_LEVEL_MAX]});
@@ -2184,8 +2189,13 @@ int Mob::TryHeadShot(Mob *defender, EQ::skills::SkillType skillInUse)
 
 int Mob::TryAssassinate(Mob *defender, EQ::skills::SkillType skillInUse)
 {
-	if (defender && (defender->GetBodyType() == BT_Humanoid) && !defender->IsClient() && GetLevel() >= 60 &&
-	    (skillInUse == EQ::skills::SkillBackstab || skillInUse == EQ::skills::SkillThrowing)) {
+	if (
+		defender &&
+		!defender->IsClient() &&
+		GetLevel() >= 60 &&
+		(skillInUse == EQ::skills::SkillBackstab || skillInUse == EQ::skills::SkillThrowing) &&
+		(defender->GetBodyType() == BT_Humanoid || !RuleB(Combat, AssassinateOnlyHumanoids))
+	) {
 		int chance = GetDEX();
 		if (skillInUse == EQ::skills::SkillBackstab) {
 			chance = 100 * chance / (chance + 3500);

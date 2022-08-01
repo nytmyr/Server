@@ -229,8 +229,6 @@ public:
 	Client(EQStreamInterface * ieqs);
 	~Client();
 
-	bool is_client_moving;
-
 	void ReconnectUCS();
 
 	void SetDisplayMobInfoWindow(bool display_mob_info_window);
@@ -410,7 +408,7 @@ public:
 	inline void SetBaseRace(uint32 i) { m_pp.race=i; }
 	inline void SetBaseGender(uint32 i) { m_pp.gender=i; }
 	inline void SetDeity(uint32 i) {m_pp.deity=i;deity=i;}
-	
+
 	void SetTrackingID(uint32 entity_id);
 
 	inline uint8 GetLevel2() const { return m_pp.level2; }
@@ -1634,6 +1632,7 @@ public:
 
 	void QuestReward(Mob* target, uint32 copper = 0, uint32 silver = 0, uint32 gold = 0, uint32 platinum = 0, uint32 itemid = 0, uint32 exp = 0, bool faction = false);
 	void QuestReward(Mob* target, const QuestReward_Struct &reward, bool faction); // TODO: Fix faction processing
+	void CashReward(uint32 copper, uint32 silver, uint32 gold, uint32 platinum);
 
 	void ResetHPUpdateTimer() { hpupdate_timer.Start(); }
 

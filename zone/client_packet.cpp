@@ -473,7 +473,7 @@ int Client::HandlePacket(const EQApplicationPacket *app)
 	case CLIENT_CONNECTING: {
 		if (ConnectingOpcodes.count(opcode) != 1) {
 			//Hate const cast but everything in lua needs to be non-const even if i make it non-mutable
-			std::vector<EQ::Any> args;
+			std::vector<std::any> args;
 			args.push_back(const_cast<EQApplicationPacket*>(app));
 			parse->EventPlayer(EVENT_UNHANDLED_OPCODE, this, "", 1, &args);
 
@@ -497,7 +497,7 @@ int Client::HandlePacket(const EQApplicationPacket *app)
 		ClientPacketProc p;
 		p = ConnectedOpcodes[opcode];
 		if (p == nullptr) {
-			std::vector<EQ::Any> args;
+			std::vector<std::any> args;
 			args.push_back(const_cast<EQApplicationPacket*>(app));
 			parse->EventPlayer(EVENT_UNHANDLED_OPCODE, this, "", 0, &args);
 
@@ -3063,7 +3063,7 @@ void Client::Handle_OP_AugmentItem(const EQApplicationPacket *app)
 						if (old_aug) { // An old augment was removed in order to be replaced with the new one (augment_action 2)
 							CalcBonuses();
 
-							std::vector<EQ::Any> args;
+							std::vector<std::any> args;
 							args.push_back(old_aug);
 							parse->EventItem(EVENT_UNAUGMENT_ITEM, this, tobe_auged, nullptr, "", in_augment->augment_index, &args);
 
@@ -3077,7 +3077,7 @@ void Client::Handle_OP_AugmentItem(const EQApplicationPacket *app)
 
 						aug = tobe_auged->GetAugment(in_augment->augment_index);
 						if (aug) {
-							std::vector<EQ::Any> args;
+							std::vector<std::any> args;
 							args.push_back(aug);
 							parse->EventItem(EVENT_AUGMENT_ITEM, this, tobe_auged, nullptr, "", in_augment->augment_index, &args);
 
@@ -3133,7 +3133,7 @@ void Client::Handle_OP_AugmentItem(const EQApplicationPacket *app)
 			case AugmentActions::Remove:
 				aug = tobe_auged->GetAugment(in_augment->augment_index);
 				if (aug) {
-					std::vector<EQ::Any> args;
+					std::vector<std::any> args;
 					args.push_back(aug);
 					parse->EventItem(EVENT_UNAUGMENT_ITEM, this, tobe_auged, nullptr, "", in_augment->augment_index, &args);
 					args.assign(1, tobe_auged);
@@ -3183,7 +3183,7 @@ void Client::Handle_OP_AugmentItem(const EQApplicationPacket *app)
 				// Augments can be destroyed with a right click -> Destroy at any time.
 				aug = tobe_auged->GetAugment(in_augment->augment_index);
 				if (aug) {
-					std::vector<EQ::Any> args;
+					std::vector<std::any> args;
 					args.push_back(aug);
 					parse->EventItem(EVENT_UNAUGMENT_ITEM, this, tobe_auged, nullptr, "", in_augment->augment_index, &args);
 					args.assign(1, tobe_auged);
@@ -4311,12 +4311,12 @@ void Client::Handle_OP_ClickDoor(const EQApplicationPacket *app)
 	}
 
 	std::string export_string = fmt::format("{}", cd->doorid);
-	std::vector<EQ::Any> args;
+	std::vector<std::any> args;
 	args.push_back(currentdoor);
-	parse->EventPlayer(EVENT_CLICK_DOOR, this, export_string, 0, &args);
-
-	currentdoor->HandleClick(this, 0);
-	return;
+	if (parse->EventPlayer(EVENT_CLICK_DOOR, this, export_string, 0, &args) == 0)
+	{
+		currentdoor->HandleClick(this, 0);
+	}
 }
 
 void Client::Handle_OP_ClickObject(const EQApplicationPacket *app)
@@ -4334,7 +4334,7 @@ void Client::Handle_OP_ClickObject(const EQApplicationPacket *app)
 
 		object->HandleClick(this, click_object);
 
-		std::vector<EQ::Any> args;
+		std::vector<std::any> args;
 		args.push_back(object);
 
 		std::string export_string = fmt::format("{}", click_object->drop_id);
@@ -4580,9 +4580,7 @@ void Client::Handle_OP_ClientUpdate(const EQApplicationPacket *app) {
 		rewind_timer.Start(30000, true);
 	}
 
-
-	is_client_moving = !(cy == m_Position.y && cx == m_Position.x);
-
+	SetMoving(!(cy == m_Position.y && cx == m_Position.x));
 
 	/**
 	 * Client aggro scanning
@@ -4593,11 +4591,11 @@ void Client::Handle_OP_ClientUpdate(const EQApplicationPacket *app) {
 	LogAggroDetail(
 		"ClientUpdate [{}] {}moving, scan timer [{}]",
 		GetCleanName(),
-		is_client_moving ? "" : "NOT ",
+		IsMoving() ? "" : "NOT ",
 		client_scan_npc_aggro_timer.GetRemainingTime()
 	);
 
-	if (is_client_moving) {
+	if (IsMoving()) {
 		if (client_scan_npc_aggro_timer.GetRemainingTime() > client_scan_npc_aggro_timer_moving) {
 			LogAggroDetail("Client [{}] Restarting with moving timer", GetCleanName());
 			client_scan_npc_aggro_timer.Disable();
@@ -4620,11 +4618,11 @@ void Client::Handle_OP_ClientUpdate(const EQApplicationPacket *app) {
 	LogAIScanCloseDetail(
 		"Client [{}] {}moving, scan timer [{}]",
 		GetCleanName(),
-		is_client_moving ? "" : "NOT ",
+		IsMoving() ? "" : "NOT ",
 		mob_close_scan_timer.GetRemainingTime()
 	);
 
-	if (is_client_moving) {
+	if (IsMoving()) {
 		if (mob_close_scan_timer.GetRemainingTime() > client_mob_close_scan_timer_moving) {
 			LogAIScanCloseDetail("Client [{}] Restarting with moving timer", GetCleanName());
 			mob_close_scan_timer.Disable();
@@ -4654,7 +4652,7 @@ void Client::Handle_OP_ClientUpdate(const EQApplicationPacket *app) {
 		client_zone_wide_full_position_update_timer.Check() || moved_far_enough_before_bulk_update
 	);
 
-	if (is_client_moving && is_ready_to_update) {
+	if (IsMoving() && is_ready_to_update) {
 		LogDebug("[[{}]] Client Zone Wide Position Update NPCs", GetCleanName());
 
 		auto &mob_movement_manager = MobMovementManager::Get();
@@ -4697,7 +4695,7 @@ void Client::Handle_OP_ClientUpdate(const EQApplicationPacket *app) {
 	}
 
 	/* Only feed real time updates when client is moving */
-	if (is_client_moving || new_heading != m_Position.w || new_animation != animation) {
+	if (IsMoving() || new_heading != m_Position.w || new_animation != animation) {
 
 		animation = ppu->animation;
 		m_Position.w = new_heading;
