@@ -808,10 +808,40 @@ void Bot::AI_Process_Raid()
 									}
 
 									m_evade_timer.Start(timer_duration);
+									BotGroupSay(this, "Attempting to evade %s", tar->GetCleanName());
 									if (zone->random.Int(0, 260) < (int)GetSkill(EQ::skills::SkillHide)) {
+										SendAppearancePacket(AT_Invis, Invisibility::Invisible);
 										RogueEvade(tar);
 									}
 
+									SendAppearancePacket(AT_Invis, Invisibility::Visible);
+									return;
+								}
+							}
+
+							if (GetClass() == MONK && GetLevel() >= 17) {
+
+								if (m_monk_evade_timer.Check(false)) { // Attempt to evade
+
+									int timer_duration = (FeignDeathReuseTime - GetSkillReuseTime(EQ::skills::SkillFeignDeath)) * 1000;
+									if (timer_duration < 0) {
+										timer_duration = 0;
+									}
+
+									m_monk_evade_timer.Start(timer_duration);
+									if (zone->random.Int(0, 260) < (int)GetSkill(EQ::skills::SkillFeignDeath)) {
+										BotGroupSay(this, "Attempting to evade %s", tar->GetCleanName());
+										if (zone->random.Int(0, 260) < (int)GetSkill(EQ::skills::SkillFeignDeath)) {
+											SetFeigned(false);
+											SendAppearancePacket(AT_Anim, ANIM_DEATH);
+											entity_list.MessageCloseString(this, false, 200, 10, STRING_FEIGNFAILED, GetName());
+										}
+										else {
+											SetFeigned(true);
+											SendAppearancePacket(AT_Anim, ANIM_DEATH);
+										}
+									}
+									SendAppearancePacket(AT_Anim, ANIM_STAND);
 									return;
 								}
 							}
@@ -868,22 +898,22 @@ void Bot::AI_Process_Raid()
 					//			}
 					//		}
 					//	}
-					//	else if (backstab_weapon && !behind_mob) { // Move the rogue to behind the mob
+						else if (backstab_weapon && !behind_mob) { // Move the rogue to behind the mob
 
-					//		if (PlotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z)) {
-					//		//if (PlotPositionOnArcBehindTarget(tar, Goal.x, Goal.y, Goal.z, melee_distance)) {
+							if (PlotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z)) {
+							//if (PlotPositionOnArcBehindTarget(tar, Goal.x, Goal.y, Goal.z, melee_distance)) {
 
-					//			float distance_squared = DistanceSquared(Goal, tar->GetPosition());
-					//			if (/*distance_squared >= melee_distance_min && */distance_squared <= melee_distance_max) {
+								float distance_squared = DistanceSquared(Goal, tar->GetPosition());
+								if (/*distance_squared >= melee_distance_min && */distance_squared <= melee_distance_max) {
 
-					//				Teleport(Goal);
-					//				//RunTo(Goal.x, Goal.y, Goal.z);
-					//				SetCombatJitterFlag();
+									//Teleport(Goal);
+									RunTo(Goal.x, Goal.y, Goal.z);
+									//SetCombatJitterFlag();
 
-					//				return;
-					//			}
-					//		}
-					//	}
+									return;
+								}
+							}
+						}
 					//	else if (m_combat_jitter_timer.Check()) {
 
 					//		if (!caster_distance && PlotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z)) {
