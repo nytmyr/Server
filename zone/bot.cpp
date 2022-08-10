@@ -6198,7 +6198,7 @@ int Bot::GetHandToHandDamage(void) {
 		// everyone uses this in the revamp!
 		int skill = GetSkill(EQ::skills::SkillHandtoHand);
 		int epic = 0;
-		if (CastToNPC()->GetEquippedItemFromTextureSlot(EQ::textures::armorHands) == 10652 && GetLevel() > 46)
+		if ((CastToNPC()->GetEquippedItemFromTextureSlot(EQ::textures::armorHands) == 10652 || CastToNPC()->GetEquippedItemFromTextureSlot(EQ::textures::armorHands) == 610652 || CastToNPC()->GetEquippedItemFromTextureSlot(EQ::textures::armorHands) == 810652) && GetLevel() > 46)
 			epic = 280;
 		if (epic > skill)
 			skill = epic;
@@ -6220,7 +6220,7 @@ int Bot::GetHandToHandDamage(void) {
 				9, 9, 9, 9, 9, 10, 10, 10, 10, 10,   // 31-40
 				10, 11, 11, 11, 11, 11, 11, 12, 12}; // 41-49
 	if (GetClass() == MONK) {
-		if (CastToNPC()->GetEquippedItemFromTextureSlot(EQ::textures::armorHands) == 10652 && GetLevel() > 50)
+		if ((CastToNPC()->GetEquippedItemFromTextureSlot(EQ::textures::armorHands) == 10652 || CastToNPC()->GetEquippedItemFromTextureSlot(EQ::textures::armorHands) == 610652 || CastToNPC()->GetEquippedItemFromTextureSlot(EQ::textures::armorHands) == 810652) && GetLevel() > 50)
 			return 9;
 		if (level > 62)
 			return 15;
