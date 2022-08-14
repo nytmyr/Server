@@ -2028,15 +2028,20 @@ bool Mob::DetermineSpellTargets(uint16 spell_id, Mob *&spell_target, Mob *&ae_ce
 		case ST_Group:
 		case ST_GroupNoPets:
 		{
-			if(IsClient() && CastToClient()->TGB() && IsTGBCompatibleSpell(spell_id) && (slot != CastingSlot::Item || RuleB(Spells, AllowItemTGB))) {
-				if( (!target) ||
-					(target->IsNPC() && !(target->GetOwner() && target->GetOwner()->IsClient())) ||
-					(target->IsCorpse()) )
+			if (spell_target && ((IsBot() && spell_target->IsRaidGrouped()) || (IsBot() && spell_target->HasOwner() && spell_target->GetOwner()->IsRaidGrouped()))) {
+			}
+			else {
+				if (IsClient() && CastToClient()->TGB() && IsTGBCompatibleSpell(spell_id) && (slot != CastingSlot::Item || RuleB(Spells, AllowItemTGB))) {
+					if ((!target) ||
+						(target->IsNPC() && !(target->GetOwner() && target->GetOwner()->IsClient())) ||
+						(target->IsCorpse()))
+						spell_target = this;
+					else
+						spell_target = target;
+				}
+				else {
 					spell_target = this;
-				else
-					spell_target = target;
-			} else {
-				spell_target = this;
+				}
 			}
 
 			if (spell_target && spell_target->IsPet() && spells[spell_id].target_type == ST_GroupNoPets){
@@ -2372,7 +2377,7 @@ bool Mob::SpellFinished(uint16 spell_id, Mob *spell_target, CastingSlot slot, ui
 
 	//range check our target, if we have one and it is not us
 	float range = spells[spell_id].range + GetRangeDistTargetSizeMod(spell_target);
-	if(IsClient() && CastToClient()->TGB() && IsTGBCompatibleSpell(spell_id) && IsGroupSpell(spell_id))
+	if((IsClient() && CastToClient()->TGB() && IsTGBCompatibleSpell(spell_id) && IsGroupSpell(spell_id)) || (IsRaidGrouped() && spell_target->IsRaidGrouped() && IsGroupSpell(spell_id)))
 		range = spells[spell_id].aoe_range;
 
 	range = GetActSpellRange(spell_id, range);

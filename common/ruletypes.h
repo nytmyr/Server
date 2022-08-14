@@ -643,6 +643,7 @@ RULE_INT(Bots, TierTwoBotSpawnLimitUnlockLevelRequirement, 10, "10 Default. 0 Di
 RULE_INT(Bots, TierThreeBotSpawnLimitUnlockLevelRequirement, 20, "20 Default. 0 Disabled. Level requirement to unlock the Tier 3 bot spawn limit.")
 RULE_INT(Bots, TierFourBotSpawnLimitUnlockLevelRequirement, 30, "30 Default. 0 Disabled. Level requirement to unlock the Tier 4 bot spawn limit.")
 RULE_INT(Bots, TierFiveBotSpawnLimitUnlockLevelRequirement, 40, "40 Default. 0 Disabled. Level requirement to unlock the Tier 5 bot spawn limit.")
+RULE_BOOL(Bots, CastOnAllRaidMembers, false, "False Default. If True, bots will cast on all raid members rather than just their group members.")
 
 RULE_CATEGORY_END()
 #endif

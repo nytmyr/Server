@@ -109,7 +109,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 			break;
 		}
 		case SpellType_Heal: {
-			if (tar->DontHealMeBefore() < Timer::GetCurrentTime()) {
+			if (tar->DontHealMeBefore() < Timer::GetCurrentTime() || (uint8)tar->GetHPRatio() < RuleI(Bots, FastHealPercentLimit)) {
 				uint8 hpr = (uint8)tar->GetHPRatio();
 				bool hasAggro = false;
 				bool isPrimaryHealer = false;
@@ -271,21 +271,13 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost, &TempDontHealMeBeforeTime);
 
 					if(castedSpell) {
-						/*if(TempDontHealMeBeforeTime != tar->DontHealMeBefore())
+						if(TempDontHealMeBeforeTime != tar->DontHealMeBefore())
 							tar->SetDontHealMeBefore(TempDontHealMeBeforeTime);
 
 						// For non-HoT heals, do a 4 second delay
 						// TODO: Replace this code with logic that calculates the delay based on number of clerics in rotation
 						//			and ignores heals for anyone except the main tank
-						if(!IsHealOverTimeSpell(botSpell.SpellId)) {
-							if(IsCompleteHealSpell(botSpell.SpellId)) {
-								// Complete Heal 4 second rotation
-								tar->SetDontHealMeBefore(Timer::GetCurrentTime() + 4000);
-							}
-							else {
-								tar->SetDontHealMeBefore(Timer::GetCurrentTime() + 1000);
-							}
-						}*/
+
 						if(botClass != BARD) {
 							if(IsGroupSpell(botSpell.SpellId)){
 								if(HasGroup()) {
@@ -306,7 +298,19 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 								if(tar != this)		//we don't need spam of bots healing themselves
 									BotGroupSay(this, "Casting %s on %s", spells[botSpell.SpellId].name, tar->GetCleanName());
 
-								tar->SetDontHealMeBefore(Timer::GetCurrentTime() + 2000);
+								//tar->SetDontHealMeBefore(Timer::GetCurrentTime() + 2000);
+								if (!IsHealOverTimeSpell(botSpell.SpellId)) {
+									if (IsCompleteHealSpell(botSpell.SpellId)) {
+										// Complete Heal 4 second rotation
+										tar->SetDontHealMeBefore(Timer::GetCurrentTime() + 9000);
+									}
+									else {
+										tar->SetDontHealMeBefore(Timer::GetCurrentTime() + 3500);
+									}
+								}
+								if (IsHealOverTimeSpell(botSpell.SpellId)) {
+									tar->SetDontHealMeBefore(Timer::GetCurrentTime() + 22000);
+								}
 							}
 						}
 					}

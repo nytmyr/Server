@@ -7928,15 +7928,23 @@ bool Bot::DoFinishedSpellGroupTarget(uint16 spell_id, Mob* spellTarget, EQ::spel
 	}
 	else if (raid) 
 	{
+		//uint32 raid_count = raid->RaidCount();
 		//for (auto& iter : raid->GetRaidGroupMembers(raid->GetGroup(this->GetName()))) {
-		std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(raid->GetGroup(this->GetName()));
-		for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
-			if (iter->member) {
-				SpellOnTarget(spell_id, iter->member);
-				if (iter->member && iter->member->GetPetID())
-					SpellOnTarget(spell_id, iter->member ->GetPet());
+		//for (int i = 0; i < raid_count; i++) {
+			if (spellTarget->IsPet() && spellTarget->GetOwner()->IsRaidGrouped()) {
+				SpellOnTarget(spell_id, spellTarget);
+				spellTarget = spellTarget->GetOwner();
 			}
-		}
+			std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(raid->GetGroup(spellTarget->GetName()));
+			for (int i = 0; i < raid_group_members.size(); i++) {
+				if (raid_group_members.at(i).member) {
+					SpellOnTarget(spell_id, raid_group_members.at(i).member);
+					if (raid_group_members.at(i).member && raid_group_members.at(i).member->GetPet()) {
+						SpellOnTarget(spell_id, raid_group_members.at(i).member->GetPet());
+					}
+				}
+			}
+		//}
 	}
 	else
 	{
@@ -9483,7 +9491,11 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 				Raid* raid = entity_list.GetRaidByBotName(caster->GetName());
 				uint32 gid = raid->GetGroup(caster->GetName());
 				if (gid < 12) {
-					std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(gid);
+					//std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(gid);
+					std::vector<RaidMember> raid_group_members = raid->GetMembers();
+					//if (RuleB(Bots, CastOnAllRaidMembers)) {
+					//	std::vector<RaidMember> raid_group_members = raid->GetMembers();
+					//}
 					for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
 						//for (auto& iter : raid->GetRaidGroupMembers(g)) {
 						if (iter->member && !iter->member->qglobal) {
@@ -9621,7 +9633,11 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 			Raid* raid = entity_list.GetRaidByBotName(caster->GetName());
 			uint32 g = raid->GetGroup(caster->GetName());
 			if (g < 12) {
-				std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(g);
+				//std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(g);
+				std::vector<RaidMember> raid_group_members = raid->GetMembers();
+				//if (RuleB(Bots, CastOnAllRaidMembers)) {
+				//	std::vector<RaidMember> raid_group_members = raid->GetMembers();
+				//}
 				for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
 					if (iter->member) {
 						if (caster->AICastSpell(iter->member, chanceToCast, SpellType_Buff) || caster->AICastSpell(iter->member->GetPet(), chanceToCast, SpellType_Buff))
@@ -9668,7 +9684,11 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 			Raid* raid = entity_list.GetRaidByBotName(caster->GetName());
 			uint32 gid = raid->GetGroup(caster->GetName());
 			if (gid < 12) {
-				std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(gid);
+				//std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(gid);
+				std::vector<RaidMember> raid_group_members = raid->GetMembers();
+				//if (RuleB(Bots, CastOnAllRaidMembers)) {
+				//	std::vector<RaidMember> raid_group_members = raid->GetMembers();
+				//}
 				for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
 					if (iter->member && caster->GetNeedsCured(iter->member)) {
 						if (caster->AICastSpell(iter->member, caster->GetChanceToCastBySpellType(SpellType_Cure), SpellType_Cure))
@@ -9727,7 +9747,11 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 			Raid* raid = entity_list.GetRaidByBotName(caster->GetName());
 			uint32 g = raid->GetGroup(caster->GetName());
 			if (g < 12) {
-				std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(g);
+				//std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(g);
+				std::vector<RaidMember> raid_group_members = raid->GetMembers();
+				//if (RuleB(Bots, CastOnAllRaidMembers)) {
+				//	std::vector<RaidMember> raid_group_members = raid->GetMembers();
+				//}
 				for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
 					if (iter->member) {
 						if (caster->AICastSpell(iter->member, iChance, SpellType_PreCombatBuff) || caster->AICastSpell(iter->member->GetPet(), iChance, SpellType_PreCombatBuff))
