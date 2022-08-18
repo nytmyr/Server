@@ -2377,7 +2377,7 @@ bool Mob::SpellFinished(uint16 spell_id, Mob *spell_target, CastingSlot slot, ui
 
 	//range check our target, if we have one and it is not us
 	float range = spells[spell_id].range + GetRangeDistTargetSizeMod(spell_target);
-	if((IsClient() && CastToClient()->TGB() && IsTGBCompatibleSpell(spell_id) && IsGroupSpell(spell_id)) || (IsRaidGrouped() && spell_target->IsRaidGrouped() && IsGroupSpell(spell_id)))
+	if((IsClient() && CastToClient()->TGB() && IsTGBCompatibleSpell(spell_id) && IsGroupSpell(spell_id)) || (IsBeneficialSpell(spell_id) && IsGroupSpell(spell_id) && !IsBardSong(spell_id) && IsRaidGrouped() && ((spell_target->IsPet() && spell_target->GetOwner()->IsRaidGrouped()) || spell_target->IsRaidGrouped())))
 		range = spells[spell_id].aoe_range;
 
 	range = GetActSpellRange(spell_id, range);
