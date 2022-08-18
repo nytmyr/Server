@@ -3021,6 +3021,9 @@ void bot_command_bot(Client *c, const Seperator *sep)
 
 void bot_command_botgroup(Client *c, const Seperator *sep)
 {
+	// temp
+	c->Message(Chat::White, "This command is disabled...");
+	return;
 	const std::list<const char*> subcommand_list = {
 		"botgroupaddmember", "botgroupcreate", "botgroupdelete", "botgrouplist", "botgroupload", "botgroupremovemember"
 	};
@@ -7234,6 +7237,9 @@ void bot_subcommand_bot_woad(Client *c, const Seperator *sep)
 
 void bot_subcommand_botgroup_add_member(Client *c, const Seperator *sep)
 {
+	// temp
+	c->Message(Chat::White, "This command is disabled...");
+	return;
 	if (helper_command_alias_fail(c, "bot_subcommand_botgroup_add_member", sep->arg[0], "botgroupaddmember")) {
 		return;
 	}
@@ -7398,6 +7404,9 @@ void bot_subcommand_botgroup_add_member(Client *c, const Seperator *sep)
 
 void bot_subcommand_botgroup_auto_spawn(Client *c, const Seperator *sep)
 {
+	// temp
+	c->Message(Chat::White, "This command is disabled...");
+	return;
 	if (helper_command_alias_fail(c, "bot_subcommand_botgroup_auto_spawn", sep->arg[0], "botgroupautospawn")) {
 		return;
 	}
@@ -7496,6 +7505,9 @@ void bot_subcommand_botgroup_auto_spawn(Client *c, const Seperator *sep)
 
 void bot_subcommand_botgroup_create(Client *c, const Seperator *sep)
 {
+	// temp
+	c->Message(Chat::White, "This command is disabled...");
+	return;
 	if (helper_command_alias_fail(c, "bot_subcommand_botgroup_create", sep->arg[0], "botgroupcreate")) {
 		return;
 	}
@@ -7650,6 +7662,9 @@ void bot_subcommand_botgroup_create(Client *c, const Seperator *sep)
 
 void bot_subcommand_botgroup_delete(Client *c, const Seperator *sep)
 {
+	// temp
+	c->Message(Chat::White, "This command is disabled...");
+	return;
 	if (helper_command_alias_fail(c, "bot_subcommand_botgroup_delete", sep->arg[0], "botgroupdelete")) {
 		return;
 	}
@@ -7777,6 +7792,9 @@ void bot_subcommand_botgroup_delete(Client *c, const Seperator *sep)
 
 void bot_subcommand_botgroup_list(Client *c, const Seperator *sep)
 {
+	// temp
+	c->Message(Chat::White, "This command is disabled...");
+	return;
 	if (helper_command_alias_fail(c, "bot_subcommand_botgroup_list", sep->arg[0], "botgrouplist")) {
 		return;
 	}
@@ -7837,6 +7855,9 @@ void bot_subcommand_botgroup_list(Client *c, const Seperator *sep)
 
 void bot_subcommand_botgroup_load(Client *c, const Seperator *sep)
 {
+	// temp
+	c->Message(Chat::White, "This command is disabled...");
+	return;
 	if (helper_command_alias_fail(c, "bot_subcommand_botgroup_load", sep->arg[0], "botgroupload")) {
 		return;
 	}
@@ -8003,6 +8024,9 @@ void bot_subcommand_botgroup_load(Client *c, const Seperator *sep)
 
 void bot_subcommand_botgroup_remove_member(Client *c, const Seperator *sep)
 {
+	// temp
+	c->Message(Chat::White, "This command is disabled...");
+	return;
 	if (helper_command_alias_fail(c, "bot_subcommand_botgroup_remove_member", sep->arg[0], "botgroupremovemember")) {
 		return;
 	}
