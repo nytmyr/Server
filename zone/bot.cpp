@@ -5110,10 +5110,10 @@ bool Bot::Death(Mob *killerMob, int64 damage, uint16 spell_id, EQ::skills::Skill
 			}
 		}
 	}
-//	else
-//	{
-	entity_list.RemoveBot(this->GetID());
-//	}
+	else
+	{
+	entity_list.RemoveBot(GetID());
+	}
 
 	return true;
 }
@@ -7937,7 +7937,7 @@ bool Bot::DoFinishedSpellGroupTarget(uint16 spell_id, Mob* spellTarget, EQ::spel
 			}
 			std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(raid->GetGroup(spellTarget->GetName()));
 			for (int i = 0; i < raid_group_members.size(); i++) {
-				if (raid_group_members.at(i).member) {
+				if (raid_group_members.at(i).member && entity_list.IsMobInZone(raid_group_members.at(i).member)) {
 					SpellOnTarget(spell_id, raid_group_members.at(i).member);
 					if (raid_group_members.at(i).member && raid_group_members.at(i).member->GetPet()) {
 						SpellOnTarget(spell_id, raid_group_members.at(i).member->GetPet());
@@ -8619,7 +8619,6 @@ void Bot::Camp(bool databaseSave) {
 	if(GetGroup())
 		RemoveBotFromGroup(this, GetGroup());
 	
-	//Mitch
 	Raid* bot_raid = entity_list.GetRaidByBotName(this->GetName());
 	if (bot_raid) {
 		uint32 gid = bot_raid->GetGroup(this->GetName());
@@ -8642,11 +8641,12 @@ void Bot::Camp(bool databaseSave) {
 }
 
 void Bot::Zone() {
-	Raid* raid = entity_list.GetRaidByBotName(this->GetName());
-	if (raid) {
-		raid->MemberZoned(this->CastToClient());
-	}
-	else if (HasGroup()) {
+	//Raid* raid = entity_list.GetRaidByBotName(this->GetName());
+	//if (raid) {
+	//	raid->MemberZoned(this->CastToClient());
+	//}
+	//else if (HasGroup()) {
+	if (HasGroup()) {
 		GetGroup()->MemberZoned(this);
 	}
 		
@@ -9498,7 +9498,7 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 					//}
 					for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
 						//for (auto& iter : raid->GetRaidGroupMembers(g)) {
-						if (iter->member && !iter->member->qglobal) {
+						if (iter->member && entity_list.IsMobInZone(iter->member) && !iter->member->qglobal) { // do a message here to find hp to troubleshoot
 							if (iter->member->IsClient() && iter->member->GetHPRatio() < 90) {
 								if (caster->AICastSpell(iter->member, 100, SpellType_Heal))
 									return true;
@@ -9518,7 +9518,7 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 
 						}
 
-						if (iter->member && !iter->member->qglobal && iter->member->HasPet() && iter->member->GetPet()->GetHPRatio() < 50) {
+						if (iter->member && entity_list.IsMobInZone(iter->member) && !iter->member->qglobal && iter->member->HasPet() && iter->member->GetPet()->GetHPRatio() < 50) {
 							if (iter->member->GetPet()->GetOwner() != caster && caster->IsEngaged() && iter->member->IsCasting() && iter->member->GetClass() != ENCHANTER)
 								continue;
 
@@ -9639,7 +9639,7 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 				//	std::vector<RaidMember> raid_group_members = raid->GetMembers();
 				//}
 				for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
-					if (iter->member) {
+					if (iter->member && entity_list.IsMobInZone(iter->member)) {
 						if (caster->AICastSpell(iter->member, chanceToCast, SpellType_Buff) || caster->AICastSpell(iter->member->GetPet(), chanceToCast, SpellType_Buff))
 							return true;
 					}
@@ -9681,6 +9681,7 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 		}
 		else if (caster->IsRaidGrouped())
 		{
+			return false;
 			Raid* raid = entity_list.GetRaidByBotName(caster->GetName());
 			uint32 gid = raid->GetGroup(caster->GetName());
 			if (gid < 12) {
@@ -9690,14 +9691,14 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 				//	std::vector<RaidMember> raid_group_members = raid->GetMembers();
 				//}
 				for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
-					if (iter->member && caster->GetNeedsCured(iter->member)) {
+					if (iter->member && entity_list.IsMobInZone(iter->member) && caster->GetNeedsCured(iter->member)) {
 						if (caster->AICastSpell(iter->member, caster->GetChanceToCastBySpellType(SpellType_Cure), SpellType_Cure))
 							return true;
 						else if (botCasterClass == BARD)
 							return false;
 					}
-
-					if (iter->member && iter->member->GetPet() && caster->GetNeedsCured(iter->member->GetPet())) {
+			
+					if (iter->member && entity_list.IsMobInZone(iter->member) && iter->member->GetPet() && caster->GetNeedsCured(iter->member->GetPet())) {
 						if (caster->AICastSpell(iter->member->GetPet(), (int)caster->GetChanceToCastBySpellType(SpellType_Cure) / 4, SpellType_Cure))
 							return true;
 					}
@@ -9753,7 +9754,7 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 				//	std::vector<RaidMember> raid_group_members = raid->GetMembers();
 				//}
 				for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
-					if (iter->member) {
+					if (iter->member && entity_list.IsMobInZone(iter->member)) {
 						if (caster->AICastSpell(iter->member, iChance, SpellType_PreCombatBuff) || caster->AICastSpell(iter->member->GetPet(), iChance, SpellType_PreCombatBuff))
 							return true;
 					}

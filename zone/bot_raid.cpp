@@ -141,6 +141,9 @@ void Bot::AI_Process_Raid()
 
 	//#pragma endregion
 
+	if (!follow_mob || !leash_owner)
+		return;
+
 	float fm_distance = DistanceSquared(m_Position, follow_mob->GetPosition());
 	float lo_distance = DistanceSquared(m_Position, leash_owner->GetPosition());
 	float leash_distance = RuleR(Bots, LeashDistance);
@@ -1568,7 +1571,7 @@ std::vector<RaidMember> Raid::GetRaidGroupMembers(uint32 gid)
 
 	for (int i = 0; i < MAX_RAID_MEMBERS; ++i)
 	{
-		if (members[i].member && members[i].GroupNumber == gid)
+		if (members[i].member && entity_list.IsMobInZone(members[i].member) && members[i].GroupNumber == gid)
 		{
 			raid_group_members.push_back(members[i]);
 		}
@@ -1581,7 +1584,6 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 	// Bot AI Raid
 
 	Raid* raid = entity_list.GetRaidByBotName(this->GetName());
-	uint32 r_group = raid->GetGroup(GetName());
 	if (!raid)
 		return false;
 
@@ -1606,6 +1608,8 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 			return false;
 		}
 	}
+
+	uint32 r_group = raid->GetGroup(GetName());
 
 	uint8 botClass = GetClass();
 	uint8 botLevel = GetLevel();
@@ -2730,7 +2734,7 @@ uint8 Bot::GetNumberNeedingHealedInRaidGroup(uint8 hpr, bool includePets) {
 	std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(r_group);
 	//for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
 	for (int i = 0; i< raid_group_members.size(); ++i) {
-		if (raid_group_members.at(i).member && !raid_group_members.at(i).member->qglobal) {
+		if (raid_group_members.at(i).member && entity_list.IsMobInZone(raid_group_members.at(i).member) && !raid_group_members.at(i).member->qglobal) {
 			if (raid_group_members.at(i).member->GetHPRatio() <= hpr)
 				needHealed++;
 

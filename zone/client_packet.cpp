@@ -25,7 +25,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #include <stdio.h>
 #include <string.h>
 #include <zlib.h>
+
+#ifdef BOTS
 #include "bot.h"
+#include "bot_command.h"
+#endif
 
 #ifdef _WINDOWS
 #define snprintf	_snprintf
@@ -11571,17 +11575,29 @@ void Client::Handle_OP_RaidCommand(const EQApplicationPacket* app)
 			}
 
 			// Not allowed: Invite a bot that is not owned by the invitor
-			if (player_to_invite->IsBot() &&
-					player_to_invite->CastToBot()->GetOwner()->CastToClient()->CharacterID() !=
-					this->CharacterID()) {
-					Message(Chat::Red, "%s is not your Bot.  You can only invite your Bots, or players grouped with bots.", player_to_invite->GetName());
-					break;
+			if (player_to_invite->IsBot()) {
+				Raid* raid = entity_list.GetRaidByClient(this);
+				if (raid) {
+					if (raid->IsRaidMember(player_to_invite_owner->GetName())) { // possible fix
+						// continue
+					}
+					else {
+						Message(Chat::Red, "%s is not your Bot.  You can only invite your bots, players grouped with bots or bots belonging to players already in your raid.", player_to_invite->GetName());
+						return; // possible fix
+					}
+				}
+				else {
+					if (player_to_invite->CastToBot()->GetOwner()->CastToClient()->CharacterID() != this->CharacterID()) {
+						Message(Chat::Red, "%s is not your Bot.  You can only invite your bots or players grouped with bots.", player_to_invite->GetName());
+						return; // possible fix
+					}
+				}
 			}
 
 			// Not allowed: Invite a bot that is in a group but the bot is not the group leader
 			if (player_to_invite_group && !player_to_invite_group->IsLeader(player_to_invite->CastToMob())) {
 				Message(Chat::Red, "You can only invite group leaders or ungrouped bots. Try %s instead.", player_to_invite_group->GetLeader()->GetName());
-				break;
+				return;
 			}
 
 			Bot::ProcessRaidInvite(player_to_invite, player_to_invite_owner);

@@ -25,9 +25,12 @@
 #include "mob.h"
 #include "raids.h"
 #include "string_ids.h"
-#include "bot.h"
 
 #include "worldserver.h"
+
+#ifdef BOTS
+#include "bot.h"
+#endif
 
 extern EntityList entity_list;
 extern WorldServer worldserver;
@@ -100,7 +103,7 @@ void Raid::AddMember(Client *c, uint32 group, bool rleader, bool groupleader, bo
 #ifdef BOTS
 	std::string query = StringFormat("INSERT INTO raid_members SET raidid = %lu, charid = %lu, "
                                     "groupid = %lu, _class = %d, level = %d, name = '%s', "
-                                    "isgroupleader = %d, israidleader = %d, islooter = %d, isbot = 0",
+                                    "isgroupleader = %d, israidleader = %d, islooter = %d, isbot = %d",
                                     (unsigned long)GetID(), (unsigned long)c->CharacterID(),
                                     (unsigned long)group, c->GetClass(), c->GetLevel(),
                                     c->GetName(), groupleader, rleader, looter);
@@ -121,13 +124,6 @@ void Raid::AddMember(Client *c, uint32 group, bool rleader, bool groupleader, bo
 	LearnMembers();
 	VerifyRaid();
 
-#ifdef BOTS
-	if (rleader) {
-		database.SetRaidGroupLeaderInfo(group, GetID());
-		UpdateRaidAAs();
-	}
-	else 
-#endif
 	if (rleader) {
 		database.SetRaidGroupLeaderInfo(RAID_GROUPLESS, GetID());
 		UpdateRaidAAs();
@@ -187,7 +183,8 @@ void Raid::AddBot(Bot* b, uint32 group, bool rleader, bool groupleader, bool loo
 	if (!b)
 		return;
 
-	std::string query = StringFormat("INSERT IGNORE INTO raid_members SET raidid = %lu, charid = %lu, "
+	//std::string query = StringFormat("INSERT IGNORE INTO raid_members SET raidid = %lu, charid = %lu, " // possible fix
+	std::string query = StringFormat("INSERT INTO raid_members SET raidid = %lu, charid = %lu, "
 		"groupid = %lu, _class = %d, level = %d, name = '%s', "
 		"isgroupleader = %d, israidleader = %d, islooter = %d, isbot = 1",
 		(unsigned long)GetID(), (unsigned long)b->GetBotID(),
@@ -350,7 +347,7 @@ void Raid::SetRaidLeader(const char *wasLead, const char *name)
 	strn0cpy(leadername, name, 64);
 
 	Client *c = entity_list.GetClientByName(name);
-	if(c)
+	if(c && c->IsClient())
 		SetLeader(c);
 	else
 		SetLeader(nullptr); //sanity check, should never get hit but we want to prefer to NOT crash if we do VerifyRaid and leader never gets set there (raid without a leader?)
@@ -405,7 +402,7 @@ void Raid::UpdateGroupAAs(uint32 gid)
 
 	Client *gl = GetGroupLeader(gid);
 
-	if (gl)
+	if (gl && gl->IsClient())
 		gl->GetGroupAAs(&group_aa[gid]);
 	else
 		memset(&group_aa[gid], 0, sizeof(GroupLeadershipAA_Struct));
@@ -524,7 +521,7 @@ uint32 Raid::GetGroup(Client *c)
 
 void Raid::RaidSay(const char *msg, Client *c, uint8 language, uint8 lang_skill)
 {
-	if(!c)
+	if (!c || c->IsBot())
 		return;
 
 	auto pack = new ServerPacket(ServerOP_RaidSay, sizeof(ServerRaidMessage_Struct) + strlen(msg) + 1);
@@ -543,7 +540,7 @@ void Raid::RaidSay(const char *msg, Client *c, uint8 language, uint8 lang_skill)
 
 void Raid::RaidGroupSay(const char *msg, Client *c, uint8 language, uint8 lang_skill)
 {
-	if(!c)
+	if(!c || c->IsBot())
 		return;
 
 	uint32 groupToUse = GetGroup(c->GetName());
@@ -604,14 +601,14 @@ void Raid::CastGroupSpell(Mob* caster, uint16 spellid, uint32 gid)
 
 	for(int x = 0; x < MAX_RAID_MEMBERS; x++)
 	{
-		if(members[x].member == caster) {
+		if(members[x].member == caster && entity_list.IsMobInZone(members[x].member)) {
 			caster->SpellOnTarget(spellid, caster);
 #ifdef GROUP_BUFF_PETS
 			if(spells[spellid].target_type != ST_GroupNoPets && caster->GetPet() && caster->HasPetAffinity() && !caster->GetPet()->IsCharmed())
 				caster->SpellOnTarget(spellid, caster->GetPet());
 #endif
 		}
-		else if(members[x].member != nullptr)
+		else if(members[x].member != nullptr && entity_list.IsMobInZone(members[x].member))
 		{
 			if(members[x].GroupNumber == gid){
 				distance = DistanceSquared(caster->GetPosition(), members[x].member->GetPosition());
@@ -926,7 +923,7 @@ void Raid::AddRaidLooter(const char* looter)
 
 	for(int x = 0; x < MAX_RAID_MEMBERS; x++)
 	{
-		if(strcmp(looter, members[x].membername) == 0)
+		if(strcmp(looter, members[x].membername) == 0 && !members[x].IsBot)
 		{
 			members[x].IsLooter = 1;
 			break;
@@ -1171,15 +1168,13 @@ void Raid::SendBulkRaid(Client *to)
 		return;
 
 #ifdef BOTS
-	//if (members[GetPlayerIndex(to)].IsBot)
-	//	return;
-	if (to->IsBot())
+	if (to->IsBot()) // possible fix
 		return;
 #endif
 
 	for(int x = 0; x < MAX_RAID_MEMBERS; x++)
 	{
-		if(members[x].member && strlen(members[x].membername) > 0 && (strcmp(members[x].membername, to->GetName()) != 0)) //don't send ourself
+		if(strlen(members[x].membername) > 0 && (strcmp(members[x].membername, to->GetName()) != 0)) //don't send ourself
 		{
 				SendRaidAdd(members[x].membername, to);
 		}
@@ -1225,10 +1220,10 @@ void Raid::SendMakeLeaderPacketTo(const char *who, Client *to)
 		return;
 
 #ifdef BOTS
-	//if (members[GetPlayerIndex(who)].IsBot)
-	//	return;
-	if (to->IsBot())
+	if (entity_list.GetBotByBotName(who) && members[GetPlayerIndex(who)].IsBot)
 		return;
+	if (to->IsBot()) // possible fix
+		return; // possible fix
 #endif
 
 	auto outapp = new EQApplicationPacket(OP_RaidUpdate, sizeof(RaidLeadershipUpdate_Struct));
@@ -1254,6 +1249,11 @@ void Raid::SendMakeGroupLeaderPacketTo(const char *who, Client *to)
 {
 	if(!to)
 		return;
+
+#ifdef BOTS
+	if (members[GetPlayerIndex(who)].IsBot)
+		return;
+#endif
 }
 
 void Raid::SendGroupUpdate(Client *to)
@@ -1455,10 +1455,10 @@ void Raid::SendRaidMOTDToWorld()
 void Raid::SendGroupLeadershipAA(Client *c, uint32 gid)
 {
 #ifdef BOTS
-	//if (members[GetPlayerIndex(c)].IsBot)
-	//	return;
-	if (c->IsBot())
+	if (members[GetPlayerIndex(c)].IsBot)
 		return;
+	//if (c->IsBot()) // possible fix
+	//	return; // possible fix
 #endif
 
 	auto outapp = new EQApplicationPacket(OP_RaidUpdate, sizeof(RaidLeadershipUpdate_Struct));
@@ -1851,6 +1851,15 @@ const char *Raid::GetClientNameByIndex(uint8 index)
 void Raid::RaidMessageString(Mob* sender, uint32 type, uint32 string_id, const char* message,const char* message2,const char* message3,const char* message4,const char* message5,const char* message6,const char* message7,const char* message8,const char* message9, uint32 distance) {
 	uint32 i;
 	for (i = 0; i < MAX_RAID_MEMBERS; i++) {
+		if (members[i].member == nullptr)
+			continue;
+
+		if (members[i].member == sender)
+			continue;
+
+		if (!members[i].member->IsClient())
+			continue;
+
 		if(members[i].member) {
 			if(members[i].member != sender)
 				members[i].member->MessageString(type, string_id, message, message2, message3, message4, message5, message6, message7, message8, message9, distance);

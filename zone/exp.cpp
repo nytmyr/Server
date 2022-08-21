@@ -1080,7 +1080,7 @@ void Raid::SplitExp(uint32 exp, Mob* other) {
 	uint8 maxlevel = 1;
 
 	for (int i = 0; i < MAX_RAID_MEMBERS; i++) {
-		if (members[i].member != nullptr) {
+		if (members[i].member != nullptr && entity_list.IsMobInZone(members[i].member)) {
 			if(members[i].member->GetLevel() > maxlevel)
 				maxlevel = members[i].member->GetLevel();
 
