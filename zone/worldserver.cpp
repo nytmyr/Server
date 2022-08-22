@@ -1518,7 +1518,7 @@ void WorldServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p)
 			{
 				for (int x = 0; x < MAX_RAID_MEMBERS; x++)
 				{
-					if (r->members[x].member) {
+					if (r->members[x].member && entity_list.IsMobInZone(r->members[x].member)) {
 						if (strcmp(rmsg->from, r->members[x].member->GetName()) != 0)
 						{
 							if (r->members[x].member->GetFilter(FilterGroupChat) != 0)
