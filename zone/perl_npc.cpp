@@ -665,11 +665,6 @@ bool Perl_NPC_HasAISpellEffect(NPC* self, int spell_effect_id) // @categories Sp
 	return self->HasAISpellEffect(spell_effect_id);
 }
 
-bool Perl_NPC_IsRareSpawn(NPC* self)
-{
-	return self->IsRareSpawn();
-}
-
 void perl_register_npc()
 {
 	perl::interpreter perl(PERL_GET_THX);

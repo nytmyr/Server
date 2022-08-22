@@ -675,12 +675,6 @@ float Lua_NPC::GetNPCStat(const char* identifier)
 	return self->GetNPCStat(identifier);
 }
 
-bool Lua_NPC::IsRareSpawn()
-{
-	Lua_Safe_Call_Bool();
-	return self->IsRareSpawn();
-}
-
 luabind::scope lua_register_npc() {
 	return luabind::class_<Lua_NPC, Lua_Mob>("NPC")
 	.def(luabind::constructor<>())
