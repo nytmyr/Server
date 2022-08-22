@@ -901,22 +901,36 @@ void Bot::AI_Process_Raid()
 					//			}
 					//		}
 					//	}
-						else if (backstab_weapon && !behind_mob) { // Move the rogue to behind the mob
-
-							if (PlotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z)) {
+					else if (!RuleB(Bots, MeleeBehindMob) && backstab_weapon && !behind_mob) { // Move the rogue to behind the mob
+						if (PlotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z)) {
 							//if (PlotPositionOnArcBehindTarget(tar, Goal.x, Goal.y, Goal.z, melee_distance)) {
 
-								float distance_squared = DistanceSquared(Goal, tar->GetPosition());
-								if (/*distance_squared >= melee_distance_min && */distance_squared <= melee_distance_max) {
+							float distance_squared = DistanceSquared(Goal, tar->GetPosition());
+							if (/*distance_squared >= melee_distance_min && */distance_squared <= melee_distance_max) {
 
-									//Teleport(Goal);
-									RunTo(Goal.x, Goal.y, Goal.z);
-									//SetCombatJitterFlag();
+								//Teleport(Goal);
+								RunTo(Goal.x, Goal.y, Goal.z);
+								//SetCombatJitterFlag();
 
-									return;
-								}
+								return;
 							}
 						}
+					}
+					else if (RuleB(Bots, MeleeBehindMob) && !behind_mob && !taunting && GetTarget()->GetHateTop() != this) { // Move the rogue to behind the mob
+						if (PlotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z)) {
+							//if (PlotPositionOnArcBehindTarget(tar, Goal.x, Goal.y, Goal.z, melee_distance)) {
+
+							float distance_squared = DistanceSquared(Goal, tar->GetPosition());
+							if (/*distance_squared >= melee_distance_min && */distance_squared <= melee_distance_max) {
+
+								//Teleport(Goal);
+								RunTo(Goal.x, Goal.y, Goal.z);
+								//SetCombatJitterFlag();
+
+								return;
+							}
+						}
+					}
 					//	else if (m_combat_jitter_timer.Check()) {
 
 					//		if (!caster_distance && PlotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z)) {
