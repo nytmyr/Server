@@ -105,8 +105,8 @@ bool TaskManager::LoadTasks(int single_task)
 		m_task_data[task_id]->cash_reward             = task.cashreward;
 		m_task_data[task_id]->experience_reward       = task.xpreward;
 		m_task_data[task_id]->reward_method           = (TaskMethodType) task.rewardmethod;
-		m_task_data[task_id]->reward_radiant_crystals = task.reward_radiant_crystals;
-		m_task_data[task_id]->reward_ebon_crystals    = task.reward_ebon_crystals;
+		m_task_data[task_id]->reward_points           = task.reward_points;
+		m_task_data[task_id]->reward_point_type       = static_cast<AltCurrencyType>(task.reward_point_type);
 		m_task_data[task_id]->faction_reward          = task.faction_reward;
 		m_task_data[task_id]->min_level               = task.minlevel;
 		m_task_data[task_id]->max_level               = task.maxlevel;
@@ -115,17 +115,17 @@ bool TaskManager::LoadTasks(int single_task)
 		m_task_data[task_id]->max_players             = task.max_players;
 		m_task_data[task_id]->repeatable              = task.repeatable;
 		m_task_data[task_id]->completion_emote        = task.completion_emote;
+		m_task_data[task_id]->replay_timer_group      = task.replay_timer_group;
 		m_task_data[task_id]->replay_timer_seconds    = task.replay_timer_seconds;
+		m_task_data[task_id]->request_timer_group     = task.request_timer_group;
 		m_task_data[task_id]->request_timer_seconds   = task.request_timer_seconds;
 		m_task_data[task_id]->activity_count          = 0;
-		m_task_data[task_id]->sequence_mode           = ActivitiesSequential;
-		m_task_data[task_id]->last_step               = 0;
 
 		LogTasksDetail(
 			"[LoadTasks] (Task) task_id [{}] type [{}] () duration [{}] duration_code [{}] title [{}] description [{}] "
 			" reward [{}] rewardid [{}] cashreward [{}] xpreward [{}] rewardmethod [{}] faction_reward [{}] minlevel [{}] "
 			" maxlevel [{}] level_spread [{}] min_players [{}] max_players [{}] repeatable [{}] completion_emote [{}]",
-			" replay_timer_seconds [{}] request_timer_seconds [{}]",
+			" replay_group [{}] replay_timer_seconds [{}] request_group [{}] request_timer_seconds [{}]",
 			task.id,
 			task.type,
 			task.duration,
@@ -145,7 +145,9 @@ bool TaskManager::LoadTasks(int single_task)
 			task.max_players,
 			task.repeatable,
 			task.completion_emote,
+			task.replay_timer_group,
 			task.replay_timer_seconds,
+			task.request_timer_group,
 			task.request_timer_seconds
 		);
 	}
@@ -198,16 +200,6 @@ bool TaskManager::LoadTasks(int single_task)
 		int                 activity_index = m_task_data[task_id]->activity_count;
 		ActivityInformation *activity_data = &m_task_data[task_id]->activity_information[activity_index];
 
-		m_task_data[task_id]->activity_information[m_task_data[task_id]->activity_count].step_number = step;
-
-		if (step != 0) {
-			m_task_data[task_id]->sequence_mode = ActivitiesStepped;
-		}
-
-		if (step > m_task_data[task_id]->last_step) {
-			m_task_data[task_id]->last_step = step;
-		}
-
 		// Task Activities MUST be numbered sequentially from 0. If not, log an error
 		// and set the task to nullptr. Subsequent activities for this task will raise
 		// ERR_NOTASK errors.
@@ -223,6 +215,8 @@ bool TaskManager::LoadTasks(int single_task)
 		}
 
 		// set activity data
+		activity_data->req_activity_id      = task_activity.req_activity_id;
+		activity_data->step                 = step;
 		activity_data->activity_type        = static_cast<TaskActivityType>(task_activity.activitytype);
 		activity_data->target_name          = task_activity.target_name;
 		activity_data->item_list            = task_activity.item_list;
@@ -236,7 +230,7 @@ bool TaskManager::LoadTasks(int single_task)
 		activity_data->goal_match_list      = task_activity.goal_match_list;
 		activity_data->goal_count           = task_activity.goalcount;
 		activity_data->deliver_to_npc       = task_activity.delivertonpc;
-		activity_data->zone_version         = task_activity.zone_version;
+		activity_data->zone_version         = task_activity.zone_version >= 0 ? task_activity.zone_version : -1;
 
 		// zones
 		activity_data->zones = task_activity.zones;
@@ -253,7 +247,7 @@ bool TaskManager::LoadTasks(int single_task)
 
 		LogTasksDetail(
 			"[LoadTasks] (Activity) task_id [{}] activity_id [{}] slot [{}] activity_type [{}] goal_id [{}] goal_method [{}] goal_count [{}] zones [{}]"
-			" target_name [{}] item_list [{}] skill_list [{}] spell_list [{}] description_override [{}] sequence [{}]",
+			" target_name [{}] item_list [{}] skill_list [{}] spell_list [{}] description_override [{}]",
 			task_id,
 			activity_id,
 			m_task_data[task_id]->activity_count,
@@ -266,8 +260,7 @@ bool TaskManager::LoadTasks(int single_task)
 			activity_data->item_list.c_str(),
 			activity_data->skill_list.c_str(),
 			activity_data->spell_list.c_str(),
-			activity_data->description_override.c_str(),
-			(m_task_data[task_id]->sequence_mode == ActivitiesStepped ? "stepped" : "sequential")
+			activity_data->description_override.c_str()
 		);
 
 		m_task_data[task_id]->activity_count++;
@@ -692,11 +685,12 @@ void TaskManager::SharedTaskSelector(Client *client, Mob *mob, int count, const 
 
 	// check if requester already has a shared task (no need to query group/raid members if so)
 	if (client->GetTaskState()->HasActiveSharedTask()) {
-		client->MessageString(Chat::Red, SharedTaskMessage::NO_REQUEST_BECAUSE_HAVE_ONE);
+		client->MessageString(Chat::Red, TaskStr::REQUEST_HAVE);
 		return;
 	}
 
 	// get group/raid member character data from db (need to query for character ids)
+	// todo: group/raids need refactored to avoid queries and ignore offline members (through world)
 	auto request = SharedTask::GetRequestCharacters(database, client->CharacterID());
 
 	// check if any group/raid member already has a shared task (already checked solo character)
@@ -709,25 +703,17 @@ void TaskManager::SharedTaskSelector(Client *client, Mob *mob, int count, const 
 		if (!shared_task_members.empty()) {
 			validation_failed = true;
 
-			auto it = std::find_if(
-				request.characters.begin(), request.characters.end(),
-				[&](const CharacterDataRepository::CharacterData &char_data) {
-					return char_data.id == shared_task_members.front().character_id;
-				}
-			);
+			auto it = std::find_if(request.members.begin(), request.members.end(),
+				[&](const SharedTaskMember& member) {
+					return member.character_id == shared_task_members.front().character_id;
+				});
 
-			if (it != request.characters.end()) {
+			if (it != request.members.end()) {
 				if (request.group_type == SharedTaskRequestGroupType::Group) {
-					client->MessageString(
-						Chat::Red,
-						SharedTaskMessage::NO_REQUEST_BECAUSE_GROUP_HAS_ONE,
-						it->name.c_str());
+					client->MessageString(Chat::Red, TaskStr::REQUEST_GROUP_HAS, it->character_name.c_str());
 				}
 				else {
-					client->MessageString(
-						Chat::Red,
-						SharedTaskMessage::NO_REQUEST_BECAUSE_RAID_HAS_ONE,
-						it->name.c_str());
+					client->MessageString(Chat::Red, TaskStr::REQUEST_RAID_HAS, it->character_name.c_str());
 				}
 			}
 		}
@@ -754,7 +740,7 @@ void TaskManager::SharedTaskSelector(Client *client, Mob *mob, int count, const 
 			SendSharedTaskSelector(client, mob, task_list_index, task_list);
 		}
 		else {
-			client->MessageString(Chat::Red, SharedTaskMessage::YOU_DO_NOT_MEET_REQ_AVAILABLE);
+			client->MessageString(Chat::Red, TaskStr::NOT_MEET_REQ);
 		}
 	}
 }
@@ -764,6 +750,7 @@ void TaskManager::SendTaskSelector(Client *client, Mob *mob, int task_count, int
 {
 	LogTasks("TaskSelector for [{}] Tasks", task_count);
 	int player_level = client->GetLevel();
+	client->GetTaskState()->ClearLastOffers();
 
 	// Check if any of the tasks exist
 	for (int i = 0; i < task_count; i++) {
@@ -812,6 +799,7 @@ void TaskManager::SendTaskSelector(Client *client, Mob *mob, int task_count, int
 
 		buf.WriteUInt32(task_list[i]); // task_id
 		m_task_data[task_list[i]]->SerializeSelector(buf, client->ClientVersion());
+		client->GetTaskState()->AddOffer(task_list[i], mob->GetID());
 	}
 
 	auto outapp = std::make_unique<EQApplicationPacket>(OP_TaskSelectWindow, buf);
@@ -824,6 +812,7 @@ void TaskManager::SendSharedTaskSelector(Client *client, Mob *mob, int task_coun
 
 	// request timer is only set when shared task selection shown (not for failed validations)
 	client->StartTaskRequestCooldownTimer();
+	client->GetTaskState()->ClearLastOffers();
 
 	SerializeBuffer buf;
 
@@ -836,6 +825,7 @@ void TaskManager::SendSharedTaskSelector(Client *client, Mob *mob, int task_coun
 		int task_id = task_list[i];
 		buf.WriteUInt32(task_id);
 		m_task_data[task_id]->SerializeSelector(buf, client->ClientVersion());
+		client->GetTaskState()->AddOffer(task_id, mob->GetID());
 	}
 
 	auto outapp = std::make_unique<EQApplicationPacket>(OP_SharedTaskSelectWindow, buf);
@@ -849,43 +839,6 @@ int TaskManager::GetActivityCount(int task_id)
 	}
 
 	return 0;
-}
-
-void TaskManager::ExplainTask(Client *client, int task_id)
-{
-
-	// TODO: This method is not finished (hardly started). It was intended to
-	// explain in English, what each activity_information did, conditions for step unlocking, etc.
-	//
-	return;
-
-	if (!client) { return; }
-
-	if ((task_id <= 0) || (task_id >= MAXTASKS)) {
-		client->Message(Chat::White, "task_id out-of-range.");
-		return;
-	}
-
-	if (m_task_data[task_id] == nullptr) {
-		client->Message(Chat::White, "Task does not exist.");
-		return;
-	}
-
-	char explanation[1000], *ptr;
-	client->Message(Chat::White, "Task %4i: title: %s", task_id, m_task_data[task_id]->description.c_str());
-	client->Message(Chat::White, "%3i Activities", m_task_data[task_id]->activity_count);
-	ptr = explanation;
-	for (int i = 0; i < m_task_data[task_id]->activity_count; i++) {
-
-		sprintf(ptr, "Act: %3i: ", i);
-		ptr = ptr + strlen(ptr);
-		switch (m_task_data[task_id]->activity_information[i].activity_type) {
-			case TaskActivityType::Deliver:
-				sprintf(ptr, "Deliver");
-				break;
-		}
-
-	}
 }
 
 bool TaskManager::IsTaskRepeatable(int task_id)
@@ -1213,8 +1166,7 @@ void TaskManager::SendActiveTaskDescription(
 	task_description_header->open_window    = bring_up_task_journal;
 	task_description_header->task_type      = static_cast<uint32>(m_task_data[task_id]->type);
 
-	constexpr uint32_t reward_radiant_type = 4; // Radiant Crystals, anything else is Ebon for shared tasks
-	task_description_header->reward_type = m_task_data[task_id]->reward_radiant_crystals > 0 ? reward_radiant_type : 0;
+	task_description_header->reward_type = static_cast<int>(m_task_data[task_id]->reward_point_type);
 
 	Ptr = (char *) task_description_header + sizeof(TaskDescriptionHeader_Struct);
 
@@ -1257,10 +1209,8 @@ void TaskManager::SendActiveTaskDescription(
 
 	tdt = (TaskDescriptionTrailer_Struct *) Ptr;
 	// shared tasks show radiant/ebon crystal reward, non-shared tasks show generic points
-	tdt->Points               = m_task_data[task_id]->reward_ebon_crystals;
-	if (m_task_data[task_id]->reward_radiant_crystals > 0) {
-		tdt->Points = m_task_data[task_id]->reward_radiant_crystals;
-	}
+	tdt->Points = m_task_data[task_id]->reward_points;
+
 	tdt->has_reward_selection = 0; // TODO: new rewards window
 
 	client->QueuePacket(outapp);
@@ -1324,7 +1274,6 @@ bool TaskManager::LoadClientState(Client *client, ClientTaskState *client_task_s
 		}
 
 		task_info->task_id       = task_id;
-		task_info->current_step  = -1;
 		task_info->accepted_time = character_task.acceptedtime;
 		task_info->updated       = false;
 		task_info->was_rewarded  = character_task.was_rewarded;
@@ -1570,11 +1519,10 @@ bool TaskManager::LoadClientState(Client *client, ClientTaskState *client_task_s
 
 		// purely debugging
 		LogTasksDetail(
-			"[LoadClientState] Fetching task info for character_id [{}] task [{}] slot [{}] current_step [{}] accepted_time [{}] updated [{}]",
+			"[LoadClientState] Fetching task info for character_id [{}] task [{}] slot [{}] accepted_time [{}] updated [{}]",
 			character_id,
 			client_task_state->m_active_task.task_id,
 			client_task_state->m_active_task.slot,
-			client_task_state->m_active_task.current_step,
 			client_task_state->m_active_task.accepted_time,
 			client_task_state->m_active_task.updated
 		);
@@ -1584,14 +1532,13 @@ bool TaskManager::LoadClientState(Client *client, ClientTaskState *client_task_s
 			for (int i = 0; i < p_task_data->activity_count; i++) {
 				if (client_task_state->m_active_task.activity[i].activity_id >= 0) {
 					LogTasksDetail(
-						"[LoadClientState] -- character_id [{}] task [{}] activity_id [{}] done_count [{}] activity_state [{}] updated [{}] sequence [{}]",
+						"[LoadClientState] -- character_id [{}] task [{}] activity_id [{}] done_count [{}] activity_state [{}] updated [{}]",
 						character_id,
 						client_task_state->m_active_task.task_id,
 						client_task_state->m_active_task.activity[i].activity_id,
 						client_task_state->m_active_task.activity[i].done_count,
 						client_task_state->m_active_task.activity[i].activity_state,
-						client_task_state->m_active_task.activity[i].updated,
-						p_task_data->sequence_mode
+						client_task_state->m_active_task.activity[i].updated
 					);
 				}
 			}
@@ -1747,7 +1694,7 @@ void TaskManager::SyncClientSharedTaskRemoveLocalIfNotExists(Client *c, ClientTa
 			CharacterTasksRepository::DeleteWhere(database, delete_where);
 			CharacterActivitiesRepository::DeleteWhere(database, delete_where);
 
-			c->MessageString(Chat::Yellow, SharedTaskMessage::YOU_ARE_NO_LONGER_A_MEMBER,
+			c->MessageString(Chat::Yellow, TaskStr::NO_LONGER_MEMBER_TITLE,
 				m_task_data[cts->m_active_shared_task.task_id]->title.c_str());
 
 			// remove as active task if doesn't exist
@@ -1834,7 +1781,7 @@ void TaskManager::SyncClientSharedTaskStateToLocal(
 	}
 }
 
-void TaskManager::HandleUpdateTasksOnKill(Client *client, uint32 npc_type_id, std::string npc_name)
+void TaskManager::HandleUpdateTasksOnKill(Client *client, uint32 npc_type_id, NPC* npc)
 {
 	for (auto &c: client->GetPartyMembers()) {
 		if (!c->ClientDataLoaded() || !c->HasTaskState()) {
@@ -1900,7 +1847,10 @@ void TaskManager::HandleUpdateTasksOnKill(Client *client, uint32 npc_type_id, st
 							std::to_string(npc_type_id)
 						) && !TaskGoalListManager::IsInMatchListPartial(
 							activity_info->goal_match_list,
-							npc_name
+							npc->GetCleanName()
+						) && !TaskGoalListManager::IsInMatchListPartial(
+							activity_info->goal_match_list,
+							npc->GetName()
 						)) {
 							LogTasksDetail("[HandleUpdateTasksOnKill] Matched list goal");
 							continue;

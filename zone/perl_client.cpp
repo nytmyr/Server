@@ -1413,6 +1413,11 @@ bool Perl_Client_IsTaskActivityActive(Client* self, int task_id, int activity_id
 	return self->IsTaskActivityActive(task_id, activity_id);
 }
 
+void Perl_Client_LockSharedTask(Client* self, bool lock)
+{
+	return self->LockSharedTask(lock);
+}
+
 uint32_t Perl_Client_GetCorpseCount(Client* self) // @categories Account and Character, Corpse
 {
 	return self->GetCorpseCount();
@@ -1781,6 +1786,11 @@ Expedition* Perl_Client_CreateExpedition(Client* self, perl::reference table_ref
 		dz.SetZoneInLocation(zonein);
 	}
 
+	if (table.exists("switchid"))
+	{
+		dz.SetSwitchID(table["switchid"].as<int>());
+	}
+
 	if (expedition.exists("disable_messages"))
 	{
 		return self->CreateExpedition(dz, expedition["disable_messages"].as<bool>());
@@ -1797,6 +1807,11 @@ Expedition* Perl_Client_CreateExpedition(Client* self, std::string zone_name, ui
 Expedition* Perl_Client_CreateExpedition(Client* self, std::string zone_name, uint32 version, uint32 duration, std::string expedition_name, uint32 min_players, uint32 max_players, bool disable_messages)
 {
 	return self->CreateExpedition(zone_name, version, duration, expedition_name, min_players, max_players, disable_messages);
+}
+
+Expedition* Perl_Client_CreateExpeditionFromTemplate(Client* self, uint32_t dz_template_id)
+{
+	return self->CreateExpeditionFromTemplate(dz_template_id);
 }
 
 void Perl_Client_CreateTaskDynamicZone(Client* self, int task_id, perl::reference table_ref)
@@ -1827,6 +1842,11 @@ void Perl_Client_CreateTaskDynamicZone(Client* self, int task_id, perl::referenc
 	{
 		auto zonein = GetDynamicZoneLocationFromHash(table["zonein"]);
 		dz.SetZoneInLocation(zonein);
+	}
+
+	if (table.exists("switchid"))
+	{
+		dz.SetSwitchID(table["switchid"].as<int>());
 	}
 
 	self->CreateTaskDynamicZone(task_id, dz);
@@ -2071,19 +2091,39 @@ double Perl_Client_GetAAEXPModifier(Client* self, uint32 zone_id)
 	return self->GetAAEXPModifier(zone_id);
 }
 
+double Perl_Client_GetAAEXPModifier(Client* self, uint32 zone_id, int16 instance_version)
+{
+	return self->GetAAEXPModifier(zone_id, instance_version);
+}
+
 double Perl_Client_GetEXPModifier(Client* self, uint32 zone_id)
 {
 	return self->GetEXPModifier(zone_id);
 }
 
-void Perl_Client_SetAAEXPModifier(Client* self, uint32 zone_id, float aa_modifier)
+double Perl_Client_GetEXPModifier(Client* self, uint32 zone_id, int16 instance_version)
+{
+	return self->GetEXPModifier(zone_id, instance_version);
+}
+
+void Perl_Client_SetAAEXPModifier(Client* self, uint32 zone_id, double aa_modifier)
 {
 	self->SetAAEXPModifier(zone_id, aa_modifier);
 }
 
-void Perl_Client_SetEXPModifier(Client* self, uint32 zone_id, float exp_modifier)
+void Perl_Client_SetAAEXPModifier(Client* self, uint32 zone_id, double aa_modifier, int16 instance_version)
+{
+	self->SetAAEXPModifier(zone_id, aa_modifier, instance_version);
+}
+
+void Perl_Client_SetEXPModifier(Client* self, uint32 zone_id, double exp_modifier)
 {
 	self->SetEXPModifier(zone_id, exp_modifier);
+}
+
+void Perl_Client_SetEXPModifier(Client* self, uint32 zone_id, double exp_modifier, int16 instance_version)
+{
+	self->SetEXPModifier(zone_id, exp_modifier, instance_version);
 }
 
 void Perl_Client_AddLDoNLoss(Client* self, uint32 theme_id)
@@ -2384,6 +2424,36 @@ void Perl_Client_TaskSelector(Client* self, perl::array task_ids)
 	self->TaskQuestSetSelector(self, task_count, tasks);
 }
 
+bool Perl_Client_TeleportToPlayerByCharacterID(Client* self, uint32 character_id)
+{
+	return self->GotoPlayer(database.GetCharNameByID(character_id));
+}
+
+bool Perl_Client_TeleportToPlayerByName(Client* self, std::string player_name)
+{
+	return self->GotoPlayer(player_name);
+}
+
+bool Perl_Client_TeleportGroupToPlayerByCharacterID(Client* self, uint32 character_id)
+{
+	return self->GotoPlayerGroup(database.GetCharNameByID(character_id));
+}
+
+bool Perl_Client_TeleportGroupToPlayerByName(Client* self, std::string player_name)
+{
+	return self->GotoPlayerGroup(player_name);
+}
+
+bool Perl_Client_TeleportRaidToPlayerByCharacterID(Client* self, uint32 character_id)
+{
+	return self->GotoPlayerRaid(database.GetCharNameByID(character_id));
+}
+
+bool Perl_Client_TeleportRaidToPlayerByName(Client* self, std::string player_name)
+{
+	return self->GotoPlayerRaid(player_name);
+}
+
 void perl_register_client()
 {
 	perl::interpreter perl(PERL_GET_THX);
@@ -2442,6 +2512,7 @@ void perl_register_client()
 	package.add("CreateExpedition", (Expedition*(*)(Client*, perl::reference))&Perl_Client_CreateExpedition);
 	package.add("CreateExpedition", (Expedition*(*)(Client*, std::string, uint32, uint32, std::string, uint32, uint32))&Perl_Client_CreateExpedition);
 	package.add("CreateExpedition", (Expedition*(*)(Client*, std::string, uint32, uint32, std::string, uint32, uint32, bool))&Perl_Client_CreateExpedition);
+	package.add("CreateExpeditionFromTemplate", &Perl_Client_CreateExpeditionFromTemplate);
 	package.add("CreateTaskDynamicZone", &Perl_Client_CreateTaskDynamicZone);
 	package.add("DecreaseByID", &Perl_Client_DecreaseByID);
 	package.add("DeleteItemInInventory", (void(*)(Client*, int16))&Perl_Client_DeleteItemInInventory);
@@ -2466,7 +2537,8 @@ void perl_register_client()
 	package.add("ForageItem", &Perl_Client_ForageItem);
 	package.add("Freeze", &Perl_Client_Freeze);
 	package.add("GMKill", &Perl_Client_GMKill);
-	package.add("GetAAEXPModifier", &Perl_Client_GetAAEXPModifier);
+	package.add("GetAAEXPModifier", (double(*)(Client*, uint32))&Perl_Client_GetAAEXPModifier);
+	package.add("GetAAEXPModifier", (double(*)(Client*, uint32, int16))&Perl_Client_GetAAEXPModifier);
 	package.add("GetAAExp", &Perl_Client_GetAAExp);
 	package.add("GetAALevel", &Perl_Client_GetAALevel);
 	package.add("GetAAPercent", &Perl_Client_GetAAPercent);
@@ -2515,7 +2587,8 @@ void perl_register_client()
 	package.add("GetDuelTarget", &Perl_Client_GetDuelTarget);
 	package.add("GetEnvironmentDamageModifier", &Perl_Client_GetEnvironmentDamageModifier);
 	package.add("GetEXP", &Perl_Client_GetEXP);
-	package.add("GetEXPModifier", &Perl_Client_GetEXPModifier);
+	package.add("GetEXPModifier", (double(*)(Client*, uint32))&Perl_Client_GetEXPModifier);
+	package.add("GetEXPModifier", (double(*)(Client*, uint32, int16))&Perl_Client_GetEXPModifier);
 	package.add("GetEbonCrystals", &Perl_Client_GetEbonCrystals);
 	package.add("GetEndurance", &Perl_Client_GetEndurance);
 	package.add("GetEnduranceRatio", &Perl_Client_GetEnduranceRatio);
@@ -2627,6 +2700,7 @@ void perl_register_client()
 	package.add("LeaveGroup", &Perl_Client_LeaveGroup);
 	package.add("LoadPEQZoneFlags", &Perl_Client_LoadPEQZoneFlags);
 	package.add("LoadZoneFlags", &Perl_Client_LoadZoneFlags);
+	package.add("LockSharedTask", &Perl_Client_LockSharedTask);
 	package.add("MarkCompassLoc", &Perl_Client_MarkCompassLoc);
 	package.add("MaxSkill", (int(*)(Client*, uint16))&Perl_Client_MaxSkill);
 	package.add("MaxSkill", (int(*)(Client*, uint16, uint16))&Perl_Client_MaxSkill);
@@ -2703,7 +2777,8 @@ void perl_register_client()
 	package.add("SendToInstance", &Perl_Client_SendToInstance);
 	package.add("SendWebLink", &Perl_Client_SendWebLink);
 	package.add("SendZoneFlagInfo", &Perl_Client_SendZoneFlagInfo);
-	package.add("SetAAEXPModifier", &Perl_Client_SetAAEXPModifier);
+	package.add("SetAAEXPModifier", (void(*)(Client*, uint32, double))&Perl_Client_SetAAEXPModifier);
+	package.add("SetAAEXPModifier", (void(*)(Client*, uint32, double, int16))&Perl_Client_SetAAEXPModifier);
 	package.add("SetAAPoints", &Perl_Client_SetAAPoints);
 	package.add("SetAATitle", (void(*)(Client*, std::string))&Perl_Client_SetAATitle);
 	package.add("SetAATitle", (void(*)(Client*, std::string, bool))&Perl_Client_SetAATitle);
@@ -2731,7 +2806,8 @@ void perl_register_client()
 	package.add("SetDueling", &Perl_Client_SetDueling);
 	package.add("SetEXP", (void(*)(Client*, uint32, uint32))&Perl_Client_SetEXP);
 	package.add("SetEXP", (void(*)(Client*, uint32, uint32, bool))&Perl_Client_SetEXP);
-	package.add("SetEXPModifier", &Perl_Client_SetEXPModifier);
+	package.add("SetEXPModifier", (void(*)(Client*, uint32, double))&Perl_Client_SetEXPModifier);
+	package.add("SetEXPModifier", (void(*)(Client*, uint32, double, int16))&Perl_Client_SetEXPModifier);
 	package.add("SetEbonCrystals", &Perl_Client_SetEbonCrystals);
 	package.add("SetEndurance", &Perl_Client_SetEndurance);
 	package.add("SetEnvironmentDamageModifier", &Perl_Client_SetEnvironmentDamageModifier);
@@ -2783,6 +2859,12 @@ void perl_register_client()
 	package.add("TakeMoneyFromPP", (bool(*)(Client*, uint64_t, bool))&Perl_Client_TakeMoneyFromPP);
 	package.add("TakePlatinum", (bool(*)(Client*, uint32))&Perl_Client_TakePlatinum);
 	package.add("TakePlatinum", (bool(*)(Client*, uint32, bool))&Perl_Client_TakePlatinum);
+	package.add("TeleportToPlayerByCharID", &Perl_Client_TeleportToPlayerByCharacterID);
+	package.add("TeleportToPlayerByName", &Perl_Client_TeleportToPlayerByName);
+	package.add("TeleportGroupToPlayerByCharID", &Perl_Client_TeleportGroupToPlayerByCharacterID);
+	package.add("TeleportGroupToPlayerByName", &Perl_Client_TeleportGroupToPlayerByName);
+	package.add("TeleportRaidToPlayerByCharID", &Perl_Client_TeleportRaidToPlayerByCharacterID);
+	package.add("TeleportRaidToPlayerByName", &Perl_Client_TeleportRaidToPlayerByName);
 	package.add("TaskSelector", &Perl_Client_TaskSelector);
 	package.add("Thirsty", &Perl_Client_Thirsty);
 	package.add("TrainDiscBySpellID", &Perl_Client_TrainDiscBySpellID);

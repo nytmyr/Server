@@ -73,9 +73,13 @@ public:
 	int GetWeight();
 	uint32 GetEXP();
 	double GetEXPModifier(uint32 zone_id);
+	double GetEXPModifier(uint32 zone_id, int16 instance_version);
 	double GetAAEXPModifier(uint32 zone_id);
+	double GetAAEXPModifier(uint32 zone_id, int16 instance_version);
 	void SetAAEXPModifier(uint32 zone_id, double aa_modifier);
+	void SetAAEXPModifier(uint32 zone_id, double aa_modifier, int16 instance_version);
 	void SetEXPModifier(uint32 zone_id, double exp_modifier);
+	void SetEXPModifier(uint32 zone_id, double exp_modifier, int16 instance_version);
 	uint32 GetAAExp();
 	uint32 GetAAPercent();
 	uint32 GetTotalSecondsPlayed();
@@ -118,6 +122,12 @@ public:
 	void MoveZoneInstance(uint16 instance_id);
 	void MoveZoneInstanceGroup(uint16 instance_id);
 	void MoveZoneInstanceRaid(uint16 instance_id);
+	bool TeleportToPlayerByCharID(uint32 character_id);
+	bool TeleportToPlayerByName(std::string player_name);
+	bool TeleportGroupToPlayerByCharID(uint32 character_id);
+	bool TeleportGroupToPlayerByName(std::string player_name);
+	bool TeleportRaidToPlayerByCharID(uint32 character_id);
+	bool TeleportRaidToPlayerByName(std::string player_name);
 	void ChangeLastName(std::string last_name);
 	int GetFactionLevel(uint32 char_id, uint32 npc_id, uint32 race, uint32 class_, uint32 deity, uint32 faction, Lua_NPC npc);
 	void SetFactionLevel(uint32 char_id, uint32 npc_id, int char_class, int char_race, int char_deity);
@@ -333,6 +343,7 @@ public:
 	bool IsTaskCompleted(int task);
 	bool IsTaskActive(int task);
 	bool IsTaskActivityActive(int task, int activity);
+	void LockSharedTask(bool lock);
 	int GetCorpseCount();
 	int GetCorpseID(int corpse);
 	int GetCorpseItemAt(int corpse, int slot);
@@ -432,6 +443,7 @@ public:
 	Lua_Expedition  CreateExpedition(luabind::object expedition_info);
 	Lua_Expedition  CreateExpedition(std::string zone_name, uint32 version, uint32 duration, std::string expedition_name, uint32 min_players, uint32 max_players);
 	Lua_Expedition  CreateExpedition(std::string zone_name, uint32 version, uint32 duration, std::string expedition_name, uint32 min_players, uint32 max_players, bool disable_messages);
+	Lua_Expedition  CreateExpeditionFromTemplate(uint32_t dz_template_id);
 	Lua_Expedition  GetExpedition();
 	luabind::object GetExpeditionLockouts(lua_State* L);
 	luabind::object GetExpeditionLockouts(lua_State* L, std::string expedition_name);

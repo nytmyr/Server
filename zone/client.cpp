@@ -65,6 +65,7 @@ extern volatile bool RunLoops;
 
 #include "../common/repositories/character_spells_repository.h"
 #include "../common/repositories/character_disciplines_repository.h"
+#include "../common/repositories/character_data_repository.h"
 
 
 extern QueryServ* QServ;
@@ -220,6 +221,7 @@ Client::Client(EQStreamInterface* ieqs)
 	LFGComments[0] = '\0';
 	LFP = false;
 	gmspeed = 0;
+	gminvul = false;
 	playeraction = 0;
 	SetTarget(0);
 	auto_attack = false;
@@ -1111,8 +1113,8 @@ void Client::ChannelMessageReceived(uint8 chan_num, uint8 language, uint8 lang_s
 		break;
 	}
 	case ChatChannel_Say: { /* Say */
-		if(message[0] == COMMAND_CHAR) {
-			if(command_dispatch(this, message) == -2) {
+		if (message[0] == COMMAND_CHAR) {
+			if (command_dispatch(this, message) == -2) {
 				if (parse->PlayerHasQuestSub(EVENT_COMMAND)) {
 					int i = parse->EventPlayer(EVENT_COMMAND, this, message, 0);
 					if (i == 0 && !RuleB(Chat, SuppressCommandErrors)) {
@@ -3392,27 +3394,27 @@ void Client::SetTint(int16 in_slot, EQ::textures::Tint_Struct& color) {
 
 }
 
-void Client::SetHideMe(bool flag)
+void Client::SetHideMe(bool gm_hide_me)
 {
 	EQApplicationPacket app;
 
-	gm_hide_me = flag;
-
-	if(gm_hide_me)
-	{
-		database.SetHideMe(AccountID(),true);
+	if (gm_hide_me) {
+		database.SetHideMe(AccountID(), true);
 		CreateDespawnPacket(&app, false);
 		entity_list.RemoveFromTargets(this);
 		trackable = false;
-	}
-	else
-	{
-		database.SetHideMe(AccountID(),false);
+		if (RuleB(Command, HideMeCommandDisablesTells)) {
+			tellsoff  = true;
+		}
+	} else {
+		database.SetHideMe(AccountID(), false);
 		CreateSpawnPacket(&app);
 		trackable = true;
+		tellsoff  = false;
 	}
 
-	entity_list.QueueClientsStatus(this, &app, true, 0, Admin()-1);
+	entity_list.QueueClientsStatus(this, &app, true, 0, Admin() - 1);
+	UpdateWho();
 }
 
 void Client::SetLanguageSkill(int langid, int value)
@@ -3916,9 +3918,8 @@ void Client::EnteringMessages(Client* client)
 	if (database.GetVariable("Rules", rules)) {
 		uint8 flag = database.GetAgreementFlag(client->AccountID());
 		if (!flag) {
-			auto rules_link = Saylink::Create(
+			auto rules_link = Saylink::Silent(
 				"#serverrules",
-				false,
 				"rules"
 			);
 
@@ -6246,7 +6247,7 @@ void Client::CheckEmoteHail(Mob *target, const char* message)
 	{
 		return;
 	}
-	uint16 emoteid = target->GetEmoteID();
+	uint32 emoteid = target->GetEmoteID();
 	if(emoteid != 0)
 		target->CastToNPC()->DoNPCEmote(HAILED,emoteid);
 }
@@ -7106,6 +7107,7 @@ void Client::SendStatsWindow(Client* client, bool use_window)
 	client->Message(Chat::White, " compute_tohit: %i TotalToHit: %i", compute_tohit(skill), GetTotalToHit(skill, 0));
 	client->Message(Chat::White, " compute_defense: %i TotalDefense: %i", compute_defense(), GetTotalDefense());
 	client->Message(Chat::White, " offense: %i mitigation ac: %i", offense(skill), GetMitigationAC());
+	client->Message(Chat::White, " AFK: %i LFG: %i Anon: %i PVP: %i GM: %i Flymode: %i GMSpeed: %i Hideme: %i GMInvul: %d LD: %i ClientVersion: %i TellsOff: %i", AFK, LFG, GetAnon(), GetPVP(), GetGM(), flymode, GetGMSpeed(), GetHideMe(), GetGMInvul(), IsLD(), ClientVersionBit(), tellsoff);
 	if(CalcMaxMana() > 0)
 		client->Message(Chat::White, " Mana: %i/%i  Mana Regen: %i/%i", GetMana(), GetMaxMana(), CalcManaRegen(), CalcManaRegenCap());
 	client->Message(Chat::White, " End.: %i/%i  End. Regen: %i/%i",GetEndurance(), GetMaxEndurance(), CalcEnduranceRegen(), CalcEnduranceRegenCap());
@@ -9386,49 +9388,63 @@ void Client::SetSecondaryWeaponOrnamentation(uint32 model_id)
  */
 bool Client::GotoPlayer(std::string player_name)
 {
-	std::string query = StringFormat(
-		"SELECT"
-		"    character_data.zone_id,"
-		"    character_data.zone_instance,"
-		"    character_data.x,"
-		"    character_data.y,"
-		"    character_data.z,"
-		"    character_data.heading "
-		"FROM"
-		"    character_data "
-		"WHERE"
-		"    TRUE"
-		"    AND character_data.name = '%s'"
-		"    AND character_data.last_login > (UNIX_TIMESTAMP() - 600) LIMIT 1", player_name.c_str());
+	auto characters = CharacterDataRepository::GetWhere(
+		database,
+		fmt::format("name = '{}' AND last_login > (UNIX_TIMESTAMP() - 600) LIMIT 1", player_name)
+	);
 
-	auto results = database.QueryDatabase(query);
-	if (!results.Success()) {
-		return false;
-	}
-
-	for (auto row = results.begin(); row != results.end(); ++row) {
-		auto zone_id     = static_cast<uint32>(atoi(row[0]));
-		auto instance_id = static_cast<uint16>(atoi(row[1]));
-		auto x           = static_cast<float>(atof(row[2]));
-		auto y           = static_cast<float>(atof(row[3]));
-		auto z           = static_cast<float>(atof(row[4]));
-		auto heading     = static_cast<float>(atof(row[5]));
-
-		if (instance_id > 0 && !database.CheckInstanceExists(instance_id)) {
+	for (auto &c: characters) {
+		if (c.zone_instance > 0 && !database.CheckInstanceExists(c.zone_instance)) {
 			Message(Chat::Yellow, "Instance no longer exists...");
 			return false;
 		}
 
-		if (instance_id > 0) {
-			database.AddClientToInstance(instance_id, CharacterID());
+		if (c.zone_instance > 0) {
+			database.AddClientToInstance(c.zone_instance, CharacterID());
 		}
 
-		MovePC(zone_id, instance_id, x, y, z, heading);
+		MovePC(c.zone_id, c.zone_instance, c.x, c.y, c.z, c.heading);
 
 		return true;
 	}
 
 	return false;
+}
+
+bool Client::GotoPlayerGroup(const std::string& player_name)
+{
+	if (!GetGroup()) {
+		return GotoPlayer(player_name);
+	}
+
+	for (auto &m: GetGroup()->members) {
+		if (m && m->IsClient()) {
+			auto c = m->CastToClient();
+			if (!c->GotoPlayer(player_name)) {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+bool Client::GotoPlayerRaid(const std::string& player_name)
+{
+	if (!GetRaid()) {
+		return GotoPlayer(player_name);
+	}
+	
+	for (auto &m: GetRaid()->members) {
+		if (m.member && m.member->IsClient()) {
+			auto c = m.member->CastToClient();
+			if (!c->GotoPlayer(player_name)) {
+				return false;
+			}
+		}
+	}
+
+	return true;
 }
 
 glm::vec4 &Client::GetLastPositionBeforeBulkUpdate()
@@ -9546,65 +9562,68 @@ void Client::ShowDevToolsMenu()
 	std::string menu_reload_six;
 	std::string menu_reload_seven;
 	std::string menu_reload_eight;
+	std::string menu_reload_nine;
 	std::string menu_toggle;
 
 	/**
 	 * Search entity commands
 	 */
-	menu_search += Saylink::Create("#list corpses", false, "Corpses");
-	menu_search += " | " + Saylink::Create("#list doors", false, "Doors");
-	menu_search += " | " + Saylink::Create("#finditem", false, "Items");
-	menu_search += " | " + Saylink::Create("#list npcs", false, "NPC");
-	menu_search += " | " + Saylink::Create("#list objects", false, "Objects");
-	menu_search += " | " + Saylink::Create("#list players", false, "Players");
-	menu_search += " | " + Saylink::Create("#findzone", false, "Zones");
+	menu_search += Saylink::Silent("#list corpses", "Corpses");
+	menu_search += " | " + Saylink::Silent("#list doors", "Doors");
+	menu_search += " | " + Saylink::Silent("#finditem", "Items");
+	menu_search += " | " + Saylink::Silent("#list npcs", "NPC");
+	menu_search += " | " + Saylink::Silent("#list objects", "Objects");
+	menu_search += " | " + Saylink::Silent("#list players", "Players");
+	menu_search += " | " + Saylink::Silent("#findzone", "Zones");
 
 	/**
 	 * Show
 	 */
-	menu_show += Saylink::Create("#showzonepoints", false, "Zone Points");
-	menu_show += " | " + Saylink::Create("#showzonegloballoot", false, "Zone Global Loot");
+	menu_show += Saylink::Silent("#showzonepoints", "Zone Points");
+	menu_show += " | " + Saylink::Silent("#showzonegloballoot", "Zone Global Loot");
 
 	/**
 	 * Reload
 	 */
-	menu_reload_one += Saylink::Create("#reload aa", false, "AAs");
-	menu_reload_one += " | " + Saylink::Create("#reload alternate_currencies", false, "Alternate Currencies");
-	menu_reload_one += " | " + Saylink::Create("#reload blocked_spells", false, "Blocked Spells");
-	menu_reload_one += " | " + Saylink::Create("#reload content_flags", false, "Content Flags");
+	menu_reload_one += Saylink::Silent("#reload aa", "AAs");
+	menu_reload_one += " | " + Saylink::Silent("#reload alternate_currencies", "Alternate Currencies");
+	menu_reload_one += " | " + Saylink::Silent("#reload blocked_spells", "Blocked Spells");
 
-	menu_reload_two += Saylink::Create("#reload doors", false, "Doors");
-	menu_reload_two += " | " + Saylink::Create("#reload ground_spawns", false, "Ground Spawns");
+	menu_reload_two += Saylink::Silent("#reload commands", "Commands");
+	menu_reload_two += " | " + Saylink::Silent("#reload content_flags", "Content Flags");
 
-	menu_reload_three += Saylink::Create("#reload logs", false, "Level Based Experience Modifiers");
-	menu_reload_three += " | " + Saylink::Create("#reload logs", false, "Log Settings");
+	menu_reload_three += Saylink::Silent("#reload doors", "Doors");
+	menu_reload_three += " | " + Saylink::Silent("#reload ground_spawns", "Ground Spawns");
 
-	menu_reload_four += Saylink::Create("#reload merchants", false, "Merchants");
-	menu_reload_four += " | " + Saylink::Create("#reload npc_emotes", false, "NPC Emotes");
-	menu_reload_four += " | " + Saylink::Create("#reload objects", false, "Objects");
+	menu_reload_four += Saylink::Silent("#reload logs", "Level Based Experience Modifiers");
+	menu_reload_four += " | " + Saylink::Silent("#reload logs", "Log Settings");
 
-	menu_reload_five += Saylink::Create("#reload perl_export", false, "Perl Event Export Settings");
-	menu_reload_five += " | " + Saylink::Create("#reload quest", false, "Quests");
+	menu_reload_five += Saylink::Silent("#reload merchants", "Merchants");
+	menu_reload_five += " | " + Saylink::Silent("#reload npc_emotes", "NPC Emotes");
+	menu_reload_five += " | " + Saylink::Silent("#reload objects", "Objects");
 
-	menu_reload_six += Saylink::Create("#reload rules", false, "Rules");
-	menu_reload_six += " | " + Saylink::Create("#reload static", false, "Static Zone Data");
-	menu_reload_six += " | " + Saylink::Create("#reload tasks", false, "Tasks");
+	menu_reload_six += Saylink::Silent("#reload perl_export", "Perl Event Export Settings");
+	menu_reload_six += " | " + Saylink::Silent("#reload quest", "Quests");
 
-	menu_reload_seven += Saylink::Create("#reload titles", false, "Titles");
-	menu_reload_seven += " | " + Saylink::Create("#reload traps 1", false, "Traps");
-	menu_reload_seven += " | " + Saylink::Create("#reload variables", false, "Variables");
-	menu_reload_seven += " | " + Saylink::Create("#reload veteran_rewards", false, "Veteran Rewards");
+	menu_reload_seven += Saylink::Silent("#reload rules", "Rules");
+	menu_reload_seven += " | " + Saylink::Silent("#reload static", "Static Zone Data");
+	menu_reload_seven += " | " + Saylink::Silent("#reload tasks", "Tasks");
 
-	menu_reload_eight += Saylink::Create("#reload world", false, "World");
-	menu_reload_eight += " | " + Saylink::Create("#reload zone", false, "Zone");
-	menu_reload_eight += " | " + Saylink::Create("#reload zone_points", false, "Zone Points");
+	menu_reload_eight += Saylink::Silent("#reload titles", "Titles");
+	menu_reload_eight += " | " + Saylink::Silent("#reload traps 1", "Traps");
+	menu_reload_eight += " | " + Saylink::Silent("#reload variables", "Variables");
+	menu_reload_eight += " | " + Saylink::Silent("#reload veteran_rewards", "Veteran Rewards");
+
+	menu_reload_nine += Saylink::Silent("#reload world", "World");
+	menu_reload_nine += " | " + Saylink::Silent("#reload zone", "Zone");
+	menu_reload_nine += " | " + Saylink::Silent("#reload zone_points", "Zone Points");
 
 	/**
 	 * Show window status
 	 */
-	menu_toggle = Saylink::Create("#devtools enable", false, "Enable");
+	menu_toggle = Saylink::Silent("#devtools enable", "Enable");
 	if (IsDevToolsEnabled()) {
-		menu_toggle = Saylink::Create("#devtools disable", false, "Disable");
+		menu_toggle = Saylink::Silent("#devtools disable", "Disable");
 	}
 
 	/**
@@ -9626,7 +9645,7 @@ void Client::ShowDevToolsMenu()
 		Chat::White,
 		fmt::format(
 			"Show Menu | {}",
-			Saylink::Create("#dev", false, "#dev")
+			Saylink::Silent("#dev")
 		).c_str()
 	);
 
@@ -9718,11 +9737,15 @@ void Client::ShowDevToolsMenu()
 		).c_str()
 	);
 
-	auto help_link = Saylink::Create(
-		"#help",
-		false,
-		"#help"
+	Message(
+		Chat::White,
+		fmt::format(
+			"Reload | {}",
+			menu_reload_nine
+		).c_str()
 	);
+
+	auto help_link = Saylink::Silent("#help");
 
 	Message(
 		Chat::White,
@@ -9853,6 +9876,19 @@ Expedition* Client::CreateExpedition(
 	dz.SetMaxPlayers(max_players);
 
 	return Expedition::TryCreate(this, dz, disable_messages);
+}
+
+Expedition* Client::CreateExpeditionFromTemplate(uint32_t dz_template_id)
+{
+	Expedition* expedition = nullptr;
+	auto it = zone->dz_template_cache.find(dz_template_id);
+	if (it != zone->dz_template_cache.end())
+	{
+		DynamicZone dz(DynamicZoneType::Expedition);
+		dz.LoadTemplate(it->second);
+		expedition = Expedition::TryCreate(this, dz, false);
+	}
+	return expedition;
 }
 
 void Client::CreateTaskDynamicZone(int task_id, DynamicZone& dz_request)
@@ -10116,12 +10152,23 @@ void Client::SendDzCompassUpdate()
 	// client may be associated with multiple dynamic zone compasses in this zone
 	std::vector<DynamicZoneCompassEntry_Struct> compass_entries;
 
+	// need to sort by local doorid in case multiple have same dz switch id (live only sends first)
+	// todo: just store zone's door list ordered and ditch this
+	std::vector<Doors*> switches;
+	switches.reserve(entity_list.GetDoorsList().size());
+	for (const auto& door_pair : entity_list.GetDoorsList())
+	{
+		switches.push_back(door_pair.second);
+	}
+	std::sort(switches.begin(), switches.end(),
+		[](Doors* lhs, Doors* rhs) { return lhs->GetDoorID() < rhs->GetDoorID(); });
+
 	for (const auto& client_dz : GetDynamicZones())
 	{
 		auto compass = client_dz->GetCompassLocation();
 		if (zone && zone->IsZone(compass.zone_id, 0))
 		{
-			DynamicZoneCompassEntry_Struct entry;
+			DynamicZoneCompassEntry_Struct entry{};
 			entry.dz_zone_id = client_dz->GetZoneID();
 			entry.dz_instance_id = client_dz->GetInstanceID();
 			entry.dz_type = static_cast<uint32_t>(client_dz->GetType());
@@ -10131,12 +10178,36 @@ void Client::SendDzCompassUpdate()
 
 			compass_entries.emplace_back(entry);
 		}
+
+		// if client has a dz with a switch id add compass to any switch locs that share it
+		if (client_dz->GetSwitchID() != 0)
+		{
+			// live only sends one if multiple in zone have the same switch id
+			auto it = std::find_if(switches.begin(), switches.end(),
+				[&](const auto& eqswitch) {
+					return eqswitch->GetDzSwitchID() == client_dz->GetSwitchID();
+				});
+
+			if (it != switches.end())
+			{
+				DynamicZoneCompassEntry_Struct entry{};
+				entry.dz_zone_id = client_dz->GetZoneID();
+				entry.dz_instance_id = client_dz->GetInstanceID();
+				entry.dz_type = static_cast<uint32_t>(client_dz->GetType());
+				entry.dz_switch_id = client_dz->GetSwitchID();
+				entry.x = (*it)->GetX();
+				entry.y = (*it)->GetY();
+				entry.z = (*it)->GetZ();
+
+				compass_entries.emplace_back(entry);
+			}
+		}
 	}
 
 	// compass set via MarkSingleCompassLocation()
 	if (m_has_quest_compass)
 	{
-		DynamicZoneCompassEntry_Struct entry;
+		DynamicZoneCompassEntry_Struct entry{};
 		entry.dz_zone_id = 0;
 		entry.dz_instance_id = 0;
 		entry.dz_type = 0;
@@ -10264,6 +10335,27 @@ void Client::MovePCDynamicZone(uint32 zone_id, int zone_version, bool msg_if_inv
 		// client has more than one dz for this zone, send out the switchlist window
 		QueuePacket(CreateDzSwitchListPacket(client_dzs).get());
 	}
+}
+
+bool Client::TryMovePCDynamicZoneSwitch(int dz_switch_id)
+{
+	auto client_dzs = GetDynamicZones();
+
+	std::vector<DynamicZone*> switch_dzs;
+	auto it = std::copy_if(client_dzs.begin(), client_dzs.end(), std::back_inserter(switch_dzs),
+		[&](const DynamicZone* dz) { return dz->GetSwitchID() == dz_switch_id; });
+
+	if (switch_dzs.size() == 1)
+	{
+		LogDynamicZonesDetail("Moving client [{}] to dz with switch id [{}]", GetName(), dz_switch_id);
+		switch_dzs.front()->MovePCInto(this, true);
+	}
+	else if (switch_dzs.size() > 1)
+	{
+		QueuePacket(CreateDzSwitchListPacket(switch_dzs).get());
+	}
+
+	return !switch_dzs.empty();
 }
 
 std::unique_ptr<EQApplicationPacket> Client::CreateDzSwitchListPacket(
@@ -11219,11 +11311,7 @@ void Client::ReconnectUCS()
 void Client::SendReloadCommandMessages() {
 	SendChatLineBreak();
 
-	auto aa_link = Saylink::Create(
-		"#reload aa",
-		false,
-		"#reload aa"
-	);
+	auto aa_link = Saylink::Silent("#reload aa");
 
 	Message(
 		Chat::White,
@@ -11233,11 +11321,7 @@ void Client::SendReloadCommandMessages() {
 		).c_str()
 	);
 
-	auto alternate_currencies_link = Saylink::Create(
-		"#reload alternate_currencies",
-		false,
-		"#reload alternate_currencies"
-	);
+	auto alternate_currencies_link = Saylink::Silent("#reload alternate_currencies");
 
 	Message(
 		Chat::White,
@@ -11247,11 +11331,7 @@ void Client::SendReloadCommandMessages() {
 		).c_str()
 	);
 
-	auto blocked_spells_link = Saylink::Create(
-		"#reload blocked_spells",
-		false,
-		"#reload blocked_spells"
-	);
+	auto blocked_spells_link = Saylink::Silent("#reload blocked_spells");
 
 	Message(
 		Chat::White,
@@ -11261,11 +11341,17 @@ void Client::SendReloadCommandMessages() {
 		).c_str()
 	);
 
-	auto content_flags_link = Saylink::Create(
-		"#reload content_flags",
-		false,
-		"#reload content_flags"
+	auto commands_link = Saylink::Silent("#reload commands");
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Usage: {} - Reloads Commands globally",
+			commands_link
+		).c_str()
 	);
+
+	auto content_flags_link = Saylink::Silent("#reload content_flags");
 
 	Message(
 		Chat::White,
@@ -11275,11 +11361,7 @@ void Client::SendReloadCommandMessages() {
 		).c_str()
 	);
 
-	auto doors_link = Saylink::Create(
-		"#reload doors",
-		false,
-		"#reload doors"
-	);
+	auto doors_link = Saylink::Silent("#reload doors");
 
 	Message(
 		Chat::White,
@@ -11289,11 +11371,10 @@ void Client::SendReloadCommandMessages() {
 		).c_str()
 	);
 
-	auto ground_spawns_link = Saylink::Create(
-		"#reload ground_spawns",
-		false,
-		"#reload ground_spawns"
-	);
+	auto dztemplates_link = Saylink::Silent("#reload dztemplates");
+	Message(Chat::White, fmt::format("Usage: {} - Reloads Dynamic Zone Templates globally", dztemplates_link).c_str());
+
+	auto ground_spawns_link = Saylink::Silent("#reload ground_spawns");
 
 	Message(
 		Chat::White,
@@ -11303,11 +11384,7 @@ void Client::SendReloadCommandMessages() {
 		).c_str()
 	);
 
-	auto level_mods_link = Saylink::Create(
-		"#reload level_mods",
-		false,
-		"#reload level_mods"
-	);
+	auto level_mods_link = Saylink::Silent("#reload level_mods");
 
 	Message(
 		Chat::White,
@@ -11317,11 +11394,7 @@ void Client::SendReloadCommandMessages() {
 		).c_str()
 	);
 
-	auto logs_link = Saylink::Create(
-		"#reload logs",
-		false,
-		"#reload logs"
-	);
+	auto logs_link = Saylink::Silent("#reload logs");
 
 	Message(
 		Chat::White,
@@ -11331,11 +11404,7 @@ void Client::SendReloadCommandMessages() {
 		).c_str()
 	);
 
-	auto merchants_link = Saylink::Create(
-		"#reload merchants",
-		false,
-		"#reload merchants"
-	);
+	auto merchants_link = Saylink::Silent("#reload merchants");
 
 	Message(
 		Chat::White,
@@ -11345,11 +11414,7 @@ void Client::SendReloadCommandMessages() {
 		).c_str()
 	);
 
-	auto npc_emotes_link = Saylink::Create(
-		"#reload npc_emotes",
-		false,
-		"#reload npc_emotes"
-	);
+	auto npc_emotes_link = Saylink::Silent("#reload npc_emotes");
 
 	Message(
 		Chat::White,
@@ -11359,11 +11424,7 @@ void Client::SendReloadCommandMessages() {
 		).c_str()
 	);
 
-	auto objects_link = Saylink::Create(
-		"#reload objects",
-		false,
-		"#reload objects"
-	);
+	auto objects_link = Saylink::Silent("#reload objects");
 
 	Message(
 		Chat::White,
@@ -11373,11 +11434,7 @@ void Client::SendReloadCommandMessages() {
 		).c_str()
 	);
 
-	auto perl_export_link = Saylink::Create(
-		"#reload perl_export",
-		false,
-		"#reload perl_export"
-	);
+	auto perl_export_link = Saylink::Silent("#reload perl_export");
 
 	Message(
 		Chat::White,
@@ -11387,23 +11444,9 @@ void Client::SendReloadCommandMessages() {
 		).c_str()
 	);
 
-	auto quest_link_one = Saylink::Create(
-		"#reload quest",
-		false,
-		"#reload quest"
-	);
-
-	auto quest_link_two = Saylink::Create(
-		"#reload quest",
-		false,
-		"0"
-	);
-
-	auto quest_link_three = Saylink::Create(
-		"#reload quest 1",
-		false,
-		"1"
-	);
+	auto quest_link_one = Saylink::Silent("#reload quest");
+	auto quest_link_two = Saylink::Silent("#reload quest", "0");
+	auto quest_link_three = Saylink::Silent("#reload quest 1", "1");
 
 	Message(
 		Chat::White,
@@ -11415,11 +11458,7 @@ void Client::SendReloadCommandMessages() {
 		).c_str()
 	);
 
-	auto rules_link = Saylink::Create(
-		"#reload rules",
-		false,
-		"#reload rules"
-	);
+	auto rules_link = Saylink::Silent("#reload rules");
 
 	Message(
 		Chat::White,
@@ -11429,11 +11468,7 @@ void Client::SendReloadCommandMessages() {
 		).c_str()
 	);
 
-	auto static_link = Saylink::Create(
-		"#reload static",
-		false,
-		"#reload static"
-	);
+	auto static_link = Saylink::Silent("#reload static");
 
 	Message(
 		Chat::White,
@@ -11443,11 +11478,7 @@ void Client::SendReloadCommandMessages() {
 		).c_str()
 	);
 
-	auto tasks_link = Saylink::Create(
-		"#reload tasks",
-		false,
-		"#reload tasks"
-	);
+	auto tasks_link = Saylink::Silent("#reload tasks");
 
 	Message(
 		Chat::White,
@@ -11457,11 +11488,7 @@ void Client::SendReloadCommandMessages() {
 		).c_str()
 	);
 
-	auto titles_link = Saylink::Create(
-		"#reload titles",
-		false,
-		"#reload titles"
-	);
+	auto titles_link = Saylink::Silent("#reload titles");
 
 	Message(
 		Chat::White,
@@ -11471,23 +11498,9 @@ void Client::SendReloadCommandMessages() {
 		).c_str()
 	);
 
-	auto traps_link_one = Saylink::Create(
-		"#reload traps",
-		false,
-		"#reload traps"
-	);
-
-	auto traps_link_two = Saylink::Create(
-		"#reload traps",
-		false,
-		"0"
-	);
-
-	auto traps_link_three = Saylink::Create(
-		"#reload traps 1",
-		false,
-		"1"
-	);
+	auto traps_link_one = Saylink::Silent("#reload traps");
+	auto traps_link_two = Saylink::Silent("#reload traps", "0");
+	auto traps_link_three = Saylink::Silent("#reload traps 1", "1");
 
 	Message(
 		Chat::White,
@@ -11499,11 +11512,7 @@ void Client::SendReloadCommandMessages() {
 		).c_str()
 	);
 
-	auto variables_link = Saylink::Create(
-		"#reload variables",
-		false,
-		"#reload variables"
-	);
+	auto variables_link = Saylink::Silent("#reload variables");
 
 	Message(
 		Chat::White,
@@ -11513,11 +11522,7 @@ void Client::SendReloadCommandMessages() {
 		).c_str()
 	);
 
-	auto veteran_rewards_link = Saylink::Create(
-		"#reload veteran_rewards",
-		false,
-		"#reload veteran_rewards"
-	);
+	auto veteran_rewards_link = Saylink::Silent("#reload veteran_rewards");
 
 	Message(
 		Chat::White,
@@ -11527,29 +11532,10 @@ void Client::SendReloadCommandMessages() {
 		).c_str()
 	);
 
-	auto world_link_one = Saylink::Create(
-		"#reload world",
-		false,
-		"#reload world"
-	);
-
-	auto world_link_two = Saylink::Create(
-		"#reload world",
-		false,
-		"0"
-	);
-
-	auto world_link_three = Saylink::Create(
-		"#reload world 1",
-		false,
-		"1"
-	);
-
-	auto world_link_four = Saylink::Create(
-		"#reload world 2",
-		false,
-		"2"
-	);
+	auto world_link_one = Saylink::Silent("#reload world");
+	auto world_link_two = Saylink::Silent("#reload world", "0");
+	auto world_link_three = Saylink::Silent("#reload world 1", "1");
+	auto world_link_four = Saylink::Silent("#reload world 2", "2");
 
 	Message(
 		Chat::White,
@@ -11562,11 +11548,7 @@ void Client::SendReloadCommandMessages() {
 		).c_str()
 	);
 
-	auto zone_link = Saylink::Create(
-		"#reload zone",
-		false,
-		"#reload zone"
-	);
+	auto zone_link = Saylink::Silent("#reload zone");
 
 	Message(
 		Chat::White,
@@ -11576,11 +11558,7 @@ void Client::SendReloadCommandMessages() {
 		).c_str()
 	);
 
-	auto zone_points_link = Saylink::Create(
-		"#reload zone_points",
-		false,
-		"#reload zone_points"
-	);
+	auto zone_points_link = Saylink::Silent("#reload zone_points");
 
 	Message(
 		Chat::White,

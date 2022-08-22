@@ -1336,9 +1336,11 @@ void Mob::AI_Process() {
 
 			// See if we can summon the mob to us
 			if (!HateSummon()) {
+
 				//could not summon them, check ranged...
-				if (GetSpecialAbility(SPECATK_RANGED_ATK))
+				if (GetSpecialAbility(SPECATK_RANGED_ATK) || HasBowAndArrowEquipped()) {
 					doranged = true;
+				}
 
 				// Now pursue
 				// TODO: Check here for another person on hate list with close hate value
@@ -1600,9 +1602,8 @@ void NPC::AI_DoMovement() {
 				move_delay_max
 			);
 
-			Log(
-				Logs::Detail,
-				Logs::NPCRoamBox, "(%s) Timer calc | random_timer [%i] roambox_move_delay [%i] move_min [%i] move_max [%i]",
+			LogNPCRoamBoxDetail(
+				"({}) Timer calc | random_timer [{}] roambox_move_delay [{}] move_min [{}] move_max [{}]",
 				GetCleanName(),
 				random_timer,
 				roambox_move_delay,
@@ -1659,9 +1660,7 @@ void NPC::AI_DoMovement() {
 					}
 
 					if (zone->watermap->InLiquid(position)) {
-						Log(Logs::Detail,
-							Logs::NPCRoamBox, "%s | My destination is in water and I don't belong there!",
-							GetCleanName());
+						LogNPCRoamBoxDetail("[{}] | My destination is in water and I don't belong there!", GetCleanName());
 
 						return;
 					}
@@ -1681,39 +1680,12 @@ void NPC::AI_DoMovement() {
 				}
 			}
 
-			PathfinderOptions opts;
-			opts.smooth_path = true;
-			opts.step_size   = RuleR(Pathing, NavmeshStepSize);
-			opts.offset      = GetZOffset();
-			opts.flags       = PathingNotDisabled ^ PathingZoneLine;
+			LogNPCRoamBox("[{}] | Pathing to [{}] [{}] [{}]", GetCleanName(),
+				roambox_destination_x, roambox_destination_y,
+				roambox_destination_z);
 
-			auto partial = false;
-			auto stuck   = false;
-			auto route   = zone->pathing->FindPath(
-				glm::vec3(GetX(), GetY(), GetZ()),
-				glm::vec3(
-					roambox_destination_x,
-					roambox_destination_y,
-					roambox_destination_z
-				),
-				partial,
-				stuck,
-				opts
-			);
-
-			if (route.empty()) {
-				Log(
-					Logs::Detail,
-					Logs::NPCRoamBox, "(%s) We don't have a path route... exiting...",
-					GetCleanName()
-				);
-				return;
-			}
-
-			Log(
-				Logs::General,
-				Logs::NPCRoamBox,
-				"NPC (%s) distance [%.0f] X (min/max) [%.0f / %.0f] Y (min/max) [%.0f / %.0f] | Dest x/y/z [%.0f / %.0f / %.0f]",
+			LogNPCRoamBox(
+				"NPC ({}) distance [{}] X (min/max) [{} / {}] Y (min/max) [{} / {}] | Dest x/y/z [{} / {} / {}]",
 				GetCleanName(),
 				roambox_distance,
 				roambox_min_x,
@@ -1951,7 +1923,7 @@ void Mob::AI_Event_Engaged(Mob *attacker, bool yell_for_help)
 			if (attacker->GetHP() > 0) {
 				if (!CastToNPC()->GetCombatEvent() && GetHP() > 0) {
 					parse->EventNPC(EVENT_COMBAT, CastToNPC(), attacker, "1", 0);
-					uint16 emoteid = GetEmoteID();
+					uint32 emoteid = GetEmoteID();
 					if (emoteid != 0) {
 						CastToNPC()->DoNPCEmote(ENTERCOMBAT, emoteid);
 					}
@@ -1983,7 +1955,7 @@ void Mob::AI_Event_NoLongerEngaged() {
 		SetAssistAggro(false);
 		if (CastToNPC()->GetCombatEvent() && GetHP() > 0) {
 			if (entity_list.GetNPCByID(this->GetID())) {
-				uint16 emoteid = CastToNPC()->GetEmoteID();
+				uint32 emoteid = CastToNPC()->GetEmoteID();
 				parse->EventNPC(EVENT_COMBAT, CastToNPC(), nullptr, "0", 0);
 				if (emoteid != 0) {
 					CastToNPC()->DoNPCEmote(LEAVECOMBAT, emoteid);

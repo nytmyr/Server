@@ -243,6 +243,8 @@ public:
 	void SendChatLineBreak(uint16 color = Chat::White);
 
 	bool GotoPlayer(std::string player_name);
+	bool GotoPlayerGroup(const std::string& player_name);
+	bool GotoPlayerRaid(const std::string& player_name);
 
 	//abstract virtual function implementations required by base abstract class
 	virtual bool Death(Mob* killerMob, int64 damage, uint16 spell_id, EQ::skills::SkillType attack_skill);
@@ -601,10 +603,10 @@ public:
 
 	inline uint32 GetEXP() const { return m_pp.exp; }
 
-	inline double GetAAEXPModifier(uint32 zone_id) const { return database.GetAAEXPModifier(CharacterID(), zone_id); };
-	inline double GetEXPModifier(uint32 zone_id) const { return database.GetEXPModifier(CharacterID(), zone_id); };
-	inline void SetAAEXPModifier(uint32 zone_id, double aa_modifier) { database.SetAAEXPModifier(CharacterID(), zone_id, aa_modifier); };
-	inline void SetEXPModifier(uint32 zone_id, double exp_modifier) { database.SetEXPModifier(CharacterID(), zone_id, exp_modifier); };
+	inline double GetAAEXPModifier(uint32 zone_id, int16 instance_version = -1) const { return database.GetAAEXPModifier(CharacterID(), zone_id, instance_version); };
+	inline double GetEXPModifier(uint32 zone_id, int16 instance_version = -1) const { return database.GetEXPModifier(CharacterID(), zone_id, instance_version); };
+	inline void SetAAEXPModifier(uint32 zone_id, double aa_modifier, int16 instance_version = -1) { database.SetAAEXPModifier(CharacterID(), zone_id, aa_modifier, instance_version); };
+	inline void SetEXPModifier(uint32 zone_id, double exp_modifier, int16 instance_version = -1) { database.SetEXPModifier(CharacterID(), zone_id, exp_modifier, instance_version); };
 
 	bool UpdateLDoNPoints(uint32 theme_id, int points);
 	void SetPVPPoints(uint32 Points) { m_pp.PVPCurrentPoints = Points; }
@@ -1041,6 +1043,7 @@ public:
 	void SendRules();
 
 	const bool GetGMSpeed() const { return (gmspeed > 0); }
+	const bool GetGMInvul() const { return gminvul; }
 	bool CanUseReport;
 
 	//This is used to later set the buff duration of the spell, in slot to duration.
@@ -1178,6 +1181,10 @@ public:
 		}
 		else { return false; }
 	}
+	void UpdateTasksOnTouchSwitch(int dz_switch_id)
+	{
+		if (task_state) { task_state->UpdateTasksOnTouch(this, dz_switch_id); }
+	}
 	inline void TaskSetSelector(Mob *mob, int task_set_id)
 	{
 		if (task_manager) {
@@ -1302,6 +1309,7 @@ public:
 		return (task_state ? task_state->CompletedTasksInSet(task_set_id) : 0);
 	}
 	void PurgeTaskTimers();
+	void LockSharedTask(bool lock) { if (task_state) { task_state->LockSharedTask(this, lock); } }
 
 	// shared task shims / middleware
 	// these variables are used as a shim to intercept normal localized task functionality
@@ -1384,6 +1392,7 @@ public:
 	Expedition* CreateExpedition(const std::string& zone_name,
 		uint32 version, uint32 duration, const std::string& expedition_name,
 		uint32 min_players, uint32 max_players, bool disable_messages = false);
+	Expedition* CreateExpeditionFromTemplate(uint32_t dz_template_id);
 	Expedition* GetExpedition() const;
 	uint32 GetExpeditionID() const { return m_expedition_id; }
 	const ExpeditionLockoutTimer* GetExpeditionLockout(
@@ -1404,8 +1413,9 @@ public:
 	void SetDzRemovalTimer(bool enable_timer);
 	void SendDzCompassUpdate();
 	void GoToDzSafeReturnOrBind(const DynamicZone* dynamic_zone);
-	void MovePCDynamicZone(uint32 zone_id, int zone_version = -1, bool msg_if_invalid = true);
-	void MovePCDynamicZone(const std::string& zone_name, int zone_version = -1, bool msg_if_invalid = true);
+	void MovePCDynamicZone(uint32 zone_id, int zone_version = -1, bool msg_if_invalid = false);
+	void MovePCDynamicZone(const std::string& zone_name, int zone_version = -1, bool msg_if_invalid = false);
+	bool TryMovePCDynamicZoneSwitch(int dz_switch_id);
 	std::vector<DynamicZone*> GetDynamicZones(uint32_t zone_id = 0, int zone_version = -1);
 	std::unique_ptr<EQApplicationPacket> CreateDzSwitchListPacket(const std::vector<DynamicZone*>& dzs);
 	std::unique_ptr<EQApplicationPacket> CreateCompassPacket(const std::vector<DynamicZoneCompassEntry_Struct>& entries);
@@ -1788,6 +1798,7 @@ private:
 	bool auto_fire;
 	bool runmode;
 	uint8 gmspeed;
+	bool gminvul;
 	bool medding;
 	uint16 horseId;
 	bool revoked;
@@ -2051,6 +2062,7 @@ private:
 	bool m_bot_precombat;
 
 #endif
+	bool CanTradeFVNoDropItem();
 };
 
 #endif

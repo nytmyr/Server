@@ -169,6 +169,8 @@
 #define ServerOP_DzExpireWarning              0x045b
 #define ServerOP_DzCreated                    0x045c
 #define ServerOP_DzDeleted                    0x045d
+#define ServerOP_DzSetSwitchID                0x045e
+#define ServerOP_DzMovePC                     0x045f
 
 #define ServerOP_LSInfo				0x1000
 #define ServerOP_LSStatus			0x1001
@@ -224,24 +226,26 @@
 #define ServerOP_ReloadAAData 0x4100
 #define ServerOP_ReloadAlternateCurrencies 0x4101
 #define ServerOP_ReloadBlockedSpells 0x4102
-#define ServerOP_ReloadContentFlags 0x4103
-#define ServerOP_ReloadDoors 0x4104
-#define ServerOP_ReloadGroundSpawns 0x4105
-#define ServerOP_ReloadLevelEXPMods 0x4106
-#define ServerOP_ReloadLogs 0x4107
-#define ServerOP_ReloadMerchants 0x4108
-#define ServerOP_ReloadNPCEmotes 0x4109
-#define ServerOP_ReloadObjects 0x4110
-#define ServerOP_ReloadPerlExportSettings 0x4111
-#define ServerOP_ReloadRules 0x4112
-#define ServerOP_ReloadStaticZoneData 0x4113
-#define ServerOP_ReloadTasks 0x4114
-#define ServerOP_ReloadTitles 0x4115
-#define ServerOP_ReloadTraps 0x4116
-#define ServerOP_ReloadVariables 0x4117
-#define ServerOP_ReloadVeteranRewards 0x4118
-#define ServerOP_ReloadWorld 0x4119
-#define ServerOP_ReloadZonePoints 0x4120
+#define ServerOP_ReloadCommands 0x4103
+#define ServerOP_ReloadContentFlags 0x4104
+#define ServerOP_ReloadDoors 0x4105
+#define ServerOP_ReloadGroundSpawns 0x4106
+#define ServerOP_ReloadLevelEXPMods 0x4107
+#define ServerOP_ReloadLogs 0x4108
+#define ServerOP_ReloadMerchants 0x4109
+#define ServerOP_ReloadNPCEmotes 0x4110
+#define ServerOP_ReloadObjects 0x4111
+#define ServerOP_ReloadPerlExportSettings 0x4112
+#define ServerOP_ReloadRules 0x4113
+#define ServerOP_ReloadStaticZoneData 0x4114
+#define ServerOP_ReloadTasks 0x4115
+#define ServerOP_ReloadTitles 0x4116
+#define ServerOP_ReloadTraps 0x4117
+#define ServerOP_ReloadVariables 0x4118
+#define ServerOP_ReloadVeteranRewards 0x4119
+#define ServerOP_ReloadWorld 0x4120
+#define ServerOP_ReloadZonePoints 0x4121
+#define ServerOP_ReloadDzTemplates 0x4122
 
 #define ServerOP_CZDialogueWindow 0x4500
 #define ServerOP_CZLDoNUpdate 0x4501
@@ -1284,7 +1288,7 @@ struct ServerLeaderboardRequest_Struct
 struct ServerCameraShake_Struct
 {
 	uint32 duration; // milliseconds
-	uint32 intensity; // number from 1-10
+	float intensity;
 };
 
 struct ServerMailMessageHeader_Struct {
@@ -1671,6 +1675,13 @@ struct ServerDzMemberStatuses_Struct {
 	ServerDzMemberStatusEntry_Struct entries[0];
 };
 
+struct ServerDzMovePC_Struct {
+	uint32 dz_id;
+	uint16 sender_zone_id;
+	uint16 sender_instance_id;
+	uint32 character_id;
+};
+
 struct ServerExpeditionLockout_Struct {
 	uint32 expedition_id;
 	uint64 expire_time;
@@ -1750,6 +1761,11 @@ struct ServerDzLocation_Struct {
 	float  x;
 	float  z;
 	float  heading;
+};
+
+struct ServerDzSwitchID_Struct {
+	uint32 dz_id;
+	int    dz_switch_id;
 };
 
 struct ServerDzMember_Struct {

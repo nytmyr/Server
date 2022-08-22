@@ -370,10 +370,10 @@ public:
 	bool SaveCharacterSpell(uint32 character_id, uint32 spell_id, uint32 slot_id);
 	bool SaveCharacterTribute(uint32 character_id, PlayerProfile_Struct* pp);
 	
-	double GetAAEXPModifier(uint32 character_id, uint32 zone_id) const;
-	double GetEXPModifier(uint32 character_id, uint32 zone_id) const;
-	void SetAAEXPModifier(uint32 character_id, uint32 zone_id, double aa_modifier);
-	void SetEXPModifier(uint32 character_id, uint32 zone_id, double exp_modifier);
+	double GetAAEXPModifier(uint32 character_id, uint32 zone_id, int16 instance_version = -1) const;
+	double GetEXPModifier(uint32 character_id, uint32 zone_id, int16 instance_version = -1) const;
+	void SetAAEXPModifier(uint32 character_id, uint32 zone_id, double aa_modifier, int16 instance_version = -1);
+	void SetEXPModifier(uint32 character_id, uint32 zone_id, double exp_modifier, int16 instance_version = -1);
 
 	/* Character Inventory  */
 	bool	NoRentExpired(const char* name);
@@ -526,8 +526,8 @@ public:
 	void	RefreshPetitionsFromDB();
 
 	/* Merchants  */
-	void	SaveMerchantTemp(uint32 npcid, uint32 slot, uint32 item, uint32 charges);
-	void	DeleteMerchantTemp(uint32 npcid, uint32 slot);
+	void	SaveMerchantTemp(uint32 npcid, uint32 slot, uint32 zone_id, uint32 instance_id, uint32 item, uint32 charges);
+	void	DeleteMerchantTemp(uint32 npcid, uint32 slot, uint32 zone_id, uint32 instance_id);
 
 	/* Tradeskills  */
 	bool	GetTradeRecipe(const EQ::ItemInstance* container, uint8 c_type, uint32 some_id, uint32 char_id, DBTradeskillRecipe_Struct *spec);

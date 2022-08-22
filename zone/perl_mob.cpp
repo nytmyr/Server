@@ -1005,12 +1005,12 @@ void Perl_Mob_SpellFinished(Mob* self, uint16 spell_id, Mob* target) // @categor
 	self->SpellFinished(spell_id, target, EQ::spells::CastingSlot::Item, 0, -1, spells[spell_id].resist_difficulty);
 }
 
-void Perl_Mob_SpellFinished(Mob* self, uint16 spell_id, Mob* target, uint16 mana_cost) // @categories Spells and Disciplines
+void Perl_Mob_SpellFinished(Mob* self, uint16 spell_id, Mob* target, int32 mana_cost) // @categories Spells and Disciplines
 {
 	self->SpellFinished(spell_id, target, EQ::spells::CastingSlot::Item, mana_cost, -1, spells[spell_id].resist_difficulty);
 }
 
-void Perl_Mob_SpellFinished(Mob* self, uint16 spell_id, Mob* target, uint16 mana_cost, uint16 resist_diff) // @categories Spells and Disciplines
+void Perl_Mob_SpellFinished(Mob* self, uint16 spell_id, Mob* target, int32 mana_cost, uint16 resist_diff) // @categories Spells and Disciplines
 {
 	self->SpellFinished(spell_id, target, EQ::spells::CastingSlot::Item, mana_cost, -1, resist_diff);
 }
@@ -1931,20 +1931,20 @@ void Perl_Mob_SendIllusion(Mob* self, uint16 race, uint8 gender, uint8 texture, 
 
 void Perl_Mob_CameraEffect(Mob* self, uint32 duration) // @categories Script Utility
 {
-	self->CameraEffect(duration, 0);
+	self->CameraEffect(duration, 0.03125f);
 }
 
-void Perl_Mob_CameraEffect(Mob* self, uint32 duration, uint32 intensity) // @categories Script Utility
+void Perl_Mob_CameraEffect(Mob* self, uint32 duration, float intensity) // @categories Script Utility
 {
 	self->CameraEffect(duration, intensity);
 }
 
-void Perl_Mob_CameraEffect(Mob* self, uint32 duration, uint32 intensity, Client* client) // @categories Script Utility
+void Perl_Mob_CameraEffect(Mob* self, uint32 duration, float intensity, Client* client) // @categories Script Utility
 {
 	self->CameraEffect(duration, intensity, client);
 }
 
-void Perl_Mob_CameraEffect(Mob* self, uint32 duration, uint32 intensity, perl::nullable<Client*> client, bool global) // @categories Script Utility
+void Perl_Mob_CameraEffect(Mob* self, uint32 duration, float intensity, perl::nullable<Client*> client, bool global) // @categories Script Utility
 {
 	self->CameraEffect(duration, intensity, client.get(), global);
 }
@@ -2527,6 +2527,11 @@ void Perl_Mob_ApplySpellBuff(Mob* self, int spell_id, int duration) // @categori
 	self->ApplySpellBuff(spell_id, duration);
 }
 
+int Perl_Mob_GetSkillDmgAmt(Mob* self, uint16 skill_id)
+{
+	return self->GetSkillDmgAmt(skill_id);
+}
+
 #ifdef BOTS
 Bot* Perl_Mob_CastToBot(Mob* self)
 {
@@ -2570,9 +2575,9 @@ void perl_register_mob()
 	package.add("CalculateDistance", &Perl_Mob_CalculateDistance);
 	package.add("CalculateHeadingToTarget", &Perl_Mob_CalculateHeadingToTarget);
 	package.add("CameraEffect", (void(*)(Mob*, uint32))&Perl_Mob_CameraEffect);
-	package.add("CameraEffect", (void(*)(Mob*, uint32, uint32))&Perl_Mob_CameraEffect);
-	package.add("CameraEffect", (void(*)(Mob*, uint32, uint32, Client*))&Perl_Mob_CameraEffect);
-	package.add("CameraEffect", (void(*)(Mob*, uint32, uint32, perl::nullable<Client*>, bool))&Perl_Mob_CameraEffect);
+	package.add("CameraEffect", (void(*)(Mob*, uint32, float))&Perl_Mob_CameraEffect);
+	package.add("CameraEffect", (void(*)(Mob*, uint32, float, Client*))&Perl_Mob_CameraEffect);
+	package.add("CameraEffect", (void(*)(Mob*, uint32, float, perl::nullable<Client*>, bool))&Perl_Mob_CameraEffect);
 	package.add("CanBuffStack", (bool(*)(Mob*, uint16, uint8))&Perl_Mob_CanBuffStack);
 	package.add("CanBuffStack", (bool(*)(Mob*, uint16, uint8, bool))&Perl_Mob_CanBuffStack);
 	package.add("CanClassEquipItem", &Perl_Mob_CanClassEquipItem);
@@ -2776,6 +2781,7 @@ void perl_register_mob()
 	package.add("GetSTR", &Perl_Mob_GetSTR);
 	package.add("GetSize", &Perl_Mob_GetSize);
 	package.add("GetSkill", &Perl_Mob_GetSkill);
+	package.add("GetSkillDmgAmt", &Perl_Mob_GetSkillDmgAmt);
 	package.add("GetSkillDmgTaken", &Perl_Mob_GetSkillDmgTaken);
 	package.add("GetSpecialAbility", &Perl_Mob_GetSpecialAbility);
 	package.add("GetSpecialAbilityParam", &Perl_Mob_GetSpecialAbilityParam);
@@ -3023,8 +3029,8 @@ void perl_register_mob()
 	package.add("SpellEffect", (void(*)(Mob*, uint32, uint32, uint32, bool, uint32, bool, perl::nullable<Client*>, uint32, uint32))&Perl_Mob_SpellEffect);
 	package.add("SpellFinished", (void(*)(Mob*, uint16))&Perl_Mob_SpellFinished);
 	package.add("SpellFinished", (void(*)(Mob*, uint16, Mob*))&Perl_Mob_SpellFinished);
-	package.add("SpellFinished", (void(*)(Mob*, uint16, Mob*, uint16))&Perl_Mob_SpellFinished);
-	package.add("SpellFinished", (void(*)(Mob*, uint16, Mob*, uint16, uint16))&Perl_Mob_SpellFinished);
+	package.add("SpellFinished", (void(*)(Mob*, uint16, Mob*, int32))&Perl_Mob_SpellFinished);
+	package.add("SpellFinished", (void(*)(Mob*, uint16, Mob*, int32, uint16))&Perl_Mob_SpellFinished);
 	package.add("Spin", &Perl_Mob_Spin);
 	package.add("StartEnrage", &Perl_Mob_StartEnrage);
 	package.add("StopNavigation", &Perl_Mob_StopNavigation);

@@ -699,7 +699,7 @@ void EntityList::AddNPC(NPC *npc, bool SendSpawnPacket, bool dontqueue)
 	}
 	parse->EventNPC(EVENT_SPAWN, npc, nullptr, "", 0);
 
-	uint16 emoteid = npc->GetEmoteID();
+	uint32 emoteid = npc->GetEmoteID();
 	if (emoteid != 0)
 		npc->DoNPCEmote(ONSPAWN, emoteid);
 	npc->SetSpawned();
@@ -5445,12 +5445,12 @@ void EntityList::AddLootToNPCS(uint32 item_id, uint32 count)
 	safe_delete_array(marked);
 }
 
-void EntityList::CameraEffect(uint32 duration, uint32 intensity)
+void EntityList::CameraEffect(uint32 duration, float intensity)
 {
 	auto outapp = new EQApplicationPacket(OP_CameraEffect, sizeof(Camera_Struct));
 	Camera_Struct* cs = (Camera_Struct*) outapp->pBuffer;
 	cs->duration = duration;	// Duration in milliseconds
-	cs->intensity = ((intensity * 6710886) + 1023410176);	// Intensity ranges from 1023410176 to 1090519040, so simplify it from 0 to 10.
+	cs->intensity = intensity;
 	entity_list.QueueClients(0, outapp);
 	safe_delete(outapp);
 }

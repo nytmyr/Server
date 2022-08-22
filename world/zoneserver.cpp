@@ -37,6 +37,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #include "queryserv.h"
 #include "world_store.h"
 #include "dynamic_zone.h"
+#include "dynamic_zone_manager.h"
 #include "expedition_message.h"
 #include "shared_task_world_messaging.h"
 #include "../common/shared_tasks.h"
@@ -457,27 +458,25 @@ void ZoneServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p) {
 					(
 						cle->TellsOff() &&
 						(
-							(
-								cle->Anon() == 1 &&
-								scm->fromadmin < cle->Admin()
-							) ||
-							scm->fromadmin < AccountStatus::QuestTroupe
+							scm->fromadmin < cle->Admin()
+							|| scm->fromadmin < AccountStatus::QuestTroupe
 						)
 					)
-				) {
+					) {
 					if (!scm->noreply) {
 						auto sender = client_list.FindCharacter(scm->from);
 						if (!sender || !sender->Server()) {
 							break;
 						}
 
-						scm->noreply = true;
-						scm->queued = 3; // offline
+						scm->noreply  = true;
+						scm->queued   = 3; // offline
 						scm->chan_num = ChatChannel_TellEcho;
 						strcpy(scm->deliverto, scm->from);
 						sender->Server()->SendPacket(pack);
 					}
-				} else if (cle->Online() == CLE_Status::Zoning) {
+				}
+				else if (cle->Online() == CLE_Status::Zoning) {
 					if (!scm->noreply) {
 						auto sender = client_list.FindCharacter(scm->from);
 						if (cle->TellQueueFull()) {
@@ -527,6 +526,7 @@ void ZoneServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p) {
 				}
 			} else {
 				if (
+					scm->chan_num == ChatChannel_Guild ||
 					scm->chan_num == ChatChannel_Auction ||
 					scm->chan_num == ChatChannel_OOC ||
 					scm->chan_num == ChatChannel_Broadcast ||
@@ -1308,6 +1308,7 @@ void ZoneServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p) {
 		case ServerOP_ReloadAAData:
 		case ServerOP_ReloadAlternateCurrencies:
 		case ServerOP_ReloadBlockedSpells:
+		case ServerOP_ReloadCommands:
 		case ServerOP_ReloadDoors:
 		case ServerOP_ReloadGroundSpawns:
 		case ServerOP_ReloadLevelEXPMods:
@@ -1354,6 +1355,11 @@ void ZoneServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p) {
 			zoneserver_list.SendPacket(pack);
 			break;
 		}
+		case ServerOP_ReloadDzTemplates: {
+			dynamic_zone_manager.LoadTemplates();
+			zoneserver_list.SendPacket(pack);
+			break;
+		}
 		case ServerOP_ChangeSharedMem: {
 			auto hotfix_name = std::string((char*) pack->pBuffer);
 
@@ -1387,7 +1393,7 @@ void ZoneServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p) {
 		}
 		case ServerOP_SharedTaskRequest:
 		case ServerOP_SharedTaskAddPlayer:
-		case ServerOP_SharedTaskAttemptRemove:
+		case ServerOP_SharedTaskQuit:
 		case ServerOP_SharedTaskUpdate:
 		case ServerOP_SharedTaskRequestMemberlist:
 		case ServerOP_SharedTaskRemovePlayer:
@@ -1396,6 +1402,7 @@ void ZoneServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p) {
 		case ServerOP_SharedTaskCreateDynamicZone:
 		case ServerOP_SharedTaskPurgeAllCommand:
 		case ServerOP_SharedTaskPlayerList:
+		case ServerOP_SharedTaskLock:
 		case ServerOP_SharedTaskKickPlayers: {
 			SharedTaskWorldMessaging::HandleZoneMessage(pack);
 			break;
@@ -1418,6 +1425,8 @@ void ZoneServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p) {
 		case ServerOP_DzSetCompass:
 		case ServerOP_DzSetSafeReturn:
 		case ServerOP_DzSetZoneIn:
+		case ServerOP_DzSetSwitchID:
+		case ServerOP_DzMovePC:
 		case ServerOP_DzUpdateMemberStatus: {
 			DynamicZone::HandleZoneMessage(pack);
 			break;
