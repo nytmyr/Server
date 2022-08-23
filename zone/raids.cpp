@@ -1854,12 +1854,6 @@ void Raid::RaidMessageString(Mob* sender, uint32 type, uint32 string_id, const c
 		if (members[i].member == nullptr)
 			continue;
 
-		if (members[i].member == sender)
-			continue;
-
-		if (!members[i].member->IsClient())
-			continue;
-
 		if(members[i].member) {
 			if(members[i].member != sender)
 				members[i].member->MessageString(type, string_id, message, message2, message3, message4, message5, message6, message7, message8, message9, distance);
@@ -1928,7 +1922,7 @@ void Raid::SetDirtyAutoHaters()
 {
 	for (int i = 0; i < MAX_RAID_MEMBERS; ++i)
 #ifdef BOTS
-		if (members[i].member && members[i].IsBot)
+		if (members[i].member && entity_list.IsMobInZone(members[i].member) && members[i].IsBot)
 		{
 			members[i].member->CastToBot()->SetDirtyAutoHaters();
 		}
