@@ -1448,7 +1448,7 @@ int bot_command_init(void)
 		// custom bot commands
 		bot_command_add("autoresist", "Toggles the ability for casters to automatically cast resist buffs", AccountStatus::Player, bot_command_auto_resist) ||
 		bot_command_add("autods", "Toggles the ability for casters to automatically cast damage shield buffs", AccountStatus::Player, bot_command_auto_ds) ||
-		bot_command_add("holdnukes", "Toggles a bots ability to cast nukes", AccountStatus::Player, bot_command_hold_nukes) ||
+		bot_command_add("holdnukes", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_nukes) ||
 		bot_command_add("nukedelay", "Sets a timer that controls the frequency of bot nukes", AccountStatus::Player, bot_command_nuke_delay) ||
 		bot_command_add("useepic", "Orders your targeted bot to use their epic if it is equipped", AccountStatus::Player, bot_command_use_epic)
 	) {
@@ -3618,8 +3618,8 @@ void bot_command_hold_nukes(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: Set to 0 to prevent holding nukes.");
-		c->Message(Chat::White, "note: Set to 1 to hold nukes.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast nukes.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting nukes.");
 		return;
 	}
 
@@ -3653,7 +3653,7 @@ void bot_command_hold_nukes(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current hold status is %u.", my_bot->GetHoldNukes());
+		c->Message(Chat::White, "My current hold nukes status is %u.", my_bot->GetHoldNukes());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
