@@ -4270,7 +4270,8 @@ luabind::scope lua_register_events() {
 			luabind::value("merchant_transaction_buy", static_cast<int>(EVENT_MERCHANT_TRANSACTION_BUY)),
 			luabind::value("merchant_transaction_sell", static_cast<int>(EVENT_MERCHANT_TRANSACTION_SELL)),
 			luabind::value("alt_merchant_transaction_buy", static_cast<int>(EVENT_ALT_MERCHANT_TRANSACTION_BUY)),
-			luabind::value("alt_merchant_transaction_sell", static_cast<int>(EVENT_ALT_MERCHANT_TRANSACTION_SELL))
+			luabind::value("alt_merchant_transaction_sell", static_cast<int>(EVENT_ALT_MERCHANT_TRANSACTION_SELL)),
+			luabind::value("summon_pc", static_cast<int>(EVENT_SUMMON_PC))
 		];
 }
 

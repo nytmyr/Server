@@ -3835,8 +3835,22 @@ bool Mob::HateSummon() {
 			// probably should be like half melee range, but we can't get melee range nicely because reasons :)
 			new_pos = target->TryMoveAlong(new_pos, 5.0f, angle);
 
-			if (target->IsClient())
+			if (target->IsClient()) {
+				int summoned_char_id = 0;
+				summoned_char_id = target->CastToClient()->CharacterID();
+
+				std::string export_string = fmt::format(
+					"{} {} {} {} {} {}",
+					summoned_char_id,
+					GetNPCTypeID(),
+					new_pos.x,
+					new_pos.y,
+					new_pos.z,
+					new_pos.w
+				);
+				parse->EventPlayer(EVENT_SUMMON_PC, target->CastToClient(), export_string, 0);
 				target->CastToClient()->MovePC(zone->GetZoneID(), zone->GetInstanceID(), new_pos.x, new_pos.y, new_pos.z, new_pos.w, 0, SummonPC);
+			}
 			else
 				target->GMMove(new_pos.x, new_pos.y, new_pos.z, new_pos.w);
 

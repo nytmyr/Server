@@ -981,4 +981,26 @@ void handle_player_alt_merchant_transaction_sell(QuestInterface* parse, lua_Stat
 	lua_setfield(L, -2, "instance_id");
 
 }
+
+void handle_player_summon_pc(QuestInterface* parse, lua_State* L, Client* client, std::string data, uint32 extra_data, std::vector<std::any>* extra_pointers) {
+	Seperator sep(data.c_str());
+	lua_pushinteger(L, std::stoi(sep.arg[0]));
+	lua_setfield(L, -2, "char_id");
+
+	lua_pushinteger(L, std::stoi(sep.arg[1]));
+	lua_setfield(L, -2, "npc_id");
+
+	lua_pushinteger(L, std::stoi(sep.arg[2]));
+	lua_setfield(L, -2, "new_x");
+
+	lua_pushinteger(L, std::stoi(sep.arg[3]));
+	lua_setfield(L, -2, "new_y");
+
+	lua_pushinteger(L, std::stoi(sep.arg[4]));
+	lua_setfield(L, -2, "new_z");
+
+	lua_pushinteger(L, std::stoi(sep.arg[5]));
+	lua_setfield(L, -2, "new_h");
+
+}
 #endif
