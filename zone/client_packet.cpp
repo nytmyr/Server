@@ -11661,13 +11661,14 @@ void Client::Handle_OP_RaidCommand(const EQApplicationPacket* app)
 		Bot* b = nullptr;
 		Client* invitee = entity_list.GetClientByName(raid_command_packet->leader_name);
 		Client* invitor = entity_list.GetClientByName(raid_command_packet->player_name);
-		Group* g_invitee = invitee->GetGroup();
-		Group* g_invitor = invitor->GetGroup();
 
 		if (invitee && invitee->IsRaidGrouped()) {
 			invitor->MessageString(Chat::White, ALREADY_IN_RAID, GetName()); //group failed, must invite members not in raid...
 			return;
 		}
+
+		Group* g_invitee = invitee->GetGroup();
+		Group* g_invitor = invitor->GetGroup();
 
 		bool invitor_has_bot = false;
 		bool invitee_has_bot = false;
@@ -11994,7 +11995,7 @@ void Client::Handle_OP_RaidCommand(const EQApplicationPacket* app)
 				uint32 owner_id = c_to_disband->CharacterID();
 				for (int i = 0; i < MAX_RAID_MEMBERS; ++i)
 				{
-					if (raid->members[i].member && raid->members[i].member->IsBot() && raid->members[i].member->CastToBot()->GetOwner()->CastToClient()->CharacterID() == owner_id)
+					if (raid->members[i].member && raid->members[i].IsBot && raid->members[i].member->CastToBot()->GetOwner()->CastToClient()->CharacterID() == owner_id)
 					{
 						raid_members_bots.emplace_back(raid->members[i].member->CastToBot());
 					}
