@@ -5500,6 +5500,26 @@ void bot_subcommand_bot_camp(Client *c, const Seperator *sep)
 	}
 	const int ab_mask = ActionableBots::ABM_NoFilter;
 
+	auto* owner_group = c->GetGroup();
+	if (owner_group) {
+		std::list<Client*> member_list;
+		owner_group->GetClientList(member_list);
+		member_list.remove(nullptr);
+
+		for (auto member_iter : member_list) {
+			if (member_iter->IsEngaged() || member_iter->GetAggroCount() > 0) {
+				c->Message(Chat::White, "You can't camp bots while your group is engaged.");
+				return;
+			}
+		}
+	}
+	else {
+		if (c->GetAggroCount() > 0) {
+			c->Message(Chat::White, "You can't camp bots while you are engaged.");
+			return;
+		}
+	}
+
 	std::list<Bot*> sbl;
 	if (ActionableBots::PopulateSBL(c, sep->arg[1], sbl, ab_mask, sep->arg[2]) == ActionableBots::ABT_None)
 		return;
@@ -6738,25 +6758,62 @@ void bot_subcommand_bot_spawn(Client *c, const Seperator *sep)
 		return;
 	}
 
-	// this probably needs work...
-	if (c->GetGroup()) {
-		std::list<Mob*> group_list;
-		c->GetGroup()->GetMemberList(group_list);
-		for (auto member_iter : group_list) {
-			if (!member_iter)
-				continue;
-			if (member_iter->qglobal) // what is this?? really should have had a message to describe failure... (can't spawn bots if you are assigned to a task/instance?)
-				return;
-			if (!member_iter->qglobal && (member_iter->GetAppearance() != eaDead) && (member_iter->IsEngaged() || (member_iter->IsClient() && member_iter->CastToClient()->GetAggroCount()))) {
-				c->Message(Chat::White, "You can't summon bots while you are engaged.");
+	//auto* owner_raid = c->GetRaid();
+	auto* owner_group = c->GetGroup();
+	//if (c->IsRaidGrouped()) {
+	//	Raid* raid = entity_list.GetRaidByClient(c);
+	//	uint32 g = raid->GetGroup(c->GetName());
+	//	if (g < 12) {
+	//		std::vector<RaidMember> raid_group_members = raid->GetMembers();
+	//		for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
+	//			for (int i = 0; i < MAX_RAID_MEMBERS; i++) {
+	//				if (iter->member && entity_list.IsMobInZone(iter->member) && iter->member->IsEngaged() || iter->member && entity_list.IsMobInZone(iter->member) && iter->member->GetAggroCount() > 0) {
+	//					c->Message(Chat::White, "You can't spawn bots while your raid is engaged.");
+	//					return;
+	//				}
+	//			}
+	//		}
+	//	}
+	//}
+	//else if (owner_group) {
+	if (owner_group) {
+		std::list<Client*> member_list;
+		owner_group->GetClientList(member_list);
+		member_list.remove(nullptr);
+
+		for (auto member_iter : member_list) {
+			if (member_iter->IsEngaged() || member_iter->GetAggroCount() > 0) {
+				c->Message(Chat::White, "You can't spawn bots while your group is engaged.");
 				return;
 			}
 		}
 	}
-	else if (c->GetAggroCount() > 0) {
-		c->Message(Chat::White, "You can't spawn bots while you are engaged.");
-		return;
+	else {
+		if (c->GetAggroCount() > 0) {
+			c->Message(Chat::White, "You can't spawn bots while you are engaged.");
+			return;
+		}
 	}
+
+	// this probably needs work...
+	//if (c->GetGroup()) {
+	//	std::list<Mob*> group_list;
+	//	c->GetGroup()->GetMemberList(group_list);
+	//	for (auto member_iter : group_list) {
+	//		if (!member_iter)
+	//			continue;
+	//		if (member_iter->qglobal) // what is this?? really should have had a message to describe failure... (can't spawn bots if you are assigned to a task/instance?)
+	//			return;
+	//		if (!member_iter->qglobal && (member_iter->GetAppearance() != eaDead) && (member_iter->IsEngaged() || (member_iter->IsClient() && member_iter->CastToClient()->GetAggroCount()))) {
+	//			c->Message(Chat::White, "You can't summon bots while your group is engaged.");
+	//			return;
+	//		}
+	//	}
+	//}
+	//else if (c->GetAggroCount() > 0) {
+	//	c->Message(Chat::White, "You can't spawn bots while you are engaged.");
+	//	return;
+	//}
 
 	//if (c->IsEngaged()) {
 	//	c->Message(Chat::White, "You can't spawn bots while you are engaged.");
