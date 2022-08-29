@@ -1412,10 +1412,12 @@ bool Bot::AI_EngagedCastCheck() {
 			if(!AICastSpell(GetTarget(), GetChanceToCastBySpellType(SpellType_Escape), SpellType_Escape)) {
 				if(!AICastSpell(this, GetChanceToCastBySpellType(SpellType_Heal), SpellType_Heal)) {
 					if(!entity_list.Bot_AICheckCloseBeneficialSpells(this, GetChanceToCastBySpellType(SpellType_Heal), BotAISpellRange, SpellType_Heal)) {
-						if(!AICastSpell(GetTarget(), mayGetAggro?0:GetChanceToCastBySpellType(SpellType_Nuke), SpellType_Nuke)) {
-							if (!AICastSpell(GetTarget(), GetChanceToCastBySpellType(SpellType_InCombatBuff), SpellType_InCombatBuff)) {
-								//AIautocastspell_timer->Start(RandomTimer(100, 250), false);		// Do not give healer classes a lot of time off or your tank's die
-								failedToCast = true;
+						if (!AICastSpell(GetTarget(), GetChanceToCastBySpellType(SpellType_Debuff), SpellType_Debuff)) {
+							if(!AICastSpell(GetTarget(), mayGetAggro?0:GetChanceToCastBySpellType(SpellType_Nuke), SpellType_Nuke)) {
+								if (!AICastSpell(GetTarget(), GetChanceToCastBySpellType(SpellType_InCombatBuff), SpellType_InCombatBuff)) {
+									//AIautocastspell_timer->Start(RandomTimer(100, 250), false);		// Do not give healer classes a lot of time off or your tank's die
+									failedToCast = true;
+								}
 							}
 						}
 					}
