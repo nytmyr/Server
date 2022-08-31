@@ -6523,9 +6523,6 @@ void bot_subcommand_bot_out_of_combat(Client *c, const Seperator *sep)
 
 void bot_subcommand_bot_surname(Client *c, const Seperator *sep)
 {
-	// temp
-	c->Message(Chat::White, "This command is disabled...");
-	return;
 
 	if (sep->arg[1][0] == '\0' || sep->IsNumber(1)) {
 		c->Message(Chat::White, "You must specify a [surname] to use this command (use _ to define spaces or -remove to clear.)");
@@ -6587,6 +6584,10 @@ void bot_subcommand_bot_title(Client *c, const Seperator *sep)
 
 void bot_subcommand_bot_suffix(Client *c, const Seperator *sep)
 {
+	// temp
+	c->Message(Chat::White, "This command is disabled...");
+	return;
+
 	if (sep->arg[1][0] == '\0' || sep->IsNumber(1)) {
 		c->Message(Chat::White, "You must specify a [suffix] to use this command. (use _ to define spaces or -remove to clear.)");
 		return;
