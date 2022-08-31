@@ -57,6 +57,7 @@
 #include "zone_store.h"
 
 #include "water_map.h"
+#include "bot.h"
 
 extern QueryServ* QServ;
 extern Zone* zone;
@@ -188,6 +189,10 @@ bool Client::Process() {
 			parse->EventPlayer(EVENT_DISCONNECT, this, "", 0);
 
 			return false; //delete client
+		}
+		
+		if (bot_camp_timer.Check()) {
+			Bot::BotOrderCampAll(this);
 		}
 
 		if (camp_timer.Check()) {

@@ -4008,7 +4008,7 @@ void Client::Handle_OP_Camp(const EQApplicationPacket *app)
 {
 #ifdef BOTS
 	// This block is necessary to clean up any bot objects owned by a Client
-	Bot::BotOrderCampAll(this);
+	//Bot::BotOrderCampAll(this); //temp disabled.
 	// Evidently, this is bad under certain conditions and causes crashes...
 	// Group and Raid code really needs to be overhauled to account for non-client types (mercs and bots)
 	//auto group = GetGroup();
@@ -4023,6 +4023,7 @@ void Client::Handle_OP_Camp(const EQApplicationPacket *app)
 		OnDisconnect(true);
 		return;
 	}
+	bot_camp_timer.Start(25000, true);
 	camp_timer.Start(29000, true);
 	return;
 }
@@ -13964,6 +13965,7 @@ void Client::Handle_OP_SpawnAppearance(const EQApplicationPacket *app)
 			playeraction = 0;
 			SetFeigned(false);
 			BindWound(this, false, true);
+			bot_camp_timer.Disable();
 			camp_timer.Disable();
 		}
 		else if (sa->parameter == ANIM_SIT) {
