@@ -63,6 +63,7 @@ extern volatile bool RunLoops;
 #include "../common/expedition_lockout_timer.h"
 #include "cheat_manager.h"
 
+#include "../common/repositories/char_recipe_list_repository.h"
 #include "../common/repositories/character_spells_repository.h"
 #include "../common/repositories/character_disciplines_repository.h"
 #include "../common/repositories/character_data_repository.h"
@@ -833,7 +834,7 @@ void Client::FastQueuePacket(EQApplicationPacket** app, bool ack_req, CLIENT_CON
 	return;
 }
 
-void Client::ChannelMessageReceived(uint8 chan_num, uint8 language, uint8 lang_skill, const char* orig_message, const char* targetname) {
+void Client::ChannelMessageReceived(uint8 chan_num, uint8 language, uint8 lang_skill, const char* orig_message, const char* targetname, bool is_silent) {
 	char message[4096];
 	strn0cpy(message, orig_message, sizeof(message));
 
@@ -1171,7 +1172,10 @@ void Client::ChannelMessageReceived(uint8 chan_num, uint8 language, uint8 lang_s
 		if (GetPet() && GetTarget() == GetPet() && GetPet()->FindType(SE_VoiceGraft))
 			sender = GetPet();
 
-		entity_list.ChannelMessage(sender, chan_num, language, lang_skill, message);
+		if (!is_silent) {
+			entity_list.ChannelMessage(sender, chan_num, language, lang_skill, message);
+		}
+
 		parse->EventPlayer(EVENT_SAY, this, message, language);
 
 		if (sender != this)
@@ -11771,4 +11775,32 @@ void Client::SetTrackingID(uint32 entity_id)
 	TrackingID = entity_id;
 
 	MessageString(Chat::Skills, TRACKING_BEGIN, m->GetCleanName());
+}
+
+int Client::GetRecipeMadeCount(uint32 recipe_id)
+{
+	auto r = CharRecipeListRepository::GetWhere(
+		database,
+		fmt::format("char_id = {} AND recipe_id = {}", CharacterID(), recipe_id)
+	);
+
+	if (!r.empty() && r[0].recipe_id) {
+		return r[0].madecount;
+	}
+
+	return 0;
+}
+
+bool Client::HasRecipeLearned(uint32 recipe_id)
+{
+	auto r = CharRecipeListRepository::GetWhere(
+		database,
+		fmt::format("char_id = {} AND recipe_id = {}", CharacterID(), recipe_id)
+	);
+
+	if (!r.empty() && r[0].recipe_id) {
+		return true;
+	}
+
+	return false;
 }
