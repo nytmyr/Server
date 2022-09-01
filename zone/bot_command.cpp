@@ -6523,9 +6523,9 @@ void bot_subcommand_bot_out_of_combat(Client *c, const Seperator *sep)
 
 void bot_subcommand_bot_surname(Client *c, const Seperator *sep)
 {
-
-	if (sep->arg[1][0] == '\0' || sep->IsNumber(1)) {
-		c->Message(Chat::White, "You must specify a [surname] to use this command (use _ to define spaces or -remove to clear.)");
+	std::string bot_surname = sep->arg[1];
+	if (!Bot::IsValidName(bot_surname)) {
+		c->Message(Chat::White, "'%s' is an invalid name. You may only use characters 'A-Z', 'a-z' and '_'", bot_surname.c_str());
 		return;
 	}
 	auto my_bot = ActionableBots::AsTarget_ByBot(c);
@@ -6537,9 +6537,6 @@ void bot_subcommand_bot_surname(Client *c, const Seperator *sep)
 		c->Message(Chat::White, "Surname must be 31 characters or less.");
 		return;
 	}
-	std::string bot_surname = sep->arg[1];
-	bot_surname = (bot_surname == "-remove") ? "" : bot_surname;
-	std::replace(bot_surname.begin(), bot_surname.end(), '_', ' ');
 
 	my_bot->SetSurname(bot_surname);
 	if (!database.botdb.SaveBot(my_bot)) {
