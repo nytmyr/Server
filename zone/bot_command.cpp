@@ -5879,6 +5879,12 @@ void bot_subcommand_bot_dye_armor(Client *c, const Seperator *sep)
 
 	bool dye_all = (sep->arg[1][0] == '*');
 	if (!dye_all) {
+		if (!sep->IsNumber(1)) {
+			c->Message(Chat::White, "Valid material slots for this command are:");
+			c->Message(Chat::White, material_slot_message.c_str());
+			return;
+		}
+
 		material_slot = std::stoi(sep->arg[1]);
 		slot_id = EQ::InventoryProfile::CalcSlotFromMaterial(material_slot);
 
