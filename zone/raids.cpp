@@ -186,10 +186,10 @@ void Raid::AddBot(Bot* b, uint32 group, bool rleader, bool groupleader, bool loo
 	//std::string query = StringFormat("INSERT IGNORE INTO raid_members SET raidid = %lu, charid = %lu, " // possible fix
 	std::string query = StringFormat("INSERT INTO raid_members SET raidid = %lu, charid = %lu, "
 		"groupid = %lu, _class = %d, level = %d, name = '%s', "
-		"isgroupleader = %d, israidleader = %d, islooter = %d, isbot = 1",
+		"isgroupleader = %d, israidleader = %d, islooter = %d, isbot = 1, botownerid = %d",
 		(unsigned long)GetID(), (unsigned long)b->GetBotID(),
 		(unsigned long)group, b->GetClass(), b->GetLevel(),
-		b->GetName(), groupleader, rleader, looter);
+		b->GetName(), groupleader, rleader, looter, b->GetOwner()->CastToClient()->CharacterID());
 	auto results = database.QueryDatabase(query);
 
 	if (!results.Success()) {

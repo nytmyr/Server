@@ -11996,7 +11996,7 @@ void Client::Handle_OP_RaidCommand(const EQApplicationPacket* app)
 				uint32 owner_id = c_to_disband->CharacterID();
 				for (int i = 0; i < MAX_RAID_MEMBERS; ++i)
 				{
-					if (raid->members[i].member && raid->members[i].IsBot && raid->members[i].member->CastToBot()->GetOwner()->CastToClient()->CharacterID() == owner_id)
+					if (raid->members[i].member && raid->members[i].IsBot && raid->members[i].BotOwnerID == owner_id)
 					{
 						raid_members_bots.emplace_back(raid->members[i].member->CastToBot());
 					}

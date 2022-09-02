@@ -91,6 +91,7 @@ struct RaidMember{
 #ifdef BOTS
 	bool IsBot;
 	bool IsRaidMainAssistOne = false;
+	uint32 BotOwnerID;
 #endif
 };
 
