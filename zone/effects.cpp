@@ -634,11 +634,18 @@ bool Client::MemorizeSpellFromItem(uint32 item_id) {
 		item->Name[4] == 'l' &&
 		item->Name[5] == ':' &&
 		item->Name[6] == ' '
+		) && !(
+		item->Name[0] == 'S' &&
+		item->Name[1] == 'o' &&
+		item->Name[2] == 'n' &&
+		item->Name[3] == 'g' &&
+		item->Name[4] == ':' &&
+		item->Name[5] == ' '
 		)) {
 		Message(Chat::Red, "This item is not a scroll.");
 		SummonItem(item_id);
 		return false;
-	}
+	} 
 	int player_class = GetClass();
 	uint32 cbit = 1 << (player_class - 1);
 	if(!(item->Classes & cbit)) {
