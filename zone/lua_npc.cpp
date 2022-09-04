@@ -675,12 +675,6 @@ float Lua_NPC::GetNPCStat(const char* identifier)
 	return self->GetNPCStat(identifier);
 }
 
-bool Lua_NPC::IsRareSpawn()
-{
-	Lua_Safe_Call_Bool();
-	return self->IsRareSpawn();
-}
-
 void Lua_NPC::ReloadSpells()
 {
 	Lua_Safe_Call_Void();
