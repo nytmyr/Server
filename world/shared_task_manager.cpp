@@ -1456,8 +1456,8 @@ bool SharedTaskManager::CanAddPlayer(SharedTask *s, uint32_t character_id, std::
 			)
 		);
 
-		int lowest_level  = cle->level();
-		int highest_level = cle->level();
+		auto lowest_level  = static_cast<uint32_t>(cle->level());
+		auto highest_level = lowest_level;
 
 		for (const auto &character : characters) {
 			lowest_level  = std::min(lowest_level, character.level);
@@ -1724,6 +1724,12 @@ bool SharedTaskManager::HandleCompletedActivities(SharedTask* s)
 void SharedTaskManager::HandleCompletedTask(SharedTask* s)
 {
 	auto db_task = s->GetDbSharedTask();
+	if (db_task.completion_time > 0)
+	{
+		LogTasksDetail("[HandleCompletedTask] shared task [{}] already completed", db_task.id);
+		return;
+	}
+
 	LogTasksDetail("[HandleCompletedTask] Marking shared task [{}] completed", db_task.id);
 	db_task.completion_time = std::time(nullptr);
 	db_task.is_locked = true;

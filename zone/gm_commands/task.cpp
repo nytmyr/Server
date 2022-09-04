@@ -48,13 +48,6 @@ void command_task(Client *c, const Seperator *sep)
 		c->Message(
 			Chat::White,
 			fmt::format(
-				"--- [{}] Reload proximity information",
-				Saylink::Silent("#task reload prox", "reload prox")
-			).c_str()
-		);
-		c->Message(
-			Chat::White,
-			fmt::format(
 				"--- [{}] Reload task set information",
 				Saylink::Silent("#task reload sets", "reload sets")
 			).c_str()
@@ -142,13 +135,6 @@ void command_task(Client *c, const Seperator *sep)
 		c->Message(
 			Chat::White,
 			fmt::format(
-				"--- [{}] Reload proximity information",
-				Saylink::Silent("#task reload prox", "reload prox")
-			).c_str()
-		);
-		c->Message(
-			Chat::White,
-			fmt::format(
 				"--- [{}] Reload task set information",
 				Saylink::Silent("#task reload sets", "reload sets")
 			).c_str()
@@ -176,7 +162,7 @@ void command_task(Client *c, const Seperator *sep)
 
 	if (is_assign) {
 		auto task_id = std::strtoul(sep->arg[2], nullptr, 10);
-		if (task_id && task_id < MAXTASKS) {
+		if (task_id) {
 			target->AssignTask(task_id, 0, false);
 			c->Message(
 				Chat::Yellow,
@@ -210,11 +196,6 @@ void command_task(Client *c, const Seperator *sep)
 				worldserver.SendReloadTasks(RELOADTASKGOALLISTS);
 				c->Message(Chat::Yellow, "Successfully reloaded goal lists.");
 				return;
-			} else if (!strcasecmp(sep->arg[2], "prox")) {
-				c->Message(Chat::Yellow, "Attempting to reload task proximites.");
-				worldserver.SendReloadTasks(RELOADTASKPROXIMITIES);
-				c->Message(Chat::Yellow, "Successfully reloaded task proximites.");
-				return;
 			} else if (!strcasecmp(sep->arg[2], "sets")) {
 				c->Message(Chat::Yellow, "Attempting to reload task sets.");
 				worldserver.SendReloadTasks(RELOADTASKSETS);
@@ -222,7 +203,7 @@ void command_task(Client *c, const Seperator *sep)
 				return;
 			} else if (!strcasecmp(sep->arg[2], "task") && arguments == 3) {
 				int task_id = std::strtoul(sep->arg[3], nullptr, 10);
-				if (task_id && task_id < MAXTASKS) {
+				if (task_id) {
 					c->Message(
 						Chat::Yellow,
 						fmt::format(
@@ -271,7 +252,7 @@ void command_task(Client *c, const Seperator *sep)
 	} else if (is_uncomplete) {
 		if (sep->IsNumber(2)) {
 			auto task_id = std::stoul(sep->arg[2]);
-			if (!task_id || task_id > MAXTASKS) {
+			if (!task_id) {
 				c->Message(Chat::White, "Invalid task ID specified.");
 				return;
 			}

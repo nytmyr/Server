@@ -2041,6 +2041,13 @@ void WorldServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p)
 		content_db.LoadStaticZonePoints(&zone->zone_point_list, zone->GetShortName(), zone->GetInstanceVersion());
 		break;
 	}
+	case ServerOP_ReloadZoneData:
+	{
+		zone_store.LoadZones(content_db);
+		zone->LoadZoneCFG(zone->GetShortName(), zone->GetInstanceVersion());
+		zone->SendReloadMessage("Zone Data");
+		break;
+	}
 	case ServerOP_CameraShake:
 	{
 		if (zone)
@@ -3179,6 +3186,11 @@ void WorldServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p)
 			LogError("Loading npcs faction lists failed!");
 		}
 
+		LogInfo("Loading faction association hits");
+		if (!content_db.LoadFactionAssociation(hotfix_name)) {
+			LogError("Loading faction association hits failed!");
+		}
+
 		LogInfo("Loading loot tables");
 		if (!content_db.LoadLoot(hotfix_name)) {
 			LogError("Loading loot failed!");
@@ -3444,24 +3456,11 @@ void WorldServer::HandleReloadTasks(ServerPacket *pack)
 				task_manager = new TaskManager;
 				task_manager->LoadTasks();
 
-				if (zone) {
-					task_manager->LoadProximities(zone->GetZoneID());
-				}
-
 				entity_list.ReloadAllClientsTaskState();
 			} else {
 				LogTasks("Global reload of Task ID [{}]", rts->task_id);
 				task_manager->LoadTasks(rts->task_id);
 				entity_list.ReloadAllClientsTaskState(rts->task_id);
-			}
-
-			break;
-		}
-		case RELOADTASKPROXIMITIES:
-		{
-			if (zone) {
-				LogTasks("Global reload of all Task Proximities");
-				task_manager->LoadProximities(zone->GetZoneID());
 			}
 
 			break;

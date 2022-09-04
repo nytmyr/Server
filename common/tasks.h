@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <array>
 
-#define MAXTASKS 10000
 #define MAXTASKSETS 1000
 #define MAXACTIVEQUESTS 19 // The Client has a hard cap of 19 active quests, 29 in SoD+
 #define MAXCHOOSERENTRIES 40 // The Max Chooser (Task Selector entries) is capped at 40 in the Titanium Client.
@@ -18,8 +17,7 @@
 // Command Codes for worldserver ServerOP_ReloadTasks
 #define RELOADTASKS 0
 #define RELOADTASKGOALLISTS 1
-#define RELOADTASKPROXIMITIES 2
-#define RELOADTASKSETS 3
+#define RELOADTASKSETS 2
 
 typedef enum {
 	METHODSINGLEID = 0,
@@ -77,17 +75,28 @@ struct ActivityInformation {
 	std::string      description_override; // overrides auto generated description -- default empty, max length 128
 	int              skill_id; // older clients, first id from above
 	int              spell_id; // older clients, first id from above
-	int              goal_id;
-	std::string      goal_match_list;
 	TaskMethodType   goal_method;
 	int              goal_count;
-	int              deliver_to_npc;
+	uint32_t         npc_id;
+	uint32_t         npc_goal_id;
+	std::string      npc_match_list; // delimited by '|' for partial name matches but also supports ids
+	uint32_t         item_id;
+	uint32_t         item_goal_id;
+	std::string      item_id_list; // delimited by '|' to support multiple item ids
+	int              dz_switch_id;
+	float            min_x;
+	float            min_y;
+	float            min_z;
+	float            max_x;
+	float            max_y;
+	float            max_z;
 	std::vector<int> zone_ids;
 	std::string      zones; // IDs ; separated, ZoneID is the first in this list for older clients -- default empty string, max length 64
 	int              zone_version;
 	bool             optional;
+	bool             has_area; // non-database field
 
-	inline bool CheckZone(int zone_id, int version)
+	inline bool CheckZone(int zone_id, int version) const
 	{
 		if (zone_ids.empty()) {
 			return true;
@@ -166,7 +175,7 @@ struct ActivityInformation {
 			out.WriteInt32(zone_ids.empty() ? 0 : zone_ids.front());
 		}
 
-		out.WriteInt32(activity_type == TaskActivityType::Touch ? goal_id : 0); // dz_switch_id (maybe add separate field)
+		out.WriteInt32(dz_switch_id);
 		out.WriteString(description_override);
 		out.WriteInt32(done_count);
 		out.WriteInt8(1); // unknown
@@ -208,13 +217,14 @@ struct TaskInformation {
 	int                 reward_id{};
 	int                 cash_reward{};       // Expressed in copper
 	int                 experience_reward{};
-	int                 faction_reward{};   // just a npc_faction_id
+	int                 faction_reward{};   // npc_faction_id if amount == 0, otherwise primary faction ID
+	int                 faction_amount{};   // faction hit value
 	TaskMethodType      reward_method;
 	int                 reward_points;
 	AltCurrencyType     reward_point_type;
 	int                 activity_count{};
-	short               min_level{};
-	short               max_level{};
+	uint8_t             min_level{};
+	uint8_t             max_level{};
 	int                 level_spread;
 	int                 min_players;
 	int                 max_players;

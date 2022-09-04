@@ -811,13 +811,6 @@ void Client::CompleteConnect()
 
 	conn_state = ClientConnectFinished;
 
-	//enforce some rules..
-	if (!CanBeInZone()) {
-		LogDebug("[CLIENT] Kicking char from zone, not allowed here");
-		GoToSafeCoords(ZoneID("arena"), 0);
-		return;
-	}
-
 	if (zone)
 		zone->weatherSend(this);
 
@@ -949,6 +942,13 @@ void Client::CompleteConnect()
 	}
 
 	heroforge_wearchange_timer.Start(250);
+
+	// enforce some rules..
+	if (!CanBeInZone()) {
+		LogInfo("Kicking character [{}] from zone, not allowed here (missing requirements)", GetCleanName());
+		GoToSafeCoords(ZoneID("arena"), 0);
+		return;
+	}
 }
 
 // connecting opcode handlers
@@ -6717,7 +6717,7 @@ void Client::Handle_OP_GMZoneRequest(const EQApplicationPacket *app)
 		return;
 	}
 
-	GMZoneRequest_Struct* gmzr = (GMZoneRequest_Struct*)app->pBuffer;
+	auto* gmzr = (GMZoneRequest_Struct*)app->pBuffer;
 	float target_x = -1, target_y = -1, target_z = -1, target_heading;
 
 	int16 min_status = AccountStatus::Player;
@@ -6734,21 +6734,18 @@ void Client::Handle_OP_GMZoneRequest(const EQApplicationPacket *app)
 		strcpy(target_zone, zone_short_name);
 
 	// this both loads the safe points and does a sanity check on zone name
-	if (!content_db.GetSafePoints(
-		target_zone,
-		0,
-		&target_x,
-		&target_y,
-		&target_z,
-		&target_heading,
-		&min_status,
-		&min_level
-	)) {
+	auto z = GetZone(target_zone, 0);
+	if (z) {
+		target_x       = z->safe_x;
+		target_y       = z->safe_y;
+		target_z       = z->safe_z;
+		target_heading = z->safe_heading;
+	} else {
 		target_zone[0] = 0;
 	}
 
 	auto outapp = new EQApplicationPacket(OP_GMZoneRequest, sizeof(GMZoneRequest_Struct));
-	GMZoneRequest_Struct* gmzr2 = (GMZoneRequest_Struct*)outapp->pBuffer;
+	auto* gmzr2 = (GMZoneRequest_Struct*)outapp->pBuffer;
 	strcpy(gmzr2->charname, GetName());
 	gmzr2->zone_id = gmzr->zone_id;
 	gmzr2->x = target_x;

@@ -1,11 +1,11 @@
-#ifndef EQEMU_PROXIMITIES_REPOSITORY_H
-#define EQEMU_PROXIMITIES_REPOSITORY_H
+#ifndef EQEMU_FACTION_ASSOCIATION_REPOSITORY_H
+#define EQEMU_FACTION_ASSOCIATION_REPOSITORY_H
 
 #include "../database.h"
 #include "../strings.h"
-#include "base/base_proximities_repository.h"
+#include "base/base_faction_association_repository.h"
 
-class ProximitiesRepository: public BaseProximitiesRepository {
+class FactionAssociationRepository: public BaseFactionAssociationRepository {
 public:
 
     /**
@@ -32,10 +32,10 @@ public:
      *
      * Example custom methods in a repository
      *
-     * ProximitiesRepository::GetByZoneAndVersion(int zone_id, int zone_version)
-     * ProximitiesRepository::GetWhereNeverExpires()
-     * ProximitiesRepository::GetWhereXAndY()
-     * ProximitiesRepository::DeleteWhereXAndY()
+     * FactionAssociationRepository::GetByZoneAndVersion(int zone_id, int zone_version)
+     * FactionAssociationRepository::GetWhereNeverExpires()
+     * FactionAssociationRepository::GetWhereXAndY()
+     * FactionAssociationRepository::DeleteWhereXAndY()
      *
      * Most of the above could be covered by base methods, but if you as a developer
      * find yourself re-using logic for other parts of the code, its best to just make a
@@ -47,4 +47,4 @@ public:
 
 };
 
-#endif //EQEMU_PROXIMITIES_REPOSITORY_H
+#endif //EQEMU_FACTION_ASSOCIATION_REPOSITORY_H

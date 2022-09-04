@@ -46,7 +46,7 @@ extern volatile bool RunLoops;
 #include "position.h"
 #include "worldserver.h"
 #include "zonedb.h"
-#include "zone_store.h"
+#include "../common/zone_store.h"
 #include "petitions.h"
 #include "command.h"
 #include "water_map.h"
@@ -1196,7 +1196,7 @@ void Client::ChannelMessageReceived(uint8 chan_num, uint8 language, uint8 lang_s
 					parse->EventNPC(EVENT_SAY, tar->CastToNPC(), this, message, language);
 
 					if(RuleB(TaskSystem, EnableTaskSystem)) {
-						if(UpdateTasksOnSpeakWith(tar->GetNPCTypeID())) {
+						if (UpdateTasksOnSpeakWith(tar)) {
 							tar->DoQuestPause(this);
 						}
 					}
@@ -3401,9 +3401,11 @@ void Client::SetTint(int16 in_slot, EQ::textures::Tint_Struct& color) {
 
 }
 
-void Client::SetHideMe(bool gm_hide_me)
+void Client::SetHideMe(bool flag)
 {
 	EQApplicationPacket app;
+
+	gm_hide_me = flag;
 
 	if (gm_hide_me) {
 		database.SetHideMe(AccountID(), true);
@@ -5385,14 +5387,13 @@ void Client::SetStartZone(uint32 zoneid, float x, float y, float z, float headin
 	}
 
 	if (x == 0 && y == 0 && z == 0) {
-		content_db.GetSafePoints(
-			ZoneName(m_pp.binds[4].zone_id),
-			0,
-			&m_pp.binds[4].x,
-			&m_pp.binds[4].y,
-			&m_pp.binds[4].z,
-			&m_pp.binds[4].heading
-		);
+		auto zd = GetZone(m_pp.binds[4].zone_id);
+		if (zd) {
+			m_pp.binds[4].x = zd->safe_x;
+			m_pp.binds[4].y = zd->safe_y;
+			m_pp.binds[4].z = zd->safe_z;
+			m_pp.binds[4].heading = zd->safe_heading;
+		}
 	}
 	else {
 		m_pp.binds[4].x = x;
@@ -8775,7 +8776,7 @@ void Client::QuestReward(Mob* target, uint32 copper, uint32 silver, uint32 gold,
 			int32 nfl_id = target->CastToNPC()->GetNPCFactionID();
 			SetFactionLevel(CharacterID(), nfl_id, GetBaseClass(), GetBaseRace(), GetDeity(), true);
 			qr->faction = target->CastToNPC()->GetPrimaryFaction();
-			qr->faction_mod = 1; // Too lazy to get real value, not sure if this is even used by client anyhow.
+			qr->faction_mod = 1; // Too lazy to get real value, not even used by client anyhow.
 		}
 	}
 
@@ -8795,7 +8796,7 @@ void Client::QuestReward(Mob* target, const QuestReward_Struct &reward, bool fac
 	memcpy(qr, &reward, sizeof(QuestReward_Struct));
 
 	// not set in caller because reasons
-	qr->mob_id = target ? target->GetID() : 0;		// Entity ID for the from mob name
+	qr->mob_id = target ? target->GetID() : 0; // Entity ID for the from mob name, tasks won't set this
 
 	if (reward.copper > 0 || reward.silver > 0 || reward.gold > 0 || reward.platinum > 0)
 		AddMoneyToPP(reward.copper, reward.silver, reward.gold, reward.platinum);
@@ -8804,6 +8805,12 @@ void Client::QuestReward(Mob* target, const QuestReward_Struct &reward, bool fac
 		if (reward.item_id[i] > 0)
 			SummonItem(reward.item_id[i], 0, 0, 0, 0, 0, 0, false, EQ::invslot::slotCursor);
 
+	// only process if both are valid
+	// if we don't have a target here, we want to just reward, but if there is a target, need to check charm
+	if (reward.faction && reward.faction_mod && (target == nullptr || !target->IsCharmed()))
+		RewardFaction(reward.faction, reward.faction_mod);
+
+	// legacy support
 	if (faction)
 	{
 		if (target && target->IsNPC() && !target->IsCharmed())
@@ -8811,11 +8818,11 @@ void Client::QuestReward(Mob* target, const QuestReward_Struct &reward, bool fac
 			int32 nfl_id = target->CastToNPC()->GetNPCFactionID();
 			SetFactionLevel(CharacterID(), nfl_id, GetBaseClass(), GetBaseRace(), GetDeity(), true);
 			qr->faction = target->CastToNPC()->GetPrimaryFaction();
-			qr->faction_mod = 1; // Too lazy to get real value, not sure if this is even used by client anyhow.
+			qr->faction_mod = 1; // Too lazy to get real value, not even used by client anyhow.
 		}
 	}
 
-	if (reward.exp_reward> 0)
+	if (reward.exp_reward > 0)
 		AddEXP(reward.exp_reward);
 
 	QueuePacket(outapp, true, Client::CLIENT_CONNECTED);
@@ -8834,6 +8841,36 @@ void Client::CashReward(uint32 copper, uint32 silver, uint32 gold, uint32 platin
 	AddMoneyToPP(copper, silver, gold, platinum);
 
 	QueuePacket(outapp.get());
+}
+
+void Client::RewardFaction(int id, int amount)
+{
+	// first we hit the primary faction, even without any associations
+	SetFactionLevel2(CharacterID(), id, GetClass(), GetBaseRace(), GetDeity(), amount, false);
+
+	auto faction_assoc = content_db.GetFactionAssociationHit(id);
+	// We could log here, but since it's actually expected for some not to have entries, it would be noisy.
+	if (!faction_assoc) {
+		return;
+	}
+
+	// now hit them in order
+	for (int i = 0; i < MAX_FACTION_ASSOC; ++i) {
+		if (faction_assoc->hits[i].id <= 0) // we don't allow later entries
+			break;
+		if (faction_assoc->hits[i].multiplier == 0.0f) {
+			LogFaction("Bad association multiplier for ID {} entry {}", id, i + 1);
+			continue;
+		}
+
+		// value is truncated and min clamped to 1 (or -1)
+		float temp = faction_assoc->hits[i].multiplier * amount;
+		int sign = temp < 0.0f ? -1 : 1;
+		int32 new_amount = std::max(1, static_cast<int32>(std::abs(temp))) * sign;
+
+		SetFactionLevel2(CharacterID(), faction_assoc->hits[i].id, GetClass(), GetBaseRace(), GetDeity(),
+				 new_amount, false);
+	}
 }
 
 void Client::SendHPUpdateMarquee(){
@@ -9441,7 +9478,7 @@ bool Client::GotoPlayerRaid(const std::string& player_name)
 	if (!GetRaid()) {
 		return GotoPlayer(player_name);
 	}
-	
+
 	for (auto &m: GetRaid()->members) {
 		if (m.member && m.member->IsClient()) {
 			auto c = m.member->CastToClient();

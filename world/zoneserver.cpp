@@ -35,7 +35,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #include "adventure_manager.h"
 #include "ucs.h"
 #include "queryserv.h"
-#include "world_store.h"
+#include "../common/zone_store.h"
 #include "dynamic_zone.h"
 #include "dynamic_zone_manager.h"
 #include "expedition_message.h"
@@ -819,7 +819,12 @@ void ZoneServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p) {
 					ingress_server->SendPacket(pack);	// inform target server
 				}
 			} else {
-				LogInfo("Processing ZTZ for ingress to zone for client [{}]", ztz->name);
+				LogInfo(
+					"Processing ZTZ for ingress to zone for client [{}] instance_id [{}] zone_id [{}]",
+					ztz->name,
+					ztz->current_instance_id,
+					ztz->current_zone_id
+				);
 				auto egress_server = (
 					ztz->current_instance_id ?
 					zoneserver_list.FindByInstanceID(ztz->current_instance_id) :
@@ -827,6 +832,7 @@ void ZoneServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p) {
 				);
 
 				if (egress_server) {
+					LogInfo("Found egress server, forwarding client");
 					egress_server->SendPacket(pack);
 				}
 			}
@@ -1324,6 +1330,7 @@ void ZoneServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p) {
 		case ServerOP_ReloadVeteranRewards:
 		case ServerOP_ReloadWorld:
 		case ServerOP_ReloadZonePoints:
+		case ServerOP_ReloadZoneData:
 		case ServerOP_RezzPlayerAccept:
 		case ServerOP_SpawnStatusChange:
 		case ServerOP_UpdateSpawn:

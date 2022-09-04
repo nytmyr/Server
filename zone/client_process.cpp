@@ -54,7 +54,7 @@
 #include "worldserver.h"
 #include "zone.h"
 #include "zonedb.h"
-#include "zone_store.h"
+#include "../common/zone_store.h"
 
 #include "water_map.h"
 #include "bot.h"

@@ -597,28 +597,33 @@ bool lua_bury_player_corpse(uint32 char_id) {
 	return quest_manager.buryplayercorpse(char_id);
 }
 
-void lua_task_selector(luabind::adl::object table) {
+void lua_task_selector(luabind::adl::object table, bool ignore_cooldown) {
 	if(luabind::type(table) != LUA_TTABLE) {
 		return;
 	}
 
-	int tasks[MAXCHOOSERENTRIES] = { 0 };
-	int count = 0;
-
+	std::vector<int> tasks;
 	for (int i = 1; i <= MAXCHOOSERENTRIES; ++i)
 	{
 		if (luabind::type(table[i]) == LUA_TNUMBER)
 		{
-			tasks[i - 1] = luabind::object_cast<int>(table[i]);
-			++count;
+			tasks.push_back(luabind::object_cast<int>(table[i]));
 		}
 	}
 
-	quest_manager.taskselector(count, tasks);
+	quest_manager.taskselector(tasks, ignore_cooldown);
+}
+
+void lua_task_selector(luabind::adl::object table) {
+	lua_task_selector(table, false);
 }
 
 void lua_task_set_selector(int task_set) {
 	quest_manager.tasksetselector(task_set);
+}
+
+void lua_task_set_selector(int task_set, bool ignore_cooldown) {
+	quest_manager.tasksetselector(task_set, ignore_cooldown);
 }
 
 void lua_enable_task(luabind::adl::object table) {
@@ -697,10 +702,6 @@ void lua_update_task_activity(int task, int activity, int count) {
 
 void lua_reset_task_activity(int task, int activity) {
 	quest_manager.resettaskactivity(task, activity);
-}
-
-void lua_task_explored_area(int explore_id) {
-	quest_manager.taskexploredarea(explore_id);
 }
 
 void lua_assign_task(int task_id) {
@@ -3707,8 +3708,10 @@ luabind::scope lua_register_general() {
 		luabind::def("get_player_corpse_count_by_zone_id", &lua_get_player_corpse_count_by_zone_id),
 		luabind::def("get_player_buried_corpse_count", &lua_get_player_buried_corpse_count),
 		luabind::def("bury_player_corpse", &lua_bury_player_corpse),
-		luabind::def("task_selector", &lua_task_selector),
-		luabind::def("task_set_selector", &lua_task_set_selector),
+		luabind::def("task_selector", (void(*)(luabind::adl::object))&lua_task_selector),
+		luabind::def("task_selector", (void(*)(luabind::adl::object, bool))&lua_task_selector),
+		luabind::def("task_set_selector", (void(*)(int))&lua_task_set_selector),
+		luabind::def("task_set_selector", (void(*)(int, bool))&lua_task_set_selector),
 		luabind::def("enable_task", &lua_enable_task),
 		luabind::def("disable_task", &lua_disable_task),
 		luabind::def("is_task_enabled", &lua_is_task_enabled),
@@ -3717,7 +3720,6 @@ luabind::scope lua_register_general() {
 		luabind::def("get_task_activity_done_count", &lua_get_task_activity_done_count),
 		luabind::def("update_task_activity", &lua_update_task_activity),
 		luabind::def("reset_task_activity", &lua_reset_task_activity),
-		luabind::def("task_explored_area", &lua_task_explored_area),
 		luabind::def("assign_task", &lua_assign_task),
 		luabind::def("fail_task", &lua_fail_task),
 		luabind::def("task_time_left", &lua_task_time_left),
