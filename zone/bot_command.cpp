@@ -4424,6 +4424,10 @@ void bot_command_pet(Client *c, const Seperator *sep)
 
 void bot_command_pick_lock(Client *c, const Seperator *sep)
 {
+	// temp
+	c->Message(Chat::White, "This command is disabled...");
+	return;
+
 	if (helper_command_alias_fail(c, "bot_command_pick_lock", sep->arg[0], "picklock"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
