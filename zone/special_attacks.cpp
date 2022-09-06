@@ -2055,7 +2055,13 @@ void Mob::Taunt(NPC *who, bool always_succeed, int chance_bonus, bool FromSpell,
 
 		if (success) {
 			if (hate_top && hate_top != this) {
-				int64 newhate = (who->GetNPCHate(hate_top) - who->GetNPCHate(this)) + 1 + bonus_hate;
+				int64 newhate;
+				if (IsClient())
+					newhate = (who->GetNPCHate(hate_top) - who->GetNPCHate(this)) + 1 + bonus_hate + RuleI(Aggro, AdditionalTauntHate);
+				else if (IsBot())
+					newhate = (who->GetNPCHate(hate_top) - who->GetNPCHate(this)) + 1 + bonus_hate + RuleI(Bots, BotAdditionalTauntHate);
+				else
+					newhate = (who->GetNPCHate(hate_top) - who->GetNPCHate(this)) + 1 + bonus_hate;
 
 				LogHate(
 					"Taunter mob {} target npc {} newhate [{}] hated_top {} hate_of_top [{}] this_hate [{}] bonus_hate [{}]",
@@ -2071,7 +2077,12 @@ void Mob::Taunt(NPC *who, bool always_succeed, int chance_bonus, bool FromSpell,
 				who->CastToNPC()->AddToHateList(this, newhate);
 				success = true;
 			} else {
-				who->CastToNPC()->AddToHateList(this, 12);
+				if (IsClient())
+					who->CastToNPC()->AddToHateList(this, 12 + RuleI(Aggro, AdditionalTauntHate));
+				else if (IsBot())
+					who->CastToNPC()->AddToHateList(this, 12 + RuleI(Bots, BotAdditionalTauntHate));
+				else
+					who->CastToNPC()->AddToHateList(this, 12);
 			}
 
 			if (who->CanTalk())

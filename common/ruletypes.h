@@ -547,6 +547,7 @@ RULE_INT(Aggro, ClientAggroCheckIdleInterval, 6000, "Interval in which clients a
 RULE_REAL(Aggro, PetAttackRange, 40000.0, "Maximum squared range /pet attack works at default is 200")
 RULE_BOOL(Aggro, NPCAggroMaxDistanceEnabled, true, "If enabled, NPC's will drop aggro beyond 600 units or what is defined at the zone level")
 RULE_BOOL(Aggro, AggroPlayerPets, false, "If enabled, NPCs will aggro player pets")
+RULE_INT(Aggro, AdditionalTauntHate, 0, "0 Default. Additional Hate added to the taunter on each successful Taunt.")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(TaskSystem)
@@ -649,6 +650,7 @@ RULE_INT(Bots, TierFourBotSpawnLimitUnlockLevelRequirement, 30, "30 Default. 0 D
 RULE_INT(Bots, TierFiveBotSpawnLimitUnlockLevelRequirement, 40, "40 Default. 0 Disabled. Level requirement to unlock the Tier 5 bot spawn limit.")
 RULE_BOOL(Bots, CastOnAllRaidMembers, false, "False Default. If True, bots will cast on all raid members rather than just their group members.")
 RULE_BOOL(Bots, MeleeBehindMob, false, "False Default. If True, bots within melee range will attempt to stay behind the mob if not top aggro or taunting.")
+RULE_INT(Bots, BotAdditionalTauntHate, 0, "0 Default. Additional Hate added to the taunter on each successful Taunt.")
 
 RULE_CATEGORY_END()
 #endif
