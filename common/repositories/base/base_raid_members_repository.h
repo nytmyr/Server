@@ -31,6 +31,7 @@ public:
 		int8_t      islooter;
 #ifdef BOTS
 		int8_t			isbot;
+		int32_t			botownerid;
 #endif
 	};
 
@@ -53,6 +54,7 @@ public:
 			"islooter",
 #ifdef BOTS
 			"isbot",
+			"botownerid",
 #endif
 		};
 	}
@@ -105,6 +107,7 @@ public:
 		e.islooter      = 0;
 #ifdef BOTS
 		e.isbot			= 0;
+		e.botownerid		    = 0;
 #endif
 
 		return e;
@@ -152,6 +155,7 @@ public:
 			e.islooter      = static_cast<int8_t>(atoi(row[8]));
 #ifdef BOTS
 			e.isbot			= static_cast<int8_t>(atoi(row[9]));
+			e.botownerid = static_cast<int32_t>(atoi(row[10]));
 #endif
 
 			return e;
@@ -197,6 +201,7 @@ public:
 		v.push_back(columns[8] + " = " + std::to_string(e.islooter));
 #ifdef BOTS
 		v.push_back(columns[9] + " = " + std::to_string(e.isbot));
+		v.push_back(columns[10] + " = " + std::to_string(e.botownerid));
 #endif
 
 		auto results = db.QueryDatabase(
@@ -230,6 +235,7 @@ public:
 		v.push_back(std::to_string(e.islooter));
 #ifdef BOTS
 		v.push_back(std::to_string(e.isbot));
+		v.push_back(std::to_string(e.botownerid));
 #endif
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -270,6 +276,7 @@ public:
 			v.push_back(std::to_string(e.islooter));
 #ifdef BOTS
 			v.push_back(std::to_string(e.isbot));
+			v.push_back(std::to_string(e.botownerid));
 #endif
 			insert_chunks.push_back("(" + Strings::Implode(",", v) + ")");
 		}
@@ -314,6 +321,7 @@ public:
 			e.islooter      = static_cast<int8_t>(atoi(row[8]));
 #ifdef BOTS
 			e.isbot			= static_cast<int8_t>(atoi(row[9]));
+			e.botownerid = static_cast<int32_t>(atoi(row[10]));
 #endif
 			all_entries.push_back(e);
 		}
@@ -349,8 +357,9 @@ public:
 			e.islooter      = static_cast<int8_t>(atoi(row[8]));
 #ifdef BOTS
 			e.isbot			= static_cast<int8_t>(atoi(row[9]));
+			e.botownerid = static_cast<int32_t>(atoi(row[10]));
 #endif
-			all_entries.push_back(entry);
+			all_entries.push_back(e);
 		}
 
 		return all_entries;

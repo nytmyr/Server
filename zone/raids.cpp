@@ -1563,7 +1563,7 @@ bool Raid::LearnMembers()
 
 #ifdef BOTS
 	std::string query = StringFormat("SELECT name, groupid, _class, level, "
-                                    "isgroupleader, israidleader, islooter, isbot "
+                                    "isgroupleader, israidleader, islooter, isbot, botownerid "
                                     "FROM raid_members WHERE raidid = %lu",
                                     (unsigned long)GetID());
 #else
@@ -1602,6 +1602,7 @@ bool Raid::LearnMembers()
         members[index].IsLooter = atoi(row[6]);
 #ifdef BOTS
 		members[index].IsBot = atoi(row[7]);
+		members[index].BotOwnerID = atoi(row[8]);
 #endif
 		++index;
     }
