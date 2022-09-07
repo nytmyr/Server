@@ -6536,7 +6536,7 @@ void Bot::DoClassAttacks(Mob *target, bool IsRiposte) {
 	bool taunt_time = taunt_timer.Check();
 	bool ca_time = classattack_timer.Check(false);
 	bool ma_time = monkattack_timer.Check(false);
-	bool ka_time = knightattack_timer.Check(false);
+	//bool ka_time = knightattack_timer.Check(false);
 	bool me_time = monkepic_timer.Check();
 
 	if (taunt_time) {
