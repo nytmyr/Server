@@ -8260,7 +8260,7 @@ void bot_subcommand_heal_rotation_adaptive_targeting(Client *c, const Seperator 
 	c->Message(Chat::White, "Adaptive targeting is now '%s' for %s's Heal Rotation", (((*current_member->MemberOfHealRotation())->AdaptiveTargeting()) ? ("on") : ("off")), current_member->GetCleanName());
 }
 
-void bot_subcommand_heal_rotation_add_member(Client *c, const Seperator *sep)
+void bot_subcommand_heal_rotation_add_member(Client* c, const Seperator* sep)
 {
 	if (helper_command_alias_fail(c, "bot_subcommand_heal_rotation_add_member", sep->arg[0], "healrotationaddmember"))
 		return;
@@ -8269,11 +8269,34 @@ void bot_subcommand_heal_rotation_add_member(Client *c, const Seperator *sep)
 		return;
 	}
 
-	std::list<Bot*> sbl;
-	MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[1]);
-	if (sbl.empty()) {
-		c->Message(Chat::White, "You must [name] a new member as a bot that you own to use this command");
+	auto* bot = entity_list.GetBotByBotName(sep->arg[1]);
+	if (!bot) {
+		c->Message(Chat::White, "No bot by that name was found.");
 		return;
+	}
+
+	std::list<Bot*> sbl;
+	auto bot_owner = entity_list.GetBotOwnerByBotEntityID(bot->GetID());
+	if (bot_owner->CharacterID() != c->CharacterID()) {
+		//if (entity_list.IsInSameGroupOrRaidGroup(bot_owner->CastToClient(), c->CastToClient())) {
+		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(bot_owner)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(bot_owner->GetName()))) {
+			MyBots::PopulateSBL_ByNamedBot(bot_owner, sbl, sep->arg[1]);
+			if (sbl.empty()) {
+				c->Message(Chat::White, "You must [name] a new member as a bot that you own to use this command");
+				return;
+			}
+		}
+		else {
+			c->Message(Chat::White, "You may only add other player's bots to a heal rotation as members if that player is in the same group or raid as yourself.");
+			return;
+		}
+	}
+	else {
+		MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[1]);
+		if (sbl.empty()) {
+			c->Message(Chat::White, "You must [name] a new member as a bot that you own to use this command");
+			return;
+		}
 	}
 
 	auto new_member = sbl.front();
