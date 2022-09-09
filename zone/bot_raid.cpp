@@ -1836,6 +1836,9 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 				uint32 TempDontHealMeBeforeTime = tar->DontHealMeBefore();
 
+				if (!tar->CheckSpellLevelRestriction(botSpell.SpellId))
+					break;
+
 				castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost, &TempDontHealMeBeforeTime);
 
 				if (castedSpell) {
@@ -2026,6 +2029,9 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				{
 
 					uint32 TempDontBuffMeBefore = tar->DontBuffMeBefore();
+
+					if (!tar->CheckSpellLevelRestriction(selectedBotSpell.SpellId))
+						break;
 
 					castedSpell = AIDoSpellCast(selectedBotSpell.SpellIndex, tar, selectedBotSpell.ManaCost, &TempDontBuffMeBefore);
 
@@ -2246,6 +2252,9 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						if (GetManaRatio() > 90.0f || GetHPRatio() < 50.0f || GetHPRatio() < (GetManaRatio() + 10.0f))
 							break; //don't cast if low hp, lots of mana, or if mana is higher than hps
 					}
+
+					if (!tar->CheckSpellLevelRestriction(selectedBotSpell.SpellId))
+						break;
 
 					castedSpell = AIDoSpellCast(selectedBotSpell.SpellIndex, tar, selectedBotSpell.ManaCost);
 				}
