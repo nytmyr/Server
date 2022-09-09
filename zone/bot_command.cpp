@@ -3851,11 +3851,17 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 				linker.SetItemInst(equipped_item);
 
 				c->Message(
-					Chat::Say,
-					"[%s] says, 'I can use that for my %s! (replaces: [%s])'",
-					text_link.c_str(),
-					EQ::invslot::GetInvPossessionsSlotName(slot_iter),
-					linker.GenerateLink().c_str()
+					Chat::White,
+					fmt::format(
+						"{} says, 'I can use that for my {}! (replaces: {} | {})'",
+						text_link.c_str(),
+						EQ::invslot::GetInvPossessionsSlotName(slot_iter),
+						linker.GenerateLink().c_str(),
+						Saylink::Silent(
+							fmt::format("^inventoryremove {} byname {}", slot_iter, bot_iter->GetCleanName()),
+							"[Remove]"
+						)
+					).c_str()
 				);
 				bot_iter->DoAnim(29);
 			}
