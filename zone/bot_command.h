@@ -606,6 +606,7 @@ void bot_command_water_breathing(Client *c, const Seperator *sep);
 // custom bot commands
 void bot_command_auto_resist(Client* c, const Seperator* sep);
 void bot_command_auto_ds(Client* c, const Seperator* sep);
+void bot_command_behind_mob(Client* c, const Seperator* sep);
 void bot_command_hold_buffs(Client* c, const Seperator* sep);
 void bot_command_hold_cures(Client* c, const Seperator* sep);
 void bot_command_hold_dots(Client* c, const Seperator* sep);

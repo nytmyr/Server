@@ -163,6 +163,7 @@ public:
 	bool SaveNukeDelay(const uint32 owner_id, const uint32 bot_id, const uint32 nd_value);
 	bool SaveAutoResist(const uint32 owner_id, const uint32 bot_id, const uint8 ar_value);
 	bool SaveAutoDS(const uint32 owner_id, const uint32 bot_id, const uint8 ad_value);
+	bool SaveBehindMob(const uint32 owner_id, const uint32 bot_id, const uint8 behindmob_value);
 
 	bool LoadOwnerOptions(Client *owner);
 	bool SaveOwnerOption(const uint32 owner_id, size_t type, const bool flag);
@@ -305,6 +306,7 @@ public:
 		static const char* SaveNukeDelay();
 		static const char* SaveAutoResist();
 		static const char* SaveAutoDS();
+		static const char* SaveBehindMob();
 
 		/* fail::Bot bot-group functions   */
 		static const char* QueryBotGroupExistence();

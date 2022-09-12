@@ -341,6 +341,7 @@ public:
 	uint32 GetNukeDelay() { return _nukeDelay; }
 	uint8 GetAutoResist() { return _autoResist; }
 	uint8 GetAutoDS() { return _autoDS; }
+	uint8 GetBehindMob() { return _behindMobStatus; }
 	void SetStopMeleeLevel(uint8 level);
 	void SetHoldBuffs(uint8 holdstatus);
 	void SetHoldCures(uint8 holdstatus);
@@ -365,6 +366,7 @@ public:
 	void SetNukeDelay(uint32 nukedelay);
 	void SetAutoResist(uint8 autoresist);
 	void SetAutoDS(uint8 autods);
+	void SetBehindMob(uint8 behindmobstatus);
 	void SetGuardMode();
 	void SetHoldMode();
 
@@ -783,6 +785,7 @@ private:
 	uint32 _nukeDelay;
 	int8 _autoResist;
 	int8 _autoDS;
+	uint8 _behindMobStatus;
 
 	// Private "base stats" Members
 	int32 _baseMR;

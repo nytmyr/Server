@@ -1448,6 +1448,7 @@ int bot_command_init(void)
 		// custom bot commands
 		bot_command_add("autoresist", "Toggles the ability for casters to automatically cast resist buffs", AccountStatus::Player, bot_command_auto_resist) ||
 		bot_command_add("autods", "Toggles the ability for casters to automatically cast damage shield buffs", AccountStatus::Player, bot_command_auto_ds) ||
+		bot_command_add("behindmob", "Toggles whether or not your bot tries to stay behind a mob", AccountStatus::Player, bot_command_behind_mob) ||
 		bot_command_add("holdbuffs", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_buffs) ||
 		bot_command_add("holdcures", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_cures) ||
 		bot_command_add("holddots", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_dots) ||
@@ -2953,6 +2954,53 @@ void bot_command_auto_resist(Client* c, const Seperator* sep)
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
 		c->Message(Chat::White, "My current Auto Resist status is %u.", my_bot->GetAutoResist());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
+void bot_command_behind_mob(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_behind_mob", sep->arg[0], "behindmob"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to prevent a bot from positioning themselves behind a mob in combat.");
+		c->Message(Chat::White, "note: Set to 1 to force a bot to try to position itself behind a mob in combat.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+
+	uint8 behindmob = 0;
+	if (sep->IsNumber(1)) {
+		behindmob = atoi(sep->arg[1]);
+		int behindmobcheck = behindmob;
+		if (behindmobcheck == 0 || behindmobcheck == 1) {
+			my_bot->SetBehindMob(behindmob);
+			if (!database.botdb.SaveBehindMob(c->CharacterID(), my_bot->GetBotID(), behindmob)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveBehindMob(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Behind Mob for %s to %u.", my_bot->GetCleanName(), behindmob);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Behind Mob status is %u.", my_bot->GetBehindMob());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
