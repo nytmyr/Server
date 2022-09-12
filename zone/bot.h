@@ -318,12 +318,50 @@ public:
 	bool GetPauseAI() { return _pauseAI; }
 	void SetPauseAI(bool pause_flag) { _pauseAI = pause_flag; }
 	uint8 GetStopMeleeLevel() { return _stopMeleeLevel; }
+	uint8 GetHoldBuffs() { return _holdBuffs; }
+	uint8 GetHoldCures() { return _holdCures; }
+	uint8 GetHoldDoTs() { return _holdDoTs; }
+	uint8 GetHoldDebuffs() { return _holdDebuffs; }
+	uint8 GetHoldDispels() { return _holdDispels; }
+	uint8 GetHoldEscapes() { return _holdEscapes; }
+	uint8 GetHoldHateRedux() { return _holdHateRedux; }
+	uint8 GetHoldHeals() { return _holdHeals; }
+	uint8 GetHoldInCombatBuffs() { return _holdInCombatBuffs; }
+	uint8 GetHoldInCombatBuffSongs() { return _holdInCombatBuffSongs; }
+	uint8 GetHoldLifetaps() { return _holdLifetaps; }
+	uint8 GetHoldMez() { return _holdMez; }
 	uint8 GetHoldNukes() { return _holdNukes; }
+	uint8 GetHoldOutOfCombatBuffSongs() { return _holdOutOfCombatBuffSongs; }
+	uint8 GetHoldPets() { return _holdPets; }
+	uint8 GetHoldPreCombatBuffs() { return _holdPreCombatBuffs; }
+	uint8 GetHoldPreCombatBuffSongs() { return _holdPreCombatBuffSongs; }
+	uint8 GetHoldRoots() { return _holdRoots; }
+	uint8 GetHoldSlows() { return _holdSlows; }
+	uint8 GetHoldSnares() { return _holdSnares; }
 	uint32 GetNukeDelay() { return _nukeDelay; }
 	uint8 GetAutoResist() { return _autoResist; }
 	uint8 GetAutoDS() { return _autoDS; }
 	void SetStopMeleeLevel(uint8 level);
+	void SetHoldBuffs(uint8 holdstatus);
+	void SetHoldCures(uint8 holdstatus);
+	void SetHoldDoTs(uint8 holdstatus);
+	void SetHoldDebuffs(uint8 holdstatus);
+	void SetHoldDispels(uint8 holdstatus);
+	void SetHoldEscapes(uint8 holdstatus);
+	void SetHoldHateRedux(uint8 holdstatus);
+	void SetHoldHeals(uint8 holdstatus);
+	void SetHoldInCombatBuffs(uint8 holdstatus);
+	void SetHoldInCombatBuffSongs(uint8 holdstatus);
+	void SetHoldLifetaps(uint8 holdstatus);
+	void SetHoldMez(uint8 holdstatus);
 	void SetHoldNukes(uint8 holdstatus);
+	void SetHoldOutOfCombatBuffSongs(uint8 holdstatus);
+	void SetHoldPets(uint8 holdstatus);
+	void SetHoldPreCombatBuffs(uint8 holdstatus);
+	void SetHoldPreCombatBuffSongs(uint8 holdstatus);
+	void SetHoldRoots(uint8 holdstatus);
+	void SetHoldSlows(uint8 holdstatus);
+	void SetHoldSnares(uint8 holdstatus);
 	void SetNukeDelay(uint32 nukedelay);
 	void SetAutoResist(uint8 autoresist);
 	void SetAutoDS(uint8 autods);
@@ -722,7 +760,26 @@ private:
 	bool _showhelm;
 	bool _pauseAI;
 	uint8 _stopMeleeLevel;
+	uint8 _holdBuffs;
+	uint8 _holdCures;
+	uint8 _holdDoTs;
+	uint8 _holdDebuffs;
+	uint8 _holdDispels;
+	uint8 _holdEscapes;
+	uint8 _holdHateRedux;
+	uint8 _holdHeals;
+	uint8 _holdInCombatBuffs;
+	uint8 _holdInCombatBuffSongs;
+	uint8 _holdLifetaps;
+	uint8 _holdMez;
 	uint8 _holdNukes;
+	uint8 _holdOutOfCombatBuffSongs;
+	uint8 _holdPets;
+	uint8 _holdPreCombatBuffs;
+	uint8 _holdPreCombatBuffSongs;
+	uint8 _holdRoots;
+	uint8 _holdSlows;
+	uint8 _holdSnares;
 	uint32 _nukeDelay;
 	int8 _autoResist;
 	int8 _autoDS;

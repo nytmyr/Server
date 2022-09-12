@@ -2350,8 +2350,84 @@ void Bot::SetStopMeleeLevel(uint8 level) {
 		_stopMeleeLevel = 255;
 }
 
+void Bot::SetHoldBuffs(uint8 holdstatus) {
+	_holdBuffs = holdstatus;
+}
+
+void Bot::SetHoldCures(uint8 holdstatus) {
+	_holdCures = holdstatus;
+}
+
+void Bot::SetHoldDoTs(uint8 holdstatus) {
+	_holdDoTs = holdstatus;
+}
+
+void Bot::SetHoldDebuffs(uint8 holdstatus) {
+	_holdDebuffs = holdstatus;
+}
+
+void Bot::SetHoldDispels(uint8 holdstatus) {
+	_holdDispels = holdstatus;
+}
+
+void Bot::SetHoldEscapes(uint8 holdstatus) {
+	_holdEscapes = holdstatus;
+}
+
+void Bot::SetHoldHateRedux(uint8 holdstatus) {
+	_holdHateRedux = holdstatus;
+}
+
+void Bot::SetHoldHeals(uint8 holdstatus) {
+	_holdHeals = holdstatus;
+}
+
+void Bot::SetHoldInCombatBuffs(uint8 holdstatus) {
+	_holdInCombatBuffs = holdstatus;
+}
+
+void Bot::SetHoldInCombatBuffSongs(uint8 holdstatus) {
+	_holdInCombatBuffSongs = holdstatus;
+}
+
+void Bot::SetHoldLifetaps(uint8 holdstatus) {
+	_holdLifetaps = holdstatus;
+}
+
+void Bot::SetHoldMez(uint8 holdstatus) {
+	_holdMez = holdstatus;
+}
+
 void Bot::SetHoldNukes(uint8 holdstatus) {
 	_holdNukes = holdstatus;
+}
+
+void Bot::SetHoldOutOfCombatBuffSongs(uint8 holdstatus) {
+	_holdOutOfCombatBuffSongs = holdstatus;
+}
+
+void Bot::SetHoldPets(uint8 holdstatus) {
+	_holdPets = holdstatus;
+}
+
+void Bot::SetHoldPreCombatBuffs(uint8 holdstatus) {
+	_holdPreCombatBuffs = holdstatus;
+}
+
+void Bot::SetHoldPreCombatBuffSongs(uint8 holdstatus) {
+	_holdPreCombatBuffSongs = holdstatus;
+}
+
+void Bot::SetHoldRoots(uint8 holdstatus) {
+	_holdRoots = holdstatus;
+}
+
+void Bot::SetHoldSlows(uint8 holdstatus) {
+	_holdSlows = holdstatus;
+}
+
+void Bot::SetHoldSnares(uint8 holdstatus) {
+	_holdSnares = holdstatus;
 }
 
 void Bot::SetNukeDelay(uint32 nukedelay) {

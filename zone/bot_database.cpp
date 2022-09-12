@@ -381,10 +381,29 @@ bool BotDatabase::LoadBot(const uint32 bot_id, Bot*& loaded_bot)
 		" `show_helm`," // 43
 		" `follow_distance`," // 44
 		" `stop_melee_level`," // 45
-		" `hold_nukes`," // 46
-		" `nuke_delay`," // 47
-		" `auto_resist`," // 48
-		" `auto_ds`" // 49
+		" `hold_buffs`," // 46
+		" `hold_cures`," // 47
+		" `hold_dots`," // 48
+		" `hold_debuffs`," // 49
+		" `hold_dispels`," // 50
+		" `hold_escapes`," // 51
+		" `hold_hateredux`," // 52
+		" `hold_heals`," // 53
+		" `hold_incombatbuffs`," // 54
+		" `hold_incombatbuffsongs`," // 55
+		" `hold_lifetaps`," // 56
+		" `hold_mez`," // 57
+		" `hold_nukes`," // 58
+		" `hold_outofcombatbuffsongs`," // 59
+		" `hold_pets`," // 60
+		" `hold_precombatbuffs`," // 61
+		" `hold_precombatbuffsongs`," // 62
+		" `hold_roots`," // 63
+		" `hold_slows`," // 64
+		" `hold_snares`," // 65
+		" `nuke_delay`," // 66
+		" `auto_resist`," // 67
+		" `auto_ds`" // 68
 		" FROM `bot_data`"
 		" WHERE `bot_id` = '%u'"
 		" LIMIT 1",
@@ -455,13 +474,51 @@ bool BotDatabase::LoadBot(const uint32 bot_id, Bot*& loaded_bot)
 
 		uint8 sml = atoi(row[45]);
 		loaded_bot->SetStopMeleeLevel(sml);
-		uint8 hn = atoi(row[46]);
+		uint8 hbuffs = atoi(row[46]);
+		loaded_bot->SetHoldBuffs(hbuffs);
+		uint8 hcures = atoi(row[47]);
+		loaded_bot->SetHoldCures(hcures);
+		uint8 hdots = atoi(row[48]);
+		loaded_bot->SetHoldDoTs(hdots);
+		uint8 hdebuffs = atoi(row[49]);
+		loaded_bot->SetHoldDebuffs(hdebuffs);
+		uint8 hdispels = atoi(row[50]);
+		loaded_bot->SetHoldDispels(hdispels);
+		uint8 hescapes = atoi(row[51]);
+		loaded_bot->SetHoldEscapes(hescapes);
+		uint8 hhateredux = atoi(row[52]);
+		loaded_bot->SetHoldHateRedux(hhateredux);
+		uint8 hheals = atoi(row[56]);
+		loaded_bot->SetHoldHeals(hheals);
+		uint8 hicb = atoi(row[54]);
+		loaded_bot->SetHoldInCombatBuffs(hicb);
+		uint8 hicbs = atoi(row[55]);
+		loaded_bot->SetHoldInCombatBuffSongs(hicbs);
+		uint8 hlifetaps = atoi(row[56]);
+		loaded_bot->SetHoldLifetaps(hlifetaps);
+		uint8 hmez = atoi(row[57]);
+		loaded_bot->SetHoldMez(hmez);
+		uint8 hn = atoi(row[58]);
 		loaded_bot->SetHoldNukes(hn);
-		uint32 nd = atoi(row[47]);
+		uint8 oocbs = atoi(row[59]);
+		loaded_bot->SetHoldOutOfCombatBuffSongs(oocbs);
+		uint8 hpet = atoi(row[60]);
+		loaded_bot->SetHoldPets(hpet);
+		uint8 hpcb = atoi(row[61]);
+		loaded_bot->SetHoldPreCombatBuffs(hpcb);
+		uint8 hpcbs = atoi(row[62]);
+		loaded_bot->SetHoldPreCombatBuffSongs(hpcbs);
+		uint8 hroots = atoi(row[63]);
+		loaded_bot->SetHoldRoots(hroots);
+		uint8 hslows = atoi(row[64]);
+		loaded_bot->SetHoldSlows(hslows);
+		uint8 hsnares = atoi(row[65]);
+		loaded_bot->SetHoldSnares(hsnares);
+		uint32 nd = atoi(row[66]);
 		loaded_bot->SetNukeDelay(nd);
-		uint8 ar = atoi(row[48]);
+		uint8 ar = atoi(row[67]);
 		loaded_bot->SetAutoResist(ar);
-		uint8 ad = atoi(row[49]);
+		uint8 ad = atoi(row[68]);
 		loaded_bot->SetAutoDS(ad);
 	}
 
@@ -518,7 +575,26 @@ bool BotDatabase::SaveNewBot(Bot* bot_inst, uint32& bot_id)
 		" `show_helm`,"
 		" `follow_distance`,"
 		" `stop_melee_level`,"
+		" `hold_buffs`,"
+		" `hold_cures`,"
+		" `hold_dots`,"
+		" `hold_debuffs`,"
+		" `hold_dispels`,"
+		" `hold_escapes`,"
+		" `hold_hateredux`,"
+		" `hold_heals`,"
+		" `hold_incombatbuffs`,"
+		" `hold_incombatbuffsongs`,"
+		" `hold_lifetaps`,"
+		" `hold_mez`,"
 		" `hold_nukes`,"
+		" `hold_outofcombatbuffsongs`,"
+		" `hold_pets`,"
+		" `hold_precombatbuffs`,"
+		" `hold_precombatbuffsongs`,"
+		" `hold_roots`,"
+		" `hold_slows`,"
+		" `hold_snares`,"
 		" `nuke_delay`,"
 		" `auto_resist`,"
 		" `auto_ds`"
@@ -567,9 +643,28 @@ bool BotDatabase::SaveNewBot(Bot* bot_inst, uint32& bot_id)
 		" '1',"					/* show_helm */
 		" '%i',"				/* follow_distance */
 		" '%u',"				/* stop_melee_level */
+		" '%u',"				/* hold_buffs*/
+		" '%u',"				/* hold_cures*/
+		" '%u',"				/* hold_dots*/
+		" '%u',"				/* hold_debuffs*/
+		" '%u',"				/* hold_dispels*/
+		" '%u',"				/* hold_escapes*/
+		" '%u',"				/* hold_haterefux*/
+		" '%u',"				/* hold_heals*/
+		" '%u',"				/* hold_ncombatbuff*/
+		" '%u',"				/* hold_incombatbuffsongs*/
+		" '%u',"				/* hold_lifetaps*/
+		" '%u',"				/* hold_mez*/
 		" '%u',"				/* hold_nukes*/
-		" '%u',"					/* nuke_delay */
-		" '%u',"					/* auto resist */
+		" '%u',"				/* hold_outofcombatbuffsongs*/
+		" '%u',"				/* hold_pets*/
+		" '%u',"				/* hold_precombatbuffs*/
+		" '%u',"				/* hold_precombatbuffsongs*/
+		" '%u',"				/* hold_roots*/
+		" '%u',"				/* hold_slows*/
+		" '%u',"				/* hold_snares*/
+		" '%u',"				/* nuke_delay */
+		" '%u',"				/* auto resist */
 		" '%u'"					/* auto ds */
 		")",
 		bot_inst->GetBotOwnerCharacterID(),
@@ -611,6 +706,28 @@ bool BotDatabase::SaveNewBot(Bot* bot_inst, uint32& bot_id)
 		bot_inst->GetCorrup(),
 		(uint32)BOT_FOLLOW_DISTANCE_DEFAULT,
 		(IsCasterClass(bot_inst->GetClass()) ? (uint8)RuleI(Bots, CasterStopMeleeLevel) : 255),
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
 		0
 	);
 	auto results = database.QueryDatabase(query);
@@ -672,7 +789,26 @@ bool BotDatabase::SaveBot(Bot* bot_inst)
 		" `show_helm` = '%i',"
 		" `follow_distance` = '%i',"
 		" `stop_melee_level` = '%u',"
+		" `hold_buffs` = '%u',"
+		" `hold_cures` = '%u',"
+		" `hold_dots` = '%u',"
+		" `hold_debuffs` = '%u',"
+		" `hold_dispels` = '%u',"
+		" `hold_escapes` = '%u',"
+		" `hold_hateredux` = '%u',"
+		" `hold_heals` = '%u',"
+		" `hold_incombatbuffs` = '%u',"
+		" `hold_incombatbuffsongs` = '%u',"
+		" `hold_lifetaps` = '%u',"
+		" `hold_mez` = '%u',"
 		" `hold_nukes` = '%u',"
+		" `hold_outofcombatbuffsongs` = '%u',"
+		" `hold_pets` = '%u',"
+		" `hold_precombatbuffs` = '%u',"
+		" `hold_precombatbuffsongs` = '%u',"
+		" `hold_roots` = '%u',"
+		" `hold_slows` = '%u',"
+		" `hold_snares` = '%u',"
 		" `nuke_delay` = '%u',"
 		" `auto_resist` = '%u',"
 		" `auto_ds` = '%u',"
@@ -720,7 +856,26 @@ bool BotDatabase::SaveBot(Bot* bot_inst)
 		((bot_inst->GetShowHelm()) ? (1) : (0)),
 		bot_inst->GetFollowDistance(),
 		bot_inst->GetStopMeleeLevel(),
+		bot_inst->GetHoldBuffs(),
+		bot_inst->GetHoldCures(),
+		bot_inst->GetHoldDoTs(),
+		bot_inst->GetHoldDebuffs(),
+		bot_inst->GetHoldDispels(),
+		bot_inst->GetHoldEscapes(),
+		bot_inst->GetHoldHateRedux(),
+		bot_inst->GetHoldHeals(),
+		bot_inst->GetHoldInCombatBuffs(),
+		bot_inst->GetHoldInCombatBuffSongs(),
+		bot_inst->GetHoldLifetaps(),
+		bot_inst->GetHoldMez(),
 		bot_inst->GetHoldNukes(),
+		bot_inst->GetHoldOutOfCombatBuffSongs(),
+		bot_inst->GetHoldPets(),
+		bot_inst->GetHoldPreCombatBuffs(),
+		bot_inst->GetHoldPreCombatBuffSongs(),
+		bot_inst->GetHoldRoots(),
+		bot_inst->GetHoldSlows(),
+		bot_inst->GetHoldSnares(),
 		bot_inst->GetNukeDelay(),
 		bot_inst->GetAutoResist(),
 		bot_inst->GetAutoDS(),
@@ -2112,7 +2267,26 @@ bool BotDatabase::CreateCloneBot(const uint32 owner_id, const uint32 bot_id, con
 		" `show_helm`,"
 		" `follow_distance`,"
 		" `stop_melee_level`,"
+		" `hold_buffs`,"
+		" `hold_cures`,"
+		" `hold_dots`,"
+		" `hold_debuffs`,"
+		" `hold_dispels`,"
+		" `hold_escapes`,"
+		" `hold_hateredux`,"
+		" `hold_heals`,"
+		" `hold_incombatbuffs`,"
+		" `hold_incombatbuffsongs`,"
+		" `hold_lifetaps`,"
+		" `hold_mez`,"
 		" `hold_nukes`,"
+		" `hold_outofcombatbuffsongs`,"
+		" `hold_pets`,"
+		" `hold_precombatbuffs`,"
+		" `hold_precombatbuffsongs`,"
+		" `hold_roots`,"
+		" `hold_slows`,"
+		" `hold_snares`,"
 		" `nuke_delay`,"
 		" `auto_resist`,"
 		" `auto_ds`"
@@ -2164,7 +2338,26 @@ bool BotDatabase::CreateCloneBot(const uint32 owner_id, const uint32 bot_id, con
 		" bd.`show_helm`,"
 		" bd.`follow_distance`,"
 		" bd.`stop_melee_level`,"
+		" bd.`hold_buffs`,"
+		" bd.`hold_cures`,"
+		" bd.`hold_dots`,"
+		" bd.`hold_debuffs`,"
+		" bd.`hold_dispels`,"
+		" bd.`hold_escapes`,"
+		" bd.`hold_hateredux`,"
+		" bd.`hold_heals`,"
+		" bd.`hold_incombatbuffs`,"
+		" bd.`hold_incombatbuffsongs`,"
+		" bd.`hold_lifetaps`,"
+		" bd.`hold_mez`,"
 		" bd.`hold_nukes`,"
+		" bd.`hold_outofcombatbuffsongs`,"
+		" bd.`hold_pets`,"
+		" bd.`hold_precombatbuffs`,"
+		" bd.`hold_precombatbuffsongs`,"
+		" bd.`hold_roots`,"
+		" bd.`hold_slows`,"
+		" bd.`hold_snares`,"
 		" bd.`nuke_delay`,"
 		" bd.`auto_resist`,"
 		" bd.`auto_ds`"
@@ -2268,6 +2461,258 @@ bool BotDatabase::SaveStopMeleeLevel(const uint32 owner_id, const uint32 bot_id,
 	return true;
 }
 
+bool BotDatabase::SaveHoldBuffs(const uint32 owner_id, const uint32 bot_id, const uint8 hbuffs_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hold_buffs` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		hbuffs_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveHoldCures(const uint32 owner_id, const uint32 bot_id, const uint8 hcures_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hold_cures` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		hcures_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveHoldDoTs(const uint32 owner_id, const uint32 bot_id, const uint8 hdots_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hold_dots` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		hdots_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveHoldDebuffs(const uint32 owner_id, const uint32 bot_id, const uint8 hdebuffs_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hold_debuffs` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		hdebuffs_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveHoldDispels(const uint32 owner_id, const uint32 bot_id, const uint8 hdispels_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hold_dispels` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		hdispels_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveHoldEscapes(const uint32 owner_id, const uint32 bot_id, const uint8 hescapes_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hold_escapes` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		hescapes_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveHoldHateRedux(const uint32 owner_id, const uint32 bot_id, const uint8 hhateredux_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hold_hateredux` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		hhateredux_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveHoldHeals(const uint32 owner_id, const uint32 bot_id, const uint8 hheals_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hold_heals` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		hheals_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveHoldInCombatBuffs(const uint32 owner_id, const uint32 bot_id, const uint8 hicb_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hold_incombatbuffs` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		hicb_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveHoldInCombatBuffSongs(const uint32 owner_id, const uint32 bot_id, const uint8 hicbs_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hold_incombatbuffsongss` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		hicbs_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveHoldLifetaps(const uint32 owner_id, const uint32 bot_id, const uint8 hlifetaps_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hold_lifetaps` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		hlifetaps_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveHoldMez(const uint32 owner_id, const uint32 bot_id, const uint8 hmez_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hold_mez` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		hmez_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
 bool BotDatabase::SaveHoldNukes(const uint32 owner_id, const uint32 bot_id, const uint8 hn_value)
 {
 	if (!owner_id || !bot_id)
@@ -2279,6 +2724,154 @@ bool BotDatabase::SaveHoldNukes(const uint32 owner_id, const uint32 bot_id, cons
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
 		hn_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+
+bool BotDatabase::SaveHoldOutOfCombatBuffSongs(const uint32 owner_id, const uint32 bot_id, const uint8 hoocbs_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hold_outofcombatbuffsongs` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		hoocbs_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveHoldPets(const uint32 owner_id, const uint32 bot_id, const uint8 hpets_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hold_pets` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		hpets_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveHoldPreCombatBuffs(const uint32 owner_id, const uint32 bot_id, const uint8 hpcb_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hold_precombatbuffs` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		hpcb_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveHoldPreCombatBuffSongs(const uint32 owner_id, const uint32 bot_id, const uint8 hpcbs_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hold_precombatbuffsongs` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		hpcbs_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveHoldRoots(const uint32 owner_id, const uint32 bot_id, const uint8 hroots_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hold_roots` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		hroots_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveHoldSlows(const uint32 owner_id, const uint32 bot_id, const uint8 hslows_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hold_slows` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		hslows_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveHoldSnares(const uint32 owner_id, const uint32 bot_id, const uint8 hsnares_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hold_snares` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		hsnares_value,
 		owner_id,
 		bot_id
 	);
@@ -3360,7 +3953,26 @@ const char* BotDatabase::fail::SaveAllFollowDistances() { return "Failed to save
 const char* BotDatabase::fail::CreateCloneBot() { return "Failed to create clone bot"; }
 const char* BotDatabase::fail::CreateCloneBotInventory() { return "Failed to create clone bot inventory"; }
 const char* BotDatabase::fail::SaveStopMeleeLevel() { return "Failed to save stop melee level"; }
+const char* BotDatabase::fail::SaveHoldBuffs() { return "Failed to save hold buffs status"; }
+const char* BotDatabase::fail::SaveHoldCures() { return "Failed to save hold cures status"; }
+const char* BotDatabase::fail::SaveHoldDoTs() { return "Failed to save hold DoTs status"; }
+const char* BotDatabase::fail::SaveHoldDebuffs() { return "Failed to save hold debuffs status"; }
+const char* BotDatabase::fail::SaveHoldDispels() { return "Failed to save hold dispels status"; }
+const char* BotDatabase::fail::SaveHoldEscapes() { return "Failed to save hold escapes status"; }
+const char* BotDatabase::fail::SaveHoldHateRedux() { return "Failed to save hold hate redux status"; }
+const char* BotDatabase::fail::SaveHoldHeals() { return "Failed to save hold heals status"; }
+const char* BotDatabase::fail::SaveHoldInCombatBuffs() { return "Failed to save hold in-combat buffs status"; }
+const char* BotDatabase::fail::SaveHoldInCombatBuffSongs() { return "Failed to save hold in-combat buff songs status"; }
+const char* BotDatabase::fail::SaveHoldLifetaps() { return "Failed to save hold lifetaps status"; }
+const char* BotDatabase::fail::SaveHoldMez() { return "Failed to save hold mez status"; }
 const char* BotDatabase::fail::SaveHoldNukes() { return "Failed to save hold nukes status"; }
+const char* BotDatabase::fail::SaveHoldOutOfCombatBuffSongs() { return "Failed to save hold out-of-combat buff songs status"; }
+const char* BotDatabase::fail::SaveHoldPets() { return "Failed to save hold pets status"; }
+const char* BotDatabase::fail::SaveHoldPreCombatBuffs() { return "Failed to save hold pre-combat buffs status"; }
+const char* BotDatabase::fail::SaveHoldPreCombatBuffSongs() { return "Failed to save pre-combat buff songs status"; }
+const char* BotDatabase::fail::SaveHoldRoots() { return "Failed to save hold roots status"; }
+const char* BotDatabase::fail::SaveHoldSlows() { return "Failed to save hold slows status"; }
+const char* BotDatabase::fail::SaveHoldSnares() { return "Failed to save hold snares status"; }
 const char* BotDatabase::fail::SaveNukeDelay() { return "Failed to save nuke delay timer"; }
 const char* BotDatabase::fail::SaveAutoResist() { return "Failed to save auto resists"; }
 const char* BotDatabase::fail::SaveAutoDS() { return "Failed to save auto damage shields"; }

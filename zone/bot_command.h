@@ -606,7 +606,26 @@ void bot_command_water_breathing(Client *c, const Seperator *sep);
 // custom bot commands
 void bot_command_auto_resist(Client* c, const Seperator* sep);
 void bot_command_auto_ds(Client* c, const Seperator* sep);
+void bot_command_hold_buffs(Client* c, const Seperator* sep);
+void bot_command_hold_cures(Client* c, const Seperator* sep);
+void bot_command_hold_dots(Client* c, const Seperator* sep);
+void bot_command_hold_debuffs(Client* c, const Seperator* sep);
+void bot_command_hold_dispels(Client* c, const Seperator* sep);
+void bot_command_hold_escapes(Client* c, const Seperator* sep);
+void bot_command_hold_hateredux(Client* c, const Seperator* sep);
+void bot_command_hold_heals(Client* c, const Seperator* sep);
+void bot_command_hold_incombatbuffs(Client* c, const Seperator* sep);
+void bot_command_hold_incombatbuffsongs(Client* c, const Seperator* sep);
+void bot_command_hold_lifetaps(Client* c, const Seperator* sep);
+void bot_command_hold_mez(Client* c, const Seperator* sep);
 void bot_command_hold_nukes(Client* c, const Seperator* sep);
+void bot_command_hold_outofcombatbuffsongs(Client* c, const Seperator* sep);
+void bot_command_hold_pets(Client* c, const Seperator* sep);
+void bot_command_hold_precombatbuffs(Client* c, const Seperator* sep);
+void bot_command_hold_precombatbuffsongs(Client* c, const Seperator* sep);
+void bot_command_hold_roots(Client* c, const Seperator* sep);
+void bot_command_hold_slows(Client* c, const Seperator* sep);
+void bot_command_hold_snares(Client* c, const Seperator* sep);
 void bot_command_nuke_delay(Client* c, const Seperator* sep);
 void bot_command_use_epic(Client* c, const Seperator* sep);
 

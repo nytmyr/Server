@@ -1448,7 +1448,26 @@ int bot_command_init(void)
 		// custom bot commands
 		bot_command_add("autoresist", "Toggles the ability for casters to automatically cast resist buffs", AccountStatus::Player, bot_command_auto_resist) ||
 		bot_command_add("autods", "Toggles the ability for casters to automatically cast damage shield buffs", AccountStatus::Player, bot_command_auto_ds) ||
+		bot_command_add("holdbuffs", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_buffs) ||
+		bot_command_add("holdcures", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_cures) ||
+		bot_command_add("holddots", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_dots) ||
+		bot_command_add("holddebuffs", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_debuffs) ||
+		bot_command_add("holddispels", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_dispels) ||
+		bot_command_add("holdescapes", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_escapes) ||
+		bot_command_add("holdhateredux", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_hateredux) ||
+		bot_command_add("holdheals", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_heals) ||
+		bot_command_add("holdincombatbuffs", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_incombatbuffs) ||
+		bot_command_add("holdincombatbuffsongs", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_incombatbuffsongs) ||
+		bot_command_add("holdlifetaps", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_lifetaps) ||
+		bot_command_add("holdmez", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_mez) ||
 		bot_command_add("holdnukes", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_nukes) ||
+		bot_command_add("holdoutofcombatbuffsongs", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_outofcombatbuffsongs) ||
+		bot_command_add("holdpets", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_pets) ||
+		bot_command_add("holdprecombatbuffs", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_precombatbuffs) ||
+		bot_command_add("holdprecombatbuffsongs", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_precombatbuffsongs) ||
+		bot_command_add("holdroots", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_roots) ||
+		bot_command_add("holdslows", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_slows) ||
+		bot_command_add("holdsnares", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_snares) ||
 		bot_command_add("nukedelay", "Sets a timer that controls the frequency of bot nukes", AccountStatus::Player, bot_command_nuke_delay) ||
 		bot_command_add("useepic", "Orders your targeted bot to use their epic if it is equipped", AccountStatus::Player, bot_command_use_epic)
 	) {
@@ -3610,6 +3629,618 @@ void bot_command_hold(Client *c, const Seperator *sep)
 	}
 }
 
+void bot_command_hold_buffs(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_buffs", sep->arg[0], "holdbuffs"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast buffs.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting buffs.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 hbuffs = 0;
+	if (sep->IsNumber(1)) {
+		hbuffs = atoi(sep->arg[1]);
+		int hbuffscheck = hbuffs;
+		if (hbuffscheck == 0 || hbuffscheck == 1) {
+			my_bot->SetHoldBuffs(hbuffs);
+			if (!database.botdb.SaveHoldBuffs(c->CharacterID(), my_bot->GetBotID(), hbuffs)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldBuffs(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold Buffs for %s to %u.", my_bot->GetCleanName(), hbuffs);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold Buffs status is %u.", my_bot->GetHoldBuffs());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
+void bot_command_hold_cures(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_cures", sep->arg[0], "holdcures"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast cures.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting cures.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 hcures = 0;
+	if (sep->IsNumber(1)) {
+		hcures = atoi(sep->arg[1]);
+		int hcurescheck = hcures;
+		if (hcurescheck == 0 || hcurescheck == 1) {
+			my_bot->SetHoldCures(hcures);
+			if (!database.botdb.SaveHoldCures(c->CharacterID(), my_bot->GetBotID(), hcures)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldCures(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold Cures for %s to %u.", my_bot->GetCleanName(), hcures);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold Cures status is %u.", my_bot->GetHoldCures());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
+void bot_command_hold_dots(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_dots", sep->arg[0], "holddots"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast DoTs.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting DoTs.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 hdots = 0;
+	if (sep->IsNumber(1)) {
+		hdots = atoi(sep->arg[1]);
+		int hdotscheck = hdots;
+		if (hdotscheck == 0 || hdotscheck == 1) {
+			my_bot->SetHoldDoTs(hdots);
+			if (!database.botdb.SaveHoldDoTs(c->CharacterID(), my_bot->GetBotID(), hdots)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldDoTs(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold DoTs for %s to %u.", my_bot->GetCleanName(), hdots);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold DoTs status is %u.", my_bot->GetHoldDoTs());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
+void bot_command_hold_debuffs(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_debuffs", sep->arg[0], "holddebuffs"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast debuffs.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting debuffs.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 hdebuffs = 0;
+	if (sep->IsNumber(1)) {
+		hdebuffs = atoi(sep->arg[1]);
+		int hdebuffscheck = hdebuffs;
+		if (hdebuffscheck == 0 || hdebuffscheck == 1) {
+			my_bot->SetHoldDebuffs(hdebuffs);
+			if (!database.botdb.SaveHoldDebuffs(c->CharacterID(), my_bot->GetBotID(), hdebuffs)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldDebuffs(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold Debuffs for %s to %u.", my_bot->GetCleanName(), hdebuffs);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold Debuffs status is %u.", my_bot->GetHoldDebuffs());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
+void bot_command_hold_dispels(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_dispels", sep->arg[0], "holddispels"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast dispels.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting dispels.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 hdispels = 0;
+	if (sep->IsNumber(1)) {
+		hdispels = atoi(sep->arg[1]);
+		int hdispelscheck = hdispels;
+		if (hdispelscheck == 0 || hdispelscheck == 1) {
+			my_bot->SetHoldDispels(hdispels);
+			if (!database.botdb.SaveHoldDispels(c->CharacterID(), my_bot->GetBotID(), hdispels)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldDispels(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold Dispels for %s to %u.", my_bot->GetCleanName(), hdispels);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold Dispels status is %u.", my_bot->GetHoldDispels());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
+void bot_command_hold_escapes(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_escapes", sep->arg[0], "holdescapes"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast escapes.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting escapes.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 hescapes = 0;
+	if (sep->IsNumber(1)) {
+		hescapes = atoi(sep->arg[1]);
+		int hescapescheck = hescapes;
+		if (hescapescheck == 0 || hescapescheck == 1) {
+			my_bot->SetHoldEscapes(hescapes);
+			if (!database.botdb.SaveHoldEscapes(c->CharacterID(), my_bot->GetBotID(), hescapes)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldEscapes(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold Escapes for %s to %u.", my_bot->GetCleanName(), hescapes);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold Escapes status is %u.", my_bot->GetHoldEscapes());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
+void bot_command_hold_hateredux(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_hateredux", sep->arg[0], "holdhateredux"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Hate Reduction Spells.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Hate Reduction Spells.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 hhateredux = 0;
+	if (sep->IsNumber(1)) {
+		hhateredux = atoi(sep->arg[1]);
+		int hhatereduxcheck = hhateredux;
+		if (hhatereduxcheck == 0 || hhatereduxcheck == 1) {
+			my_bot->SetHoldHateRedux(hhateredux);
+			if (!database.botdb.SaveHoldHateRedux(c->CharacterID(), my_bot->GetBotID(), hhateredux)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldHateRedux(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold HateRedux for %s to %u.", my_bot->GetCleanName(), hhateredux);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold HateRedux status is %u.", my_bot->GetHoldHateRedux());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
+void bot_command_hold_heals(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_heals", sep->arg[0], "holdheals"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Heals.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Heals.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 hheals = 0;
+	if (sep->IsNumber(1)) {
+		hheals = atoi(sep->arg[1]);
+		int hhealscheck = hheals;
+		if (hhealscheck == 0 || hhealscheck == 1) {
+			my_bot->SetHoldHeals(hheals);
+			if (!database.botdb.SaveHoldHeals(c->CharacterID(), my_bot->GetBotID(), hheals)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldHeals(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold Heal for %s to %u.", my_bot->GetCleanName(), hheals);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold Heal status is %u.", my_bot->GetHoldHeals());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
+void bot_command_hold_incombatbuffs(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_incombatbuffs", sep->arg[0], "holdincombatbuffs"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast In-Combat Buffs.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting In-Combat Buffs.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 hincombatbuffs = 0;
+	if (sep->IsNumber(1)) {
+		hincombatbuffs = atoi(sep->arg[1]);
+		int hincombatbuffscheck = hincombatbuffs;
+		if (hincombatbuffscheck == 0 || hincombatbuffscheck == 1) {
+			my_bot->SetHoldInCombatBuffs(hincombatbuffs);
+			if (!database.botdb.SaveHoldInCombatBuffs(c->CharacterID(), my_bot->GetBotID(), hincombatbuffs)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldInCombatBuffs(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold InCombatBuffs for %s to %u.", my_bot->GetCleanName(), hincombatbuffs);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold In-Combat Buffs status is %u.", my_bot->GetHoldInCombatBuffs());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
+void bot_command_hold_incombatbuffsongs(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_incombatbuffsongs", sep->arg[0], "holdincombatbuffsongs"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast In-Combat Buff Songs.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting In-Combat Buff Songs.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 hincombatbuffsongs = 0;
+	if (sep->IsNumber(1)) {
+		hincombatbuffsongs = atoi(sep->arg[1]);
+		int hincombatbuffsongscheck = hincombatbuffsongs;
+		if (hincombatbuffsongscheck == 0 || hincombatbuffsongscheck == 1) {
+			my_bot->SetHoldInCombatBuffSongs(hincombatbuffsongs);
+			if (!database.botdb.SaveHoldInCombatBuffSongs(c->CharacterID(), my_bot->GetBotID(), hincombatbuffsongs)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldInCombatBuffSongs(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold InCombatBuffSongs for %s to %u.", my_bot->GetCleanName(), hincombatbuffsongs);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold In-Combat Buff Songs status is %u.", my_bot->GetHoldInCombatBuffSongs());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
+void bot_command_hold_lifetaps(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_lifetaps", sep->arg[0], "holdlifetaps"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Lifetaps.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Lifetaps.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 hlifetaps = 0;
+	if (sep->IsNumber(1)) {
+		hlifetaps = atoi(sep->arg[1]);
+		int hlifetapscheck = hlifetaps;
+		if (hlifetapscheck == 0 || hlifetapscheck == 1) {
+			my_bot->SetHoldLifetaps(hlifetaps);
+			if (!database.botdb.SaveHoldLifetaps(c->CharacterID(), my_bot->GetBotID(), hlifetaps)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldLifetaps(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold Lifetaps for %s to %u.", my_bot->GetCleanName(), hlifetaps);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold Lifetaps status is %u.", my_bot->GetHoldLifetaps());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
+void bot_command_hold_mez(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_mez", sep->arg[0], "holdmez"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Mez.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Mez.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 hmez = 0;
+	if (sep->IsNumber(1)) {
+		hmez = atoi(sep->arg[1]);
+		int hmezcheck = hmez;
+		if (hmezcheck == 0 || hmezcheck == 1) {
+			my_bot->SetHoldMez(hmez);
+			if (!database.botdb.SaveHoldMez(c->CharacterID(), my_bot->GetBotID(), hmez)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldMez(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold Mez for %s to %u.", my_bot->GetCleanName(), hmez);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold Mez status is %u.", my_bot->GetHoldMez());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
 void bot_command_hold_nukes(Client* c, const Seperator* sep)
 {
 	if (helper_command_alias_fail(c, "bot_command_hold_nukes", sep->arg[0], "holdnukes"))
@@ -3654,6 +4285,363 @@ void bot_command_hold_nukes(Client* c, const Seperator* sep)
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
 		c->Message(Chat::White, "My current hold nukes status is %u.", my_bot->GetHoldNukes());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
+void bot_command_hold_outofcombatbuffsongs(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_outofcombatbuffsongs", sep->arg[0], "holdoutofcombatbuffsongs"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Out-Of-Combat Buff Songs.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Out-Of-Combat Buff Songs.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 houtofcombatbuffsongs = 0;
+	if (sep->IsNumber(1)) {
+		houtofcombatbuffsongs = atoi(sep->arg[1]);
+		int houtofcombatbuffsongscheck = houtofcombatbuffsongs;
+		if (houtofcombatbuffsongscheck == 0 || houtofcombatbuffsongscheck == 1) {
+			my_bot->SetHoldOutOfCombatBuffSongs(houtofcombatbuffsongs);
+			if (!database.botdb.SaveHoldOutOfCombatBuffSongs(c->CharacterID(), my_bot->GetBotID(), houtofcombatbuffsongs)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldOutOfCombatBuffSongs(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold OutOfCombatBuffSongs for %s to %u.", my_bot->GetCleanName(), houtofcombatbuffsongs);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold Out-Of-Combat Buff Songs status is %u.", my_bot->GetHoldOutOfCombatBuffSongs());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
+void bot_command_hold_pets(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_pets", sep->arg[0], "holdpets"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Pets.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Pets.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 hpets = 0;
+	if (sep->IsNumber(1)) {
+		hpets = atoi(sep->arg[1]);
+		int hpetscheck = hpets;
+		if (hpetscheck == 0 || hpetscheck == 1) {
+			my_bot->SetHoldPets(hpets);
+			if (!database.botdb.SaveHoldPets(c->CharacterID(), my_bot->GetBotID(), hpets)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldPets(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold Pets for %s to %u.", my_bot->GetCleanName(), hpets);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold Pets status is %u.", my_bot->GetHoldPets());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
+void bot_command_hold_precombatbuffs(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_precombatbuffs", sep->arg[0], "holdprecombatbuffs"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Pre-Combat Buffs.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Pre-Combat Buffs.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 hprecombatbuffs = 0;
+	if (sep->IsNumber(1)) {
+		hprecombatbuffs = atoi(sep->arg[1]);
+		int hprecombatbuffscheck = hprecombatbuffs;
+		if (hprecombatbuffscheck == 0 || hprecombatbuffscheck == 1) {
+			my_bot->SetHoldPreCombatBuffs(hprecombatbuffs);
+			if (!database.botdb.SaveHoldPreCombatBuffs(c->CharacterID(), my_bot->GetBotID(), hprecombatbuffs)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldPreCombatBuffs(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold PreCombatBuffs for %s to %u.", my_bot->GetCleanName(), hprecombatbuffs);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold Pre-Combat Buffs status is %u.", my_bot->GetHoldPreCombatBuffs());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
+void bot_command_hold_precombatbuffsongs(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_precombatbuffsongs", sep->arg[0], "holdprecombatbuffsongs"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Pre-Combat Buffs Songs.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Pre-Combat Buffs Songs.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 hprecombatbuffsongs = 0;
+	if (sep->IsNumber(1)) {
+		hprecombatbuffsongs = atoi(sep->arg[1]);
+		int hprecombatbuffsongscheck = hprecombatbuffsongs;
+		if (hprecombatbuffsongscheck == 0 || hprecombatbuffsongscheck == 1) {
+			my_bot->SetHoldPreCombatBuffSongs(hprecombatbuffsongs);
+			if (!database.botdb.SaveHoldPreCombatBuffSongs(c->CharacterID(), my_bot->GetBotID(), hprecombatbuffsongs)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldPreCombatBuffSongs(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold PreCombatBuffSongs for %s to %u.", my_bot->GetCleanName(), hprecombatbuffsongs);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold Pre-Combat Buffs status is %u.", my_bot->GetHoldPreCombatBuffSongs());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
+void bot_command_hold_roots(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_roots", sep->arg[0], "holdroots"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Roots.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Roots.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 hroots = 0;
+	if (sep->IsNumber(1)) {
+		hroots = atoi(sep->arg[1]);
+		int hrootscheck = hroots;
+		if (hrootscheck == 0 || hrootscheck == 1) {
+			my_bot->SetHoldRoots(hroots);
+			if (!database.botdb.SaveHoldRoots(c->CharacterID(), my_bot->GetBotID(), hroots)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldRoots(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold Roots for %s to %u.", my_bot->GetCleanName(), hroots);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold Roots status is %u.", my_bot->GetHoldRoots());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
+void bot_command_hold_slows(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_slows", sep->arg[0], "holdslows"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Slows.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Slows.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 hslows = 0;
+	if (sep->IsNumber(1)) {
+		hslows = atoi(sep->arg[1]);
+		int hslowscheck = hslows;
+		if (hslowscheck == 0 || hslowscheck == 1) {
+			my_bot->SetHoldSlows(hslows);
+			if (!database.botdb.SaveHoldSlows(c->CharacterID(), my_bot->GetBotID(), hslows)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldSlows(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold Slows for %s to %u.", my_bot->GetCleanName(), hslows);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold Slows status is %u.", my_bot->GetHoldSlows());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
+void bot_command_hold_snares(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_snares", sep->arg[0], "holdsnares"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Snares.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Snares.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 hsnares = 0;
+	if (sep->IsNumber(1)) {
+		hsnares = atoi(sep->arg[1]);
+		int hsnarescheck = hsnares;
+		if (hsnarescheck == 0 || hsnarescheck == 1) {
+			my_bot->SetHoldSnares(hsnares);
+			if (!database.botdb.SaveHoldSnares(c->CharacterID(), my_bot->GetBotID(), hsnares)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldSnares(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold Snares for %s to %u.", my_bot->GetCleanName(), hsnares);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold Snares status is %u.", my_bot->GetHoldSnares());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
