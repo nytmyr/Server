@@ -1972,8 +1972,8 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					{
 					case ARCHETYPE_CASTER:
 						//TODO: probably more caster specific spell effects in here
-						if (IsEffectInSpell(selectedBotSpell.SpellId, SE_AttackSpeed) || IsEffectInSpell(selectedBotSpell.SpellId, SE_ATK) ||
-							IsEffectInSpell(selectedBotSpell.SpellId, SE_STR) || IsEffectInSpell(selectedBotSpell.SpellId, SE_ReverseDS))
+						if ((IsEffectInSpell(selectedBotSpell.SpellId, SE_AttackSpeed) && tar->GetLevel() > tar->CastToBot()->GetStopMeleeLevel()) || (IsEffectInSpell(selectedBotSpell.SpellId, SE_ATK) && tar->GetLevel() > tar->CastToBot()->GetStopMeleeLevel()) ||
+							(IsEffectInSpell(selectedBotSpell.SpellId, SE_STR) && tar->GetLevel() > tar->CastToBot()->GetStopMeleeLevel()) || IsEffectInSpell(selectedBotSpell.SpellId, SE_ReverseDS))
 						{
 							continue;
 						}
@@ -2333,8 +2333,8 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 								switch (tar->GetArchetype()) {
 								case ARCHETYPE_CASTER:
 									//TODO: probably more caster specific spell effects in here
-									if (IsEffectInSpell(selectedBotSpell.SpellId, SE_AttackSpeed) || IsEffectInSpell(selectedBotSpell.SpellId, SE_ATK) ||
-										IsEffectInSpell(selectedBotSpell.SpellId, SE_STR) || IsEffectInSpell(selectedBotSpell.SpellId, SE_ReverseDS))
+									if ((IsEffectInSpell(selectedBotSpell.SpellId, SE_AttackSpeed) && tar->GetLevel() > tar->CastToBot()->GetStopMeleeLevel()) || (IsEffectInSpell(selectedBotSpell.SpellId, SE_ATK) && tar->GetLevel() > tar->CastToBot()->GetStopMeleeLevel()) ||
+										(IsEffectInSpell(selectedBotSpell.SpellId, SE_STR) && tar->GetLevel() > tar->CastToBot()->GetStopMeleeLevel()) || IsEffectInSpell(selectedBotSpell.SpellId, SE_ReverseDS))
 									{
 										continue;
 									}
