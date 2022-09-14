@@ -312,6 +312,11 @@ public:
 						break;
 					entry_prototype = new STBaseEntry(BCEnum::SpT_Root);
 					break;
+				case SE_MovementSpeed:
+					if (spells[spell_id].spell_affect_index != 16)
+						break;
+					entry_prototype = new STBaseEntry(BCEnum::SpT_Snare);
+					break;
 				case SE_Succor:
 					entry_prototype = new STEscapeEntry;
 					std::string is_lesser = spells[spell_id].name;
@@ -1034,6 +1039,24 @@ private:
 					return false;
 				});
 				continue;
+			case BCEnum::SpT_Snare:
+				spell_list->sort([](const STBaseEntry* l, const STBaseEntry* r) {
+					if (LT_SPELLS(l, r, resist_difficulty))
+						return true;
+					if (EQ_SPELLS(l, r, resist_difficulty) && LT_SPELLS(l, r, target_type))
+						return true;
+					if (EQ_SPELLS(l, r, resist_difficulty) && EQ_STBASE(l, r, target_type) && GT_SPELLS(l, r, buff_duration))
+						return true;
+					if (EQ_SPELLS(l, r, resist_difficulty) && EQ_STBASE(l, r, target_type) && EQ_SPELLS(l, r, buff_duration) && LT_SPELLS_EFFECT_ID(l, r, base_value, 2))
+						return true;
+					if (EQ_SPELLS(l, r, resist_difficulty) && EQ_STBASE(l, r, target_type) && EQ_SPELLS(l, r, buff_duration) && EQ_SPELLS_EFFECT_ID(l, r, base_value, 2))
+						return true;
+					if (EQ_SPELLS(l, r, resist_difficulty) && EQ_STBASE(l, r, target_type) && EQ_SPELLS(l, r, buff_duration) && EQ_SPELLS_EFFECT_ID(l, r, base_value, 2) && LT_STBASE(l, r, caster_class))
+						return true;
+
+					return false;
+					});
+				continue;
 			case BCEnum::SpT_Stance:
 				spell_list->sort([](STBaseEntry* l, STBaseEntry* r) {
 					if (LT_STSTANCE(l, r, stance_type))
@@ -1438,6 +1461,7 @@ int bot_command_init(void)
 		bot_command_add("rune", "Orders a bot to cast a rune of protection", AccountStatus::Player, bot_command_rune) ||
 		bot_command_add("sendhome", "Orders a bot to open a magical doorway home", AccountStatus::Player, bot_command_send_home) ||
 		bot_command_add("size", "Orders a bot to change a player's size", AccountStatus::Player, bot_command_size) ||
+		bot_command_add("snare", "Orders a bot to snare the target", AccountStatus::Player, bot_command_snare) ||
 		bot_command_add("summoncorpse", "Orders a bot to summon a corpse to its feet", AccountStatus::Player, bot_command_summon_corpse) ||
 		bot_command_add("suspend", "Suspends a bot's AI processing until released", AccountStatus::Player, bot_command_suspend) ||
 		bot_command_add("taunt", "Toggles taunt use by a bot", AccountStatus::Player, bot_command_taunt) ||
@@ -5990,6 +6014,45 @@ void bot_command_size(Client *c, const Seperator *sep)
 			continue;
 
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
+		break;
+	}
+
+	helper_no_available_bots(c, my_bot);
+}
+
+void bot_command_snare(Client* c, const Seperator* sep)
+{
+	bcst_list* local_list = &bot_command_spells[BCEnum::SpT_Snare];
+	if (helper_spell_list_fail(c, local_list, BCEnum::SpT_Snare) || helper_command_alias_fail(c, "bot_command_snare", sep->arg[0], "snare"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <enemy_target> %s", sep->arg[0]);
+		helper_send_usage_required_bots(c, BCEnum::SpT_Snare);
+		return;
+	}
+
+	ActionableTarget::Types actionable_targets;
+	Bot* my_bot = nullptr;
+	std::list<Bot*> sbl;
+	MyBots::PopulateSBL_BySpawnedBots(c, sbl);
+
+	for (auto list_iter : *local_list) {
+		auto local_entry = list_iter;
+		if (helper_spell_check_fail(local_entry))
+			continue;
+
+		auto target_mob = actionable_targets.Select(c, local_entry->target_type, ENEMY);
+		if (!target_mob)
+			continue;
+
+		my_bot = ActionableBots::Select_ByMinLevelAndClass(c, local_entry->target_type, sbl, local_entry->spell_level, local_entry->caster_class, target_mob);
+		if (!my_bot)
+			continue;
+
+		uint32 dont_root_before = 0;
+		if (helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id, true, &dont_root_before))
+			target_mob->SetDontRootMeBefore(dont_root_before);
+
 		break;
 	}
 

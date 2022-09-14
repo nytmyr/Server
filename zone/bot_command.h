@@ -51,6 +51,7 @@ public:
 		SpT_Rune,
 		SpT_SendHome,
 		SpT_Size,
+		SpT_Snare,
 		SpT_Stance,
 		SpT_SummonCorpse,
 		SpT_WaterBreathing
@@ -177,6 +178,8 @@ public:
 			return "SpT_SendHome";
 		case SpT_Size:
 			return "SpT_Size";
+		case SpT_Snare:
+			return "SpT_Snare";
 		case SpT_Stance:
 			return "SpT_Stance";
 		case SpT_SummonCorpse:
@@ -596,6 +599,7 @@ void bot_command_root(Client* c, const Seperator* sep);
 void bot_command_rune(Client *c, const Seperator *sep);
 void bot_command_send_home(Client *c, const Seperator *sep);
 void bot_command_size(Client *c, const Seperator *sep);
+void bot_command_snare(Client* c, const Seperator* sep);
 void bot_command_summon_corpse(Client *c, const Seperator *sep);
 void bot_command_suspend(Client *c, const Seperator *sep);
 void bot_command_taunt(Client *c, const Seperator *sep);
