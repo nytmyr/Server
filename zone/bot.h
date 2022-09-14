@@ -783,8 +783,8 @@ private:
 	uint8 _holdSlows;
 	uint8 _holdSnares;
 	uint32 _nukeDelay;
-	int8 _autoResist;
-	int8 _autoDS;
+	uint8 _autoResist;
+	uint8 _autoDS;
 	uint8 _behindMobStatus;
 
 	// Private "base stats" Members
