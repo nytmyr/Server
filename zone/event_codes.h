@@ -99,6 +99,7 @@ typedef enum {
 				//32 Player tried to make use of a banker(coin move) but is non-existant or too far away ({} units)
 				//33 Player tried to make use of a banker(shared coin move) but {} is non-existant or too far away ({} units).
 				//34 Player tried to make use of a banker(items) but {} is non-existant or too far away ({} units).
+				//99 Ignore.
 	EVENT_TEST_BUFF,
 	EVENT_COMBINE,
 	EVENT_CONSIDER,

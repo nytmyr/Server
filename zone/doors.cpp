@@ -25,6 +25,7 @@
 #include "entity.h"
 #include "guild_mgr.h"
 #include "mob.h"
+#include "quest_parser_collection.h"
 #include "string_ids.h"
 #include "worldserver.h"
 #include "zonedb.h"
@@ -494,6 +495,14 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 			if (!disable_add_to_key_ring) {
 				sender->KeyRingAdd(player_key);
 			}
+			std::string export_string = fmt::format(
+				"{} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				99
+			);
+			parse->EventPlayer(EVENT_WARP, sender, export_string, 0);
 			sender->MovePC(
 				zone->GetZoneID(),
 				zone->GetInstanceID(),
@@ -514,6 +523,14 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 			if (!disable_add_to_key_ring) {
 				sender->KeyRingAdd(player_key);
 			}
+			std::string export_string = fmt::format(
+				"{} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				99
+			);
+			parse->EventPlayer(EVENT_WARP, sender, export_string, 0);
 			if (ZoneID(m_destination_zone_name) == zone->GetZoneID()) {
 				sender->MovePC(
 					zone->GetZoneID(),
@@ -525,6 +542,14 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 				);
 			}
 			else {
+				std::string export_string = fmt::format(
+					"{} {} {} {}",
+					GetX(),
+					GetY(),
+					GetZ(),
+					99
+				);
+				parse->EventPlayer(EVENT_WARP, sender, export_string, 0);
 				sender->MovePC(
 					ZoneID(m_destination_zone_name),
 					static_cast<uint32>(m_destination_instance_id),
@@ -538,6 +563,14 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 
 		if ((!IsDoorOpen() || m_open_type == 58) && (!required_key_item)) {
 			if (ZoneID(m_destination_zone_name) == zone->GetZoneID()) {
+				std::string export_string = fmt::format(
+					"{} {} {} {}",
+					GetX(),
+					GetY(),
+					GetZ(),
+					99
+				);
+				parse->EventPlayer(EVENT_WARP, sender, export_string, 0);
 				sender->MovePC(
 					zone->GetZoneID(),
 					zone->GetInstanceID(),
@@ -548,6 +581,14 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 				);
 			}
 			else {
+				std::string export_string = fmt::format(
+					"{} {} {} {}",
+					GetX(),
+					GetY(),
+					GetZ(),
+					99
+				);
+				parse->EventPlayer(EVENT_WARP, sender, export_string, 0);
 				sender->MovePC(
 					ZoneID(m_destination_zone_name),
 					static_cast<uint32>(m_destination_instance_id),
