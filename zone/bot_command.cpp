@@ -2657,6 +2657,13 @@ void bot_command_aggressive(Client *c, const Seperator *sep)
 				continue;
 			}
 
+			if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+			}
+			else {
+				c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+				return;
+			}
+
 			my_bot->InterruptSpell();
 			if (candidate_count == 1)
 				c->Message(Chat::Tell, "%s tells you, 'Using '%s''", my_bot->GetCleanName(), spells[local_entry->spell_id].name);
@@ -2693,6 +2700,14 @@ void bot_command_apply_poison(Client *c, const Seperator *sep)
 		c->Message(Chat::White, "You must target a rogue bot that you own to use this command!");
 		return;
 	}
+
+	if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_rogue_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_rogue_bot->GetName()))) {
+	}
+	else {
+		c->Message(Chat::White, "Bots cannot cast spells outside of a group or raid.");
+		return;
+	}
+
 	if (my_rogue_bot->GetLevel() < 18) {
 
 		c->Message(Chat::White, "Your rogue bot must be level 18 before %s can apply poison!", (my_rogue_bot->GetGender() == 1 ? "she" : "he"));
@@ -2772,6 +2787,13 @@ void bot_command_apply_potion(Client* c, const Seperator* sep)
 	if (!my_bot) {
 
 		c->Message(Chat::White, "You must target a bot that you own to use this command!");
+		return;
+	}
+
+	if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+	}
+	else {
+		c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
 		return;
 	}
 
@@ -3061,6 +3083,13 @@ void bot_command_bind_affinity(Client *c, const Seperator *sep)
 		if (!my_bot)
 			continue;
 
+		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		}
+		else {
+			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+			return;
+		}
+
 		// Cast effect message is not being generated
 		if (helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id))
 			c->Message(Chat::White, "Successfully bound %s to this location", target_mob->GetCleanName());
@@ -3169,6 +3198,13 @@ void bot_command_charm(Client *c, const Seperator *sep)
 		if (!my_bot)
 			continue;
 
+		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		}
+		else {
+			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+			return;
+		}
+
 		uint32 dont_root_before = 0;
 		if (helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id, true, &dont_root_before))
 			target_mob->SetDontRootMeBefore(dont_root_before);
@@ -3241,6 +3277,13 @@ void bot_command_cure(Client *c, const Seperator *sep)
 		my_bot = ActionableBots::Select_ByMinLevelAndClass(c, local_entry->target_type, sbl, local_entry->spell_level, local_entry->caster_class, target_mob);
 		if (!my_bot)
 			continue;
+
+		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		}
+		else {
+			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+			return;
+		}
 
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
 		break;
@@ -3395,6 +3438,13 @@ void bot_command_escape(Client *c, const Seperator *sep)
 		my_bot = ActionableBots::Select_ByMinLevelAndClass(c, local_entry->target_type, sbl, local_entry->spell_level, local_entry->caster_class, target_mob);
 		if (!my_bot)
 			continue;
+
+		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		}
+		else {
+			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+			return;
+		}
 
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
 		break;
@@ -4751,6 +4801,13 @@ void bot_command_identify(Client *c, const Seperator *sep)
 		if (!my_bot)
 			continue;
 
+		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		}
+		else {
+			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+			return;
+		}
+
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
 		break;
 	}
@@ -4826,6 +4883,13 @@ void bot_command_invisibility(Client *c, const Seperator *sep)
 		my_bot = ActionableBots::Select_ByMinLevelAndClass(c, local_entry->target_type, sbl, local_entry->spell_level, local_entry->caster_class, target_mob);
 		if (!my_bot)
 			continue;
+
+		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		}
+		else {
+			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+			return;
+		}
 
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
 		break;
@@ -4969,6 +5033,13 @@ void bot_command_levitation(Client *c, const Seperator *sep)
 		if (!my_bot)
 			continue;
 
+		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		}
+		else {
+			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+			return;
+		}
+
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
 		break;
 	}
@@ -5007,6 +5078,13 @@ void bot_command_lull(Client *c, const Seperator *sep)
 		my_bot = ActionableBots::Select_ByMinLevelAndClass(c, local_entry->target_type, sbl, local_entry->spell_level, local_entry->caster_class, target_mob);
 		if (!my_bot)
 			continue;
+
+		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		}
+		else {
+			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+			return;
+		}
 
 		uint32 dont_root_before = 0;
 		if (helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id, true, &dont_root_before))
@@ -5049,6 +5127,13 @@ void bot_command_mesmerize(Client *c, const Seperator *sep)
 		my_bot = ActionableBots::Select_ByMinLevelAndClass(c, local_entry->target_type, sbl, local_entry->spell_level, local_entry->caster_class, target_mob);
 		if (!my_bot)
 			continue;
+
+		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		}
+		else {
+			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+			return;
+		}
 
 		uint32 dont_root_before = 0;
 		if (helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id, true, &dont_root_before))
@@ -5101,6 +5186,13 @@ void bot_command_movement_speed(Client *c, const Seperator *sep)
 		my_bot = ActionableBots::Select_ByMinLevelAndClass(c, local_entry->target_type, sbl, local_entry->spell_level, local_entry->caster_class, target_mob);
 		if (!my_bot)
 			continue;
+
+		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		}
+		else {
+			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+			return;
+		}
 
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
 		break;
@@ -5786,6 +5878,13 @@ void bot_command_resistance(Client *c, const Seperator *sep)
 		if (!my_bot)
 			continue;
 
+		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		}
+		else {
+			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+			return;
+		}
+
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
 		break;
 	}
@@ -5836,6 +5935,13 @@ void bot_command_resurrect(Client *c, const Seperator *sep)
 		if (!my_bot)
 			continue;
 
+		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		}
+		else {
+			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+			return;
+		}
+
 		//if (local_entry->aoe)
 		//	target_mob = my_bot;
 
@@ -5878,6 +5984,13 @@ void bot_command_root(Client *c, const Seperator *sep)
 		if (!my_bot)
 			continue;
 
+		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		}
+		else {
+			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+			return;
+		}
+
 		uint32 dont_root_before = 0;
 		if (helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id, true, &dont_root_before))
 			target_mob->SetDontRootMeBefore(dont_root_before);
@@ -5917,6 +6030,13 @@ void bot_command_rune(Client *c, const Seperator *sep)
 		my_bot = ActionableBots::Select_ByMinLevelAndClass(c, local_entry->target_type, sbl, local_entry->spell_level, local_entry->caster_class, target_mob);
 		if (!my_bot)
 			continue;
+
+		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		}
+		else {
+			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+			return;
+		}
 
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
 		break;
@@ -5963,6 +6083,13 @@ void bot_command_send_home(Client *c, const Seperator *sep)
 		my_bot = ActionableBots::Select_ByMinLevelAndClass(c, local_entry->target_type, sbl, local_entry->spell_level, local_entry->caster_class, target_mob);
 		if (!my_bot)
 			continue;
+
+		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		}
+		else {
+			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+			return;
+		}
 
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
 		break;
@@ -6013,6 +6140,13 @@ void bot_command_size(Client *c, const Seperator *sep)
 		if (!my_bot)
 			continue;
 
+		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		}
+		else {
+			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+			return;
+		}
+
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
 		break;
 	}
@@ -6048,6 +6182,13 @@ void bot_command_snare(Client* c, const Seperator* sep)
 		my_bot = ActionableBots::Select_ByMinLevelAndClass(c, local_entry->target_type, sbl, local_entry->spell_level, local_entry->caster_class, target_mob);
 		if (!my_bot)
 			continue;
+
+		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		}
+		else {
+			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+			return;
+		}
 
 		uint32 dont_root_before = 0;
 		if (helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id, true, &dont_root_before))
@@ -6096,6 +6237,13 @@ void bot_command_summon_corpse(Client *c, const Seperator *sep)
 		my_bot = ActionableBots::Select_ByMinLevelAndClass(c, local_entry->target_type, sbl, local_entry->spell_level, local_entry->caster_class, target_mob);
 		if (!my_bot)
 			continue;
+
+		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		}
+		else {
+			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+			return;
+		}
 
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
 
@@ -6230,6 +6378,13 @@ void bot_command_track(Client *c, const Seperator *sep)
 		return;
 	}
 
+	if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+	}
+	else {
+		c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+		return;
+	}
+
 	int base_distance = 0;
 	bool track_named = false;
 	std::string tracking_msg;
@@ -6292,10 +6447,18 @@ void bot_command_use_epic(Client *c, const Seperator *sep)
 				Bot* my_bot = nullptr;
 				std::list<Bot*> sbl;
 				MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[1]);
-					if (sbl.empty()) {
-						c->Message(Chat::White, "You do not own or have a bot spawned a bot by that name.");
-						return;
-					}
+				if (sbl.empty()) {
+					c->Message(Chat::White, "You do not own or have a bot spawned a bot by that name.");
+					return;
+				}
+
+				if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+				}
+				else {
+					c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+					return;
+				}
+
 				auto selected_bot = sbl.front();
 				auto bot_class = selected_bot->GetClass();	
 				auto target_mob = c->GetTarget();
@@ -6484,6 +6647,13 @@ void bot_command_water_breathing(Client *c, const Seperator *sep)
 		my_bot = ActionableBots::Select_ByMinLevelAndClass(c, local_entry->target_type, sbl, local_entry->spell_level, local_entry->caster_class, target_mob);
 		if (!my_bot)
 			continue;
+
+		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		}
+		else {
+			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+			return;
+		}
 
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
 		break;
