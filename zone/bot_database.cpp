@@ -403,7 +403,7 @@ bool BotDatabase::LoadBot(const uint32 bot_id, Bot*& loaded_bot)
 		" `hold_snares`," // 65
 		" `nuke_delay`," // 66
 		" `auto_resist`," // 67
-		" `auto_ds`" // 68
+		" `auto_ds`," // 68
 		" `behind_mob`" // 69
 		" FROM `bot_data`"
 		" WHERE `bot_id` = '%u'"
