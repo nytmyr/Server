@@ -103,7 +103,7 @@ void Raid::AddMember(Client *c, uint32 group, bool rleader, bool groupleader, bo
 #ifdef BOTS
 	std::string query = StringFormat("INSERT INTO raid_members SET raidid = %lu, charid = %lu, "
                                     "groupid = %lu, _class = %d, level = %d, name = '%s', "
-                                    "isgroupleader = %d, israidleader = %d, islooter = %d, isbot = %d",
+                                    "isgroupleader = %d, israidleader = %d, islooter = %d, isbot = 0",
                                     (unsigned long)GetID(), (unsigned long)c->CharacterID(),
                                     (unsigned long)group, c->GetClass(), c->GetLevel(),
                                     c->GetName(), groupleader, rleader, looter);
