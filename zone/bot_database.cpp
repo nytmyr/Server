@@ -732,8 +732,8 @@ bool BotDatabase::SaveNewBot(Bot* bot_inst, uint32& bot_id)
 		0,
 		0,
 		0,
-		0,
-		0,
+		1,
+		1,
 		0
 	);
 	auto results = database.QueryDatabase(query);
@@ -2667,7 +2667,7 @@ bool BotDatabase::SaveHoldInCombatBuffSongs(const uint32 owner_id, const uint32 
 
 	query = StringFormat(
 		"UPDATE `bot_data`"
-		" SET `hold_incombatbuffsongss` = '%u'"
+		" SET `hold_incombatbuffsongs` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
 		hicbs_value,
