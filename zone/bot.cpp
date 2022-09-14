@@ -3323,7 +3323,7 @@ void Bot::AI_Process()
 							}
 						}
 					}
-					else if (RuleB(Bots, MeleeBehindMob) && GetBehindMob() && !behind_mob && !taunting && GetTarget()->GetHateTop() != this && GetArchetype() != ARCHETYPE_CASTER) { // Move melee to behind the mob
+					else if (RuleB(Bots, MeleeBehindMob) && GetBehindMob() && !behind_mob && !taunting && GetTarget()->GetHateTop() != this) { // Move melee to behind the mob
 						if (PlotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z)) {
 							//if (PlotPositionOnArcBehindTarget(tar, Goal.x, Goal.y, Goal.z, melee_distance)) {
 
