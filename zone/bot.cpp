@@ -4558,13 +4558,24 @@ bool Bot::AddBotToGroup(Bot* bot, Group* group) {
 		if(!bot->HasGroup()) {
 			// Add bot to this group
 			if(group->AddMember(bot)) {
-				if(group->GetLeader()) {
-					bot->SetFollowID(group->GetLeader()->GetID());
-					// Need to send this only once when a group is formed with a bot so the client knows it is also the group leader
-					if(group->GroupCount() == 2 && group->GetLeader()->IsClient()) {
-						group->UpdateGroupAAs();
-						Mob *TempLeader = group->GetLeader();
-						group->SendUpdate(groupActUpdate, TempLeader);
+				if (group->GetLeader()) {
+					if (group->GetLeader()->CastToClient()->CharacterID() == bot->GetOwner()->CastToClient()->CharacterID()) {
+						bot->SetFollowID(group->GetLeader()->GetID());
+						// Need to send this only once when a group is formed with a bot so the client knows it is also the group leader
+						if (group->GroupCount() == 2 && group->GetLeader()->IsClient()) {
+							group->UpdateGroupAAs();
+							Mob* TempLeader = group->GetLeader();
+							group->SendUpdate(groupActUpdate, TempLeader);
+						}
+					}
+					else {
+						bot->SetFollowID(bot->GetOwner()->CastToClient()->GetID());
+						// Need to send this only once when a group is formed with a bot so the client knows it is also the group leader
+						if (group->GroupCount() == 2 && group->GetLeader()->IsClient()) {
+							group->UpdateGroupAAs();
+							Mob* TempLeader = group->GetLeader();
+							group->SendUpdate(groupActUpdate, TempLeader);
+						}
 					}
 				}
 				Result = true;
