@@ -4977,7 +4977,7 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 				c->Message(
 					Chat::White,
 					fmt::format(
-						"{} says, 'I can use that for my {}! (replaces: {} | {})'",
+						"[{}] says, 'I can use that for my {}! (replaces: {} | {})'",
 						text_link.c_str(),
 						EQ::invslot::GetInvPossessionsSlotName(slot_iter),
 						linker.GenerateLink().c_str(),
