@@ -4992,7 +4992,7 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 			else if (!equipped_item) {
 
 				c->Message(
-					Chat::Say,
+					Chat::White,
 					"[%s] says, 'I can use that for my %s!'",
 					text_link.c_str(),
 					EQ::invslot::GetInvPossessionsSlotName(slot_iter)
