@@ -408,9 +408,12 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						{
 						case ARCHETYPE_CASTER:
 							//TODO: probably more caster specific spell effects in here
-							if ((IsEffectInSpell(selectedBotSpell.SpellId, SE_AttackSpeed) && tar->GetLevel() > tar->CastToBot()->GetStopMeleeLevel()) || (IsEffectInSpell(selectedBotSpell.SpellId, SE_ATK) && tar->GetLevel() > tar->CastToBot()->GetStopMeleeLevel()) ||
-								(IsEffectInSpell(selectedBotSpell.SpellId, SE_STR) && tar->GetLevel() > tar->CastToBot()->GetStopMeleeLevel()) || IsEffectInSpell(selectedBotSpell.SpellId, SE_ReverseDS))
-							{
+							if (IsEffectInSpell(selectedBotSpell.SpellId, SE_ReverseDS)) {
+								continue;
+							}
+							else if (tar->IsBot() && ((IsEffectInSpell(selectedBotSpell.SpellId, SE_AttackSpeed) && tar->GetLevel() > tar->CastToBot()->GetStopMeleeLevel())
+								|| (IsEffectInSpell(selectedBotSpell.SpellId, SE_ATK) && tar->GetLevel() > tar->CastToBot()->GetStopMeleeLevel())
+								|| (IsEffectInSpell(selectedBotSpell.SpellId, SE_STR) && tar->GetLevel() > tar->CastToBot()->GetStopMeleeLevel()))) {
 								continue;
 							}
 							break;
