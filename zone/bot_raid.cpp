@@ -2097,10 +2097,6 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				if (IsInvulnerabilitySpell(botSpell.SpellId))
 					tar = this; //target self for invul type spells
 
-				int spellrange = .8 * (GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range) * GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range));
-				if (DistanceSquared(m_Position, tar->GetPosition()) >= spellrange)
-					break;
-
 				castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
 			}
 			break;
@@ -2274,10 +2270,6 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				if (botSpell.SpellId == 0)
 					break;
 
-				int spellrange = .8 * (GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range) * GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range));
-				if (DistanceSquared(m_Position, tar->GetPosition()) >= spellrange)
-					break;
-
 				castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
 			}
 			break;
@@ -2395,10 +2387,6 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 								}
 							}
 
-							int spellrange = .8 * (GetActSpellRange(selectedBotSpell.SpellId, spells[selectedBotSpell.SpellId].range) * GetActSpellRange(selectedBotSpell.SpellId, spells[selectedBotSpell.SpellId].range));
-							if (DistanceSquared(m_Position, tar->GetPosition()) >= spellrange)
-								continue;
-
 							castedSpell = AIDoSpellCast(selectedBotSpell.SpellIndex, tar, selectedBotSpell.ManaCost, &TempDontBuffMeBefore);
 
 							if (TempDontBuffMeBefore != tar->DontBuffMeBefore())
@@ -2514,10 +2502,6 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 							if (!DoResistCheck(selectedBotSpell.SpellId, tar, RuleI(Bots, DoTResistLimit)) && GetSpellResistType(selectedBotSpell.SpellId) != RESIST_NONE)
 								return selectedBotSpell.SpellId = 0;
 
-							int spellrange = .8 * (GetActSpellRange(selectedBotSpell.SpellId, spells[selectedBotSpell.SpellId].range) * GetActSpellRange(selectedBotSpell.SpellId, spells[selectedBotSpell.SpellId].range));
-							if (DistanceSquared(m_Position, tar->GetPosition()) >= spellrange)
-								continue;
-
 							castedSpell = AIDoSpellCast(selectedBotSpell.SpellIndex, tar, selectedBotSpell.ManaCost, &TempDontDotMeBefore);
 
 							if (TempDontDotMeBefore != tar->DontDotMeBefore())
@@ -2604,10 +2588,6 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						if (!DoResistCheck(iter.SpellId, tar, RuleI(Bots, SlowResistLimit)) && GetSpellResistType(iter.SpellId) != RESIST_NONE)
 							return iter.SpellId = 0;
 
-						int spellrange = .8 * (GetActSpellRange(iter.SpellId, spells[iter.SpellId].range) * GetActSpellRange(iter.SpellId, spells[iter.SpellId].range));
-						if (DistanceSquared(m_Position, tar->GetPosition()) >= spellrange)
-							continue;
-
 						castedSpell = AIDoSpellCast(iter.SpellIndex, tar, iter.ManaCost);
 						if (castedSpell)
 							break;
@@ -2682,7 +2662,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					break;
 
 				int spellrange = .8 * (GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range) * GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range));
-				if (DistanceSquared(m_Position, tar->GetPosition()) >= spellrange)
+				if (DistanceSquared(m_Position, tar->GetPosition()) >= spellrange && botClass != BARD)
 					break;
 
 				castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
@@ -2753,10 +2733,6 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					if (tar->CanBuffStack(iter.SpellId, botLevel, true) < 0)
 						continue;
 
-					int spellrange = .8 * (GetActSpellRange(iter.SpellId, spells[iter.SpellId].range) * GetActSpellRange(iter.SpellId, spells[iter.SpellId].range));
-					if (DistanceSquared(m_Position, tar->GetPosition()) >= spellrange)
-						break;
-
 					castedSpell = AIDoSpellCast(iter.SpellIndex, tar, iter.ManaCost);
 					if (castedSpell) {
 						BotGroupSay(this, "Attempting to reduce hate on %s.", tar->GetCleanName());
@@ -2795,10 +2771,6 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				if (tar->CanBuffStack(iter.SpellId, botLevel, true) < 0)
 					continue;
 
-				int spellrange = .8 * (GetActSpellRange(iter.SpellId, spells[iter.SpellId].range) * GetActSpellRange(iter.SpellId, spells[iter.SpellId].range));
-				if (DistanceSquared(m_Position, tar->GetPosition()) >= spellrange)
-					break;
-
 				castedSpell = AIDoSpellCast(iter.SpellIndex, tar, iter.ManaCost);
 				if (castedSpell)
 					break;
@@ -2833,10 +2805,6 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				}
 				if (tar->CanBuffStack(iter.SpellId, botLevel, true) < 0)
 					continue;
-
-				int spellrange = .8 * (GetActSpellRange(iter.SpellId, spells[iter.SpellId].range) * GetActSpellRange(iter.SpellId, spells[iter.SpellId].range));
-				if (DistanceSquared(m_Position, tar->GetPosition()) >= spellrange)
-					break;
 
 				castedSpell = AIDoSpellCast(iter.SpellIndex, tar, iter.ManaCost);
 				if (castedSpell)
