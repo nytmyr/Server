@@ -1495,6 +1495,7 @@ int bot_command_init(void)
 		bot_command_add("holdslows", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_slows) ||
 		bot_command_add("holdsnares", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_snares) ||
 		bot_command_add("nukedelay", "Sets a timer that controls the frequency of bot nukes", AccountStatus::Player, bot_command_nuke_delay) ||
+		bot_command_add("removefromraid", "This will remove a bot from a raid, can be used for stuck bots.", AccountStatus::Player, bot_command_remove_from_raid) ||
 		bot_command_add("useepic", "Orders your targeted bot to use their epic if it is equipped", AccountStatus::Player, bot_command_use_epic)
 	) {
 		bot_command_deinit();
@@ -5298,6 +5299,33 @@ void bot_command_nuke_delay(Client* c, const Seperator* sep)
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
+void bot_command_remove_from_raid(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_remove_from_raid", sep->arg[0], "removefromraid"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s.", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for bots you own.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+
+	Raid* bot_raid = entity_list.GetRaidByBotName(my_bot->GetName());
+	if (bot_raid) {
+		bot_raid->RemoveMember(my_bot->GetName());
+		c->Message(Chat::White, "%s has been removed from their raid", my_bot->GetName());
+	}
+	else {
+		c->Message(Chat::White, "No raid found for %s", my_bot->GetName());
 	}
 
 }
