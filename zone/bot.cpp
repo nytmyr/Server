@@ -2446,6 +2446,10 @@ void Bot::SetBehindMob(uint8 behindmobstatus) {
 	_behindMobStatus = behindmobstatus;
 }
 
+void Bot::SetBotCasterRange(uint32 botcasterrange) {
+	_botcasterRange = botcasterrange;
+}
+
 void Bot::SetGuardMode() {
 
 	StopMoving();
@@ -3132,8 +3136,13 @@ void Bot::AI_Process()
 		float caster_distance_min = 0.0f;
 		float caster_distance = 0.0f;
 		{
-			if (GetLevel() >= GetStopMeleeLevel() && GetClass() >= WARRIOR && GetClass() <= BERSERKER) {
-				caster_distance_max = MAX_CASTER_DISTANCE[(GetClass() - 1)];
+			if (GetBotCasterRange() == 0) {
+				if (GetLevel() >= GetStopMeleeLevel() && GetClass() >= WARRIOR && GetClass() <= BERSERKER) {
+					caster_distance_max = MAX_CASTER_DISTANCE[(GetClass() - 1)];
+				}
+			}
+			else {
+				caster_distance_max = GetBotCasterRange() * GetBotCasterRange();
 			}
 
 			if (caster_distance_max) {

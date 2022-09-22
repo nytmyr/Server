@@ -1472,6 +1472,7 @@ int bot_command_init(void)
 		// custom bot commands
 		bot_command_add("autoresist", "Toggles the ability for casters to automatically cast resist buffs", AccountStatus::Player, bot_command_auto_resist) ||
 		bot_command_add("autods", "Toggles the ability for casters to automatically cast damage shield buffs", AccountStatus::Player, bot_command_auto_ds) ||
+		bot_command_add("casterrange", "Controls the range casters will try to stay away from a mob (if too far, they will skip spells that are out-of-range)", AccountStatus::Player, bot_command_caster_range) ||
 		bot_command_add("behindmob", "Toggles whether or not your bot tries to stay behind a mob", AccountStatus::Player, bot_command_behind_mob) ||
 		bot_command_add("holdbuffs", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_buffs) ||
 		bot_command_add("holdcures", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_cures) ||
@@ -3153,6 +3154,56 @@ void bot_command_botgroup(Client *c, const Seperator *sep)
 	}
 
 	helper_send_available_subcommands(c, "bot-group", subcommand_list);
+}
+
+void bot_command_caster_range(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_caster_range", sep->arg[0], "casterrange"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0 - 300].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set the value to the minimum distance you want your bot to try to remain from its target.");
+		c->Message(Chat::White, "note: If they are too far for a spell, it will be skipped.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 crange = 0;
+	if (sep->IsNumber(1)) {
+		crange = atoi(sep->arg[1]);
+		if (crange >= 0 && crange <= 300) {
+			my_bot->SetBotCasterRange(crange);
+			if (!database.botdb.SaveBotCasterRange(c->CharacterID(), my_bot->GetBotID(), crange)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveBotCasterRange(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Caster Range for %s to %u.", my_bot->GetCleanName(), crange);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter a value within the range of 0 - 300.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current range is %u.", my_bot->GetBotCasterRange());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
 }
 
 void bot_command_charm(Client *c, const Seperator *sep)

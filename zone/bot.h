@@ -342,6 +342,7 @@ public:
 	uint8 GetAutoResist() { return _autoResist; }
 	uint8 GetAutoDS() { return _autoDS; }
 	uint8 GetBehindMob() { return _behindMobStatus; }
+	uint32 GetBotCasterRange() { return _botcasterRange; }
 	void SetStopMeleeLevel(uint8 level);
 	void SetHoldBuffs(uint8 holdstatus);
 	void SetHoldCures(uint8 holdstatus);
@@ -367,6 +368,7 @@ public:
 	void SetAutoResist(uint8 autoresist);
 	void SetAutoDS(uint8 autods);
 	void SetBehindMob(uint8 behindmobstatus);
+	void SetBotCasterRange(uint32 botcasterrange);
 	void SetGuardMode();
 	void SetHoldMode();
 
@@ -786,6 +788,7 @@ private:
 	uint8 _autoResist;
 	uint8 _autoDS;
 	uint8 _behindMobStatus;
+	uint32 _botcasterRange;
 
 	// Private "base stats" Members
 	int32 _baseMR;

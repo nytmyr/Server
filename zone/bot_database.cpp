@@ -404,7 +404,8 @@ bool BotDatabase::LoadBot(const uint32 bot_id, Bot*& loaded_bot)
 		" `nuke_delay`," // 66
 		" `auto_resist`," // 67
 		" `auto_ds`," // 68
-		" `behind_mob`" // 69
+		" `behind_mob`," // 69
+		" `caster_range`" // 70
 		" FROM `bot_data`"
 		" WHERE `bot_id` = '%u'"
 		" LIMIT 1",
@@ -523,6 +524,8 @@ bool BotDatabase::LoadBot(const uint32 bot_id, Bot*& loaded_bot)
 		loaded_bot->SetAutoDS(ad);
 		uint8 behindmob = atoi(row[69]);
 		loaded_bot->SetBehindMob(behindmob);
+		uint32 botcasterrange = atoi(row[70]);
+		loaded_bot->SetBotCasterRange(botcasterrange);
 	}
 
 	return true;
@@ -601,7 +604,8 @@ bool BotDatabase::SaveNewBot(Bot* bot_inst, uint32& bot_id)
 		" `nuke_delay`,"
 		" `auto_resist`,"
 		" `auto_ds`,"
-		" `behind_mob`"
+		" `behind_mob`,"
+		" `caster_range`"
 		")"
 		" VALUES ("
 		"'%u',"					/* owner_id */
@@ -670,7 +674,8 @@ bool BotDatabase::SaveNewBot(Bot* bot_inst, uint32& bot_id)
 		" '%u',"				/* nuke_delay */
 		" '%u',"				/* auto resist */
 		" '%u',"				/* auto ds */
-		" '%u'"					/* behind mob */
+		" '%u',"					/* behind mob */
+		" '%u'"					/* caster range */
 		")",
 		bot_inst->GetBotOwnerCharacterID(),
 		bot_inst->GetBotSpellID(),
@@ -734,6 +739,7 @@ bool BotDatabase::SaveNewBot(Bot* bot_inst, uint32& bot_id)
 		0,
 		1,
 		1,
+		0,
 		0
 	);
 	auto results = database.QueryDatabase(query);
@@ -2976,6 +2982,27 @@ bool BotDatabase::SaveBehindMob(const uint32 owner_id, const uint32 bot_id, cons
 	return true;
 }
 
+bool BotDatabase::SaveBotCasterRange(const uint32 owner_id, const uint32 bot_id, const uint32 botcasterrange_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `caster_range` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		botcasterrange_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
 bool BotDatabase::LoadOwnerOptions(Client *owner)
 {
 	if (!owner || !owner->CharacterID()) {
@@ -4008,6 +4035,7 @@ const char* BotDatabase::fail::SaveNukeDelay() { return "Failed to save nuke del
 const char* BotDatabase::fail::SaveAutoResist() { return "Failed to save auto resists"; }
 const char* BotDatabase::fail::SaveAutoDS() { return "Failed to save auto damage shields"; }
 const char* BotDatabase::fail::SaveBehindMob() { return "Failed to save behind mob"; }
+const char* BotDatabase::fail::SaveBotCasterRange() { return "Failed to save caster range"; }
 
 /* fail::Bot heal rotation functions   */
 const char* BotDatabase::fail::LoadHealRotationIDByBotID() { return "Failed to load heal rotation ID by bot ID"; }
