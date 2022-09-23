@@ -2086,6 +2086,9 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 			if (hpr > 15 && ((botClass == WIZARD) || (botClass == ENCHANTER) || (botClass == RANGER)))
 				mayGetAggro = HasOrMayGetAggro(); //classes have hate reducing spells
 
+			if (hpr < 50 && botClass == NECROMANCER)
+				mayGetAggro = HasOrMayGetAggro(); //classes have hate reducing spells
+
 			if (hpr <= 15 || mayGetAggro)
 #endif
 			{
