@@ -104,10 +104,6 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					if (!(!addMob->IsImmuneToSpell(botSpell.SpellId, this) && addMob->CanBuffStack(botSpell.SpellId, botLevel, true) >= 0))
 						break;
 
-					int spellrange = .8 * (GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range) * GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range));
-					if (DistanceSquared(m_Position, tar->GetPosition()) >= spellrange)
-						break;
-
 					castedSpell = AIDoSpellCast(botSpell.SpellIndex, addMob, botSpell.ManaCost);
 
 					if (castedSpell)
@@ -281,10 +277,6 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						if (!tar->CheckSpellLevelRestriction(botSpell.SpellId))
 							break;
 
-						int spellrange = .8 * (GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range) * GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range));
-						if (DistanceSquared(m_Position, tar->GetPosition()) >= spellrange)
-							break;
-
 						castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost, &TempDontHealMeBeforeTime);
 
 						if (castedSpell) {
@@ -361,10 +353,6 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						break;
 
 					uint32 TempDontRootMeBefore = tar->DontRootMeBefore();
-
-					int spellrange = .8 * (GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range) * GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range));
-					if (DistanceSquared(m_Position, tar->GetPosition()) >= spellrange)
-						break;
 
 					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost, &TempDontRootMeBefore);
 
@@ -494,10 +482,6 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 							if (!tar->CheckSpellLevelRestriction(selectedBotSpell.SpellId))
 								break;
 
-							int spellrange = .8 * (GetActSpellRange(selectedBotSpell.SpellId, spells[selectedBotSpell.SpellId].range) * GetActSpellRange(selectedBotSpell.SpellId, spells[selectedBotSpell.SpellId].range));
-							if (DistanceSquared(m_Position, tar->GetPosition()) >= spellrange)
-								break;
-
 							castedSpell = AIDoSpellCast(selectedBotSpell.SpellIndex, tar, selectedBotSpell.ManaCost, &TempDontBuffMeBefore);
 
 							if (TempDontBuffMeBefore != tar->DontBuffMeBefore())
@@ -520,10 +504,10 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 #ifdef IPC
 				if (hpr <= 5 || (IsNPC() && CastToNPC()->IsInteractive() && tar != this))
 #else
-				if (hpr > 15 && ((botClass == WIZARD) || (botClass == ENCHANTER) || (botClass == RANGER)))
-					mayGetAggro = HasOrMayGetAggro(); //classes have hate reducing spells
+				//if (hpr > 15 && ((botClass == WIZARD) || (botClass == ENCHANTER) || (botClass == RANGER)))
+				//	mayGetAggro = HasOrMayGetAggro(); //classes have hate reducing spells
 
-				if (hpr < 50 && botClass == NECROMANCER)
+				if (hpr < 50 && (botClass == NECROMANCER))
 					mayGetAggro = HasOrMayGetAggro(); //classes have hate reducing spells
 
 				if (hpr <= 15 || mayGetAggro)
@@ -628,10 +612,6 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 							}
 						}
 
-						int spellrange = .8 * (GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range) * GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range));
-						if (DistanceSquared(m_Position, tar->GetPosition()) >= spellrange)
-							break;
-
 						castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
 						m_nuke_delay_timer.Start(GetNukeDelay());
 					}
@@ -660,10 +640,6 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						break;
 
 					// TODO: Check target to see if there is anything to dispel
-
-					int spellrange = .8 * (GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range) * GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range));
-					if (DistanceSquared(m_Position, tar->GetPosition()) >= spellrange)
-						break;
 
 					if (tar->CountDispellableBuffs() > 0) {
 						castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
@@ -742,10 +718,6 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 							}
 
 							if (!tar->CheckSpellLevelRestriction(selectedBotSpell.SpellId))
-								break;
-
-							int spellrange = .8 * (GetActSpellRange(selectedBotSpell.SpellId, spells[selectedBotSpell.SpellId].range) * GetActSpellRange(selectedBotSpell.SpellId, spells[selectedBotSpell.SpellId].range));
-							if (DistanceSquared(m_Position, tar->GetPosition()) >= spellrange)
 								break;
 
 							castedSpell = AIDoSpellCast(selectedBotSpell.SpellIndex, tar, selectedBotSpell.ManaCost);
@@ -860,10 +832,6 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					if (!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && (tar->CanBuffStack(botSpell.SpellId, botLevel, true) >= 0)))
 						break;
 
-					int spellrange = .8 * (GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range) * GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range));
-					if (DistanceSquared(m_Position, tar->GetPosition()) >= spellrange)
-						break;
-
 					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
 				}
 				break;
@@ -892,10 +860,6 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						break;
 
 					uint32 TempDontSnareMeBefore = tar->DontSnareMeBefore();
-
-					int spellrange = .8 * (GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range) * GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range));
-					if (DistanceSquared(m_Position, tar->GetPosition()) >= spellrange)
-						break;
 
 					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost, &TempDontSnareMeBefore);
 
@@ -973,10 +937,6 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 								if (!DoResistCheck(selectedBotSpell.SpellId, tar, RuleI(Bots, DoTResistLimit)) && GetSpellResistType(selectedBotSpell.SpellId) != RESIST_NONE)
 									return selectedBotSpell.SpellId = 0;
-
-								int spellrange = .8 * (GetActSpellRange(selectedBotSpell.SpellId, spells[selectedBotSpell.SpellId].range) * GetActSpellRange(selectedBotSpell.SpellId, spells[selectedBotSpell.SpellId].range));
-								if (DistanceSquared(m_Position, tar->GetPosition()) >= spellrange)
-									continue;
 
 								castedSpell = AIDoSpellCast(selectedBotSpell.SpellIndex, tar, selectedBotSpell.ManaCost, &TempDontDotMeBefore);
 
@@ -1059,10 +1019,6 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					if (!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, true) >= 0))
 						break;
 
-					int spellrange = .8 * (GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range) * GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range));
-					if (DistanceSquared(m_Position, tar->GetPosition()) >= spellrange)
-						break;
-
 					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
 
 					if (castedSpell && GetClass() != BARD)
@@ -1098,10 +1054,6 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					if (!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && (tar->CanBuffStack(botSpell.SpellId, botLevel, true) >= 0)))
 						break;
 
-					int spellrange = .8 * (GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range) * GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range));
-					if (DistanceSquared(m_Position, tar->GetPosition()) >= spellrange && botClass != BARD)
-						break;
-
 					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
 				}
 				break;
@@ -1118,10 +1070,6 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						break;
 
 					uint32 TempDontCureMeBeforeTime = tar->DontCureMeBefore();
-
-					int spellrange = .8 * (GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range) * GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range));
-					if (DistanceSquared(m_Position, tar->GetPosition()) >= spellrange)
-						break;
 
 					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost, &TempDontCureMeBeforeTime);
 
@@ -1800,10 +1748,6 @@ bool Bot::AIHealRotation(Mob* tar, bool useFastHeals) {
 		return false;
 
 	uint32 TempDontHealMeBeforeTime = tar->DontHealMeBefore();
-
-	int spellrange = .8 * (GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range) * GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range));
-	if (DistanceSquared(m_Position, tar->GetPosition()) >= spellrange)
-		return false;
 
 	castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost, &TempDontHealMeBeforeTime);
 
