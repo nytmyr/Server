@@ -3079,55 +3079,56 @@ void Bot::AI_Process()
 
 			melee_distance_max = size_mod;
 
-			switch (GetClass()) {
-			case WARRIOR:
-			case PALADIN:
-			case SHADOWKNIGHT:
-				if (p_item && p_item->GetItem()->IsType2HWeapon()) {
-					melee_distance = melee_distance_max * 0.45f;
-				}
-				else if ((s_item && s_item->GetItem()->IsTypeShield()) || (!p_item && !s_item)) {
-					melee_distance = melee_distance_max * 0.35f;
-				}
-				else {
-					melee_distance = melee_distance_max * 0.40f;
-				}
-
-				break;
-			case NECROMANCER:
-			case WIZARD:
-			case MAGICIAN:
-			case ENCHANTER:
-				if (p_item && p_item->GetItem()->IsType2HWeapon()) {
-					melee_distance = melee_distance_max * 0.95f;
-				}
-				else {
-					melee_distance = melee_distance_max * 0.75f;
-				}
-
-				break;
-			case ROGUE:
-				if (behind_mob && backstab_weapon) {
-					if (p_item->GetItem()->IsType2HWeapon()) { // 'p_item' tested in 'backstab_weapon' check above
-						melee_distance = melee_distance_max * 0.30f;
-					}
-					else {
-						melee_distance = melee_distance_max * 0.25f;
-					}
-
-					break;
-				}
-				// Fall-through
-			default:
-				if (p_item && p_item->GetItem()->IsType2HWeapon()) {
-					melee_distance = melee_distance_max * 0.70f;
-				}
-				else {
-					melee_distance = melee_distance_max * 0.50f;
-				}
-
-				break;
-			}
+			//switch (GetClass()) {
+			//case WARRIOR:
+			//case PALADIN:
+			//case SHADOWKNIGHT:
+			//	if (p_item && p_item->GetItem()->IsType2HWeapon()) {
+			//		melee_distance = melee_distance_max * 0.45f;
+			//	}
+			//	else if ((s_item && s_item->GetItem()->IsTypeShield()) || (!p_item && !s_item)) {
+			//		melee_distance = melee_distance_max * 0.35f;
+			//	}
+			//	else {
+			//		melee_distance = melee_distance_max * 0.40f;
+			//	}
+			//
+			//	break;
+			//case NECROMANCER:
+			//case WIZARD:
+			//case MAGICIAN:
+			//case ENCHANTER:
+			//	if (p_item && p_item->GetItem()->IsType2HWeapon()) {
+			//		melee_distance = melee_distance_max * 0.95f;
+			//	}
+			//	else {
+			//		melee_distance = melee_distance_max * 0.75f;
+			//	}
+			//
+			//	break;
+			//case ROGUE:
+			//	if (behind_mob && backstab_weapon) {
+			//		if (p_item->GetItem()->IsType2HWeapon()) { // 'p_item' tested in 'backstab_weapon' check above
+			//			melee_distance = melee_distance_max * 0.30f;
+			//		}
+			//		else {
+			//			melee_distance = melee_distance_max * 0.25f;
+			//		}
+			//
+			//		break;
+			//	}
+			//	// Fall-through
+			//default:
+			//	if (p_item && p_item->GetItem()->IsType2HWeapon()) {
+			//		melee_distance = melee_distance_max * 0.70f;
+			//	}
+			//	else {
+			//		melee_distance = melee_distance_max * 0.50f;
+			//	}
+			//
+			//	break;
+			//}
+			melee_distance = melee_distance_max * 0.85f;
 		}
 		float melee_distance_min = melee_distance / 2.0f;
 
