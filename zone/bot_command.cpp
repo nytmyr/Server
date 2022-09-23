@@ -6082,6 +6082,10 @@ void bot_command_root(Client *c, const Seperator *sep)
 
 void bot_command_rune(Client *c, const Seperator *sep)
 {
+	// temp
+	c->Message(Chat::White, "This command is disabled...");
+	return;
+
 	bcst_list* local_list = &bot_command_spells[BCEnum::SpT_Rune];
 	if (helper_spell_list_fail(c, local_list, BCEnum::SpT_Rune) || helper_command_alias_fail(c, "bot_command_rune", sep->arg[0], "rune"))
 		return;
