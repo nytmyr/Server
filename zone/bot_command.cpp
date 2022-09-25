@@ -5319,15 +5319,18 @@ void bot_command_remove_from_raid(Client* c, const Seperator* sep)
 		return;
 	}
 
-	Raid* bot_raid = entity_list.GetRaidByBotName(my_bot->GetName());
-	if (bot_raid) {
-		bot_raid->RemoveMember(my_bot->GetName());
-		c->Message(Chat::White, "%s has been removed from their raid", my_bot->GetName());
-	}
-	else {
-		c->Message(Chat::White, "No raid found for %s", my_bot->GetName());
-	}
-
+	//Raid* bot_raid = entity_list.GetRaidByBotName(my_bot->GetName());
+	//if (bot_raid) {
+	//	bot_raid->RemoveMember(my_bot->GetName());
+	//	c->Message(Chat::White, "%s has been removed from their raid", my_bot->GetName());
+	//}
+	//else {
+	//	c->Message(Chat::White, "No raid found for %s", my_bot->GetName());
+	//}
+	//
+	std::string query = StringFormat("DELETE FROM raid_members where name='%s'", my_bot->GetName());
+	auto results = database.QueryDatabase(query);
+	c->Message(Chat::White, "%s has been removed from any potential raids.", my_bot->GetName());
 }
 
 void bot_command_owner_option(Client *c, const Seperator *sep)
