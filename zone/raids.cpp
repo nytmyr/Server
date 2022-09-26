@@ -231,7 +231,8 @@ void Raid::RemoveMember(const char *characterName)
 	Bot* bot = entity_list.GetBotByBotName(characterName);
 
 	if (bot) {
-		bot->SetFollowID(bot->GetOwner()->CastToClient()->GetID());
+		//bot->SetFollowID(bot->GetOwner()->CastToClient()->GetID());
+		bot->SetFollowID(0);
 		bot->SetGrouped(false);
 		bot->SetTarget(nullptr);
 		bot->SetRaidGrouped(false);
@@ -521,8 +522,8 @@ uint32 Raid::GetGroup(Client *c)
 
 void Raid::RaidSay(const char *msg, Client *c, uint8 language, uint8 lang_skill)
 {
-	if (!c || c->IsBot())
-		return;
+	//if (!c || c->IsBot())
+	//	return;
 
 	auto pack = new ServerPacket(ServerOP_RaidSay, sizeof(ServerRaidMessage_Struct) + strlen(msg) + 1);
 	ServerRaidMessage_Struct *rga = (ServerRaidMessage_Struct*)pack->pBuffer;
