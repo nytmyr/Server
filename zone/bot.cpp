@@ -3159,6 +3159,8 @@ void Bot::AI_Process()
 
 		bool atArcheryRange = IsArcheryRange(tar);
 
+		bool stopMeleeLevelValid = GetLevel() < GetStopMeleeLevel();
+
 		if (GetRangerAutoWeaponSelect()) {
 
 			bool changeWeapons = false;
@@ -3182,10 +3184,10 @@ void Bot::AI_Process()
 		if (IsBotArcher() && atArcheryRange) {
 			atCombatRange = true;
 		}
-		else if (caster_distance_max && tar_distance <= caster_distance_max) {
+		else if (caster_distance_max && tar_distance <= caster_distance_max && !stopMeleeLevelValid) {
 			atCombatRange = true;
 		}
-		else if (tar_distance <= melee_distance) {
+		else if (tar_distance <= melee_distance || (tar_distance <= melee_distance && stopMeleeLevelValid)) {
 			atCombatRange = true;
 		}
 

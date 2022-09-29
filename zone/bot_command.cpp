@@ -3163,7 +3163,7 @@ void bot_command_caster_range(Client* c, const Seperator* sep)
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
 		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0 - 300].", sep->arg[0]);
-		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Can only be used for Casters.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set the value to the minimum distance you want your bot to try to remain from its target.");
 		c->Message(Chat::White, "note: If they are too far for a spell, it will be skipped.");
@@ -3175,8 +3175,8 @@ void bot_command_caster_range(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
 		return;
 	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+	if (!IsCasterClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster class to use this command.");
 		return;
 	}
 
