@@ -1714,8 +1714,8 @@ void PerlembParser::ExportEventVariables(
 			break;
 		}
 		
-		case EVENT_MERCHANT_TRANSACTION_BUY :
-		case EVENT_MERCHANT_TRANSACTION_SELL: {
+		case EVENT_MERCHANT_BUY:
+		case EVENT_MERCHANT_SELL: {
 			Seperator sep(data);
 			ExportVar(package_name.c_str(), "npc_id", sep.arg[0]);
 			ExportVar(package_name.c_str(), "merchant_id", sep.arg[1]);
@@ -1731,8 +1731,8 @@ void PerlembParser::ExportEventVariables(
 			break;
 		}
 
-		case EVENT_ALT_MERCHANT_TRANSACTION_BUY :
-		case EVENT_ALT_MERCHANT_TRANSACTION_SELL: {
+		case EVENT_ALT_CURRENCY_MERCHANT_BUY:
+		case EVENT_ALT_CURRENCY_MERCHANT_SELL: {
 			Seperator sep(data);
 			ExportVar(package_name.c_str(), "alt_cur_id", sep.arg[0]);
 			ExportVar(package_name.c_str(), "npc_id", sep.arg[1]);

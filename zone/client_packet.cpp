@@ -2597,17 +2597,15 @@ void Client::Handle_OP_AltCurrencyPurchase(const EQApplicationPacket *app)
 			QServ->PlayerLogEvent(Player_Log_Alternate_Currency_Transactions, CharacterID(), event_desc);
 		}
 		
-		std::string export_string = fmt::format(
-			"{} {} {} {} {} {} {}",
+		const auto& export_string = fmt::format(
+			"{} {} {} {} {}",
 			alt_cur_id,
 			tar->GetNPCTypeID(),
 			tar->MerchantType,
 			item->ID,
-			cost,
-			GetZoneID(),
-			GetInstanceID()
+			cost
 		);
-		parse->EventPlayer(EVENT_ALT_MERCHANT_TRANSACTION_BUY, this, export_string, 0);
+		parse->EventPlayer(EVENT_ALT_CURRENCY_MERCHANT_BUY, this, export_string, 0);
 
 		AddAlternateCurrencyValue(alt_cur_id, -((int32)cost));
 		int16 charges = 1;
@@ -2764,17 +2762,15 @@ void Client::Handle_OP_AltCurrencySell(const EQApplicationPacket *app)
 			QServ->PlayerLogEvent(Player_Log_Alternate_Currency_Transactions, CharacterID(), event_desc);
 		}
 		
-		std::string export_string = fmt::format(
-			"{} {} {} {} {} {} {}",
+		const auto& export_string = fmt::format(
+			"{} {} {} {} {}",
 			alt_cur_id,
 			tar->GetNPCTypeID(),
 			tar->MerchantType,
 			item->ID,
-			cost,
-			GetZoneID(),
-			GetInstanceID()
+			cost
 		);
-		parse->EventPlayer(EVENT_ALT_MERCHANT_TRANSACTION_SELL, this, export_string, 0);
+		parse->EventPlayer(EVENT_ALT_CURRENCY_MERCHANT_SELL, this, export_string, 0);
 
 		FastQueuePacket(&outapp);
 		AddAlternateCurrencyValue(alt_cur_id, cost);
@@ -13536,21 +13532,15 @@ void Client::Handle_OP_ShopPlayerBuy(const EQApplicationPacket *app)
 	if (RuleB(EventLog, RecordBuyFromMerchant))
 		LogMerchant(this, tmp, mpo->quantity, mpo->price, item, true);
 	
-	std::string export_string = fmt::format(
-		"{} {} {} {} {} {} {} {} {} {} {}",
+	const auto& export_string = fmt::format(
+		"{} {} {} {} {}",
 		tmp->GetNPCTypeID(),
 		tmp->CastToNPC()->MerchantType,
 		item_id,
 		mpo->quantity,
-		mpo->price,
-		mpo->price / 1000,
-		(mpo->price / 100) % 10,
-		(mpo->price / 10) % 10,
-		mpo->price % 10,
-		GetZoneID(),
-		GetInstanceID()
+		mpo->price
 	);
-	parse->EventPlayer(EVENT_MERCHANT_TRANSACTION_BUY, this, export_string, 0);
+	parse->EventPlayer(EVENT_MERCHANT_BUY, this, export_string, 0);
 
 	if ((RuleB(Character, EnableDiscoveredItems)))
 	{
@@ -13642,22 +13632,6 @@ void Client::Handle_OP_ShopPlayerSell(const EQApplicationPacket *app)
 
 	if (RuleB(EventLog, RecordSellToMerchant))
 		LogMerchant(this, vendor, mp->quantity, price, item, false);
-
-	std::string export_string = fmt::format(
-		"{} {} {} {} {} {} {} {} {} {} {}",
-		vendor->GetNPCTypeID(),
-		vendor->CastToNPC()->MerchantType,
-		itemid,
-		mp->quantity,
-		price,
-		price / 1000,
-		(price / 100) % 10,
-		(price / 10) % 10,
-		price % 10,
-		GetZoneID(),
-		GetInstanceID()
-	);
-	parse->EventPlayer(EVENT_MERCHANT_TRANSACTION_SELL, this, export_string, 0);
 
 	int charges = mp->quantity;
 
