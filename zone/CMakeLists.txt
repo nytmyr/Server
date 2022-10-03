@@ -141,7 +141,6 @@ SET(zone_sources
     spell_effects.cpp
     spells.cpp
     task_client_state.cpp
-    task_goal_list_manager.cpp
     task_manager.cpp
     tasks.cpp
     titles.cpp
@@ -266,7 +265,6 @@ SET(zone_headers
     spawngroup.h
     string_ids.h
     task_client_state.h
-    task_goal_list_manager.h
     task_manager.h
     tasks.h
     titles.h

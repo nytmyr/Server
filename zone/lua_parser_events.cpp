@@ -858,44 +858,25 @@ void handle_player_language_skill_up(QuestInterface* parse, lua_State* L, Client
 	lua_setfield(L, -2, "skill_max");
 }
 
-void handle_player_merchant_transaction_buy(QuestInterface* parse, lua_State* L, Client* client, std::string data, uint32 extra_data, std::vector<std::any>* extra_pointers) {
+void handle_player_alt_currency_merchant(QuestInterface* parse, lua_State* L, Client* client, std::string data, uint32 extra_data, std::vector<std::any>* extra_pointers) {
 	Seperator sep(data.c_str());
 	lua_pushinteger(L, std::stoi(sep.arg[0]));
-	lua_setfield(L, -2, "npc_id");
+	lua_setfield(L, -2, "currency_id");
 
 	lua_pushinteger(L, std::stoi(sep.arg[1]));
-	lua_setfield(L, -2, "merchant_id");
+	lua_setfield(L, -2, "npc_id");
 
 	lua_pushinteger(L, std::stoi(sep.arg[2]));
-	lua_setfield(L, -2, "item_id");
+	lua_setfield(L, -2, "merchant_id");
 
 	lua_pushinteger(L, std::stoi(sep.arg[3]));
-	lua_setfield(L, -2, "quantity");
+	lua_setfield(L, -2, "item_id");
 
 	lua_pushinteger(L, std::stoi(sep.arg[4]));
-	lua_setfield(L, -2, "price");
-
-	lua_pushinteger(L, std::stoi(sep.arg[5]));
-	lua_setfield(L, -2, "platinum");
-
-	lua_pushinteger(L, std::stoi(sep.arg[6]));
-	lua_setfield(L, -2, "gold");
-
-	lua_pushinteger(L, std::stoi(sep.arg[7]));
-	lua_setfield(L, -2, "silver");
-
-	lua_pushinteger(L, std::stoi(sep.arg[8]));
-	lua_setfield(L, -2, "copper");
-
-	lua_pushinteger(L, std::stoi(sep.arg[9]));
-	lua_setfield(L, -2, "zone_id");
-
-	lua_pushinteger(L, std::stoi(sep.arg[10]));
-	lua_setfield(L, -2, "instance_id");
-
+	lua_setfield(L, -2, "item_cost");
 }
 
-void handle_player_merchant_transaction_sell(QuestInterface* parse, lua_State* L, Client* client, std::string data, uint32 extra_data, std::vector<std::any>* extra_pointers) {
+void handle_player_merchant(QuestInterface* parse, lua_State* L, Client* client, std::string data, uint32 extra_data, std::vector<std::any>* extra_pointers) {
 	Seperator sep(data.c_str());
 	lua_pushinteger(L, std::stoi(sep.arg[0]));
 	lua_setfield(L, -2, "npc_id");
@@ -907,79 +888,10 @@ void handle_player_merchant_transaction_sell(QuestInterface* parse, lua_State* L
 	lua_setfield(L, -2, "item_id");
 
 	lua_pushinteger(L, std::stoi(sep.arg[3]));
-	lua_setfield(L, -2, "quantity");
+	lua_setfield(L, -2, "item_quantity");
 
 	lua_pushinteger(L, std::stoi(sep.arg[4]));
-	lua_setfield(L, -2, "price");
-
-	lua_pushinteger(L, std::stoi(sep.arg[5]));
-	lua_setfield(L, -2, "platinum");
-
-	lua_pushinteger(L, std::stoi(sep.arg[6]));
-	lua_setfield(L, -2, "gold");
-
-	lua_pushinteger(L, std::stoi(sep.arg[7]));
-	lua_setfield(L, -2, "silver");
-
-	lua_pushinteger(L, std::stoi(sep.arg[8]));
-	lua_setfield(L, -2, "copper");
-
-	lua_pushinteger(L, std::stoi(sep.arg[9]));
-	lua_setfield(L, -2, "zone_id");
-
-	lua_pushinteger(L, std::stoi(sep.arg[10]));
-	lua_setfield(L, -2, "instance_id");
-
-}
-
-void handle_player_alt_merchant_transaction_buy(QuestInterface* parse, lua_State* L, Client* client, std::string data, uint32 extra_data, std::vector<std::any>* extra_pointers) {
-	Seperator sep(data.c_str());
-	lua_pushinteger(L, std::stoi(sep.arg[0]));
-	lua_setfield(L, -2, "alt_cur_id");
-
-	lua_pushinteger(L, std::stoi(sep.arg[1]));
-	lua_setfield(L, -2, "npc_id");
-
-	lua_pushinteger(L, std::stoi(sep.arg[2]));
-	lua_setfield(L, -2, "merchant_id");
-
-	lua_pushinteger(L, std::stoi(sep.arg[3]));
-	lua_setfield(L, -2, "item_id");
-
-	lua_pushinteger(L, std::stoi(sep.arg[4]));
-	lua_setfield(L, -2, "price");
-
-	lua_pushinteger(L, std::stoi(sep.arg[5]));
-	lua_setfield(L, -2, "zone_id");
-
-	lua_pushinteger(L, std::stoi(sep.arg[6]));
-	lua_setfield(L, -2, "instance_id");
-
-}
-
-void handle_player_alt_merchant_transaction_sell(QuestInterface* parse, lua_State* L, Client* client, std::string data, uint32 extra_data, std::vector<std::any>* extra_pointers) {
-	Seperator sep(data.c_str());
-	lua_pushinteger(L, std::stoi(sep.arg[0]));
-	lua_setfield(L, -2, "alt_cur_id");
-
-	lua_pushinteger(L, std::stoi(sep.arg[1]));
-	lua_setfield(L, -2, "npc_id");
-
-	lua_pushinteger(L, std::stoi(sep.arg[2]));
-	lua_setfield(L, -2, "merchant_id");
-
-	lua_pushinteger(L, std::stoi(sep.arg[3]));
-	lua_setfield(L, -2, "item_id");
-
-	lua_pushinteger(L, std::stoi(sep.arg[4]));
-	lua_setfield(L, -2, "price");
-
-	lua_pushinteger(L, std::stoi(sep.arg[5]));
-	lua_setfield(L, -2, "zone_id");
-
-	lua_pushinteger(L, std::stoi(sep.arg[6]));
-	lua_setfield(L, -2, "instance_id");
-
+	lua_setfield(L, -2, "item_cost");
 }
 
 void handle_player_summon_pc(QuestInterface* parse, lua_State* L, Client* client, std::string data, uint32 extra_data, std::vector<std::any>* extra_pointers) {

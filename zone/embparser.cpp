@@ -155,10 +155,10 @@ const char *QuestEventSubroutines[_LargestEventID] = {
 	"EVENT_UNEQUIP_ITEM_CLIENT",
 	"EVENT_SKILL_UP",
 	"EVENT_LANGUAGE_SKILL_UP",
-	"EVENT_MERCHANT_TRANSACTION_BUY",
-	"EVENT_MERCHANT_TRANSACTION_SELL",
-	"EVENT_ALT_MERCHANT_TRANSACTION_BUY",
-	"EVENT_ALT_MERCHANT_TRANSACTION_SELL",
+	"EVENT_ALT_CURRENCY_MERCHANT_BUY",
+	"EVENT_ALT_CURRENCY_MERCHANT_SELL",
+	"EVENT_MERCHANT_BUY",
+	"EVENT_MERCHANT_SELL",
 	"EVENT_SUMMON_PC"
 };
 
@@ -1713,7 +1713,7 @@ void PerlembParser::ExportEventVariables(
 			ExportVar(package_name.c_str(), "skill_max", sep.arg[2]);
 			break;
 		}
-
+		
 		case EVENT_MERCHANT_TRANSACTION_BUY :
 		case EVENT_MERCHANT_TRANSACTION_SELL: {
 			Seperator sep(data);
@@ -1754,6 +1754,7 @@ void PerlembParser::ExportEventVariables(
 			ExportVar(package_name.c_str(), "new_h", sep.arg[5]);
 			break;
 		}
+
 		default: {
 			break;
 		}

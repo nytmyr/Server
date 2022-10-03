@@ -119,13 +119,9 @@ void handle_player_skill_up(QuestInterface* parse, lua_State* L, Client* client,
 	std::vector<std::any>* extra_pointers);
 void handle_player_language_skill_up(QuestInterface* parse, lua_State* L, Client* client, std::string data, uint32 extra_data,
 	std::vector<std::any>* extra_pointers);
-void handle_player_merchant_transaction_buy(QuestInterface* parse, lua_State* L, Client* client, std::string data, uint32 extra_data,
+void handle_player_alt_currency_merchant(QuestInterface* parse, lua_State* L, Client* client, std::string data, uint32 extra_data,
 	std::vector<std::any>* extra_pointers);
-void handle_player_merchant_transaction_sell(QuestInterface* parse, lua_State* L, Client* client, std::string data, uint32 extra_data,
-	std::vector<std::any>* extra_pointers);
-void handle_player_alt_merchant_transaction_buy(QuestInterface* parse, lua_State* L, Client* client, std::string data, uint32 extra_data,
-	std::vector<std::any>* extra_pointers);
-void handle_player_alt_merchant_transaction_sell(QuestInterface* parse, lua_State* L, Client* client, std::string data, uint32 extra_data,
+void handle_player_merchant(QuestInterface* parse, lua_State* L, Client* client, std::string data, uint32 extra_data,
 	std::vector<std::any>* extra_pointers);
 void handle_player_summon_pc(QuestInterface* parse, lua_State* L, Client* client, std::string data, uint32 extra_data,
 	std::vector<std::any>* extra_pointers);

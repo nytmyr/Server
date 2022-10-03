@@ -453,17 +453,13 @@ void ClearMappedOpcode(EmuOpcode op)
 // client methods
 int Client::HandlePacket(const EQApplicationPacket *app)
 {
-	if (LogSys.log_settings[Logs::LogCategory::Netcode].is_category_enabled == 1) {
-		char buffer[64];
-		app->build_header_dump(buffer);
-		Log(Logs::Detail, Logs::PacketClientServer, "Dispatch opcode: %s", buffer);
-	}
-
-	if (LogSys.log_settings[Logs::PacketClientServer].is_category_enabled == 1)
-		Log(Logs::General, Logs::PacketClientServer, "[%s - 0x%04x] [Size: %u]", OpcodeManager::EmuToName(app->GetOpcode()), app->GetOpcode(), app->Size());
-
-	if (LogSys.log_settings[Logs::PacketClientServerWithDump].is_category_enabled == 1)
-		Log(Logs::General, Logs::PacketClientServerWithDump, "[%s - 0x%04x] [Size: %u] %s", OpcodeManager::EmuToName(app->GetOpcode()), app->GetOpcode(), app->Size(), DumpPacketToString(app).c_str());
+	LogPacketClientServer(
+		"[{}] [{:#06x}] Size [{}] {}",
+		OpcodeManager::EmuToName(app->GetOpcode()),
+		eqs->GetOpcodeManager()->EmuToEQ(app->GetOpcode()),
+		app->Size(),
+		(LogSys.IsLogEnabled(Logs::Detail, Logs::PacketClientServer) ? DumpPacketToString(app) : "")
+	);
 
 	EmuOpcode opcode = app->GetOpcode();
 	if (opcode == OP_AckPacket) {
@@ -506,11 +502,6 @@ int Client::HandlePacket(const EQApplicationPacket *app)
 			args.push_back(const_cast<EQApplicationPacket*>(app));
 			parse->EventPlayer(EVENT_UNHANDLED_OPCODE, this, "", 0, &args);
 
-			if (LogSys.log_settings[Logs::PacketClientServerUnhandled].is_category_enabled == 1) {
-				char buffer[64];
-				app->build_header_dump(buffer);
-				Log(Logs::General, Logs::PacketClientServerUnhandled, "%s %s", buffer, DumpPacketToString(app).c_str());
-			}
 			break;
 		}
 
@@ -2605,7 +2596,7 @@ void Client::Handle_OP_AltCurrencyPurchase(const EQApplicationPacket *app)
 			std::string event_desc = StringFormat("Merchant Purchase :: Spent alt_currency_id:%i cost:%i for itemid:%i in zoneid:%i instid:%i", alt_cur_id, cost, item->ID, GetZoneID(), GetInstanceID());
 			QServ->PlayerLogEvent(Player_Log_Alternate_Currency_Transactions, CharacterID(), event_desc);
 		}
-
+		
 		std::string export_string = fmt::format(
 			"{} {} {} {} {} {} {}",
 			alt_cur_id,
@@ -2772,7 +2763,7 @@ void Client::Handle_OP_AltCurrencySell(const EQApplicationPacket *app)
 			std::string event_desc = StringFormat("Sold to Merchant :: itemid:%u npcid:%u alt_currency_id:%u cost:%u in zoneid:%u instid:%i", item->ID, npc_id, alt_cur_id, cost, GetZoneID(), GetInstanceID());
 			QServ->PlayerLogEvent(Player_Log_Alternate_Currency_Transactions, CharacterID(), event_desc);
 		}
-
+		
 		std::string export_string = fmt::format(
 			"{} {} {} {} {} {} {}",
 			alt_cur_id,
@@ -13544,7 +13535,7 @@ void Client::Handle_OP_ShopPlayerBuy(const EQApplicationPacket *app)
 
 	if (RuleB(EventLog, RecordBuyFromMerchant))
 		LogMerchant(this, tmp, mpo->quantity, mpo->price, item, true);
-
+	
 	std::string export_string = fmt::format(
 		"{} {} {} {} {} {} {} {} {} {} {}",
 		tmp->GetNPCTypeID(),
@@ -13733,6 +13724,17 @@ void Client::Handle_OP_ShopPlayerSell(const EQApplicationPacket *app)
 		safe_delete(qspack);
 	}
 	// end QS code
+
+	const auto& export_string = fmt::format(
+		"{} {} {} {} {}",
+		vendor->GetNPCTypeID(),
+		vendor->CastToNPC()->MerchantType,
+		itemid,
+		mp->quantity,
+		price
+	);
+	parse->EventPlayer(EVENT_MERCHANT_SELL, this, export_string, 0);
+
 
 	// Now remove the item from the player, this happens regardless of outcome
 	DeleteItemInInventory(

@@ -790,7 +790,6 @@ bool Client::SendAllPackets() {
 		if(eqs)
 			eqs->FastQueuePacket((EQApplicationPacket **)&cp->app, cp->ack_req);
 		clientpackets.pop_front();
-		Log(Logs::Moderate, Logs::PacketClientServer, "Transmitting a packet");
 	}
 	return true;
 }
@@ -3222,6 +3221,8 @@ void Client::MessageString(uint32 type, uint32 string_id, const char* message1,
 	if (GetFilter(FilterSpellCrits) == FilterHide && type == Chat::SpellCrit)
 		return;
 	if (GetFilter(FilterDamageShields) == FilterHide && type == Chat::DamageShield)
+		return;
+	if (GetFilter(FilterFocusEffects) == FilterHide && type == Chat::FocusEffect)
 		return;
 
 	if (type == Chat::Emote)
