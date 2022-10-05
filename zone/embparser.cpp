@@ -1714,33 +1714,25 @@ void PerlembParser::ExportEventVariables(
 			break;
 		}
 		
+		case EVENT_ALT_CURRENCY_MERCHANT_BUY:
+		case EVENT_ALT_CURRENCY_MERCHANT_SELL: {
+			Seperator sep(data);
+			ExportVar(package_name.c_str(), "currency_id", sep.arg[0]);
+			ExportVar(package_name.c_str(), "npc_id", sep.arg[1]);
+			ExportVar(package_name.c_str(), "merchant_id", sep.arg[2]);
+			ExportVar(package_name.c_str(), "item_id", sep.arg[3]);
+			ExportVar(package_name.c_str(), "item_cost", sep.arg[4]);
+			break;
+		}
+
 		case EVENT_MERCHANT_BUY:
 		case EVENT_MERCHANT_SELL: {
 			Seperator sep(data);
 			ExportVar(package_name.c_str(), "npc_id", sep.arg[0]);
 			ExportVar(package_name.c_str(), "merchant_id", sep.arg[1]);
 			ExportVar(package_name.c_str(), "item_id", sep.arg[2]);
-			ExportVar(package_name.c_str(), "quantity", sep.arg[3]);
-			ExportVar(package_name.c_str(), "price", sep.arg[4]);
-			ExportVar(package_name.c_str(), "platinum", sep.arg[5]);
-			ExportVar(package_name.c_str(), "gold", sep.arg[6]);
-			ExportVar(package_name.c_str(), "silver", sep.arg[7]);
-			ExportVar(package_name.c_str(), "copper", sep.arg[8]);
-			ExportVar(package_name.c_str(), "zone_id", sep.arg[9]);
-			ExportVar(package_name.c_str(), "instance_id", sep.arg[10]);
-			break;
-		}
-
-		case EVENT_ALT_CURRENCY_MERCHANT_BUY:
-		case EVENT_ALT_CURRENCY_MERCHANT_SELL: {
-			Seperator sep(data);
-			ExportVar(package_name.c_str(), "alt_cur_id", sep.arg[0]);
-			ExportVar(package_name.c_str(), "npc_id", sep.arg[1]);
-			ExportVar(package_name.c_str(), "merchant_id", sep.arg[2]);
-			ExportVar(package_name.c_str(), "item_id", sep.arg[3]);
-			ExportVar(package_name.c_str(), "price", sep.arg[4]);
-			ExportVar(package_name.c_str(), "zone_id", sep.arg[5]);
-			ExportVar(package_name.c_str(), "instance_id", sep.arg[6]);
+			ExportVar(package_name.c_str(), "item_quantity", sep.arg[3]);
+			ExportVar(package_name.c_str(), "item_cost", sep.arg[4]);
 			break;
 		}
 		
