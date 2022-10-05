@@ -1972,11 +1972,11 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					{
 					case ARCHETYPE_CASTER:
 						//TODO: probably more caster specific spell effects in here
-						if ((IsEffectInSpell(selectedBotSpell.SpellId, SE_AttackSpeed) && tar->GetLevel() > tar->CastToBot()->GetStopMeleeLevel())
-							|| (IsEffectInSpell(selectedBotSpell.SpellId, SE_ATK) && tar->GetLevel() > tar->CastToBot()->GetStopMeleeLevel())
-							|| (IsEffectInSpell(selectedBotSpell.SpellId, SE_STR) && tar->GetLevel() > tar->CastToBot()->GetStopMeleeLevel()))
-							//|| IsEffectInSpell(selectedBotSpell.SpellId, SE_ReverseDS))
+						if (tar && tar->IsBot() && IsEffectInSpell(selectedBotSpell.SpellId, SE_AttackSpeed) && tar->GetLevel() > tar->CastToBot()->GetStopMeleeLevel())
 						{
+							continue;
+						}
+						else if (IsEffectInSpell(selectedBotSpell.SpellId, SE_ReverseDS) || IsEffectInSpell(selectedBotSpell.SpellId, SE_ATK) || IsEffectInSpell(selectedBotSpell.SpellId, SE_STR)) {
 							continue;
 						}
 						break;
@@ -2338,12 +2338,11 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 								switch (tar->GetArchetype()) {
 								case ARCHETYPE_CASTER:
 									//TODO: probably more caster specific spell effects in here
-									if (IsEffectInSpell(selectedBotSpell.SpellId, SE_ReverseDS)) {
+									if (tar && tar->IsBot() && IsEffectInSpell(selectedBotSpell.SpellId, SE_AttackSpeed) && tar->GetLevel() > tar->CastToBot()->GetStopMeleeLevel())
+									{
 										continue;
 									}
-									else if (tar->IsBot() && ((IsEffectInSpell(selectedBotSpell.SpellId, SE_AttackSpeed) && tar->GetLevel() > tar->CastToBot()->GetStopMeleeLevel())
-										|| (IsEffectInSpell(selectedBotSpell.SpellId, SE_ATK) && tar->GetLevel() > tar->CastToBot()->GetStopMeleeLevel())
-										|| (IsEffectInSpell(selectedBotSpell.SpellId, SE_STR) && tar->GetLevel() > tar->CastToBot()->GetStopMeleeLevel()))) {
+									else if (IsEffectInSpell(selectedBotSpell.SpellId, SE_ReverseDS) || IsEffectInSpell(selectedBotSpell.SpellId, SE_ATK) || IsEffectInSpell(selectedBotSpell.SpellId, SE_STR)) {
 										continue;
 									}
 									break;
