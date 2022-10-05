@@ -10388,12 +10388,20 @@ void Bot::BotGroupSay(Mob *speaker, const char *msg, ...) {
 	va_start(ap, msg);
 	vsnprintf(buf, 1000, msg, ap);
 	va_end(ap);
-	if(speaker->HasGroup()) {
-		Group *g = speaker->GetGroup();
-		if(g)
-			g->GroupMessage(speaker->CastToMob(), 0, 100, buf);
-	} else
-		speaker->Say("%s", buf);
+	//if(speaker->HasGroup()) {
+	//	Group *g = speaker->GetGroup();
+	//	if(g)
+	//		g->GroupMessage(speaker->CastToMob(), 0, 100, buf);
+	//} else
+		//speaker->Say("%s", buf);
+		speaker->GetOwner()->FilteredMessageString(
+			speaker,
+			Chat::PetResponse,
+			FilterSocials,
+			GENERIC_SAY,
+			speaker->GetCleanName(),
+			buf
+		);
 }
 
 bool Bot::UseDiscipline(uint32 spell_id, uint32 target) {
