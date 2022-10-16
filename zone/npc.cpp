@@ -3464,6 +3464,9 @@ bool NPC::AICheckCloseBeneficialSpells(
 	 */
 	for (auto & close_mob : entity_list.GetCloseMobList(caster, cast_range)) {
 		Mob *mob = close_mob.second;
+		if (!mob) {
+			continue;
+		}
 
 		if (mob->IsClient()) {
 			continue;
@@ -3540,6 +3543,10 @@ void NPC::AIYellForHelp(Mob *sender, Mob *attacker)
 
 	for (auto &close_mob : entity_list.GetCloseMobList(sender)) {
 		Mob   *mob     = close_mob.second;
+		if (!mob) {
+			continue;
+		}
+
 		float distance = DistanceSquared(m_Position, mob->GetPosition());
 
 		if (mob->IsClient()) {

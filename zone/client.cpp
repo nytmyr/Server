@@ -233,8 +233,9 @@ Client::Client(EQStreamInterface* ieqs)
 	linkdead_timer.Disable();
 	zonesummon_id = 0;
 	zonesummon_ignorerestrictions = 0;
-	bZoning = false;
-	zone_mode = ZoneUnsolicited;
+	bZoning              = false;
+	m_lock_save_position = false;
+	zone_mode            = ZoneUnsolicited;
 	casting_spell_id = 0;
 	npcflag = false;
 	npclevel = 0;
@@ -636,11 +637,14 @@ bool Client::Save(uint8 iCommitNow) {
 		return false;
 
 	/* Wrote current basics to PP for saves */
-	m_pp.x = m_Position.x;
-	m_pp.y = m_Position.y;
-	m_pp.z = m_Position.z;
+	if (!m_lock_save_position) {
+		m_pp.x       = m_Position.x;
+		m_pp.y       = m_Position.y;
+		m_pp.z       = m_Position.z;
+		m_pp.heading = m_Position.w;
+	}
+
 	m_pp.guildrank = guildrank;
-	m_pp.heading = m_Position.w;
 
 	/* Mana and HP */
 	if (GetHP() <= 0) {
@@ -3168,10 +3172,9 @@ void Client::ServerFilter(SetServerFilter_Struct* filter){
 	if (ClientVersionBit() & EQ::versions::maskSoDAndLater) {
 		if (filter->filters[FilterHealOverTime] == 0)
 			ClientFilters[FilterHealOverTime] = FilterShow;
-		// This is called 'Show Mine Only' in the clients, but functions the same as show
-		// so instead of apply special logic, just set to show
+		// This is called 'Show Mine Only' in the clients
 		else if (filter->filters[FilterHealOverTime] == 1)
-			ClientFilters[FilterHealOverTime] = FilterShow;
+			ClientFilters[FilterHealOverTime] = FilterShowSelfOnly;
 		else
 			ClientFilters[FilterHealOverTime] = FilterHide;
 	} else {
@@ -3289,14 +3292,12 @@ bool Client::FilteredMessageCheck(Mob *sender, eqFilterType filter)
 	else if (mode == FilterHide)
 		return false;
 
-	if (!sender && mode == FilterHide) {
+	if (sender != this && (mode == FilterHide || mode == FilterShowSelfOnly)) {
 		return false;
 	} else if (sender) {
 		if (this == sender) {
 			if (mode == FilterHide) // don't need to check others
 				return false;
-		} else if (mode == FilterShowSelfOnly) { // we know sender isn't us
-			return false;
 		} else if (mode == FilterShowGroupOnly) {
 			Group *g = GetGroup();
 			Raid *r = GetRaid();
@@ -8804,7 +8805,7 @@ void Client::QuestReward(Mob* target, const QuestReward_Struct &reward, bool fac
 
 	for (int i = 0; i < QUESTREWARD_COUNT; ++i)
 		if (reward.item_id[i] > 0)
-			SummonItem(reward.item_id[i], 0, 0, 0, 0, 0, 0, false, EQ::invslot::slotCursor);
+			SummonItem(reward.item_id[i], -1, 0, 0, 0, 0, 0, false, EQ::invslot::slotCursor);
 
 	// only process if both are valid
 	// if we don't have a target here, we want to just reward, but if there is a target, need to check charm
@@ -11842,4 +11843,14 @@ bool Client::HasRecipeLearned(uint32 recipe_id)
 	}
 
 	return false;
+}
+
+bool Client::IsLockSavePosition() const
+{
+	return m_lock_save_position;
+}
+
+void Client::SetLockSavePosition(bool lock_save_position)
+{
+	Client::m_lock_save_position = lock_save_position;
 }

@@ -1724,6 +1724,9 @@ void EntityList::QueueCloseClients(
 
 	for (auto &e : GetCloseMobList(sender, distance)) {
 		Mob *mob = e.second;
+		if (!mob) {
+			continue;
+		}
 
 		if (!mob->IsClient()) {
 			continue;
@@ -4460,6 +4463,9 @@ void EntityList::QuestJournalledSayClose(
 	if (RuleB(Chat, QuestDialogueUsesDialogueWindow)) {
 		for (auto &e : GetCloseMobList(sender, (dist * dist))) {
 			Mob *mob = e.second;
+			if (!mob) {
+				continue;
+			}
 
 			if (!mob->IsClient()) {
 				continue;
@@ -5595,7 +5601,6 @@ std::vector<Mob*> EntityList::GetTargetsForVirusEffect(Mob *spreader, Mob *origi
 	bool               is_detrimental_spell = IsDetrimentalSpell(spell_id);
 	for (auto          &it : entity_list.GetCloseMobList(spreader, range)) {
 		Mob *mob = it.second;
-
 		if (!mob) {
 			continue;
 		}
