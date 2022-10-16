@@ -4293,22 +4293,17 @@ void Mob::HealDamage(uint64 amount, Mob *caster, uint16 spell_id)
 			else { // normal heals
 				FilteredMessageString(caster, Chat::NonMelee, FilterSpellDamage,
 					YOU_HEALED, caster->GetCleanName(), itoa(acthealed));
-#ifndef BOTS
-				if (caster != this)
+#ifdef	BOTS
+				if (caster->IsBot() && RuleB(Bots, DisplayHealDamage)) {
+					caster->CastToBot()->GetBotOwner()->FilteredMessageString(caster->CastToBot()->GetBotOwner(),
+						Chat::NonMelee, FilterSpellDamage, GENERIC_9_STRINGS,
+						caster->GetCleanName(), " healed ", this->GetCleanName(), " for ", itoa(acthealed), " hit points.", " ", " ", " ");
+				}
+				else if (caster != this) {
 					caster->FilteredMessageString(caster, Chat::NonMelee, FilterSpellDamage,
 						YOU_HEAL, GetCleanName(), itoa(acthealed));
-			}
-#endif
-#ifdef	BOTS
-			if (caster->IsBot() && RuleB(Bots, DisplayHealDamage)) {
-				caster->CastToBot()->GetBotOwner()->FilteredMessageString(caster->CastToBot()->GetBotOwner(),
-					Chat::NonMelee, FilterSpellDamage, GENERIC_9_STRINGS,
-					caster->GetCleanName(), " healed ", this->GetCleanName(), " for ", itoa(acthealed), " hit points.", " ", " ", " ");
-			}
-			else if (caster != this) {
-				caster->FilteredMessageString(caster, Chat::NonMelee, FilterSpellDamage,
-					YOU_HEAL, GetCleanName(), itoa(acthealed));
 
+				}
 			}
 #endif // BOTS
 		}
