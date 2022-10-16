@@ -11664,8 +11664,14 @@ void Client::Handle_OP_RaidCommand(const EQApplicationPacket* app)
 		Client* invitee = entity_list.GetClientByName(raid_command_packet->leader_name);
 		Client* invitor = entity_list.GetClientByName(raid_command_packet->player_name);
 
+		if (!invitee)
+			break;
+
+		if (!invitor)
+			break;
+
 		if (invitee && invitee->IsRaidGrouped()) {
-			invitor->MessageString(Chat::White, ALREADY_IN_RAID, GetName()); //group failed, must invite members not in raid...
+			invitor->MessageString(Chat::White, ALREADY_IN_RAID, invitee->GetName()); //group failed, must invite members not in raid...
 			return;
 		}
 
