@@ -10892,7 +10892,7 @@ void Bot::ProcessRaidInvite(Client* invitee, Client* invitor) {
 						if (x == 0) {
 							raid->SendRaidCreate(c);
 							raid->SendMakeLeaderPacketTo(raid->leadername, c);
-							raid->AddMember(c, 0, false, true, false);
+							raid->AddMember(c, 0, true, true, true);
 							raid->SetGroupLeader(c->GetName());
 							raid->GroupUpdate(0);
 							if (raid->IsLocked()) {
