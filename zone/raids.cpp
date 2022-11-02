@@ -223,6 +223,9 @@ void Raid::AddBot(Bot* b, uint32 group, bool rleader, bool groupleader, bool loo
 
 void Raid::RemoveMember(const char *characterName)
 {
+	if (!characterName)
+		return;
+
 	std::string query = StringFormat("DELETE FROM raid_members where name='%s'", characterName);
 	auto results = database.QueryDatabase(query);
 
