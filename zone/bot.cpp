@@ -4330,6 +4330,16 @@ void Bot::LevelBotWithClient(Client* client, uint8 level, bool sendlvlapp) {
 					bot->SendLevelAppearance();
 				// modified from Client::SetLevel()
 				bot->SendAppearancePacket(AT_WhoLevel, level, true, true); // who level change
+				if (!RuleB(Bots, BotHealOnLevel)) {
+					int mhp = bot->CalcMaxHP();
+					if (bot->GetHP() > mhp)
+						bot->SetHP(mhp);
+				}
+				else {
+					bot->SetHP(bot->CalcMaxHP()); // Why not, lets give them a free heal
+				}
+				bot->SendHPUpdate();
+				bot->SetMana(bot->CalcMaxMana());
 			}
 		}
 

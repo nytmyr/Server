@@ -653,6 +653,7 @@ RULE_INT(Bots, TierFiveBotSpawnLimitUnlockLevelRequirement, 40, "40 Default. 0 D
 RULE_BOOL(Bots, CastOnAllRaidMembers, false, "False Default. If True, bots will cast on all raid members rather than just their group members.")
 RULE_BOOL(Bots, MeleeBehindMob, false, "False Default. If True, bots within melee range will attempt to stay behind the mob if not top aggro or taunting.")
 RULE_INT(Bots, BotAdditionalTauntHate, 0, "0 Default. Additional Hate added to the taunter on each successful Taunt.")
+RULE_BOOL(Bots, BotHealOnLevel, false, "Setting whether a player should heal completely when leveling")
 
 RULE_CATEGORY_END()
 #endif
