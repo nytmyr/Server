@@ -1957,6 +1957,8 @@ void Raid::QueueClients(Mob *sender, const EQApplicationPacket *app, bool ack_re
 			if (members[i].IsBot)
 				continue;
 #endif
+			if (!entity_list.IsMobInZone(members[i].member))
+				continue;
 
 			if (!members[i].member->IsClient())
 				continue;
