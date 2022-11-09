@@ -165,6 +165,18 @@ public:
 	bool SaveAutoDS(const uint32 owner_id, const uint32 bot_id, const uint8 ad_value);
 	bool SaveBehindMob(const uint32 owner_id, const uint32 bot_id, const uint8 behindmob_value);
 	bool SaveBotCasterRange(const uint32 owner_id, const uint32 bot_id, const uint32 botcasterrange_value);
+	bool SaveDebuffDelay(const uint32 owner_id, const uint32 bot_id, const uint32 debuff_delay_value);
+	bool SaveSlowDelay(const uint32 owner_id, const uint32 bot_id, const uint32 slow_delay_value);
+	bool SaveDotDelay(const uint32 owner_id, const uint32 bot_id, const uint32 dot_delay_value);
+	bool SaveLifetapDelay(const uint32 owner_id, const uint32 bot_id, const uint32 lifetap_delay_value);
+	bool SaveHealDelay(const uint32 owner_id, const uint32 bot_id, const uint32 heal_delay_value);
+	bool SaveFastHealDelay(const uint32 owner_id, const uint32 bot_id, const uint32 fheal_delayl_value);
+	bool SaveCompleteHealDelay(const uint32 owner_id, const uint32 bot_id, const uint32 cheal_delay_value);
+	bool SaveHotHealDelay(const uint32 owner_id, const uint32 bot_id, const uint32 hotheal_delay_value);
+	bool SaveHealThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 heal_threshold_value);
+	bool SaveFastHealThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 fheal_threshold_value);
+	bool SaveCompleteHealThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 cheal_threshold_value);
+	bool SaveHotHealThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 hotheal_threshold_value);
 
 	bool LoadOwnerOptions(Client *owner);
 	bool SaveOwnerOption(const uint32 owner_id, size_t type, const bool flag);
@@ -309,6 +321,18 @@ public:
 		static const char* SaveAutoDS();
 		static const char* SaveBehindMob();
 		static const char* SaveBotCasterRange();
+		static const char* SaveDebuffDelay();
+		static const char* SaveSlowDelay();
+		static const char* SaveDotDelay();
+		static const char* SaveLifetapDelay();
+		static const char* SaveHealDelay();
+		static const char* SaveFastHealDelay();
+		static const char* SaveCompleteHealDelay();
+		static const char* SaveHotHealDelay();
+		static const char* SaveHealThreshold();
+		static const char* SaveFastHealThreshold();
+		static const char* SaveCompleteHealThreshold();
+		static const char* SaveHotHealThreshold();
 
 		/* fail::Bot bot-group functions   */
 		static const char* QueryBotGroupExistence();

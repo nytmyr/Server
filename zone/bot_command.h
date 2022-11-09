@@ -635,6 +635,18 @@ void bot_command_hold_snares(Client* c, const Seperator* sep);
 void bot_command_nuke_delay(Client* c, const Seperator* sep);
 void bot_command_remove_from_raid(Client* c, const Seperator* sep);
 void bot_command_use_epic(Client* c, const Seperator* sep);
+void bot_command_debuff_delay(Client* c, const Seperator* sep);
+void bot_command_slow_delay(Client* c, const Seperator* sep);
+void bot_command_dot_delay(Client* c, const Seperator* sep);
+void bot_command_lifetap_delay(Client* c, const Seperator* sep);
+void bot_command_heal_delay(Client* c, const Seperator* sep);
+void bot_command_fast_heal_delay(Client* c, const Seperator* sep);
+void bot_command_complete_heal_delay(Client* c, const Seperator* sep);
+void bot_command_hot_heal_delay(Client* c, const Seperator* sep);
+void bot_command_heal_threshold(Client* c, const Seperator* sep);
+void bot_command_fast_heal_threshold(Client* c, const Seperator* sep);
+void bot_command_complete_heal_threshold(Client* c, const Seperator* sep);
+void bot_command_hot_heal_threshold(Client* c, const Seperator* sep);
 
 // bot subcommands
 void bot_subcommand_bot_appearance(Client *c, const Seperator *sep);

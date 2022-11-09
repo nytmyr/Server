@@ -135,6 +135,8 @@ namespace Logs {
 		PacketServerClient,
 		PacketClientServer,
 		PacketServerToServer,
+		HealAI,
+		TestDebug,
 		MaxCategoryID /* Don't Remove this */
 	};
 
@@ -227,7 +229,9 @@ namespace Logs {
 		"Faction",
 		"Packet-S->C",
 		"Packet-C->S",
-		"Packet-S->S"
+		"Packet-S->S",
+		"HealAI",
+		"TestDebug"
 	};
 }
 

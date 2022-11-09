@@ -343,6 +343,18 @@ public:
 	uint8 GetAutoDS() { return _autoDS; }
 	uint8 GetBehindMob() { return _behindMobStatus; }
 	uint32 GetBotCasterRange() { return _botcasterRange; }
+	uint32 GetDebuffDelay() { return _debuffDelay; }
+	uint32 GetSlowDelay() { return _slowDelay; }
+	uint32 GetDotDelay() { return _dotDelay; }
+	uint32 GetLifetapDelay() { return _lifetapDelay; }
+	uint32 GetHealDelay() { return _healDelay; }
+	uint32 GetFastHealDelay() { return _fhealDelay; }
+	uint32 GetCompleteHealDelay() { return _chealDelay; }
+	uint32 GetHotHealDelay() { return _hothealDelay; }
+	uint8 GetHealThreshold() { return _healThreshold; }
+	uint8 GetFastHealThreshold() { return _fhealThreshold; }
+	uint8 GetCompleteHealThreshold() { return _chealThreshold; }
+	uint8 GetHotHealThreshold() { return _hothealThreshold; }
 	void SetStopMeleeLevel(uint8 level);
 	void SetHoldBuffs(uint8 holdstatus);
 	void SetHoldCures(uint8 holdstatus);
@@ -369,6 +381,18 @@ public:
 	void SetAutoDS(uint8 autods);
 	void SetBehindMob(uint8 behindmobstatus);
 	void SetBotCasterRange(uint32 botcasterrange);
+	void SetDebuffDelay(uint32 debuffdelay);
+	void SetSlowDelay(uint32 slowdelay);
+	void SetDotDelay(uint32 dotdelay);
+	void SetLifetapDelay(uint32 lifetapdelay);
+	void SetHealDelay(uint32 healdelay);
+	void SetFastHealDelay(uint32 fhealdelay);
+	void SetCompleteHealDelay(uint32 chealdelay);
+	void SetHotHealDelay(uint32 hothealdelay);
+	void SetHealThreshold(uint8 healthreshold);
+	void SetFastHealThreshold(uint8 fhealthreshold);
+	void SetCompleteHealThreshold(uint8 chealthreshold);
+	void SetHotHealThreshold(uint8 hothealthreshold);
 	void SetGuardMode();
 	void SetHoldMode();
 
@@ -742,6 +766,14 @@ private:
 	Timer m_alt_combat_hate_timer;
 	Timer m_auto_defend_timer;
 	Timer m_nuke_delay_timer; //timer for nuke delays set by ^nukedelay/^nd
+	Timer m_debuff_delay_timer; //timer for debuff delays set by ^debuffdelay/^dd
+	Timer m_slow_delay_timer; //timer for slow delays set by ^slowdelay/^sd
+	Timer m_dot_delay_timer; //timer for dot delays set by ^dotdelay/^dotd
+	Timer m_lifetap_delay_timer; //timer for lifetap delays set by ^lifetapdelay/^ltd
+	Timer m_heal_delay_timer; //timer for heal delays set by ^healdelay/^hd
+	Timer m_fheal_delay_timer; //timer for fast heal delays set by ^fasthealdelay/^fhd
+	Timer m_cheal_delay_timer; //timer for complete heal delays set by ^completehealdelay/^chd
+	Timer m_hotheal_delay_timer; //timer for hot heal delays set by ^hothealdelay/^hhd
 	//Timer m_combat_jitter_timer;
 	//bool m_combat_jitter_flag;
 	bool m_dirtyautohaters;
@@ -789,6 +821,19 @@ private:
 	uint8 _autoDS;
 	uint8 _behindMobStatus;
 	uint32 _botcasterRange;
+	uint32 _debuffDelay;
+	uint32 _slowDelay;
+	uint32 _dotDelay;
+	uint32 _lifetapDelay;
+	uint32 _healDelay;
+	uint32 _fhealDelay;
+	uint32 _chealDelay;
+	uint32 _hothealDelay;
+	uint8 _healThreshold;
+	uint8 _fhealThreshold;
+	uint8 _chealThreshold;
+	uint8 _hothealThreshold;
+
 
 	// Private "base stats" Members
 	int32 _baseMR;

@@ -2450,6 +2450,54 @@ void Bot::SetBotCasterRange(uint32 botcasterrange) {
 	_botcasterRange = botcasterrange;
 }
 
+void Bot::SetDebuffDelay(uint32 debuffdelay) {
+	_debuffDelay = debuffdelay;
+}
+
+void Bot::SetSlowDelay(uint32 slowdelay) {
+	_slowDelay = slowdelay;
+}
+
+void Bot::SetDotDelay(uint32 dotdelay) {
+	_dotDelay = dotdelay;
+}
+
+void Bot::SetLifetapDelay(uint32 lifetapdelay) {
+	_lifetapDelay = lifetapdelay;
+}
+
+void Bot::SetHealDelay(uint32 healdelay) {
+	_healDelay = healdelay;
+}
+
+void Bot::SetFastHealDelay(uint32 fhealdelay) {
+	_fhealDelay = fhealdelay;
+}
+
+void Bot::SetCompleteHealDelay(uint32 chealdelay) {
+	_chealDelay = chealdelay;
+}
+
+void Bot::SetHotHealDelay(uint32 hothealdelay) {
+	_hothealDelay = hothealdelay;
+}
+
+void Bot::SetFastHealThreshold(uint8 fhealthreshold) {
+	_fhealThreshold = fhealthreshold;
+}
+
+void Bot::SetHealThreshold(uint8 healthreshold) {
+	_healThreshold = healthreshold;
+}
+
+void Bot::SetCompleteHealThreshold(uint8 chealthreshold) {
+	_chealThreshold = chealthreshold;
+}
+
+void Bot::SetHotHealThreshold(uint8 hothealthreshold) {
+	_hothealThreshold = hothealthreshold;
+}
+
 void Bot::SetGuardMode() {
 
 	StopMoving();
@@ -9604,6 +9652,19 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 								if(caster->AICastSpell(g->members[i], 100, SpellType_Heal))
 									return true;
 							}
+							else if (g->members[i]->IsBot()
+								&& (g->members[i]->CastToBot()->GetHealDelay() > 0
+									&& g->members[i]->CastToBot()->GetFastHealDelay() > 0
+									&& g->members[i]->CastToBot()->GetCompleteHealDelay() > 0
+									&& g->members[i]->CastToBot()->GetHotHealDelay() > 0)
+								&& (g->members[i]->CastToBot()->GetHealThreshold() <= g->members[i]->GetHPRatio()
+									|| g->members[i]->CastToBot()->GetFastHealThreshold() <= g->members[i]->GetHPRatio()
+									|| g->members[i]->CastToBot()->GetCompleteHealThreshold() <= g->members[i]->GetHPRatio()
+									|| g->members[i]->CastToBot()->GetHotHealThreshold() <= g->members[i]->GetHPRatio())
+								) {
+								if (caster->AICastSpell(g->members[i], 100, SpellType_Heal))
+									return true;
+							}
 						}
 
 						if(g->members[i] && !g->members[i]->qglobal && g->members[i]->HasPet() && g->members[i]->GetPet()->GetHPRatio() < 50) {
@@ -9644,6 +9705,19 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 									return true;
 							}
 							else if (iter->member->GetHPRatio() < 70) {
+								if (caster->AICastSpell(iter->member, 100, SpellType_Heal))
+									return true;
+							}
+							else if (iter->member->IsBot()
+								&& (iter->member->CastToBot()->GetHealDelay() > 0
+									&& iter->member->CastToBot()->GetFastHealDelay() > 0
+									&& iter->member->CastToBot()->GetCompleteHealDelay() > 0
+									&& iter->member->CastToBot()->GetHotHealDelay() > 0)
+								&& (iter->member->CastToBot()->GetHealThreshold() <= iter->member->GetHPRatio()
+									|| iter->member->CastToBot()->GetFastHealThreshold() <= iter->member->GetHPRatio()
+									|| iter->member->CastToBot()->GetCompleteHealThreshold() <= iter->member->GetHPRatio()
+									|| iter->member->CastToBot()->GetHotHealThreshold() <= iter->member->GetHPRatio())
+								) {
 								if (caster->AICastSpell(iter->member, 100, SpellType_Heal))
 									return true;
 							}

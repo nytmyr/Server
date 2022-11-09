@@ -115,153 +115,331 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 		}
 		case SpellType_Heal: {
 			if (GetHoldHeals() == 0) {
-				if (tar->DontHealMeBefore() < Timer::GetCurrentTime() || (uint8)tar->GetHPRatio() < RuleI(Bots, FastHealPercentLimit)) {
-					uint8 hpr = (uint8)tar->GetHPRatio();
-					bool hasAggro = false;
-					bool isPrimaryHealer = false;
+				if (!tar->IsBot()
+					|| (tar->IsBot() && (tar->CastToBot()->GetHealDelay() <= 0
+					|| tar->CastToBot()->GetFastHealDelay() <= 0 
+					|| tar->CastToBot()->GetCompleteHealDelay() <= 0
+					|| tar->CastToBot()->GetHotHealDelay() <= 0))
+					) {
+					if (tar->DontHealMeBefore() < Timer::GetCurrentTime() || (uint8)tar->GetHPRatio() < RuleI(Bots, FastHealPercentLimit)) {
+						uint8 hpr = (uint8)tar->GetHPRatio();
+						bool hasAggro = false;
+						bool isPrimaryHealer = false;
 
-					if (HasGroup()) {
-						isPrimaryHealer = IsGroupHealer();
-					}
-
-					if (hpr < RuleI(Bots, HealPercentLimit) || (tar->IsClient() && hpr < (RuleI(Bots, HealPercentLimit))) || (botClass == BARD)) {
-						if (tar->GetClass() == NECROMANCER) {
-							// Give necromancers a chance to go lifetap something or cleric can spend too much mana on a necro
-							if (hpr >= RuleI(Bots, HealPercentLimitNecro)) {
-								break;
-							}
+						if (HasGroup()) {
+							isPrimaryHealer = IsGroupHealer();
 						}
 
-						if (tar->GetClass() == SHAMAN) {
-							// Give shaman the chance to canni without wasting the cleric's mana
-							if (hpr >= RuleI(Bots, HealPercentLimitShaman)) {
-								break;
-							}
-						}
-						//FastHeal->SingleTargetHeal->PercentageHeal->HoT
-						// Evaluate the situation
-						if ((IsEngaged()) && ((botClass == CLERIC) || (botClass == DRUID) || (botClass == SHAMAN) || (botClass == PALADIN))) {
-							if (tar->GetTarget() && tar->GetTarget()->GetHateTop() && tar->GetTarget()->GetHateTop() == tar) {
-								hasAggro = true;
+						if (hpr < RuleI(Bots, HealPercentLimit) || (tar->IsClient() && hpr < (RuleI(Bots, HealPercentLimit))) || (botClass == BARD)) {
+							if (tar->GetClass() == NECROMANCER) {
+								// Give necromancers a chance to go lifetap something or cleric can spend too much mana on a necro
+								if (hpr >= RuleI(Bots, HealPercentLimitNecro)) {
+									break;
+								}
 							}
 
-							if (hpr < RuleI(Bots, FastHealPercentLimit)) {
-								botSpell = GetBestBotSpellForFastHeal(this);
+							if (tar->GetClass() == SHAMAN) {
+								// Give shaman the chance to canni without wasting the cleric's mana
+								if (hpr >= RuleI(Bots, HealPercentLimitShaman)) {
+									break;
+								}
 							}
-							else if (hpr >= RuleI(Bots, FastHealPercentLimit) && hpr < RuleI(Bots, SingleTargetHealLimit)) {
-								if (GetNumberNeedingHealedInGroup(80, false) >= 3)
-									botSpell = GetBestBotSpellForGroupHealOverTime(this);
+							//FastHeal->SingleTargetHeal->PercentageHeal->HoT
+							// Evaluate the situation
+							if ((IsEngaged()) && ((botClass == CLERIC) || (botClass == DRUID) || (botClass == SHAMAN) || (botClass == PALADIN))) {
+								if (tar->GetTarget() && tar->GetTarget()->GetHateTop() && tar->GetTarget()->GetHateTop() == tar) {
+									hasAggro = true;
+								}
 
-								if (hasAggro)
-									botSpell = GetBestBotSpellForRegularSingleTargetHeal(this);
-							}
-							else if (hpr >= RuleI(Bots, SingleTargetHealLimit) && hpr < RuleI(Bots, PercentageHealPercentLimit)) {
-								if (GetNumberNeedingHealedInGroup(RuleI(Bots, GroupHealPercentLimit), false) >= 3)
-									botSpell = GetBestBotSpellForGroupHeal(this);
+								if (hpr < RuleI(Bots, FastHealPercentLimit)) {
+									botSpell = GetBestBotSpellForFastHeal(this);
+								}
+								else if (hpr >= RuleI(Bots, FastHealPercentLimit) && hpr < RuleI(Bots, SingleTargetHealLimit)) {
+									if (GetNumberNeedingHealedInGroup(RuleI(Bots, GroupHealPercentLimit), false) >= 3)
+										botSpell = GetBestBotSpellForGroupHealOverTime(this);
 
-								if (botSpell.SpellId == 0)
-									botSpell = GetBestBotSpellForPercentageHeal(this);
-							}
-							else if (hpr >= RuleI(Bots, PercentageHealPercentLimit) && hpr < RuleI(Bots, HoTHealPercentLimit)) {
-								if (GetNumberNeedingHealedInGroup(80, false) >= 3)
-									botSpell = GetBestBotSpellForGroupHealOverTime(this);
+									if (hasAggro)
+										botSpell = GetBestBotSpellForRegularSingleTargetHeal(this);
+								}
+								else if (hpr >= RuleI(Bots, SingleTargetHealLimit) && hpr < RuleI(Bots, PercentageHealPercentLimit)) {
+									if (GetNumberNeedingHealedInGroup(RuleI(Bots, GroupHealPercentLimit), false) >= 3)
+										botSpell = GetBestBotSpellForGroupHeal(this);
 
-								if (hasAggro)
-									botSpell = GetBestBotSpellForHealOverTime(this);
-							}
-							else {
-								if (hpr < RuleI(Bots, HoTHealPercentLimit)) {
-									if (!tar->FindType(SE_HealOverTime))
+									if (botSpell.SpellId == 0)
+										botSpell = GetBestBotSpellForPercentageHeal(this);
+								}
+								else if (hpr >= RuleI(Bots, PercentageHealPercentLimit) && hpr < RuleI(Bots, HoTHealPercentLimit)) {
+									if (GetNumberNeedingHealedInGroup(RuleI(Bots, GroupHealPercentLimit), false) >= 3)
+										botSpell = GetBestBotSpellForGroupHealOverTime(this);
+
+									if (hasAggro)
 										botSpell = GetBestBotSpellForHealOverTime(this);
 								}
 								else {
-									break;
+									if (hpr < RuleI(Bots, HoTHealPercentLimit)) {
+										if (!tar->FindType(SE_HealOverTime))
+											botSpell = GetBestBotSpellForHealOverTime(this);
+									}
+									else {
+										break;
+									}
 								}
 							}
-						}
-						else if ((botClass == CLERIC) || (botClass == DRUID) || (botClass == SHAMAN) || (botClass == PALADIN)) {
-							//Percentage->SingleTarget->HoT
-							if (GetNumberNeedingHealedInGroup(RuleI(Bots, OOCPercentageHealPercentLimit), true) >= 2) {
-								botSpell = GetBestBotSpellForGroupCompleteHeal(this);
+							else if ((botClass == CLERIC) || (botClass == DRUID) || (botClass == SHAMAN) || (botClass == PALADIN)) {
+								//Percentage->SingleTarget->HoT
+								if (GetNumberNeedingHealedInGroup(RuleI(Bots, OOCPercentageHealPercentLimit), true) >= 2) {
+									botSpell = GetBestBotSpellForGroupCompleteHeal(this);
 
-								if (botSpell.SpellId == 0)
+									if (botSpell.SpellId == 0)
+										botSpell = GetBestBotSpellForGroupHeal(this);
+
+									if (botSpell.SpellId == 0)
+										botSpell = GetBestBotSpellForGroupHealOverTime(this);
+
+									if (GetNumberNeedingHealedInGroup(RuleI(Bots, OOCPercentageHealPercentLimit), true) >= 2) {
+										if (botSpell.SpellId == 0)
+											botSpell = GetBestBotSpellForPercentageHeal(this);
+									}
+								}
+								else if (GetNumberNeedingHealedInGroup(RuleI(Bots, OOCGroupHealPercentLimit), true) >= 2) {
 									botSpell = GetBestBotSpellForGroupHeal(this);
 
-								if (botSpell.SpellId == 0)
-									botSpell = GetBestBotSpellForGroupHealOverTime(this);
-
-								if (GetNumberNeedingHealedInGroup(RuleI(Bots, OOCPercentageHealPercentLimit), true) >= 2) {
 									if (botSpell.SpellId == 0)
-										botSpell = GetBestBotSpellForPercentageHeal(this);
+										botSpell = GetBestBotSpellForGroupHealOverTime(this);
+
+									if (hpr < RuleI(Bots, OOCPercentageHealPercentLimit)) {
+										if (botSpell.SpellId == 0)
+											botSpell = GetBestBotSpellForPercentageHeal(this);
+									}
+								}
+								else if (hpr < RuleI(Bots, OOCPercentageHealPercentLimit))
+									botSpell = GetBestBotSpellForPercentageHeal(this);
+								else if (hpr >= RuleI(Bots, OOCPercentageHealPercentLimit) && hpr < RuleI(Bots, OOCHealPercentLimit))
+									botSpell = GetBestBotSpellForRegularSingleTargetHeal(this);
+								else {
+									if (hpr < RuleI(Bots, OOCHoTHealPercentLimit) && !tar->FindType(SE_HealOverTime)) {
+										botSpell = GetBestBotSpellForHealOverTime(this);
+									}
+									else {
+										break;
+									}
 								}
 							}
-							else if (GetNumberNeedingHealedInGroup(RuleI(Bots, OOCGroupHealPercentLimit), true) >= 2) {
-								botSpell = GetBestBotSpellForGroupHeal(this);
-
-								if (botSpell.SpellId == 0)
-									botSpell = GetBestBotSpellForGroupHealOverTime(this);
-
-								if (hpr < RuleI(Bots, OOCPercentageHealPercentLimit)) {
-									if (botSpell.SpellId == 0)
-										botSpell = GetBestBotSpellForPercentageHeal(this);
-								}
-							}
-							else if (hpr < RuleI(Bots, OOCPercentageHealPercentLimit))
-								botSpell = GetBestBotSpellForPercentageHeal(this);
-							else if (hpr >= RuleI(Bots, OOCPercentageHealPercentLimit) && hpr < RuleI(Bots, OOCHealPercentLimit))
-								botSpell = GetBestBotSpellForRegularSingleTargetHeal(this);
 							else {
-								if (hpr < RuleI(Bots, OOCHoTHealPercentLimit) && !tar->FindType(SE_HealOverTime)) {
-									botSpell = GetBestBotSpellForHealOverTime(this);
+								float hpRatioToCast = 0.0f;
+
+								switch (GetBotStance()) {
+								case EQ::constants::stanceEfficient:
+									hpRatioToCast = isPrimaryHealer ? 60.0f : 50.0f;
+									break;
+								case EQ::constants::stanceAggressive:
+									hpRatioToCast = isPrimaryHealer ? 90.0f : 50.0f;
+									break;
+								case EQ::constants::stanceBalanced:
+									hpRatioToCast = isPrimaryHealer ? 70.0f : 60.0f;
+									break;
+								case EQ::constants::stanceReactive:
+									hpRatioToCast = isPrimaryHealer ? 100.0f : 90.0f;
+									break;
+								case EQ::constants::stanceBurn:
+								case EQ::constants::stanceBurnAE:
+									hpRatioToCast = isPrimaryHealer ? 75.0f : 25.0f;
+									break;
+								default:
+									hpRatioToCast = isPrimaryHealer ? 100.0f : 90.0f;
+									break;
+								}
+
+								//If we're at specified mana % or below, don't heal as hybrid
+								if (tar->GetHPRatio() <= hpRatioToCast) {
+									botSpell = GetBestBotSpellForRegularSingleTargetHeal(this);
 								}
 								else {
 									break;
 								}
 							}
-						}
-						else {
-							float hpRatioToCast = 0.0f;
 
-							switch (GetBotStance()) {
-							case EQ::constants::stanceEfficient:
-								hpRatioToCast = isPrimaryHealer ? 60.0f : 50.0f;
-								break;
-							case EQ::constants::stanceAggressive:
-								hpRatioToCast = isPrimaryHealer ? 90.0f : 50.0f;
-								break;
-							case EQ::constants::stanceBalanced:
-								hpRatioToCast = isPrimaryHealer ? 70.0f : 60.0f;
-								break;
-							case EQ::constants::stanceReactive:
-								hpRatioToCast = isPrimaryHealer ? 100.0f : 90.0f;
-								break;
-							case EQ::constants::stanceBurn:
-							case EQ::constants::stanceBurnAE:
-								hpRatioToCast = isPrimaryHealer ? 75.0f : 25.0f;
-								break;
-							default:
-								hpRatioToCast = isPrimaryHealer ? 100.0f : 90.0f;
-								break;
-							}
-
-							//If we're at specified mana % or below, don't heal as hybrid
-							if (tar->GetHPRatio() <= hpRatioToCast) {
+							if (botSpell.SpellId == 0)
 								botSpell = GetBestBotSpellForRegularSingleTargetHeal(this);
+
+							if (botSpell.SpellId == 0)
+								botSpell = GetFirstBotSpellForSingleTargetHeal(this);
+
+							if (botSpell.SpellId == 0 && botClass == BARD) {
+								botSpell = GetFirstBotSpellBySpellType(this, SpellType_Heal);
 							}
-							else {
+
+							// If there is still no spell id, then there isn't going to be one so we are done
+							if (botSpell.SpellId == 0)
 								break;
+
+							// Can we cast this spell on this target?
+							if (!(spells[botSpell.SpellId].target_type == ST_GroupTeleport || spells[botSpell.SpellId].target_type == ST_Target || tar == this)
+								&& !(tar->CanBuffStack(botSpell.SpellId, botLevel, true) >= 0))
+								break;
+
+							uint32 TempDontHealMeBeforeTime = tar->DontHealMeBefore();
+
+							if (!tar->CheckSpellLevelRestriction(botSpell.SpellId))
+								break;
+
+							castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost, &TempDontHealMeBeforeTime);
+
+							if (castedSpell) {
+								if (TempDontHealMeBeforeTime != tar->DontHealMeBefore())
+									tar->SetDontHealMeBefore(TempDontHealMeBeforeTime);
+
+								// For non-HoT heals, do a 4 second delay
+								// TODO: Replace this code with logic that calculates the delay based on number of clerics in rotation
+								//			and ignores heals for anyone except the main tank
+
+								if (botClass != BARD) {
+									if (IsGroupSpell(botSpell.SpellId)) {
+										if (IsRaidGrouped()) {
+											uint32 r_group = raid->GetGroup(GetName());
+											BotGroupSay(this, "Casting %s.", spells[botSpell.SpellId].name);
+											std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(r_group);
+											for (int i = 0; i < raid_group_members.size(); ++i) {
+												if (raid_group_members.at(i).member && !raid_group_members.at(i).member->qglobal) {
+													raid_group_members.at(i).member->SetDontHealMeBefore(Timer::GetCurrentTime() + RuleI(Bots, GroupHealTimer));
+												}
+											}
+										}
+										else if (HasGroup()) {
+											Group* g = GetGroup();
+
+											if (g) {
+												BotGroupSay(this, "Casting %s.", spells[botSpell.SpellId].name);
+
+												for (int i = 0; i < MAX_GROUP_MEMBERS; i++) {
+													if (g->members[i] && !g->members[i]->qglobal) {
+														g->members[i]->SetDontHealMeBefore(Timer::GetCurrentTime() + RuleI(Bots, GroupHealTimer));
+													}
+												}
+											}
+										}
+									}
+									else {
+										if (tar != this)		//we don't need spam of bots healing themselves
+											BotGroupSay(this, "Casting %s on %s", spells[botSpell.SpellId].name, tar->GetCleanName());
+
+										//tar->SetDontHealMeBefore(Timer::GetCurrentTime() + RuleI(Bots, FastHealTimer));
+										if (!IsHealOverTimeSpell(botSpell.SpellId)) {
+											if (IsCompleteHealSpell(botSpell.SpellId)) {
+												// Complete Heal 4 second rotation
+												tar->SetDontHealMeBefore(Timer::GetCurrentTime() + RuleI(Bots, CompleteHealTimer));
+											}
+											else {
+												tar->SetDontHealMeBefore(Timer::GetCurrentTime() + RuleI(Bots, SingleTargetHealTimer));
+											}
+										}
+										if (IsHealOverTimeSpell(botSpell.SpellId)) {
+											tar->SetDontHealMeBefore(Timer::GetCurrentTime() + RuleI(Bots, HoTHealTimer));
+										}
+									}
+								}
 							}
 						}
+					}
+					break;
+				}
+				else {
+					if ((botClass == CLERIC) || (botClass == DRUID) || (botClass == SHAMAN) || (botClass == PALADIN)) {
 
-						if (botSpell.SpellId == 0)
-							botSpell = GetBestBotSpellForRegularSingleTargetHeal(this);
+						uint8 hpr = (uint8)tar->GetHPRatio();
+						std::string spellType = "None";
+						std::string targetName = tar->GetCleanName();
+						std::string myName = GetCleanName();
+						uint32 regularhealThreshold = tar->CastToBot()->GetHealThreshold();
+						uint32 fasthealThreshold = tar->CastToBot()->GetFastHealThreshold();
+						uint32 completehealThreshold = tar->CastToBot()->GetCompleteHealThreshold();
+						uint32 hothealThreshold = tar->CastToBot()->GetHotHealThreshold();
+						uint32 regularhealDelay = tar->CastToBot()->GetHealDelay();
+						uint32 fasthealDelay = tar->CastToBot()->GetFastHealDelay();
+						uint32 completehealDelay = tar->CastToBot()->GetCompleteHealDelay();
+						uint32 hothealDelay = tar->CastToBot()->GetHotHealDelay();
+						uint32 currentTime = Timer::GetCurrentTime();
+						uint32 regularhealTime = tar->DontRegularHealMeBefore();
+						uint32 fasthealTime = tar->DontFastHealMeBefore();
+						uint32 completehealTime = tar->DontCompleteHealMeBefore();
+						uint32 hothealTime = tar->DontHotHealMeBefore();
+						uint32 grouphealDelay = RuleI(Bots, GroupHealTimer);
+						uint32 grouphealTime = tar->DontHealMeBefore();
 
-						if (botSpell.SpellId == 0)
-							botSpell = GetFirstBotSpellForSingleTargetHeal(this);
+						if ((regularhealDelay < currentTime && hpr < regularhealThreshold) && (fasthealDelay < currentTime && hpr < fasthealThreshold) && (completehealDelay < currentTime && hpr < completehealThreshold) && (hothealDelay < currentTime && hpr < hothealThreshold))
+							break;
 
-						if (botSpell.SpellId == 0 && botClass == BARD) {
-							botSpell = GetFirstBotSpellBySpellType(this, SpellType_Heal);
+						LogHealAIDetail("[{}] is entering custom heals checks for [{}]", myName, targetName); //deleteme
+
+						LogHealAI("Checking for a fast heal with [{}] for [{}] @ [{}] percent every [{} seconds]", myName, targetName, fasthealThreshold, fasthealDelay / 1000); //deleteme
+						if (hpr < fasthealThreshold && fasthealTime < currentTime) {
+							LogHealAIDetail("PASSED:::Fast heal with [{}] for [{}] @ [{}] percent every [{} seconds]", myName, targetName, fasthealThreshold, fasthealDelay / 1000); //deleteme
+							botSpell = GetBestBotSpellForFastHeal(this);
+							if (botSpell.SpellId != 0) {
+								spellType = "Fast Heal";
+								LogHealAI("FOUND:::[Fast Heal] [{}] on [{}] for [{}]", spells[botSpell.SpellId].name, myName, targetName); //deleteme
+							}
 						}
+						if (botSpell.SpellId == 0)
+							LogHealAI("Checking for a regular heal with [{}] for [{}] @ [{}] percent every [{} seconds]", myName, targetName, regularhealThreshold, regularhealDelay / 1000); //deleteme
+						if (botSpell.SpellId == 0 && hpr < regularhealThreshold && regularhealTime < currentTime) {
+							LogHealAIDetail("PASSED:::Getting best regular heal with [{}] for [{}] @ [{}] percent every [{} seconds]", myName, targetName, regularhealThreshold, regularhealDelay / 1000); //deleteme
+							botSpell = GetBestBotSpellForRegularSingleTargetHeal(this);
+							if (botSpell.SpellId != 0) {
+								spellType = "Regular Heal";
+								LogHealAI("FOUND:::[Regular Heal] [{}] on [{}] for [{}]", spells[botSpell.SpellId].name, myName, targetName); //deleteme
+							}
+						}
+						if (botSpell.SpellId == 0)
+							LogHealAI("Checking for a complete heal with [{}] for [{}] @ [{}] percent every [{} seconds]", myName, targetName, completehealThreshold, completehealDelay / 1000); //deleteme
+						if (botSpell.SpellId == 0 && hpr < completehealThreshold && completehealTime < currentTime) {
+							LogHealAIDetail("PASSED:::Getting best complete heal with [{}] for [{}] @ [{}] percent every [{} seconds]", myName, targetName, completehealThreshold, completehealDelay / 1000); //deleteme
+							if (completehealThreshold <= 90 && GetNumberNeedingHealedInGroup(completehealThreshold, false) >= 3 && grouphealTime < currentTime)
+								botSpell = GetBestBotSpellForGroupHeal(this);
+							if (botSpell.SpellId != 0) {
+								spellType = "Group Regular Heal";
+								LogHealAI("FOUND:::[Group Regular Heal] [{}] on [{}] for [{}]", spells[botSpell.SpellId].name, myName, targetName); //deleteme
+							}
+							if (botSpell.SpellId == 0) {
+								botSpell = GetBestBotSpellForPercentageHeal(this);
+								if (botSpell.SpellId != 0) {
+									spellType = "Complete Heal";
+									LogHealAI("FOUND:::[Complete Heal] [{}] on [{}] for [{}]", spells[botSpell.SpellId].name, myName, targetName); //deleteme
+								}
+							}
+							if (botSpell.SpellId == 0) {
+								botSpell = GetBestBotSpellForRegularSingleTargetHeal(this);
+								if (botSpell.SpellId != 0) {
+									spellType = "Regular Heal";
+									LogHealAI("FOUND:::[Regular Heal] [{}] on [{}] for [{}]", spells[botSpell.SpellId].name, myName, targetName); //deleteme
+								}
+							}
+						}
+						if (botSpell.SpellId == 0)
+							LogHealAI("Checking for a HoT heal with [{}] for [{}] @ [{}] percent every [{} seconds]", myName, targetName, hothealThreshold / 1000, hothealDelay / 1000); //deleteme
+						if (botSpell.SpellId == 0 && hpr < hothealThreshold && hothealTime < currentTime) {
+							LogHealAIDetail("PASSED:::Getting best HoT heal with [{}] for [{}] @ [{}] percent every [{} seconds]", myName, targetName, hothealThreshold, hothealDelay / 1000); //deleteme
+							if (botSpell.SpellId == 0 && botClass == BARD)
+								botSpell = GetFirstBotSpellBySpellType(this, SpellType_Heal);
+							if (botSpell.SpellId != 0)
+								LogHealAI("FOUND:::[Bard Heal] [{}] on [{}] for [{}]", spells[botSpell.SpellId].name, myName, targetName); //deleteme
+							if (botSpell.SpellId == 0 && hothealThreshold <= 90 && GetNumberNeedingHealedInGroup(hothealThreshold, false) >= 3 && grouphealTime < currentTime) {
+								botSpell = GetBestBotSpellForGroupHealOverTime(this);
+								if (botSpell.SpellId != 0) {
+									spellType = "Group HoT Heal";
+									LogHealAI("FOUND:::[Group HoT Heal] [{}] on [{}] for [{}]", spells[botSpell.SpellId].name, myName, targetName); //deleteme
+								}
+							}
+							if (botSpell.SpellId == 0) {
+								botSpell = GetBestBotSpellForHealOverTime(this);
+								if (botSpell.SpellId != 0) {
+									spellType = "HoT Heal";
+									LogHealAI("FOUND:::[HoT Heal] [{}] on [{}] for [{}]", spells[botSpell.SpellId].name, myName, targetName); //deleteme
+								}
+							}
+						}
+						//if (botSpell.SpellId == 0)
+							//LogHealAI("FAILED::: [{}] did not find any heals for [{}]", myName, targetName); //deleteme
 
 						// If there is still no spell id, then there isn't going to be one so we are done
 						if (botSpell.SpellId == 0)
@@ -272,7 +450,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 							&& !(tar->CanBuffStack(botSpell.SpellId, botLevel, true) >= 0))
 							break;
 
-						uint32 TempDontHealMeBeforeTime = tar->DontHealMeBefore();
+						uint32 TempDontHealMeBeforeTime = grouphealTime;
 
 						if (!tar->CheckSpellLevelRestriction(botSpell.SpellId))
 							break;
@@ -280,45 +458,55 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost, &TempDontHealMeBeforeTime);
 
 						if (castedSpell) {
-							if (TempDontHealMeBeforeTime != tar->DontHealMeBefore())
-								tar->SetDontHealMeBefore(TempDontHealMeBeforeTime);
-
-							// For non-HoT heals, do a 4 second delay
-							// TODO: Replace this code with logic that calculates the delay based on number of clerics in rotation
-							//			and ignores heals for anyone except the main tank
 
 							if (botClass != BARD) {
 								if (IsGroupSpell(botSpell.SpellId)) {
-									if (HasGroup()) {
-										Group* g = GetGroup();
-
-										if (g) {
-											BotGroupSay(this, "Casting %s.", spells[botSpell.SpellId].name);
-
-											for (int i = 0; i < MAX_GROUP_MEMBERS; i++) {
-												if (g->members[i] && !g->members[i]->qglobal) {
-													g->members[i]->SetDontHealMeBefore(Timer::GetCurrentTime() + 1000);
+									if (IsRaidGrouped()) {
+										uint32 r_group = raid->GetGroup(GetName());
+										BotGroupSay(this, "Casting %s [%s].", spells[botSpell.SpellId].name, spellType);
+										std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(r_group);
+										for (int i = 0; i < raid_group_members.size(); ++i) {
+											if (raid_group_members.at(i).member && !raid_group_members.at(i).member->qglobal) {
+												raid_group_members.at(i).member->SetDontHealMeBefore(currentTime + grouphealDelay);
+												LogHealAI("TIMER:::[{}] set [Group Heal] to [{} seconds] for [{}]", myName, grouphealDelay / 1000, targetName); //deleteme
+											}
+										}
+									}
+									else if (IsGrouped()) {
+										if (HasGroup()) {
+											Group* g = GetGroup();
+											if (g) {
+												BotGroupSay(this, "Casting %s [%s].", spells[botSpell.SpellId].name, spellType);
+												for (int i = 0; i < MAX_GROUP_MEMBERS; i++) {
+													if (g->members[i] && !g->members[i]->qglobal) {
+														g->members[i]->SetDontHealMeBefore(currentTime + grouphealDelay);
+														LogHealAI("TIMER:::[{}] set [Group Heal] to [{} seconds] for [{}]", myName, grouphealDelay / 1000, targetName); //deleteme
+													}
 												}
 											}
 										}
 									}
 								}
 								else {
-									if (tar != this)		//we don't need spam of bots healing themselves
-										BotGroupSay(this, "Casting %s on %s", spells[botSpell.SpellId].name, tar->GetCleanName());
-
-									//tar->SetDontHealMeBefore(Timer::GetCurrentTime() + 2000);
+									if (tar != this)	//we don't need spam of bots healing themselves
+										BotGroupSay(this, "Casting %s on %s [%s]", spells[botSpell.SpellId].name, targetName, spellType);
 									if (!IsHealOverTimeSpell(botSpell.SpellId)) {
 										if (IsCompleteHealSpell(botSpell.SpellId)) {
-											// Complete Heal 4 second rotation
-											tar->SetDontHealMeBefore(Timer::GetCurrentTime() + 9000);
+											tar->SetDontCompleteHealMeBefore(currentTime + completehealDelay);
+											LogHealAI("TIMER:::[{}] set [Complete Heal] to [{} seconds] for [{}]", myName, completehealDelay / 1000, targetName); //deleteme
 										}
-										else {
-											tar->SetDontHealMeBefore(Timer::GetCurrentTime() + 3500);
+										else if (spellType == "Regular Heal") {
+											tar->SetDontRegularHealMeBefore(currentTime + regularhealDelay);
+											LogHealAI("TIMER:::[{}] set [Regular Heal] to [{} seconds] for [{}]", myName, regularhealDelay / 1000, targetName); //deleteme
+										}
+										else if (spellType == "Fast Heal") {
+											tar->SetDontFastHealMeBefore(currentTime + fasthealDelay);
+											LogHealAI("TIMER:::[{}] set [Fast Heal] to [{} seconds] for [{}]", myName, fasthealDelay / 1000, targetName); //deleteme
 										}
 									}
 									if (IsHealOverTimeSpell(botSpell.SpellId)) {
-										tar->SetDontHealMeBefore(Timer::GetCurrentTime() + 22000);
+										tar->SetDontHotHealMeBefore(currentTime + hothealDelay);
+										LogHealAI("TIMER:::[{}] set [HoT Heal] to [{} seconds] for [{}]", myName, hothealDelay / 1000, targetName); //deleteme
 									}
 								}
 							}
@@ -814,26 +1002,30 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 		}
 		case SpellType_Lifetap: {
 			if (GetHoldLifetaps() == 0) {
-				if (GetHPRatio() < 90.0f) {
-					if (!checked_los) {
-						if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
-							break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
+				if (!m_lifetap_delay_timer.Enabled() || m_lifetap_delay_timer.Check()) {
+					if (GetHPRatio() < 90.0f) {
+						if (!checked_los) {
+							if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
+								break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
 
-						checked_los = true;
+							checked_los = true;
+						}
+
+						botSpell = GetFirstBotSpellBySpellType(this, iSpellTypes);
+
+						if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, LifetapResistLimit)) && GetSpellResistType(botSpell.SpellId) != RESIST_NONE)
+							return botSpell.SpellId = 0;
+
+						if (botSpell.SpellId == 0)
+							break;
+
+						if (!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && (tar->CanBuffStack(botSpell.SpellId, botLevel, true) >= 0)))
+							break;
+
+						castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
+						m_lifetap_delay_timer.Start(GetLifetapDelay());
 					}
-
-					botSpell = GetFirstBotSpellBySpellType(this, iSpellTypes);
-
-					if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, LifetapResistLimit)) && GetSpellResistType(botSpell.SpellId) != RESIST_NONE)
-						return botSpell.SpellId = 0;
-
-					if (botSpell.SpellId == 0)
-						break;
-
-					if (!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && (tar->CanBuffStack(botSpell.SpellId, botLevel, true) >= 0)))
-						break;
-
-					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
+					break;
 				}
 				break;
 			}
@@ -873,84 +1065,89 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 		}
 		case SpellType_DOT: {
 			if (GetHoldDoTs() == 0) {
-				if ((tar->GetHPRatio() <= 98.0f) && (tar->DontDotMeBefore() < Timer::GetCurrentTime()) && (tar->GetHPRatio() > 15.0f)) {
-					if (!checked_los) {
-						if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
-							break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
+				if (!m_dot_delay_timer.Enabled() || m_dot_delay_timer.Check()) {
+					if ((tar->GetHPRatio() <= 98.0f) && (tar->DontDotMeBefore() < Timer::GetCurrentTime()) && (tar->GetHPRatio() > 15.0f)) {
+						if (!checked_los) {
+							if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
+								break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
 
-						checked_los = true;
-					}
+							checked_los = true;
+						}
 
-					if (GetClass() == BARD) {
-						std::list<BotSpell_wPriority> dotList = GetPrioritizedBotSpellsBySpellType(this, SpellType_DOT);
+						if (GetClass() == BARD) {
+							std::list<BotSpell_wPriority> dotList = GetPrioritizedBotSpellsBySpellType(this, SpellType_DOT);
 
-						const int maxDotSelect = 5;
-						int dotSelectCounter = 0;
+							const int maxDotSelect = 5;
+							int dotSelectCounter = 0;
 
-						for (std::list<BotSpell_wPriority>::iterator itr = dotList.begin(); itr != dotList.end(); ++itr) {
-							BotSpell selectedBotSpell = *itr;
+							for (std::list<BotSpell_wPriority>::iterator itr = dotList.begin(); itr != dotList.end(); ++itr) {
+								BotSpell selectedBotSpell = *itr;
 
-							if (selectedBotSpell.SpellId == 0)
-								continue;
-
-							if (CheckSpellRecastTimers(this, itr->SpellIndex))
-							{
-
-								if (!(!tar->IsImmuneToSpell(selectedBotSpell.SpellId, this) && tar->CanBuffStack(selectedBotSpell.SpellId, botLevel, true) >= 0))
+								if (selectedBotSpell.SpellId == 0)
 									continue;
 
-								uint32 TempDontDotMeBefore = tar->DontDotMeBefore();
+								if (CheckSpellRecastTimers(this, itr->SpellIndex))
+								{
 
-								if (!DoResistCheck(selectedBotSpell.SpellId, tar, RuleI(Bots, DoTResistLimit)) && GetSpellResistType(selectedBotSpell.SpellId) != RESIST_NONE)
-									return selectedBotSpell.SpellId = 0;
+									if (!(!tar->IsImmuneToSpell(selectedBotSpell.SpellId, this) && tar->CanBuffStack(selectedBotSpell.SpellId, botLevel, true) >= 0))
+										continue;
 
-								castedSpell = AIDoSpellCast(selectedBotSpell.SpellIndex, tar, selectedBotSpell.ManaCost, &TempDontDotMeBefore);
+									uint32 TempDontDotMeBefore = tar->DontDotMeBefore();
 
-								if (TempDontDotMeBefore != tar->DontDotMeBefore())
-									tar->SetDontDotMeBefore(TempDontDotMeBefore);
+									if (!DoResistCheck(selectedBotSpell.SpellId, tar, RuleI(Bots, DoTResistLimit)) && GetSpellResistType(selectedBotSpell.SpellId) != RESIST_NONE)
+										return selectedBotSpell.SpellId = 0;
+
+									castedSpell = AIDoSpellCast(selectedBotSpell.SpellIndex, tar, selectedBotSpell.ManaCost, &TempDontDotMeBefore);
+									m_dot_delay_timer.Start(GetDotDelay());
+
+									if (TempDontDotMeBefore != tar->DontDotMeBefore())
+										tar->SetDontDotMeBefore(TempDontDotMeBefore);
+								}
+
+								dotSelectCounter++;
+
+								if ((dotSelectCounter == maxDotSelect) || castedSpell)
+									break;
 							}
-
-							dotSelectCounter++;
-
-							if ((dotSelectCounter == maxDotSelect) || castedSpell)
-								break;
 						}
-					}
-					else {
-						std::list<BotSpell> dotList = GetBotSpellsBySpellType(this, SpellType_DOT);
+						else {
+							std::list<BotSpell> dotList = GetBotSpellsBySpellType(this, SpellType_DOT);
 
-						const int maxDotSelect = 5;
-						int dotSelectCounter = 0;
+							const int maxDotSelect = 5;
+							int dotSelectCounter = 0;
 
-						for (std::list<BotSpell>::iterator itr = dotList.begin(); itr != dotList.end(); ++itr) {
-							BotSpell selectedBotSpell = *itr;
+							for (std::list<BotSpell>::iterator itr = dotList.begin(); itr != dotList.end(); ++itr) {
+								BotSpell selectedBotSpell = *itr;
 
-							if (selectedBotSpell.SpellId == 0)
-								continue;
-
-							if (CheckSpellRecastTimers(this, itr->SpellIndex))
-							{
-
-								if (!(!tar->IsImmuneToSpell(selectedBotSpell.SpellId, this) && tar->CanBuffStack(selectedBotSpell.SpellId, botLevel, true) >= 0))
+								if (selectedBotSpell.SpellId == 0)
 									continue;
 
-								uint32 TempDontDotMeBefore = tar->DontDotMeBefore();
+								if (CheckSpellRecastTimers(this, itr->SpellIndex))
+								{
 
-								if (!DoResistCheck(selectedBotSpell.SpellId, tar, RuleI(Bots, DoTResistLimit)) && GetSpellResistType(selectedBotSpell.SpellId) != RESIST_NONE)
-									return selectedBotSpell.SpellId = 0;
+									if (!(!tar->IsImmuneToSpell(selectedBotSpell.SpellId, this) && tar->CanBuffStack(selectedBotSpell.SpellId, botLevel, true) >= 0))
+										continue;
 
-								castedSpell = AIDoSpellCast(selectedBotSpell.SpellIndex, tar, selectedBotSpell.ManaCost, &TempDontDotMeBefore);
+									uint32 TempDontDotMeBefore = tar->DontDotMeBefore();
 
-								if (TempDontDotMeBefore != tar->DontDotMeBefore())
-									tar->SetDontDotMeBefore(TempDontDotMeBefore);
+									if (!DoResistCheck(selectedBotSpell.SpellId, tar, RuleI(Bots, DoTResistLimit)) && GetSpellResistType(selectedBotSpell.SpellId) != RESIST_NONE)
+										return selectedBotSpell.SpellId = 0;
+
+									castedSpell = AIDoSpellCast(selectedBotSpell.SpellIndex, tar, selectedBotSpell.ManaCost, &TempDontDotMeBefore);
+									m_dot_delay_timer.Start(GetDotDelay());
+
+									if (TempDontDotMeBefore != tar->DontDotMeBefore())
+										tar->SetDontDotMeBefore(TempDontDotMeBefore);
+								}
+
+								dotSelectCounter++;
+
+								if ((dotSelectCounter == maxDotSelect) || castedSpell)
+									break;
 							}
-
-							dotSelectCounter++;
-
-							if ((dotSelectCounter == maxDotSelect) || castedSpell)
-								break;
 						}
 					}
+					break;
 				}
 				break;
 			}
@@ -958,104 +1155,113 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 		}
 		case SpellType_Slow: {
 			if (GetHoldSlows() == 0) {
-				if (tar->GetHPRatio() <= 99.0f) {
+				if (!m_slow_delay_timer.Enabled() || m_slow_delay_timer.Check()) {
+					if (tar->GetHPRatio() <= 99.0f) {
 
-					if (!checked_los) {
-						if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
-							break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
+						if (!checked_los) {
+							if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
+								break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
 
-						checked_los = true;
-					}
-
-					switch (botClass) {
-					case BARD: {
-						// probably needs attackable check
-						std::list<BotSpell_wPriority> botSongList = GetPrioritizedBotSpellsBySpellType(this, SpellType_Slow);
-						for (auto iter : botSongList) {
-							if (!iter.SpellId)
-								continue;
-							if (!CheckSpellRecastTimers(this, iter.SpellIndex))
-								continue;
-							if (spells[iter.SpellId].zone_type != -1 && zone->GetZoneType() != -1 && spells[iter.SpellId].zone_type != zone->GetZoneType()) // is this bit or index?
-								continue;
-							if (spells[iter.SpellId].target_type != ST_Target)
-								continue;
-							if (tar->CanBuffStack(iter.SpellId, botLevel, true) < 0)
-								continue;
-
-							if (!DoResistCheck(iter.SpellId, tar, RuleI(Bots, SlowResistLimit)) && GetSpellResistType(iter.SpellId) != RESIST_NONE)
-								return iter.SpellId = 0;
-
-							castedSpell = AIDoSpellCast(iter.SpellIndex, tar, iter.ManaCost);
-							if (castedSpell)
-								break;
+							checked_los = true;
 						}
 
-						break;
-					}
-					case ENCHANTER: {
-						botSpell = GetBestBotSpellForMagicBasedSlow(this);
+						switch (botClass) {
+						case BARD: {
+							// probably needs attackable check
+							std::list<BotSpell_wPriority> botSongList = GetPrioritizedBotSpellsBySpellType(this, SpellType_Slow);
+							for (auto iter : botSongList) {
+								if (!iter.SpellId)
+									continue;
+								if (!CheckSpellRecastTimers(this, iter.SpellIndex))
+									continue;
+								if (spells[iter.SpellId].zone_type != -1 && zone->GetZoneType() != -1 && spells[iter.SpellId].zone_type != zone->GetZoneType() && zone->CanCastOutdoor() != 1) // is this bit or index?
+									continue;
+								if (spells[iter.SpellId].target_type != ST_Target)
+									continue;
+								if (tar->CanBuffStack(iter.SpellId, botLevel, true) < 0)
+									continue;
 
-						if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, SlowResistLimit)) && GetSpellResistType(botSpell.SpellId) != RESIST_NONE)
-							return botSpell.SpellId = 0;
+								if (!DoResistCheck(iter.SpellId, tar, RuleI(Bots, SlowResistLimit)) && GetSpellResistType(iter.SpellId) != RESIST_NONE)
+									return iter.SpellId = 0;
 
-						break;
-					}
-					case SHAMAN:
-					case BEASTLORD: {
-						botSpell = GetBestBotSpellForDiseaseBasedSlow(this);
-						if (botSpell.SpellId == 0 || tar->GetMR() <= RuleI(Bots, SlowResistLimit))
+								castedSpell = AIDoSpellCast(iter.SpellIndex, tar, iter.ManaCost);
+								m_slow_delay_timer.Start(GetSlowDelay());
+
+								if (castedSpell)
+									break;
+							}
+
+							break;
+						}
+						case ENCHANTER: {
 							botSpell = GetBestBotSpellForMagicBasedSlow(this);
 
-						if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, SlowResistLimit)) && GetSpellResistType(botSpell.SpellId) != RESIST_NONE)
-							return botSpell.SpellId = 0;
+							if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, SlowResistLimit)) && GetSpellResistType(botSpell.SpellId) != RESIST_NONE)
+								return botSpell.SpellId = 0;
 
-						break;
+							break;
+						}
+						case SHAMAN:
+						case BEASTLORD: {
+							botSpell = GetBestBotSpellForDiseaseBasedSlow(this);
+							if (botSpell.SpellId == 0 || tar->GetMR() <= RuleI(Bots, SlowResistLimit))
+								botSpell = GetBestBotSpellForMagicBasedSlow(this);
+
+							if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, SlowResistLimit)) && GetSpellResistType(botSpell.SpellId) != RESIST_NONE)
+								return botSpell.SpellId = 0;
+
+							break;
+						}
+						}
+
+						if (botSpell.SpellId == 0)
+							break;
+
+						if (!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, true) >= 0))
+							break;
+
+						castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
+						m_slow_delay_timer.Start(GetSlowDelay());
+
+						if (castedSpell && GetClass() != BARD)
+							BotGroupSay(this, "Attempting to slow %s.", tar->GetCleanName());
 					}
-					}
-
-					if (botSpell.SpellId == 0)
-						break;
-
-					if (!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, true) >= 0))
-						break;
-
-					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
-
-					if (castedSpell && GetClass() != BARD)
-						BotGroupSay(this, "Attempting to slow %s.", tar->GetCleanName());
+					break;
 				}
-
 				break;
 			}
 			break;
 		}
 		case SpellType_Debuff: {
 			if (GetHoldDebuffs() == 0) {
-				if ((tar->GetHPRatio() <= 99.0f) || ((botClass == BARD) || (botClass == SHAMAN) || (botClass == ENCHANTER) || (botClass == DRUID)) && (tar->GetHPRatio() > 40.0f))
-				{
-					if (!checked_los) {
-						if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
-							break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
+				if (!m_debuff_delay_timer.Enabled() || m_debuff_delay_timer.Check()) {
+					if ((tar->GetHPRatio() <= 99.0f) || ((botClass == BARD) || (botClass == SHAMAN) || (botClass == ENCHANTER) || (botClass == DRUID)) && (tar->GetHPRatio() > 40.0f))
+					{
+						if (!checked_los) {
+							if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
+								break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
 
-						checked_los = true;
+							checked_los = true;
+						}
+
+						botSpell = GetBestBotSpellForResistDebuff(this, tar);
+
+						if (botSpell.SpellId == 0)
+							botSpell = GetDebuffBotSpell(this, tar);
+
+						if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, DebuffResistLimit)) && GetSpellResistType(botSpell.SpellId) != RESIST_NONE)
+							return botSpell.SpellId = 0;
+
+						if (botSpell.SpellId == 0)
+							break;
+
+						if (!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && (tar->CanBuffStack(botSpell.SpellId, botLevel, true) >= 0)))
+							break;
+
+						castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
+						m_debuff_delay_timer.Start(GetDebuffDelay());
 					}
-
-					botSpell = GetBestBotSpellForResistDebuff(this, tar);
-
-					if (botSpell.SpellId == 0)
-						botSpell = GetDebuffBotSpell(this, tar);
-
-					if (!DoResistCheck(botSpell.SpellId, tar, RuleI(Bots, DebuffResistLimit)) && GetSpellResistType(botSpell.SpellId) != RESIST_NONE)
-						return botSpell.SpellId = 0;
-
-					if (botSpell.SpellId == 0)
-						break;
-
-					if (!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && (tar->CanBuffStack(botSpell.SpellId, botLevel, true) >= 0)))
-						break;
-
-					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
+					break;
 				}
 				break;
 			}
@@ -1115,7 +1321,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 							continue;
 						if (!CheckSpellRecastTimers(this, iter.SpellIndex))
 							continue;
-						if (spells[iter.SpellId].zone_type != -1 && zone->GetZoneType() != -1 && spells[iter.SpellId].zone_type != zone->GetZoneType()) // is this bit or index?
+						if (spells[iter.SpellId].zone_type != -1 && zone->GetZoneType() != -1 && spells[iter.SpellId].zone_type != zone->GetZoneType() && zone->CanCastOutdoor() != 1) // is this bit or index?
 							continue;
 						if (spells[iter.SpellId].target_type != ST_Target)
 							continue;
@@ -1141,12 +1347,16 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 				std::list<BotSpell_wPriority> botSongList = GetPrioritizedBotSpellsBySpellType(this, SpellType_InCombatBuffSong);
 				for (auto iter : botSongList) {
+					LogAI("Checking spell: {} | Next -> ID check", spells[iter.SpellId].name); //deleteme
 					if (!iter.SpellId)
 						continue;
+					LogAI("Spell: {} passed ID check | Next -> recast check", spells[iter.SpellId].name); //deleteme
 					if (!CheckSpellRecastTimers(this, iter.SpellIndex))
 						continue;
-					if (spells[iter.SpellId].zone_type != -1 && zone->GetZoneType() != -1 && spells[iter.SpellId].zone_type != zone->GetZoneType()) // is this bit or index?
+					LogAI("Spell: {} passed recast check | Next -> zone check", spells[iter.SpellId].name); //deleteme
+					if (spells[iter.SpellId].zone_type != -1 && zone->GetZoneType() != -1 && spells[iter.SpellId].zone_type != zone->GetZoneType() && zone->CanCastOutdoor() != 1) // is this bit or index?
 						continue;
+					LogAI("Spell: {} passed zone check | Next -> case check", spells[iter.SpellId].name); //deleteme
 					switch (spells[iter.SpellId].target_type) {
 					case ST_AEBard:
 					case ST_AECaster:
@@ -1157,12 +1367,14 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					default:
 						continue;
 					}
+					LogAI("Spell: {} passed case check | Next -> stack check", spells[iter.SpellId].name); //deleteme
 					if (tar->CanBuffStack(iter.SpellId, botLevel, true) < 0)
 						continue;
-
+					LogAI("Spell: {} passed stack check | Next -> cast check", spells[iter.SpellId].name); //deleteme
 					castedSpell = AIDoSpellCast(iter.SpellIndex, tar, iter.ManaCost);
 					if (castedSpell)
 						break;
+					LogAI("Spell: {} FAILED cast check", spells[iter.SpellId].name); //deleteme
 				}
 
 				break;
@@ -1176,12 +1388,16 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 				std::list<BotSpell_wPriority> botSongList = GetPrioritizedBotSpellsBySpellType(this, SpellType_OutOfCombatBuffSong);
 				for (auto iter : botSongList) {
+					LogAI("Checking spell: {} | Next -> ID check", spells[iter.SpellId].name); //deleteme
 					if (!iter.SpellId)
 						continue;
+					LogAI("Spell: {} passed ID check | Next -> recast check", spells[iter.SpellId].name); //deleteme
 					if (!CheckSpellRecastTimers(this, iter.SpellIndex))
 						continue;
-					if (spells[iter.SpellId].zone_type != -1 && zone->GetZoneType() != -1 && spells[iter.SpellId].zone_type != zone->GetZoneType()) // is this bit or index?
+					LogAI("Spell: {} passed recast check | Next -> zone check", spells[iter.SpellId].name); //deleteme
+					if (spells[iter.SpellId].zone_type != -1 && zone->GetZoneType() != -1 && spells[iter.SpellId].zone_type != zone->GetZoneType() && zone->CanCastOutdoor() != 1) // is this bit or index?
 						continue;
+					LogAI("Spell: {} passed zone check | Next -> cast check", spells[iter.SpellId].name); //deleteme
 					switch (spells[iter.SpellId].target_type) {
 					case ST_AEBard:
 					case ST_AECaster:
@@ -1192,12 +1408,14 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					default:
 						continue;
 					}
+					LogAI("Spell: {} passed case check | Next -> stack check", spells[iter.SpellId].name); //deleteme
 					if (tar->CanBuffStack(iter.SpellId, botLevel, true) < 0)
 						continue;
-
+					LogAI("Spell: {} passed stack check | Next -> cast check", spells[iter.SpellId].name); //deleteme
 					castedSpell = AIDoSpellCast(iter.SpellIndex, tar, iter.ManaCost);
 					if (castedSpell)
 						break;
+					LogAI("Spell: {} FAILED cast check", spells[iter.SpellId].name); //deleteme
 				}
 
 				break;

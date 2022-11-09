@@ -654,6 +654,15 @@ RULE_BOOL(Bots, CastOnAllRaidMembers, false, "False Default. If True, bots will 
 RULE_BOOL(Bots, MeleeBehindMob, false, "False Default. If True, bots within melee range will attempt to stay behind the mob if not top aggro or taunting.")
 RULE_INT(Bots, BotAdditionalTauntHate, 0, "0 Default. Additional Hate added to the taunter on each successful Taunt.")
 RULE_BOOL(Bots, BotHealOnLevel, false, "Setting whether a player should heal completely when leveling")
+RULE_INT(Bots, CompleteHealTimer, 9000, "ms between a bot will cast complete heals.")
+RULE_INT(Bots, FastHealTimer, 0, "ms between a bot will cast fast heals.")
+RULE_INT(Bots, SingleTargetHealTimer, 3500, "ms between a bot will cast single target heals.")
+RULE_INT(Bots, HoTHealTimer, 22000, "ms between a bot will cast HoT heals.")
+RULE_INT(Bots, RaidCompleteHealTimer, 9000, "ms between a bot will cast complete heals in raids.")
+RULE_INT(Bots, RaidFastHealTimer, 0, "ms between a bot will cast fast heals in raids.")
+RULE_INT(Bots, RaidSingleTargetHealTimer, 3500, "ms between a bot will cast single target heals in raids.")
+RULE_INT(Bots, RaidHoTHealTimer, 22000, "ms between a bot will cast HoT heals in raids.")
+RULE_INT(Bots, GroupHealTimer, 15000, "ms between a bot will cast HoT heals in raids.")
 
 RULE_CATEGORY_END()
 #endif

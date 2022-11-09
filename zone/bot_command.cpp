@@ -1494,6 +1494,18 @@ int bot_command_init(void)
 		bot_command_add("holdroots", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_roots) ||
 		bot_command_add("holdslows", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_slows) ||
 		bot_command_add("holdsnares", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_snares) ||
+		bot_command_add("debuffdelay", "Sets a timer that controls the frequency of bot debuffs", AccountStatus::Player, bot_command_debuff_delay) ||
+		bot_command_add("slowdelay", "Sets a timer that controls the frequency of bot slows", AccountStatus::Player, bot_command_slow_delay) ||
+		bot_command_add("dotdelay", "Sets a timer that controls the frequency of bot dots", AccountStatus::Player, bot_command_dot_delay) ||
+		bot_command_add("lifetapdelay", "Sets a timer that controls the frequency of bot lifetaps", AccountStatus::Player, bot_command_lifetap_delay) ||
+		bot_command_add("healdelay", "Sets a timer that controls the frequency of bot heals", AccountStatus::Player, bot_command_heal_delay) ||
+		bot_command_add("fasthealdelay", "Sets a timer that controls the frequency of bot fast heals", AccountStatus::Player, bot_command_fast_heal_delay) ||
+		bot_command_add("completehealdelay", "Sets a timer that controls the frequency of bot complete heals", AccountStatus::Player, bot_command_complete_heal_delay) ||
+		bot_command_add("hothealdelay", "Sets a timer that controls the frequency of bot heal over time heals", AccountStatus::Player, bot_command_hot_heal_delay) ||
+		bot_command_add("healthreshold", "Sets a threshold to start casting regular heals", AccountStatus::Player, bot_command_heal_threshold) ||
+		bot_command_add("fasthealthreshold", "Sets a threshold to start casting fast heals", AccountStatus::Player, bot_command_fast_heal_threshold) ||
+		bot_command_add("completehealthreshold", "Sets a threshold to start casting complete heals", AccountStatus::Player, bot_command_complete_heal_threshold) ||
+		bot_command_add("hothealthreshold", "Sets a threshold to start casting heal over time heals", AccountStatus::Player, bot_command_hot_heal_threshold) ||
 		bot_command_add("nukedelay", "Sets a timer that controls the frequency of bot nukes", AccountStatus::Player, bot_command_nuke_delay) ||
 		bot_command_add("removefromraid", "This will remove a bot from a raid, can be used for stuck bots.", AccountStatus::Player, bot_command_remove_from_raid) ||
 		bot_command_add("useepic", "Orders your targeted bot to use their epic if it is equipped", AccountStatus::Player, bot_command_use_epic)
@@ -3267,6 +3279,99 @@ void bot_command_charm(Client *c, const Seperator *sep)
 	helper_no_available_bots(c, my_bot);
 }
 
+void bot_command_complete_heal_delay(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_complete_heal_delay", sep->arg[0], "completehealdelay"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds.].", sep->arg[0]);
+		c->Message(Chat::White, "note: Set this to control how often a bot can cast a complete heal on the target.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to remove timer and use the default intervals.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+
+	uint32 delaydata = 0;
+	if (sep->IsNumber(1)) {
+		delaydata = atoi(sep->arg[1]);
+		int delaycheck = delaydata;
+		if (delaycheck >= 0 && delaycheck <= 60000) {
+			my_bot->SetCompleteHealDelay(delaydata);
+			if (!database.botdb.SaveCompleteHealDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveCompleteHealDelay(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Complete Heal Timer for %s to %lf seconds.", my_bot->GetCleanName(), my_bot->GetCompleteHealDelay() / 1000.00);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a value greater than 0 and less than 60000.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Complete Heal Timer is %lf seconds.", my_bot->GetCompleteHealDelay() / 1000.00);
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
+void bot_command_complete_heal_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_complete_heal_threshold", sep->arg[0], "completehealthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value % of total health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent of health the target will be complete healed at.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to remove threshold and use default heal AI.");
+		c->Message(Chat::White, "note: Set to above 100 to disable this type of heal on the target.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 999) {
+			my_bot->SetCompleteHealThreshold(thresholddata);
+			if (!database.botdb.SaveCompleteHealThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveCompleteHealThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Complete Heal Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a value greater than 0 and less than 999.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Complete Heal Threshold is %u percent.", my_bot->GetCompleteHealThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
 void bot_command_cure(Client *c, const Seperator *sep)
 {
 	bcst_list* local_list = &bot_command_spells[BCEnum::SpT_Cure];
@@ -3342,6 +3447,57 @@ void bot_command_cure(Client *c, const Seperator *sep)
 	}
 
 	helper_no_available_bots(c, my_bot);
+}
+
+void bot_command_debuff_delay(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_debuff_delay", sep->arg[0], "debuffdelay"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds.].", sep->arg[0]);
+		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast debuffs.");
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to remove timer.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 delaydata = 0;
+	if (sep->IsNumber(1)) {
+		delaydata = atoi(sep->arg[1]);
+		int delaycheck = delaydata;
+		if (delaycheck >= 0 && delaycheck <= 60000) {
+			my_bot->SetDebuffDelay(delaydata);
+			if (!database.botdb.SaveDebuffDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveDebuffDelay(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Debuff Timer for %s to %lf seconds.", my_bot->GetCleanName(), my_bot->GetDebuffDelay() / 1000.00);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a value greater than 0 and less than 60000.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Debuff Timer is %lf seconds.", my_bot->GetDebuffDelay() / 1000.00);
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
 }
 
 void bot_command_defensive(Client *c, const Seperator *sep)
@@ -3455,6 +3611,57 @@ void bot_command_depart(Client *c, const Seperator *sep)
 	helper_no_available_bots(c, my_bot);
 }
 
+void bot_command_dot_delay(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_dot_delay", sep->arg[0], "dotdelay"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds.].", sep->arg[0]);
+		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast DoTs.");
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to remove timer.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 delaydata = 0;
+	if (sep->IsNumber(1)) {
+		delaydata = atoi(sep->arg[1]);
+		int delaycheck = delaydata;
+		if (delaycheck >= 0 && delaycheck <= 60000) {
+			my_bot->SetDotDelay(delaydata);
+			if (!database.botdb.SaveDotDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveDotDelay(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a DoT Timer for %s to %lf seconds.", my_bot->GetCleanName(), my_bot->GetDotDelay() / 1000.00);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a value greater than 0 and less than 60000.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current DoT Timer is %lf seconds.", my_bot->GetDotDelay() / 1000.00);
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
 void bot_command_escape(Client *c, const Seperator *sep)
 {
 	bcst_list* local_list = &bot_command_spells[BCEnum::SpT_Escape];
@@ -3503,6 +3710,99 @@ void bot_command_escape(Client *c, const Seperator *sep)
 	}
 
 	helper_no_available_bots(c, my_bot);
+}
+
+void bot_command_fast_heal_delay(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_fast_heal_delay", sep->arg[0], "fasthealdelay"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds.].", sep->arg[0]);
+		c->Message(Chat::White, "note: Set this to control how often a bot can cast a fast heal on the target.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to remove timer and use the default intervals.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+
+	uint32 delaydata = 0;
+	if (sep->IsNumber(1)) {
+		delaydata = atoi(sep->arg[1]);
+		int delaycheck = delaydata;
+		if (delaycheck >= 0 && delaycheck <= 60000) {
+			my_bot->SetFastHealDelay(delaydata);
+			if (!database.botdb.SaveFastHealDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveFastHealDelay(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Fast Heal Timer for %s to %lf seconds.", my_bot->GetCleanName(), my_bot->GetFastHealDelay() / 1000.00);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a value greater than 0 and less than 60000.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Fast Heal Timer is %lf seconds.", my_bot->GetFastHealDelay() / 1000.00);
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
+void bot_command_fast_heal_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_fast_heal_threshold", sep->arg[0], "fasthealthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value % of total health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent of health the target will be fast healed at.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to remove threshold and use default heal AI.");
+		c->Message(Chat::White, "note: Set to above 100 to disable this type of heal on the target.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 999) {
+			my_bot->SetFastHealThreshold(thresholddata);
+			if (!database.botdb.SaveFastHealThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveFastHealThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Fast Heal Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a value greater than 0 and less than 999.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Fast Heal Threshold is %u percent.", my_bot->GetFastHealThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
 }
 
 void bot_command_find_aliases(Client *c, const Seperator *sep)
@@ -3672,6 +3972,52 @@ void bot_command_guard(Client *c, const Seperator *sep)
 	}
 }
 
+void bot_command_heal_delay(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_heal_delay", sep->arg[0], "healdelay"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds.].", sep->arg[0]);
+		c->Message(Chat::White, "note: Set this to control how often a bot can cast a heal on the target.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to remove timer and use the default intervals.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+
+	uint32 delaydata = 0;
+	if (sep->IsNumber(1)) {
+		delaydata = atoi(sep->arg[1]);
+		int delaycheck = delaydata;
+		if (delaycheck >= 0 && delaycheck <= 60000) {
+			my_bot->SetHealDelay(delaydata);
+			if (!database.botdb.SaveHealDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHealDelay(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Heal Timer for %s to %lf seconds.", my_bot->GetCleanName(), my_bot->GetHealDelay() / 1000.00);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a value greater than 0 and less than 60000.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Heal Timer is %lf seconds.", my_bot->GetHealDelay() / 1000.00);
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
 void bot_command_heal_rotation(Client *c, const Seperator *sep)
 {
 	/* VS2012 code - begin */
@@ -3726,6 +4072,53 @@ void bot_command_heal_rotation(Client *c, const Seperator *sep)
 #endif
 
 	helper_send_available_subcommands(c, "bot heal rotation", subcommand_list);
+}
+
+void bot_command_heal_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_heal_threshold", sep->arg[0], "healthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value % of total health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent of health the target will be regular healed at.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to remove threshold and use default heal AI.");
+		c->Message(Chat::White, "note: Set to above 100 to disable this type of heal on the target.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 999) {
+			my_bot->SetHealThreshold(thresholddata);
+			if (!database.botdb.SaveHealThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHealThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Heal Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a value greater than 0 and less than 999.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Heal Threshold is %u percent.", my_bot->GetHealThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
 }
 
 void bot_command_help(Client *c, const Seperator *sep)
@@ -4458,7 +4851,7 @@ void bot_command_hold_nukes(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current hold nukes status is %u.", my_bot->GetHoldNukes());
+		c->Message(Chat::White, "My current Hold Nukes status is %u.", my_bot->GetHoldNukes());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
@@ -4823,6 +5216,99 @@ void bot_command_hold_snares(Client* c, const Seperator* sep)
 
 }
 
+void bot_command_hot_heal_delay(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hot_heal_delay", sep->arg[0], "hothealdelay"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds.].", sep->arg[0]);
+		c->Message(Chat::White, "note: Set this to control how often a bot can cast a HoT heal on the target.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to remove timer and use the default intervals.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+
+	uint32 delaydata = 0;
+	if (sep->IsNumber(1)) {
+		delaydata = atoi(sep->arg[1]);
+		int delaycheck = delaydata;
+		if (delaycheck >= 0 && delaycheck <= 60000) {
+			my_bot->SetHotHealDelay(delaydata);
+			if (!database.botdb.SaveHotHealDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHotHealDelay(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a HoT Heal Timer for %s to %lf seconds.", my_bot->GetCleanName(), my_bot->GetHotHealDelay() / 1000.00);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a value greater than 0 and less than 60000.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current HoT Heal Timer is %lf seconds.", my_bot->GetHotHealDelay() / 1000.00);
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
+void bot_command_hot_heal_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hot_heal_threshold", sep->arg[0], "hothealthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value % of total health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent of health the target will be HoT healed at.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to remove threshold and use default heal AI.");
+		c->Message(Chat::White, "note: Set to above 100 to disable this type of heal on the target.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 999) {
+			my_bot->SetHotHealThreshold(thresholddata);
+			if (!database.botdb.SaveHotHealThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHotHealThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a HoT Heal Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a value greater than 0 and less than 999.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current HoT Heal Threshold is %u percent.", my_bot->GetHotHealThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
 void bot_command_identify(Client *c, const Seperator *sep)
 {
 	bcst_list* local_list = &bot_command_spells[BCEnum::SpT_Identify];
@@ -5099,6 +5585,57 @@ void bot_command_levitation(Client *c, const Seperator *sep)
 	helper_no_available_bots(c, my_bot);
 }
 
+void bot_command_lifetap_delay(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_lifetap_delay", sep->arg[0], "lifetapdelay"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds.].", sep->arg[0]);
+		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast lifetaps.");
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to remove timer.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 delaydata = 0;
+	if (sep->IsNumber(1)) {
+		delaydata = atoi(sep->arg[1]);
+		int delaycheck = delaydata;
+		if (delaycheck >= 0 && delaycheck <= 60000) {
+			my_bot->SetLifetapDelay(delaydata);
+			if (!database.botdb.SaveLifetapDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveLifetapDelay(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Lifetap Timer for %s to %lf seconds.", my_bot->GetCleanName(), my_bot->GetLifetapDelay() / 1000.00);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a value greater than 0 and less than 60000.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Lifetap Timer is %lf seconds.", my_bot->GetLifetapDelay() / 1000.00);
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
+}
+
 void bot_command_lull(Client *c, const Seperator *sep)
 {
 	bcst_list* local_list = &bot_command_spells[BCEnum::SpT_Lull];
@@ -5259,6 +5796,7 @@ void bot_command_nuke_delay(Client* c, const Seperator* sep)
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
 		c->Message(Chat::White, "usage: <target_bot> %s [current | value in ms. For example, 5000 = 5 seconds.].", sep->arg[0]);
+		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast nukes.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to remove timer.");
@@ -5275,7 +5813,7 @@ void bot_command_nuke_delay(Client* c, const Seperator* sep)
 		return;
 	}
 
-	uint64 nd = 0;
+	uint32 nd = 0;
 	if (sep->IsNumber(1)) {
 		nd = atoi(sep->arg[1]);
 		int ntcheck = nd;
@@ -5286,7 +5824,7 @@ void bot_command_nuke_delay(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Nuke Timer for %s to %u.", my_bot->GetCleanName(), nd);
+				c->Message(Chat::White, "Successfully set a Nuke Timer for %s to %lf seconds.", my_bot->GetCleanName(), my_bot->GetNukeDelay() / 1000.00);
 			}
 		}
 		else {
@@ -5295,7 +5833,7 @@ void bot_command_nuke_delay(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Nuke Timer is %lf seconds.", my_bot->GetNukeDelay()/1000.00);
+		c->Message(Chat::White, "My current Nuke Timer is %lf seconds.", my_bot->GetNukeDelay() / 1000.00);
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
@@ -5309,6 +5847,7 @@ void bot_command_remove_from_raid(Client* c, const Seperator* sep)
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
 		c->Message(Chat::White, "usage: <target_bot> %s.", sep->arg[0]);
+		c->Message(Chat::White, "note: Target the bot you want to forcefully remove from a raid.");
 		c->Message(Chat::White, "note: Can only be used for bots you own.");
 		return;
 	}
@@ -5317,6 +5856,26 @@ void bot_command_remove_from_raid(Client* c, const Seperator* sep)
 	if (!my_bot) {
 		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
 		return;
+	}
+
+	auto* owner_group = c->GetGroup();
+	if (owner_group) {
+		std::list<Client*> member_list;
+		owner_group->GetClientList(member_list);
+		member_list.remove(nullptr);
+
+		for (auto member_iter : member_list) {
+			if (member_iter->IsEngaged() || member_iter->GetAggroCount() > 0) {
+				c->Message(Chat::White, "You can't remove bots from a raid while your group is engaged.");
+				return;
+			}
+		}
+	}
+	else {
+		if (c->GetAggroCount() > 0) {
+			c->Message(Chat::White, "You can't remove bots while you are engaged.");
+			return;
+		}
 	}
 
 	//Raid* bot_raid = entity_list.GetRaidByBotName(my_bot->GetName());
@@ -6238,6 +6797,58 @@ void bot_command_size(Client *c, const Seperator *sep)
 	}
 
 	helper_no_available_bots(c, my_bot);
+}
+
+void bot_command_slow_delay(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_slow_delay", sep->arg[0], "slowdelay"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds.].", sep->arg[0]);
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds.].", sep->arg[0]);
+		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast slows.");
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to remove timer.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 delaydata = 0;
+	if (sep->IsNumber(1)) {
+		delaydata = atoi(sep->arg[1]);
+		int delaycheck = delaydata;
+		if (delaycheck >= 0 && delaycheck <= 60000) {
+			my_bot->SetSlowDelay(delaydata);
+			if (!database.botdb.SaveSlowDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveSlowDelay(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Slow Timer for %s to %lf seconds.", my_bot->GetCleanName(), my_bot->GetSlowDelay() / 1000.00);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a value greater than 0 and less than 60000.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Slow Timer is %lf seconds.", my_bot->GetSlowDelay() / 1000.00);
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+	}
+
 }
 
 void bot_command_snare(Client* c, const Seperator* sep)

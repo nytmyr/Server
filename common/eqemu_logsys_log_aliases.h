@@ -143,6 +143,16 @@
         OutF(LogSys, Logs::Detail, Logs::Guilds, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
 } while (0)
 
+#define LogHealAI(message, ...) do {\
+    if (LogSys.IsLogEnabled(Logs::General, Logs::HealAI))\
+        OutF(LogSys, Logs::General, Logs::HealAI, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
+} while (0)
+
+#define LogHealAIDetail(message, ...) do {\
+    if (LogSys.IsLogEnabled(Logs::Detail, Logs::HealAI))\
+        OutF(LogSys, Logs::Detail, Logs::HealAI, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
+} while (0)
+
 #define LogInventory(message, ...) do {\
     if (LogSys.IsLogEnabled(Logs::General, Logs::Inventory))\
         OutF(LogSys, Logs::General, Logs::Inventory, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
@@ -291,6 +301,16 @@
 #define LogTasksDetail(message, ...) do {\
     if (LogSys.IsLogEnabled(Logs::Detail, Logs::Tasks))\
         OutF(LogSys, Logs::Detail, Logs::Tasks, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
+} while (0)
+
+#define TestDebug(message, ...) do {\
+    if (LogSys.IsLogEnabled(Logs::General, Logs::TestDebug))\
+        OutF(LogSys, Logs::General, Logs::TestDebug, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
+} while (0)
+
+#define TestDebugDetail(message, ...) do {\
+    if (LogSys.IsLogEnabled(Logs::Detail, Logs::TestDebug))\
+        OutF(LogSys, Logs::Detail, Logs::TestDebug, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
 } while (0)
 
 #define LogTradeskills(message, ...) do {\
@@ -1279,6 +1299,18 @@
 } while (0)
 
 #define LogFactionDetail(message, ...) do {\
+} while (0)
+
+#define LogHealAI(message, ...) do {\
+} while (0)
+
+#define LogHealAIDetail(message, ...) do {\
+} while (0)
+
+#define TestDebug(message, ...) do {\
+} while (0)
+
+#define TestDebugDetail(message, ...) do {\
 } while (0)
 
 #define Log(debug_level, log_category, message, ...) do {\

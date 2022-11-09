@@ -1168,12 +1168,20 @@ public:
 	inline uint32		DontRootMeBefore() const { return pDontRootMeBefore; }
 	inline uint32		DontSnareMeBefore() const { return pDontSnareMeBefore; }
 	inline uint32		DontCureMeBefore() const { return pDontCureMeBefore; }
+	inline uint32		DontRegularHealMeBefore() const { return pDontRegularHealMeBefore; }
+	inline uint32		DontFastHealMeBefore() const { return pDontFastHealMeBefore; }
+	inline uint32		DontCompleteHealMeBefore() const { return pDontCompleteHealMeBefore; }
+	inline uint32		DontHotHealMeBefore() const { return pDontHotHealMeBefore; }
 	void				SetDontRootMeBefore(uint32 time) { pDontRootMeBefore = time; }
 	void				SetDontHealMeBefore(uint32 time) { pDontHealMeBefore = time; }
 	void				SetDontBuffMeBefore(uint32 time) { pDontBuffMeBefore = time; }
 	void				SetDontDotMeBefore(uint32 time) { pDontDotMeBefore = time; }
 	void				SetDontSnareMeBefore(uint32 time) { pDontSnareMeBefore = time; }
 	void				SetDontCureMeBefore(uint32 time) { pDontCureMeBefore = time; }
+	void				SetDontRegularHealMeBefore(uint32 time) { pDontRegularHealMeBefore = time; }
+	void				SetDontFastHealMeBefore(uint32 time) { pDontFastHealMeBefore = time; }
+	void				SetDontCompleteHealMeBefore(uint32 time) { pDontCompleteHealMeBefore = time; }
+	void				SetDontHotHealMeBefore(uint32 time) { pDontHotHealMeBefore = time; }
 
 	// calculate interruption of spell via movement of mob
 	void SaveSpellLoc() { m_SpellLocation = glm::vec3(m_Position); }
@@ -1780,6 +1788,10 @@ protected:
 	uint32 pDontRootMeBefore;
 	uint32 pDontSnareMeBefore;
 	uint32 pDontCureMeBefore;
+	uint32 pDontRegularHealMeBefore;
+	uint32 pDontFastHealMeBefore;
+	uint32 pDontCompleteHealMeBefore;
+	uint32 pDontHotHealMeBefore;
 
 	// hp event
 	int nexthpevent;
