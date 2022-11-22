@@ -11607,7 +11607,7 @@ void Client::Handle_OP_RaidCommand(const EQApplicationPacket* app)
 
 			//Not allowed: Invite a bot that is already within a raid.
 			if (player_to_invite->IsRaidGrouped()) {
-				MessageString(Chat::White, ALREADY_IN_RAID, GetName()); //must invite members not in raid...
+				MessageString(Chat::White, ALREADY_IN_RAID, player_to_invite->GetCleanName()); //must invite members not in raid...
 				return;
 			}
 
