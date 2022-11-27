@@ -691,18 +691,18 @@ int32 CalculateCorruptionCounters(uint16 spell_id)
 int32 CalculateCounters(uint16 spell_id)
 {
 	int32 counter = CalculatePoisonCounters(spell_id);
-	if (counter != 0)
-		return counter;
+	//if (counter != 0)
+		//return counter;
 
-	counter = CalculateDiseaseCounters(spell_id);
-	if (counter != 0)
-		return counter;
+	counter += CalculateDiseaseCounters(spell_id);
+	//if (counter != 0)
+		//return counter;
 
-	counter = CalculateCurseCounters(spell_id);
-	if (counter != 0)
-		return counter;
+	counter += CalculateCurseCounters(spell_id);
+	//if (counter != 0)
+		//return counter;
 
-	counter = CalculateCorruptionCounters(spell_id);
+	counter += CalculateCorruptionCounters(spell_id);
 	return counter;
 }
 
@@ -954,7 +954,8 @@ bool IsFastHealSpell(uint16 spell_id)
 
 	if (spells[spell_id].cast_time <= MaxFastHealCastingTime &&
 			spells[spell_id].effect_id[0] == 0 && spells[spell_id].base_value[0] > 0 &&
-			!IsGroupSpell(spell_id))
+			!IsCompleteHealSpell(spell_id) &&
+			!IsHealOverTimeSpell(spell_id) && !IsGroupSpell(spell_id))
 		return true;
 
 	return false;
@@ -966,7 +967,8 @@ bool IsVeryFastHealSpell(uint16 spell_id)
 
 	if (spells[spell_id].cast_time <= MaxFastHealCastingTime &&
 			spells[spell_id].effect_id[0] == 0 && spells[spell_id].base_value[0] > 0 &&
-			!IsGroupSpell(spell_id))
+			!IsCompleteHealSpell(spell_id) &&
+			!IsHealOverTimeSpell(spell_id) && !IsGroupSpell(spell_id))
 		return true;
 
 	return false;
@@ -974,7 +976,10 @@ bool IsVeryFastHealSpell(uint16 spell_id)
 
 bool IsRegularSingleTargetHealSpell(uint16 spell_id)
 {
-	if(spells[spell_id].effect_id[0] == 0 && spells[spell_id].base_value[0] > 0 &&
+	const int MinRegularHealTime = 2000;
+
+	if((spells[spell_id].cast_time >= MinRegularHealTime || spell_id == 200) &&
+			spells[spell_id].effect_id[0] == 0 && spells[spell_id].base_value[0] > 0 &&
 			spells[spell_id].target_type == ST_Target && spells[spell_id].buff_duration == 0 &&
 			!IsCompleteHealSpell(spell_id) &&
 			!IsHealOverTimeSpell(spell_id) && !IsGroupSpell(spell_id))
@@ -1012,7 +1017,7 @@ bool IsDebuffSpell(uint16 spell_id)
 	if (IsBeneficialSpell(spell_id) || IsEffectHitpointsSpell(spell_id) || IsStunSpell(spell_id) ||
 			IsMezSpell(spell_id) || IsCharmSpell(spell_id) || IsSlowSpell(spell_id) ||
 			IsEffectInSpell(spell_id, SE_Root) || IsEffectInSpell(spell_id, SE_CancelMagic) ||
-			IsEffectInSpell(spell_id, SE_MovementSpeed) || IsFearSpell(spell_id) || IsEffectInSpell(spell_id, SE_InstantHate))
+			IsEffectInSpell(spell_id, SE_MovementSpeed) || IsFearSpell(spell_id) || IsEffectInSpell(spell_id, SE_InstantHate) || IsEffectInSpell(spell_id, SE_WipeHateList))
 		return false;
 	else
 		return true;

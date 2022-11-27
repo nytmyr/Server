@@ -617,6 +617,7 @@ RULE_INT(Bots, OldResurrectionSicknessSpell, 757, "757 is Default Old Resurrecti
 RULE_INT(Bots, ResurrectionSicknessSpell, 756, "756 is Default Resurrection Sickness Spell")
 RULE_INT(Bots, NukeResistLimit, 115, "115 Default. This is the resist gap where bots will refuse to cast due to a high resist chance.")
 RULE_INT(Bots, RootResistLimit, 115, "115 Default. This is the resist gap where bots will refuse to cast due to a high resist chance.")
+RULE_INT(Bots, InCombatBuffResistLimit, 115, "115 Default. This is the resist gap where bots will refuse to cast due to a high resist chance.")
 RULE_INT(Bots, LifetapResistLimit, 115, "115 Default. This is the resist gap where bots will refuse to cast due to a high resist chance.")
 RULE_INT(Bots, SnareResistLimit, 115, "115 Default. This is the resist gap where bots will refuse to cast due to a high resist chance.")
 RULE_INT(Bots, DoTResistLimit, 115, "115 Default. This is the resist gap where bots will refuse to cast due to a high resist chance.")
@@ -624,6 +625,8 @@ RULE_INT(Bots, DispelResistLimit, 115, "115 Default. This is the resist gap wher
 RULE_INT(Bots, CharmResistLimit, 115, "115 Default. This is the resist gap where bots will refuse to cast due to a high resist chance.")
 RULE_INT(Bots, SlowResistLimit, 115, "115 Default. This is the resist gap where bots will refuse to cast due to a high resist chance.")
 RULE_INT(Bots, DebuffResistLimit, 115, "115 Default. This is the resist gap where bots will refuse to cast due to a high resist chance.")
+RULE_INT(Bots, MezResistLimit, 115, "115 Default. This is the resist gap where bots will refuse to cast due to a high resist chance.")
+RULE_INT(Bots, HateReduxResistLimit, 115, "115 Default. This is the resist gap where bots will refuse to cast due to a high resist chance.")
 RULE_INT(Bots, HealPercentLimit, 90, "90 Default. Percent at which bots will START the heal check routine.")
 RULE_INT(Bots, HealPercentLimitShaman, 60, "60 Default. Percent at which bots will START healing shamans to allow them time to canni.")
 RULE_INT(Bots, HealPercentLimitNecro, 60, "60 Default. Percent at which bots will START healing nercros to allow them time to lifetap.")
@@ -663,6 +666,7 @@ RULE_INT(Bots, RaidFastHealTimer, 0, "ms between a bot will cast fast heals in r
 RULE_INT(Bots, RaidSingleTargetHealTimer, 3500, "ms between a bot will cast single target heals in raids.")
 RULE_INT(Bots, RaidHoTHealTimer, 22000, "ms between a bot will cast HoT heals in raids.")
 RULE_INT(Bots, GroupHealTimer, 15000, "ms between a bot will cast HoT heals in raids.")
+RULE_INT(Bots, BardRecastDifference, 3500, "ms less than a song's duration for a Bard to start recasting to prevent songs dropping.")
 
 RULE_CATEGORY_END()
 #endif

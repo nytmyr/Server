@@ -1162,22 +1162,22 @@ public:
 	virtual int			GetStuckBehavior() const { return 0; }
 
 	void				NPCSpecialAttacks(const char* parse, int permtag, bool reset = true, bool remove = false);
-	inline uint32		DontHealMeBefore() const { return pDontHealMeBefore; }
 	inline uint32		DontBuffMeBefore() const { return pDontBuffMeBefore; }
+	inline uint32		DontCompleteHealMeBefore() const { return pDontCompleteHealMeBefore; }
+	inline uint32		DontCureMeBefore() const { return pDontCureMeBefore; }
 	inline uint32		DontDotMeBefore() const { return pDontDotMeBefore; }
+	inline uint32		DontFastHealMeBefore() const { return pDontFastHealMeBefore; }
+	inline uint32		DontHealMeBefore() const { return pDontHealMeBefore; }
+	inline uint32		DontHotHealMeBefore() const { return pDontHotHealMeBefore; }
+	inline uint32		DontRegularHealMeBefore() const { return pDontRegularHealMeBefore; }
 	inline uint32		DontRootMeBefore() const { return pDontRootMeBefore; }
 	inline uint32		DontSnareMeBefore() const { return pDontSnareMeBefore; }
-	inline uint32		DontCureMeBefore() const { return pDontCureMeBefore; }
-	inline uint32		DontRegularHealMeBefore() const { return pDontRegularHealMeBefore; }
-	inline uint32		DontFastHealMeBefore() const { return pDontFastHealMeBefore; }
-	inline uint32		DontCompleteHealMeBefore() const { return pDontCompleteHealMeBefore; }
-	inline uint32		DontHotHealMeBefore() const { return pDontHotHealMeBefore; }
+	void				SetDontBuffMeBefore(uint32 time) { pDontBuffMeBefore = time; }
+	void				SetDontCureMeBefore(uint32 time) { pDontCureMeBefore = time; }
+	void				SetDontDotMeBefore(uint32 time) { pDontDotMeBefore = time; }
 	void				SetDontRootMeBefore(uint32 time) { pDontRootMeBefore = time; }
 	void				SetDontHealMeBefore(uint32 time) { pDontHealMeBefore = time; }
-	void				SetDontBuffMeBefore(uint32 time) { pDontBuffMeBefore = time; }
-	void				SetDontDotMeBefore(uint32 time) { pDontDotMeBefore = time; }
 	void				SetDontSnareMeBefore(uint32 time) { pDontSnareMeBefore = time; }
-	void				SetDontCureMeBefore(uint32 time) { pDontCureMeBefore = time; }
 	void				SetDontRegularHealMeBefore(uint32 time) { pDontRegularHealMeBefore = time; }
 	void				SetDontFastHealMeBefore(uint32 time) { pDontFastHealMeBefore = time; }
 	void				SetDontCompleteHealMeBefore(uint32 time) { pDontCompleteHealMeBefore = time; }

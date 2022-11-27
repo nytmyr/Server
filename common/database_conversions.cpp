@@ -376,6 +376,14 @@ namespace Convert {
 		/*19558*/	uint8							guildAutoconsent;	// 0=off, 1=on
 		/*19559*/	uint8							unknown19595[5];	// ***Placeholder (6/29/2005)
 		/*19564*/	uint32							RestTimer;
+					uint8							fast_heal_threshold; /* Used */
+					uint8							heal_threshold; /* Used */
+					uint8							complete_heal_threshold; /* Used */
+					uint8							hot_heal_threshold; /* Used */
+					uint32							fast_heal_delay; /* Used */
+					uint32							heal_delay; /* Used */
+					uint32							complete_heal_delay; /* Used */
+					uint32							hot_heal_delay; /* Used */
 		/*19568*/
 	};
 
@@ -632,6 +640,14 @@ bool Database::CheckDatabaseConvertPPDeblob(){
 				"`e_aa_effects` int(11) UNSIGNED NOT NULL DEFAULT 0,				"
 				"`e_percent_to_aa` int(11) UNSIGNED NOT NULL DEFAULT 0,				"
 				"`e_expended_aa_spent` int(11) UNSIGNED NOT NULL DEFAULT 0,			"
+				"`fast_heal_threshold` int(11) UNSIGNED NOT NULL DEFAULT 35,		"
+				"`heal_threshold` int(11) UNSIGNED NOT NULL DEFAULT 55,				"
+				"`complete_heal_threshold` int(11) UNSIGNED NOT NULL DEFAULT 70,	"
+				"`hot_heal_threshold` int(11) UNSIGNED NOT NULL DEFAULT 85,			"
+				"`fast_heal_delay` int(11) UNSIGNED NOT NULL DEFAULT 2500,			"
+				"`heal_delay` int(11) UNSIGNED NOT NULL DEFAULT 4500,				"
+				"`complete_heal_delay` int(11) UNSIGNED NOT NULL DEFAULT 8000,		"
+				"`hot_heal_delay` int(11) UNSIGNED NOT NULL DEFAULT 22000,			"
 				"PRIMARY KEY(`id`),													"
 				"UNIQUE KEY `name` (`name`),										"
 				"KEY `account_id` (`account_id`)									"
@@ -1097,7 +1113,15 @@ bool Database::CheckDatabaseConvertPPDeblob(){
 					"xtargets,"
 					"e_aa_effects,"
 					"e_percent_to_aa,"
-					"e_expended_aa_spent"
+					"e_expended_aa_spent,"
+					"fast_heal_threshold,"
+					"heal_threshold,"
+					"complete_heal_threshold,"
+					"hot_heal_threshold,"
+					"fast_heal_delay,"
+					"heal_delay,"
+					"complete_heal_delay,"
+					"hot_heal_delay"
 					")"
 					"VALUES ("
 					"%u,"		// id
@@ -1197,7 +1221,15 @@ bool Database::CheckDatabaseConvertPPDeblob(){
 					"%u,"		// X Targets
 					"%u,"		// AA Effects
 					"%u,"		// Percent to AA
-					"%u"		// e_expended_aa_spent
+					"%u,"		// e_expended_aa_spent
+					"%u,"		// fast_heal_threshold
+					"%u,"		// heal_threshold
+					"%u,"		// complete_heal_threshold
+					"%u,"		// hot_heal_threshold
+					"%u,"		// fast_heal_delay
+					"%u,"		// heal_delay
+					"%u,"		// complete_heal_delay
+					"%u"		// hot_heal_delay
 					")",
 					character_id,
 					account_id,
@@ -1296,7 +1328,15 @@ bool Database::CheckDatabaseConvertPPDeblob(){
 					xtargets,
 					e_pp->aa_effects,
 					e_pp->perAA,
-					e_pp->expended_aa
+					e_pp->expended_aa,
+					pp->fast_heal_threshold,
+					pp->heal_threshold,
+					pp->complete_heal_threshold,
+					pp->hot_heal_threshold,
+					pp->fast_heal_delay,
+					pp->heal_delay,
+					pp->complete_heal_delay,
+					pp->hot_heal_delay
 					);
 				results = QueryDatabase(rquery);
 

@@ -541,7 +541,15 @@ bool Database::SaveCharacterCreate(uint32 character_id, uint32 account_id, Playe
 		"group_auto_consent,"
 		"raid_auto_consent,"
 		"guild_auto_consent,"
-		"RestTimer) "
+		"RestTimer,"
+		"fast_heal_threshold,"
+		"heal_threshold,"
+		"complete_heal_threshold,"
+		"hot_heal_threshold,"
+		"fast_heal_delay,"
+		"heal_delay,"
+		"complete_heal_delay,"
+		"hot_heal_delay) "
 		"VALUES ("
 		"%u,"  // id
 		"%u,"  // account_id
@@ -632,7 +640,15 @@ bool Database::SaveCharacterCreate(uint32 character_id, uint32 account_id, Playe
 		"%u,"  // group_auto_consent
 		"%u,"  // raid_auto_consent
 		"%u,"  // guild_auto_consent
-		"%u"  // RestTimer
+		"%u,"  // RestTimer
+		"%u,"  // fast_heal_threshold
+		"%u,"  // heal_threshold
+		"%u,"  // complete_heal_threshold
+		"%u,"  // hot_heal_threshold
+		"%u,"  // fast_heal_delay
+		"%u,"  // heal_delay
+		"%u,"  // complete_heal_delay
+		"%u"   // hot_heal_delay
 		")",
 		character_id,					  // " id,                        "
 		account_id,						  // " account_id,                "
@@ -723,7 +739,15 @@ bool Database::SaveCharacterCreate(uint32 character_id, uint32 account_id, Playe
 		pp->groupAutoconsent,			  // " group_auto_consent,        "
 		pp->raidAutoconsent,			  // " raid_auto_consent,         "
 		pp->guildAutoconsent,			  // " guild_auto_consent,        "
-		pp->RestTimer					  // " RestTimer)                 "
+		pp->RestTimer,					  // " RestTimer                  "
+		35,								  // " fast_heal_threshold        "
+		55,								  // " heal_threshold             "
+		70,							   	  // " complete_heal_threshold    "
+		85,								  // " hot_heal_threshold         "
+		2500,							  // " fast_heal_delay            "
+		4500,							  // " heal_delay                 "
+		8000,							  // " complete_heal_delay        "
+		22000							  // " hot_heal_delay             "
 	);
 	auto results = QueryDatabase(query);
 

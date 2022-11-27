@@ -1098,6 +1098,14 @@ struct PlayerProfile_Struct
 /*19558*/	uint8				guildAutoconsent;	// 0=off, 1=on
 /*19559*/	uint8				unknown19595[5];	// ***Placeholder (6/29/2005)
 /*19564*/	uint32				RestTimer;
+			uint8				fast_heal_threshold; /* Used */
+			uint8				heal_threshold; /* Used */
+			uint8				complete_heal_threshold; /* Used */
+			uint8				hot_heal_threshold; /* Used */
+			uint32				fast_heal_delay; /* Used */
+			uint32				heal_delay; /* Used */
+			uint32				complete_heal_delay; /* Used */
+			uint32				hot_heal_delay; /* Used */
 /*19568*/
 
 	// All player profile packets are translated and this overhead is ignored in out-bound packets

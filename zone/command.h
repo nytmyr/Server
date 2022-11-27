@@ -321,6 +321,16 @@ void command_zsky(Client *c, const Seperator *sep);
 void command_zstats(Client *c, const Seperator *sep);
 void command_zunderworld(Client *c, const Seperator *sep);
 
+//custom commands
+void command_fasthealthreshold(Client* c, const Seperator* sep);
+void command_healthreshold(Client* c, const Seperator* sep);
+void command_completehealthreshold(Client* c, const Seperator* sep);
+void command_hothealthreshold(Client* c, const Seperator* sep);
+void command_fasthealdelay(Client* c, const Seperator* sep);
+void command_healdelay(Client* c, const Seperator* sep);
+void command_completehealdelay(Client* c, const Seperator* sep);
+void command_hothealdelay(Client* c, const Seperator* sep);
+
 #ifdef BOTS
 #include "bot.h"
 void command_bot(Client*c, const Seperator *sep);

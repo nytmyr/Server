@@ -346,9 +346,9 @@ bool BotDatabase::LoadBot(const uint32 bot_id, Bot*& loaded_bot)
 		" `race`,"
 		" `class`,"
 		" `level`,"
-		" `deity`,"				/* planned use[11] */
-		" `creation_day`,"		/* not in-use[12] */
-		" `last_spawn`,"		/* not in-use[13] */
+		" `deity`,"						/* planned use[11] */
+		" `creation_day`,"				/* not in-use[12] */
+		" `last_spawn`,"				/* not in-use[13] */
 		" `time_spawned`,"
 		" `size`,"
 		" `face`,"
@@ -361,63 +361,101 @@ bool BotDatabase::LoadBot(const uint32 bot_id, Bot*& loaded_bot)
 		" `drakkin_heritage`,"
 		" `drakkin_tattoo`,"
 		" `drakkin_details`,"
-		" `ac`,"				/* not in-use[26] */
-		" `atk`,"				/* not in-use[27] */
+		" `ac`,"						/* not in-use[26] */
+		" `atk`,"						/* not in-use[27] */
 		" `hp`,"
 		" `mana`,"
-		" `str`,"				/* not in-use[30] */
-		" `sta`,"				/* not in-use[31] */
-		" `cha`,"				/* not in-use[32] */
-		" `dex`,"				/* not in-use[33] */
-		" `int`,"				/* not in-use[34] */
-		" `agi`,"				/* not in-use[35] */
-		" `wis`,"				/* not in-use[36] */
-		" `fire`,"				/* not in-use[37] */
-		" `cold`,"				/* not in-use[38] */
-		" `magic`,"				/* not in-use[39] */
-		" `poison`,"			/* not in-use[40] */
-		" `disease`,"			/* not in-use[41] */
-		" `corruption`,"		/* not in-use[42] */
-		" `show_helm`," // 43
-		" `follow_distance`," // 44
-		" `stop_melee_level`," // 45
-		" `hold_buffs`," // 46
-		" `hold_cures`," // 47
-		" `hold_dots`," // 48
-		" `hold_debuffs`," // 49
-		" `hold_dispels`," // 50
-		" `hold_escapes`," // 51
-		" `hold_hateredux`," // 52
-		" `hold_heals`," // 53
-		" `hold_incombatbuffs`," // 54
-		" `hold_incombatbuffsongs`," // 55
-		" `hold_lifetaps`," // 56
-		" `hold_mez`," // 57
-		" `hold_nukes`," // 58
+		" `str`,"						/* not in-use[30] */
+		" `sta`,"						/* not in-use[31] */
+		" `cha`,"						/* not in-use[32] */
+		" `dex`,"						/* not in-use[33] */
+		" `int`,"						/* not in-use[34] */
+		" `agi`,"						/* not in-use[35] */
+		" `wis`,"						/* not in-use[36] */
+		" `fire`,"						/* not in-use[37] */
+		" `cold`,"						/* not in-use[38] */
+		" `magic`,"						/* not in-use[39] */
+		" `poison`,"					/* not in-use[40] */
+		" `disease`,"					/* not in-use[41] */
+		" `corruption`,"				/* not in-use[42] */
+		" `show_helm`,"					// 43
+		" `follow_distance`,"			// 44
+		" `stop_melee_level`,"			// 45
+		" `hold_buffs`,"				// 46
+		" `hold_cures`,"				// 47
+		" `hold_dots`,"					// 48
+		" `hold_debuffs`,"				// 49
+		" `hold_dispels`,"				// 50
+		" `hold_escapes`,"				// 51
+		" `hold_hateredux`,"			// 52
+		" `hold_heals`,"				// 53
+		" `hold_incombatbuffs`,"		// 54
+		" `hold_incombatbuffsongs`,"	// 55
+		" `hold_lifetaps`,"				// 56
+		" `hold_mez`,"					// 57
+		" `hold_nukes`,"				// 58
 		" `hold_outofcombatbuffsongs`," // 59
-		" `hold_pets`," // 60
-		" `hold_precombatbuffs`," // 61
-		" `hold_precombatbuffsongs`," // 62
-		" `hold_roots`," // 63
-		" `hold_slows`," // 64
-		" `hold_snares`," // 65
-		" `nuke_delay`," // 66
-		" `auto_resist`," // 67
-		" `auto_ds`," // 68
-		" `behind_mob`," // 69
-		" `caster_range`," // 70
-		" `debuff_delay`," // 71
-		" `slow_delay`," // 72
-		" `dot_delay`," // 73
-		" `lifetap_delay`," // 74
-		" `heal_delay`," // 75
-		" `fast_heal_delay`," // 76
-		" `complete_heal_delay`," // 77
-		" `hot_heal_delay`," // 78
-		" `heal_threshold`," // 79
-		" `fast_heal_threshold`," // 80
-		" `complete_heal_threshold`," // 81
-		" `hot_heal_threshold`" // 82
+		" `hold_pet_heals`,"			// 60
+		" `hold_pets`,"					// 61
+		" `hold_precombatbuffs`,"		// 62
+		" `hold_precombatbuffsongs`,"	// 63
+		" `hold_roots`,"				// 64
+		" `hold_slows`,"				// 65
+		" `hold_snares`,"				// 66
+		" `auto_ds`,"					// 67
+		" `auto_resist`,"				// 68
+		" `behind_mob`,"				// 69
+		" `caster_range`,"				// 70
+		" `buff_delay`,"				// 71
+		" `complete_heal_delay`,"		// 72
+		" `cure_delay`,"				// 73
+		" `debuff_delay`,"				// 74
+		" `dispel_delay`,"				// 75
+		" `dot_delay`,"					// 76
+		" `escape_delay`,"				// 77
+		" `fast_heal_delay`,"			// 78
+		" `hate_redux_delay`,"			// 79
+		" `heal_delay`,"				// 80
+		" `hot_heal_delay`,"			// 81
+		" `incombatbuff_delay`,"		// 82
+		" `lifetap_delay`,"				// 83
+		" `mez_delay`,"					// 84
+		" `nuke_delay`,"				// 85
+		" `root_delay`,"				// 86
+		" `slow_delay`,"				// 87
+		" `snare_delay`,"				// 88
+		" `buff_threshold`,"			// 89
+		" `complete_heal_threshold`,"	// 90
+		" `cure_threshold`,"			// 91
+		" `debuff_threshold`,"			// 92
+		" `dispel_threshold`,"			// 93
+		" `dot_threshold`,"				// 94
+		" `escape_threshold`,"			// 95
+		" `fast_heal_threshold`,"		// 96
+		" `hate_redux_threshold`,"		// 97
+		" `heal_threshold`,"			// 98
+		" `hot_heal_threshold`,"		// 99
+		" `incombatbuff_threshold`,"	// 100
+		" `lifetap_threshold`,"			// 101
+		" `mez_threshold`,"				// 102
+		" `nuke_threshold`,"			// 103
+		" `root_threshold`,"			// 104
+		" `slow_threshold`,"			// 105
+		" `snare_threshold`,"			// 106
+		" `buff_min_threshold`,"		// 107
+		" `cure_min_threshold`,"		// 108
+		" `debuff_min_threshold`,"		// 109
+		" `dispel_min_threshold`,"		// 110
+		" `dot_min_threshold`,"			// 111
+		" `escape_min_threshold`,"		// 112
+		" `hate_redux_min_threshold`,"	// 113
+		" `incombatbuff_min_threshold`,"// 114
+		" `lifetap_min_threshold`,"		// 115
+		" `mez_min_threshold`,"			// 116
+		" `nuke_min_threshold`,"		// 117
+		" `root_min_threshold`,"		// 118
+		" `slow_min_threshold`,"		// 119
+		" `snare_min_threshold`"		// 120
 		" FROM `bot_data`"
 		" WHERE `bot_id` = '%u'"
 		" LIMIT 1",
@@ -502,7 +540,7 @@ bool BotDatabase::LoadBot(const uint32 bot_id, Bot*& loaded_bot)
 		loaded_bot->SetHoldEscapes(hescapes);
 		uint8 hhateredux = atoi(row[52]);
 		loaded_bot->SetHoldHateRedux(hhateredux);
-		uint8 hheals = atoi(row[56]);
+		uint8 hheals = atoi(row[53]);
 		loaded_bot->SetHoldHeals(hheals);
 		uint8 hicb = atoi(row[54]);
 		loaded_bot->SetHoldInCombatBuffs(hicb);
@@ -516,52 +554,128 @@ bool BotDatabase::LoadBot(const uint32 bot_id, Bot*& loaded_bot)
 		loaded_bot->SetHoldNukes(hn);
 		uint8 oocbs = atoi(row[59]);
 		loaded_bot->SetHoldOutOfCombatBuffSongs(oocbs);
-		uint8 hpet = atoi(row[60]);
+		uint8 hpetheals = atoi(row[60]);
+		loaded_bot->SetHoldPets(hpetheals);
+		uint8 hpet = atoi(row[61]);
 		loaded_bot->SetHoldPets(hpet);
-		uint8 hpcb = atoi(row[61]);
+		uint8 hpcb = atoi(row[62]);
 		loaded_bot->SetHoldPreCombatBuffs(hpcb);
-		uint8 hpcbs = atoi(row[62]);
+		uint8 hpcbs = atoi(row[63]);
 		loaded_bot->SetHoldPreCombatBuffSongs(hpcbs);
-		uint8 hroots = atoi(row[63]);
+		uint8 hroots = atoi(row[64]);
 		loaded_bot->SetHoldRoots(hroots);
-		uint8 hslows = atoi(row[64]);
+		uint8 hslows = atoi(row[65]);
 		loaded_bot->SetHoldSlows(hslows);
-		uint8 hsnares = atoi(row[65]);
+		uint8 hsnares = atoi(row[66]);
 		loaded_bot->SetHoldSnares(hsnares);
-		uint32 nd = atoi(row[66]);
-		loaded_bot->SetNukeDelay(nd);
-		uint8 ar = atoi(row[67]);
-		loaded_bot->SetAutoResist(ar);
-		uint8 ad = atoi(row[68]);
+		uint8 ad = atoi(row[67]);
 		loaded_bot->SetAutoDS(ad);
+		uint8 ar = atoi(row[68]);
+		loaded_bot->SetAutoResist(ar);
 		uint8 behindmob = atoi(row[69]);
 		loaded_bot->SetBehindMob(behindmob);
 		uint32 botcasterrange = atoi(row[70]);
 		loaded_bot->SetBotCasterRange(botcasterrange);
-		uint32 debuffdelay = atoi(row[71]);
-		loaded_bot->SetDebuffDelay(debuffdelay);
-		uint32 slowdelay = atoi(row[72]);
-		loaded_bot->SetSlowDelay(slowdelay);
-		uint32 dotdelay = atoi(row[73]);
-		loaded_bot->SetDotDelay(dotdelay);
-		uint32 lifetapdelay = atoi(row[74]);
-		loaded_bot->SetLifetapDelay(lifetapdelay);
-		uint32 healdelay = atoi(row[75]);
-		loaded_bot->SetHealDelay(healdelay);
-		uint32 fhealdelay = atoi(row[76]);
-		loaded_bot->SetFastHealDelay(fhealdelay);
-		uint32 chealdelay = atoi(row[77]);
+		uint32 buffdelay = atoi(row[71]);
+		loaded_bot->SetBuffDelay(buffdelay);
+		uint32 chealdelay = atoi(row[72]);
 		loaded_bot->SetCompleteHealDelay(chealdelay);
-		uint32 hothealdelay = atoi(row[78]);
+		uint32 curedelay = atoi(row[73]);
+		loaded_bot->SetCureDelay(curedelay);
+		uint32 debuffdelay = atoi(row[74]);
+		loaded_bot->SetDebuffDelay(debuffdelay);
+		uint32 dispeldelay = atoi(row[75]);
+		loaded_bot->SetDispelDelay(dispeldelay);
+		uint32 dotdelay = atoi(row[76]);
+		loaded_bot->SetDotDelay(dotdelay);
+		uint32 escapedelay = atoi(row[77]);
+		loaded_bot->SetEscapeDelay(escapedelay);
+		uint32 fhealdelay = atoi(row[78]);
+		loaded_bot->SetFastHealDelay(fhealdelay);
+		uint32 hatereduxdelay = atoi(row[79]);
+		loaded_bot->SetHateReduxDelay(hatereduxdelay);
+		uint32 healdelay = atoi(row[80]);
+		loaded_bot->SetHealDelay(healdelay);
+		uint32 hothealdelay = atoi(row[81]);
 		loaded_bot->SetHotHealDelay(hothealdelay);
-		uint8 healthreshold = atoi(row[79]);
-		loaded_bot->SetHealThreshold(healthreshold);
-		uint8 fhealthreshold = atoi(row[80]);
-		loaded_bot->SetFastHealThreshold(fhealthreshold);
-		uint8 chealthreshold = atoi(row[81]);
+		uint32 incombatbuffdelay = atoi(row[82]);
+		loaded_bot->SetInCombatBuffDelay(incombatbuffdelay);
+		uint32 lifetapdelay = atoi(row[83]);
+		loaded_bot->SetLifetapDelay(lifetapdelay);
+		uint32 mezdelay = atoi(row[84]);
+		loaded_bot->SetMezDelay(mezdelay);
+		uint32 nukedelay = atoi(row[85]);
+		loaded_bot->SetNukeDelay(nukedelay);
+		uint32 rootdelay = atoi(row[86]);
+		loaded_bot->SetRootDelay(rootdelay);
+		uint32 slowdelay = atoi(row[87]);
+		loaded_bot->SetSlowDelay(slowdelay);
+		uint32 snaredelay = atoi(row[88]);
+		loaded_bot->SetSnareDelay(snaredelay);
+		uint8 buffthreshold = atoi(row[89]);
+		loaded_bot->SetBuffThreshold(buffthreshold);
+		uint8 chealthreshold = atoi(row[90]);
 		loaded_bot->SetCompleteHealThreshold(chealthreshold);
-		uint8 hothealthreshold = atoi(row[82]);
+		uint8 curethreshold = atoi(row[91]);
+		loaded_bot->SetCureThreshold(curethreshold);
+		uint8 debuffthreshold = atoi(row[92]);
+		loaded_bot->SetDebuffThreshold(debuffthreshold);
+		uint8 dispelthreshold = atoi(row[93]);
+		loaded_bot->SetDispelThreshold(dispelthreshold);
+		uint8 dotthreshold = atoi(row[94]);
+		loaded_bot->SetDotThreshold(dotthreshold);
+		uint8 escapethreshold = atoi(row[95]);
+		loaded_bot->SetEscapeThreshold(escapethreshold);
+		uint8 fhealthreshold = atoi(row[96]);
+		loaded_bot->SetFastHealThreshold(fhealthreshold);
+		uint8 hatereduxthreshold = atoi(row[97]);
+		loaded_bot->SetHateReduxThreshold(hatereduxthreshold);
+		uint8 healthreshold = atoi(row[98]);
+		loaded_bot->SetHealThreshold(healthreshold);
+		uint8 hothealthreshold = atoi(row[99]);
 		loaded_bot->SetHotHealThreshold(hothealthreshold);
+		uint8 incombatbuffthreshold = atoi(row[100]);
+		loaded_bot->SetInCombatBuffThreshold(incombatbuffthreshold);
+		uint8 lifetapthreshold = atoi(row[101]);
+		loaded_bot->SetLifetapThreshold(lifetapthreshold);
+		uint8 mezthreshold = atoi(row[102]);
+		loaded_bot->SetMezThreshold(mezthreshold);
+		uint8 nukethreshold = atoi(row[103]);
+		loaded_bot->SetNukeThreshold(nukethreshold);
+		uint8 rootthreshold = atoi(row[104]);
+		loaded_bot->SetRootThreshold(rootthreshold);
+		uint8 slowthreshold = atoi(row[105]);
+		loaded_bot->SetSlowThreshold(slowthreshold);
+		uint8 snarethreshold = atoi(row[106]);
+		loaded_bot->SetSnareThreshold(snarethreshold);
+		uint8 buffminthreshold = atoi(row[107]);
+		loaded_bot->SetBuffMinThreshold(buffminthreshold);
+		uint8 cureminthreshold = atoi(row[108]);
+		loaded_bot->SetCureMinThreshold(cureminthreshold);
+		uint8 debuffminthreshold = atoi(row[109]);
+		loaded_bot->SetDebuffMinThreshold(debuffminthreshold);
+		uint8 dispelminthreshold = atoi(row[110]);
+		loaded_bot->SetDispelMinThreshold(dispelminthreshold);
+		uint8 dotminthreshold = atoi(row[111]);
+		loaded_bot->SetDotMinThreshold(dotminthreshold);
+		uint8 escapeminthreshold = atoi(row[112]);
+		loaded_bot->SetEscapeMinThreshold(escapeminthreshold);
+		uint8 hatereduxminthreshold = atoi(row[113]);
+		loaded_bot->SetHateReduxMinThreshold(hatereduxminthreshold);
+		uint8 incombatbuffminthreshold = atoi(row[114]);
+		loaded_bot->SetInCombatBuffMinThreshold(incombatbuffminthreshold);
+		uint8 lifetapminthreshold = atoi(row[115]);
+		loaded_bot->SetLifetapMinThreshold(lifetapminthreshold);
+		uint8 mezminthreshold = atoi(row[116]);
+		loaded_bot->SetMezMinThreshold(mezminthreshold);
+		uint8 nukeminthreshold = atoi(row[117]);
+		loaded_bot->SetNukeMinThreshold(nukeminthreshold);
+		uint8 rootminthreshold = atoi(row[118]);
+		loaded_bot->SetRootMinThreshold(rootminthreshold);
+		uint8 slowminthreshold = atoi(row[119]);
+		loaded_bot->SetSlowMinThreshold(slowminthreshold);
+		uint8 snareminthreshold = atoi(row[120]);
+		loaded_bot->SetSnareMinThreshold(snareminthreshold);
 	}
 
 	return true;
@@ -631,29 +745,67 @@ bool BotDatabase::SaveNewBot(Bot* bot_inst, uint32& bot_id)
 		" `hold_mez`,"
 		" `hold_nukes`,"
 		" `hold_outofcombatbuffsongs`,"
+		" `hold_pet_heals`,"
 		" `hold_pets`,"
 		" `hold_precombatbuffs`,"
 		" `hold_precombatbuffsongs`,"
 		" `hold_roots`,"
 		" `hold_slows`,"
 		" `hold_snares`,"
-		" `nuke_delay`,"
-		" `auto_resist`,"
 		" `auto_ds`,"
+		" `auto_resist`,"
 		" `behind_mob`,"
 		" `caster_range`,"
-		" `debuff_delay`,"
-		" `slow_delay`,"
-		" `dot_delay`,"
-		" `lifetap_delay`,"
-		" `heal_delay`,"
-		" `fast_heal_delay`,"
+		" `buff_delay`,"
 		" `complete_heal_delay`,"
+		" `cure_delay`,"
+		" `debuff_delay`,"
+		" `dispel_delay`,"
+		" `dot_delay`,"
+		" `escape_delay`,"
+		" `fast_heal_delay`,"
+		" `hate_redux_delay`,"
+		" `heal_delay`,"
 		" `hot_heal_delay`,"
-		" `heal_threshold`,"
-		" `fast_heal_threshold`,"
+		" `incombatbuff_delay`,"
+		" `lifetap_delay`,"
+		" `mez_delay`,"
+		" `nuke_delay`,"
+		" `root_delay`,"
+		" `slow_delay`,"
+		" `snare_delay`,"
+		" `buff_threshold`,"
 		" `complete_heal_threshold`,"
-		" `hot_heal_threshold`"
+		" `cure_threshold`,"
+		" `debuff_threshold`,"
+		" `dispel_threshold`,"
+		" `dot_threshold`,"
+		" `escape_threshold`,"
+		" `fast_heal_threshold`,"
+		" `hate_redux_threshold`,"
+		" `heal_threshold`,"
+		" `hot_heal_threshold`,"
+		" `incombatbuff_threshold`,"
+		" `lifetap_threshold`,"
+		" `mez_threshold`,"
+		" `nuke_threshold`,"
+		" `root_threshold`,"
+		" `slow_threshold`,"
+		" `snare_threshold`,"
+		" `buff_min_threshold`,"
+		" `cure_min_threshold`,"
+		" `debuff_min_threshold`,"
+		" `dispel_min_threshold`,"
+		" `dot_min_threshold`,"
+		" `escape_min_threshold`,"
+		" `hate_redux_min_threshold`,"
+		" `incombatbuff_min_threshold`,"
+		" `lifetap_min_threshold`,"
+		" `mez_min_threshold`,"
+		" `nuke_min_threshold`,"
+		" `root_min_threshold`,"
+		" `slow_min_threshold`,"
+		" `snare_min_threshold`"
 		")"
 		" VALUES ("
 		"'%u',"					/* owner_id */
@@ -705,37 +857,75 @@ bool BotDatabase::SaveNewBot(Bot* bot_inst, uint32& bot_id)
 		" '%u',"				/* hold_debuffs*/
 		" '%u',"				/* hold_dispels*/
 		" '%u',"				/* hold_escapes*/
-		" '%u',"				/* hold_haterefux*/
+		" '%u',"				/* hold_hateredux*/
 		" '%u',"				/* hold_heals*/
-		" '%u',"				/* hold_ncombatbuff*/
+		" '%u',"				/* hold_incombatbuff*/
 		" '%u',"				/* hold_incombatbuffsongs*/
 		" '%u',"				/* hold_lifetaps*/
 		" '%u',"				/* hold_mez*/
 		" '%u',"				/* hold_nukes*/
 		" '%u',"				/* hold_outofcombatbuffsongs*/
+		" '%u',"				/* hold_pet_heals*/
 		" '%u',"				/* hold_pets*/
 		" '%u',"				/* hold_precombatbuffs*/
 		" '%u',"				/* hold_precombatbuffsongs*/
 		" '%u',"				/* hold_roots*/
 		" '%u',"				/* hold_slows*/
 		" '%u',"				/* hold_snares*/
-		" '%u',"				/* nuke_delay */
-		" '%u',"				/* auto resist */
 		" '%u',"				/* auto ds */
+		" '%u',"				/* auto resist */
 		" '%u',"				/* behind mob */
 		" '%u',"				/* caster range */
-		" '%u',"				/* debuff delay */
-		" '%u',"				/* slow delay */
-		" '%u',"				/* dot delay */
-		" '%u',"				/* lifetap delay */
-		" '%u',"				/* heal delay */
-		" '%u',"				/* fast heal delay */
-		" '%u',"				/* complete heal  delay */
-		" '%u',"				/* hot heal  delay */
-		" '%u',"				/* heal threshold */
-		" '%u',"				/* fast heal threshold */
-		" '%u',"				/* complete heal threshold */
-		" '%u'"				/* hot heal threshold */
+		" '%u',"				/* buff_delay, " */
+		" '%u',"				/* complete_heal_delay, " */
+		" '%u',"				/* cure_delay, " */
+		" '%u',"				/* debuff_delay, " */
+		" '%u',"				/* dispel_delay, " */
+		" '%u',"				/* dot_delay, " */
+		" '%u',"				/* escape_delay, " */
+		" '%u',"				/* fast_heal_delay, " */
+		" '%u',"				/* hate_redux_delay, " */
+		" '%u',"				/* heal_delay, " */
+		" '%u',"				/* hot_heal_delay, " */
+		" '%u',"				/* incombatbuff_delay, " */
+		" '%u',"				/* lifetap_delay, " */
+		" '%u',"				/* mez_delay, " */
+		" '%u',"				/* nuke_delay, " */
+		" '%u',"				/* root_delay, " */
+		" '%u',"				/* slow_delay, " */
+		" '%u',"				/* snare_delay, " */
+		" '%u',"				/* buff_threshold, " */
+		" '%u',"				/* complete_heal_threshold, " */
+		" '%u',"				/* cure_threshold, " */
+		" '%u',"				/* debuff_threshold, " */
+		" '%u',"				/* dispel_threshold, " */
+		" '%u',"				/* dot_threshold, " */
+		" '%u',"				/* escape_threshold, " */
+		" '%u',"				/* fast_heal_threshold, " */
+		" '%u',"				/* hate_redux_threshold, " */
+		" '%u',"				/* heal_threshold, " */
+		" '%u',"				/* hot_heal_threshold, " */
+		" '%u',"				/* incombatbuff_threshold, " */
+		" '%u',"				/* lifetap_threshold, " */
+		" '%u',"				/* mez_threshold, " */
+		" '%u',"				/* nuke_threshold, " */
+		" '%u',"				/* root_threshold, " */
+		" '%u',"				/* slow_threshold, " */
+		" '%u',"				/* snare_threshold" */
+		" '%u',"				/* buff_min_threshold, " */
+		" '%u',"				/* cure_min_threshold, " */
+		" '%u',"				/* debuff_min_threshold, " */
+		" '%u',"				/* dispel_min_threshold, " */
+		" '%u',"				/* dot_min_threshold, " */
+		" '%u',"				/* escape_min_threshold, " */
+		" '%u',"				/* hate_redux_min_threshold, " */
+		" '%u',"				/* incombatbuff_min_threshold, " /*/
+		" '%u',"				/* lifetap_min_threshold, " /*/
+		" '%u',"				/* mez_min_threshold, " */
+		" '%u',"				/* nuke_min_threshold, " */
+		" '%u',"				/* root_min_threshold, " */
+		" '%u',"				/* slow_min_threshold, " */
+		" '%u'"					/* snare_min_threshold" */
 		")",
 		bot_inst->GetBotOwnerCharacterID(),
 		bot_inst->GetBotSpellID(),
@@ -776,43 +966,81 @@ bool BotDatabase::SaveNewBot(Bot* bot_inst, uint32& bot_id)
 		bot_inst->GetCorrup(),
 		(uint32)BOT_FOLLOW_DISTANCE_DEFAULT,
 		(IsCasterClass(bot_inst->GetClass()) ? (uint8)RuleI(Bots, CasterStopMeleeLevel) : 255),
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		1,
-		1,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		55,
-		35,
-		70,
-		85
+		0,			/* hold_buffs*/
+		0,			/* hold_cures*/
+		0,			/* hold_dots*/
+		0,			/* hold_debuffs*/
+		1,			/* hold_dispels*/
+		0,			/* hold_escapes*/
+		0,			/* hold_hateredux*/
+		0,			/* hold_heals*/
+		0,			/* hold_incombatbuff*/
+		0,			/* hold_incombatbuffsongs*/
+		0,			/* hold_lifetaps*/
+		0,			/* hold_mez*/
+		0,			/* hold_nukes*/
+		0,			/* hold_outofcombatbuffsongs*/
+		0,			/* hold_pet_heals*/
+		0,			/* hold_pets*/
+		0,			/* hold_precombatbuffs*/
+		0,			/* hold_precombatbuffsongs*/
+		1,			/* hold_roots*/
+		0,			/* hold_slows*/
+		0,			/* hold_snares*/
+		1,			/* auto ds */
+		1,			/* auto resist */
+		0,			/* behind mob */
+		90,			/* caster range */
+		1,			/* buff_delay */
+		8000,		/* complete_heal_delay */
+		1,			/* cure_delay */
+		12000,		/* debuff_delay */
+		1,			/* dispel_delay */
+		12000,		/* dot_delay */
+		1,			/* escape_delay */
+		2500,		/* fast_heal_delay */
+		1,			/* hate_redux_delay */
+		4500,		/* heal_delay */
+		22000,		/* hot_heal_delay */
+		1,			/* incombatbuff_delay */
+		1,			/* lifetap_delay */
+		1,			/* mez_delay */
+		8000,		/* nuke_delay */
+		12000,		/* root_delay */
+		12000,		/* slow_delay */
+		12000,		/* snare_delay */
+		150,		/* buff_threshold */
+		70,			/* complete_heal_threshold */
+		150,		/* cure_threshold */
+		95,			/* debuff_threshold */
+		99,			/* dispel_threshold */
+		95,			/* dot_threshold */
+		35,			/* escape_threshold */
+		35,			/* fast_heal_threshold */
+		80,			/* hate_redux_threshold */
+		55,			/* heal_threshold */
+		85,			/* hot_heal_threshold */
+		150,		/* incombatbuff_threshold */
+		60,			/* lifetap_threshold */
+		150,		/* mez_threshold */
+		95,			/* nuke_threshold */
+		95,			/* root_threshold */
+		95,			/* slow_threshold */
+		95,			/* snare_threshold */
+		0,			/* buff_min_threshold */
+		0,			/* cure_min_threshold */
+		25,			/* debuff_min_threshold */
+		25,			/* dispel_min_threshold */
+		50,			/* dot_min_threshold */
+		0,			/* escape_min_threshold */
+		0,			/* hate_redux_min_threshold */
+		0,			/* incombatbuff_min_threshold */
+		0,			/* lifetap_min_threshold */
+		85,			/* mez_min_threshold */
+		20,			/* nuke_min_threshold */
+		15,			/* root_min_threshold */
+		25,			/* slow_min_threshold */
+		0			/* snare_min_threshold */
 	);
 	auto results = database.QueryDatabase(query);
 	if (!results.Success())
@@ -887,29 +1115,67 @@ bool BotDatabase::SaveBot(Bot* bot_inst)
 		" `hold_mez` = '%u',"
 		" `hold_nukes` = '%u',"
 		" `hold_outofcombatbuffsongs` = '%u',"
+		" `hold_pet_heals` = '%u',"
 		" `hold_pets` = '%u',"
 		" `hold_precombatbuffs` = '%u',"
 		" `hold_precombatbuffsongs` = '%u',"
 		" `hold_roots` = '%u',"
 		" `hold_slows` = '%u',"
-		" `hold_snares` = '%u',"
-		" `nuke_delay` = '%u',"
-		" `auto_resist` = '%u',"
+		" `hold_snares` = '%u',"		
 		" `auto_ds` = '%u',"
+		" `auto_resist` = '%u',"
 		" `behind_mob` = '%u',"
 		" `caster_range` = '%u',"
-		" `debuff_delay` = '%u',"
-		" `slow_delay` = '%u',"
-		" `dot_delay` = '%u',"
-		" `lifetap_delay` = '%u',"
-		" `heal_delay` = '%u',"
-		" `fast_heal_delay` = '%u',"
+		" `buff_delay` = '%u',"
 		" `complete_heal_delay` = '%u',"
+		" `cure_delay` = '%u',"
+		" `debuff_delay` = '%u',"
+		" `dispel_delay` = '%u',"
+		" `dot_delay` = '%u',"
+		" `escape_delay` = '%u',"
+		" `fast_heal_delay` = '%u',"
+		" `hate_redux_delay` = '%u',"
+		" `heal_delay` = '%u',"
 		" `hot_heal_delay` = '%u',"
-		" `heal_threshold` = '%u',"
-		" `fast_heal_threshold` = '%u',"
+		" `incombatbuff_delay` = '%u',"
+		" `lifetap_delay` = '%u',"
+		" `mez_delay` = '%u',"
+		" `nuke_delay` = '%u',"
+		" `root_delay` = '%u',"
+		" `slow_delay` = '%u',"
+		" `snare_delay` = '%u',"
+		" `buff_threshold` = '%u',"
 		" `complete_heal_threshold` = '%u',"
+		" `cure_threshold` = '%u',"
+		" `debuff_threshold` = '%u',"
+		" `dispel_threshold` = '%u',"
+		" `dot_threshold` = '%u',"
+		" `escape_threshold` = '%u',"
+		" `fast_heal_threshold` = '%u',"
+		" `hate_redux_threshold` = '%u',"
+		" `heal_threshold` = '%u',"
 		" `hot_heal_threshold` = '%u',"
+		" `incombatbuff_threshold` = '%u',"
+		" `lifetap_threshold` = '%u',"
+		" `mez_threshold` = '%u',"
+		" `nuke_threshold` = '%u',"
+		" `root_threshold` = '%u',"
+		" `slow_threshold` = '%u',"
+		" `snare_threshold` = '%u',"
+		" `buff_min_threshold` = '%u',"
+		" `cure_min_threshold` = '%u',"
+		" `debuff_min_threshold` = '%u',"
+		" `dispel_min_threshold` = '%u',"
+		" `dot_min_threshold` = '%u',"
+		" `escape_min_threshold` = '%u',"
+		" `hate_redux_min_threshold` = '%u',"
+		" `incombatbuff_min_threshold` = '%u',"
+		" `lifetap_min_threshold` = '%u',"
+		" `mez_min_threshold` = '%u',"
+		" `nuke_min_threshold` = '%u'," 
+		" `root_min_threshold` = '%u',"
+		" `slow_min_threshold` = '%u',"
+		" `snare_min_threshold` = '%u',"
 		" `title` = '%s',"
 		" `suffix` = '%s'"
 		" WHERE `bot_id` = '%u'",
@@ -968,29 +1234,67 @@ bool BotDatabase::SaveBot(Bot* bot_inst)
 		bot_inst->GetHoldMez(),
 		bot_inst->GetHoldNukes(),
 		bot_inst->GetHoldOutOfCombatBuffSongs(),
+		bot_inst->GetHoldPetHeals(),
 		bot_inst->GetHoldPets(),
 		bot_inst->GetHoldPreCombatBuffs(),
 		bot_inst->GetHoldPreCombatBuffSongs(),
 		bot_inst->GetHoldRoots(),
 		bot_inst->GetHoldSlows(),
 		bot_inst->GetHoldSnares(),
-		bot_inst->GetNukeDelay(),
-		bot_inst->GetAutoResist(),
 		bot_inst->GetAutoDS(),
+		bot_inst->GetAutoResist(),
 		bot_inst->GetBehindMob(),
 		bot_inst->GetBotCasterRange(),
-		bot_inst->GetDebuffDelay(),
-		bot_inst->GetSlowDelay(),
-		bot_inst->GetDotDelay(),
-		bot_inst->GetLifetapDelay(),
-		bot_inst->GetHealDelay(),
-		bot_inst->GetFastHealDelay(),
+		bot_inst->GetBuffDelay(),
 		bot_inst->GetCompleteHealDelay(),
+		bot_inst->GetCureDelay(),
+		bot_inst->GetDebuffDelay(),
+		bot_inst->GetDispelDelay(),
+		bot_inst->GetDotDelay(),
+		bot_inst->GetEscapeDelay(),
+		bot_inst->GetFastHealDelay(),
+		bot_inst->GetHateReduxDelay(),
+		bot_inst->GetHealDelay(),
 		bot_inst->GetHotHealDelay(),
-		bot_inst->GetHealThreshold(),
-		bot_inst->GetFastHealThreshold(),
+		bot_inst->GetInCombatBuffDelay(),
+		bot_inst->GetLifetapDelay(),
+		bot_inst->GetMezDelay(),
+		bot_inst->GetNukeDelay(),
+		bot_inst->GetRootDelay(),
+		bot_inst->GetSlowDelay(),
+		bot_inst->GetSnareDelay(),
+		bot_inst->GetBuffThreshold(),
 		bot_inst->GetCompleteHealThreshold(),
+		bot_inst->GetCureThreshold(),
+		bot_inst->GetDebuffThreshold(),
+		bot_inst->GetDispelThreshold(),
+		bot_inst->GetDotThreshold(),
+		bot_inst->GetEscapeThreshold(),
+		bot_inst->GetFastHealThreshold(),
+		bot_inst->GetHateReduxThreshold(),
+		bot_inst->GetHealThreshold(),
 		bot_inst->GetHotHealThreshold(),
+		bot_inst->GetInCombatBuffThreshold(),
+		bot_inst->GetLifetapThreshold(),
+		bot_inst->GetMezThreshold(),
+		bot_inst->GetNukeThreshold(),
+		bot_inst->GetRootThreshold(),
+		bot_inst->GetSlowThreshold(),
+		bot_inst->GetSnareThreshold(),
+		bot_inst->GetBuffMinThreshold(),
+		bot_inst->GetCureMinThreshold(),
+		bot_inst->GetDebuffMinThreshold(),
+		bot_inst->GetDispelMinThreshold(),
+		bot_inst->GetDotMinThreshold(),
+		bot_inst->GetEscapeMinThreshold(),
+		bot_inst->GetHateReduxMinThreshold(),
+		bot_inst->GetInCombatBuffMinThreshold(),
+		bot_inst->GetLifetapMinThreshold(),
+		bot_inst->GetMezMinThreshold(),
+		bot_inst->GetNukeMinThreshold(),
+		bot_inst->GetRootMinThreshold(),
+		bot_inst->GetSlowMinThreshold(),
+		bot_inst->GetSnareMinThreshold(),
 		bot_inst->GetTitle().c_str(),
 		bot_inst->GetSuffix().c_str(),
 		bot_inst->GetBotID()
@@ -2393,29 +2697,67 @@ bool BotDatabase::CreateCloneBot(const uint32 owner_id, const uint32 bot_id, con
 		" `hold_mez`,"
 		" `hold_nukes`,"
 		" `hold_outofcombatbuffsongs`,"
+		" `hold_pet_heals`,"
 		" `hold_pets`,"
 		" `hold_precombatbuffs`,"
 		" `hold_precombatbuffsongs`,"
 		" `hold_roots`,"
 		" `hold_slows`,"
 		" `hold_snares`,"
-		" `nuke_delay`,"
-		" `auto_resist`,"
 		" `auto_ds`,"
+		" `auto_resist`,"
 		" `behind_mob`,"
 		" `caster_range`,"
-		" `debuff_delay`,"
-		" `slow_delay`,"
-		" `dot_delay`,"
-		" `lifetap_delay`,"
-		" `heal_delay`,"
-		" `fast_heal_delay`,"
+		" `buff_delay`,"
 		" `complete_heal_delay`,"
+		" `cure_delay`,"
+		" `debuff_delay`,"
+		" `dispel_delay`,"
+		" `dot_delay`,"
+		" `escape_delay`,"
+		" `fast_heal_delay`,"
+		" `hate_redux_delay`,"
+		" `heal_delay`,"
 		" `hot_heal_delay`,"
-		" `heal_threshold`,"
-		" `fast_heal_threshold`,"
+		" `incombatbuff_delay`,"
+		" `lifetap_delay`,"
+		" `mez_delay`,"
+		" `nuke_delay`,"
+		" `root_delay`,"
+		" `slow_delay`,"
+		" `snare_delay`,"
+		" `buff_threshold`,"
 		" `complete_heal_threshold`,"
-		" `hot_heal_threshold`"
+		" `cure_threshold`,"
+		" `debuff_threshold`,"
+		" `dispel_threshold`,"
+		" `dot_threshold`,"
+		" `escape_threshold`,"
+		" `fast_heal_threshold`,"
+		" `hate_redux_threshold`,"
+		" `heal_threshold`,"
+		" `hot_heal_threshold`,"
+		" `incombatbuff_threshold`,"
+		" `lifetap_threshold`,"
+		" `mez_threshold`,"
+		" `nuke_threshold`,"
+		" `root_threshold`,"
+		" `slow_threshold`,"
+		" `snare_threshold`,"
+		" `buff_min_threshold`,"
+		" `cure_min_threshold`,"
+		" `debuff_min_threshold`,"
+		" `dispel_min_threshold`,"
+		" `dot_min_threshold`,"
+		" `escape_min_threshold`,"
+		" `hate_redux_min_threshold`,"
+		" `incombatbuff_min_threshold`,"
+		" `lifetap_min_threshold`,"
+		" `mez_min_threshold`,"
+		" `nuke_min_threshold`,"
+		" `root_min_threshold`,"
+		" `slow_min_threshold`,"
+		" `snare_min_threshold`"
 		")"
 		" SELECT"
 		" bd.`owner_id`,"
@@ -2478,29 +2820,67 @@ bool BotDatabase::CreateCloneBot(const uint32 owner_id, const uint32 bot_id, con
 		" bd.`hold_mez`,"
 		" bd.`hold_nukes`,"
 		" bd.`hold_outofcombatbuffsongs`,"
+		" bd.`hold_pet_heals`,"
 		" bd.`hold_pets`,"
 		" bd.`hold_precombatbuffs`,"
 		" bd.`hold_precombatbuffsongs`,"
 		" bd.`hold_roots`,"
 		" bd.`hold_slows`,"
 		" bd.`hold_snares`,"
-		" bd.`nuke_delay`,"
-		" bd.`auto_resist`,"
 		" bd.`auto_ds`,"
+		" bd.`auto_resist`,"
 		" bd.`behind_mob`,"
 		" bd.`caster_range`,"
-		" bd.`debuff_delay`,"
-		" bd.`slow_delay`,"
-		" bd.`dot_delay`,"
-		" bd.`lifetap_delay`,"
-		" bd.`heal_delay`,"
-		" bd.`fast_heal_delay`,"
+		" bd.`buff_delay`,"
 		" bd.`complete_heal_delay`,"
+		" bd.`cure_delay`,"
+		" bd.`debuff_delay`,"
+		" bd.`dispel_delay`,"
+		" bd.`dot_delay`,"
+		" bd.`escape_delay`,"
+		" bd.`fast_heal_delay`,"
+		" bd.`hate_redux_delay`,"
+		" bd.`heal_delay`,"
 		" bd.`hot_heal_delay`,"
-		" bd.`heal_threshold`,"
-		" bd.`fast_heal_threshold`,"
+		" bd.`incombatbuff_delay`,"
+		" bd.`lifetap_delay`,"
+		" bd.`mez_delay`,"
+		" bd.`nuke_delay`,"
+		" bd.`root_delay`,"
+		" bd.`slow_delay`,"
+		" bd.`snare_delay`,"
+		" bd.`buff_threshold`,"
 		" bd.`complete_heal_threshold`,"
-		" bd.`hot_heal_threshold`"
+		" bd.`cure_threshold`,"
+		" bd.`debuff_threshold`,"
+		" bd.`dispel_threshold`,"
+		" bd.`dot_threshold`,"
+		" bd.`escape_threshold`,"
+		" bd.`fast_heal_threshold`,"
+		" bd.`hate_redux_threshold`,"
+		" bd.`heal_threshold`,"
+		" bd.`hot_heal_threshold`,"
+		" bd.`incombatbuff_threshold`,"
+		" bd.`lifetap_threshold`,"
+		" bd.`mez_threshold`,"
+		" bd.`nuke_threshold`,"
+		" bd.`root_threshold`,"
+		" bd.`slow_threshold`,"
+		" bd.`snare_threshold`,"
+		" bd.`buff_min_threshold`,"
+		" bd.`cure_min_threshold`,"
+		" bd.`debuff_min_threshold`,"
+		" bd.`dispel_min_threshold`,"
+		" bd.`dot_min_threshold`,"
+		" bd.`escape_min_threshold`,"
+		" bd.`hate_redux_min_threshold`,"
+		" bd.`incombatbuff_min_threshold`,"
+		" bd.`lifetap_min_threshold`,"
+		" bd.`mez_min_threshold`,"
+		" bd.`nuke_min_threshold`,"
+		" bd.`root_min_threshold`,"
+		" bd.`slow_min_threshold`,"
+		" bd.`snare_min_threshold`"
 		" FROM `bot_data` bd"
 		" WHERE"
 		" bd.`owner_id` = '%u'"
@@ -2601,6 +2981,7 @@ bool BotDatabase::SaveStopMeleeLevel(const uint32 owner_id, const uint32 bot_id,
 	return true;
 }
 
+//Custom spell commands
 bool BotDatabase::SaveHoldBuffs(const uint32 owner_id, const uint32 bot_id, const uint8 hbuffs_value)
 {
 	if (!owner_id || !bot_id)
@@ -2896,6 +3277,27 @@ bool BotDatabase::SaveHoldOutOfCombatBuffSongs(const uint32 owner_id, const uint
 	return true;
 }
 
+bool BotDatabase::SaveHoldPetHeals(const uint32 owner_id, const uint32 bot_id, const uint8 hpets_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hold_pet_heals` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		hpets_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
 bool BotDatabase::SaveHoldPets(const uint32 owner_id, const uint32 bot_id, const uint8 hpets_value)
 {
 	if (!owner_id || !bot_id)
@@ -3022,17 +3424,17 @@ bool BotDatabase::SaveHoldSnares(const uint32 owner_id, const uint32 bot_id, con
 	return true;
 }
 
-bool BotDatabase::SaveNukeDelay(const uint32 owner_id, const uint32 bot_id, const uint32 nd_value)
+bool BotDatabase::SaveAutoDS(const uint32 owner_id, const uint32 bot_id, const uint8 ad_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
 
 	query = StringFormat(
 		"UPDATE `bot_data`"
-		" SET `nuke_delay` = '%u'"
+		" SET `auto_ds` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		nd_value,
+		ad_value,
 		owner_id,
 		bot_id
 	);
@@ -3042,6 +3444,7 @@ bool BotDatabase::SaveNukeDelay(const uint32 owner_id, const uint32 bot_id, cons
 
 	return true;
 }
+
 
 bool BotDatabase::SaveAutoResist(const uint32 owner_id, const uint32 bot_id, const uint8 ar_value)
 {
@@ -3054,27 +3457,6 @@ bool BotDatabase::SaveAutoResist(const uint32 owner_id, const uint32 bot_id, con
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
 		ar_value,
-		owner_id,
-		bot_id
-	);
-	auto results = database.QueryDatabase(query);
-	if (!results.Success())
-		return false;
-
-	return true;
-}
-
-bool BotDatabase::SaveAutoDS(const uint32 owner_id, const uint32 bot_id, const uint8 ad_value)
-{
-	if (!owner_id || !bot_id)
-		return false;
-
-	query = StringFormat(
-		"UPDATE `bot_data`"
-		" SET `auto_ds` = '%u'"
-		" WHERE `owner_id` = '%u'"
-		" AND `bot_id` = '%u'",
-		ad_value,
 		owner_id,
 		bot_id
 	);
@@ -3127,17 +3509,17 @@ bool BotDatabase::SaveBotCasterRange(const uint32 owner_id, const uint32 bot_id,
 	return true;
 }
 
-bool BotDatabase::SaveDebuffDelay(const uint32 owner_id, const uint32 bot_id, const uint32 debuff_delay_value)
+bool BotDatabase::SaveBuffDelay(const uint32 owner_id, const uint32 bot_id, const uint32 buff_delay_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
 
 	query = StringFormat(
 		"UPDATE `bot_data`"
-		" SET `debuff_delay` = '%u'"
+		" SET `buff_delay` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		debuff_delay_value,
+		buff_delay_value,
 		owner_id,
 		bot_id
 	);
@@ -3148,17 +3530,17 @@ bool BotDatabase::SaveDebuffDelay(const uint32 owner_id, const uint32 bot_id, co
 	return true;
 }
 
-bool BotDatabase::SaveSlowDelay(const uint32 owner_id, const uint32 bot_id, const uint32 slow_delay_value)
+bool BotDatabase::SaveBuffThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 buff_threshold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
 
 	query = StringFormat(
 		"UPDATE `bot_data`"
-		" SET `slow_delay` = '%u'"
+		" SET `buff_threshold` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		slow_delay_value,
+		buff_threshold_value,
 		owner_id,
 		bot_id
 	);
@@ -3169,80 +3551,17 @@ bool BotDatabase::SaveSlowDelay(const uint32 owner_id, const uint32 bot_id, cons
 	return true;
 }
 
-bool BotDatabase::SaveDotDelay(const uint32 owner_id, const uint32 bot_id, const uint32 dot_delay_value)
+bool BotDatabase::SaveBuffMinThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 buff_min_threshold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
 
 	query = StringFormat(
 		"UPDATE `bot_data`"
-		" SET `dot_delay` = '%u'"
+		" SET `buff_min_threshold` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		dot_delay_value,
-		owner_id,
-		bot_id
-	);
-	auto results = database.QueryDatabase(query);
-	if (!results.Success())
-		return false;
-
-	return true;
-}
-
-bool BotDatabase::SaveLifetapDelay(const uint32 owner_id, const uint32 bot_id, const uint32 lifetap_delay_value)
-{
-	if (!owner_id || !bot_id)
-		return false;
-
-	query = StringFormat(
-		"UPDATE `bot_data`"
-		" SET `lifetap_delay` = '%u'"
-		" WHERE `owner_id` = '%u'"
-		" AND `bot_id` = '%u'",
-		lifetap_delay_value,
-		owner_id,
-		bot_id
-	);
-	auto results = database.QueryDatabase(query);
-	if (!results.Success())
-		return false;
-
-	return true;
-}
-
-bool BotDatabase::SaveHealDelay(const uint32 owner_id, const uint32 bot_id, const uint32 heal_delay_value)
-{
-	if (!owner_id || !bot_id)
-		return false;
-
-	query = StringFormat(
-		"UPDATE `bot_data`"
-		" SET `heal_delay` = '%u'"
-		" WHERE `owner_id` = '%u'"
-		" AND `bot_id` = '%u'",
-		heal_delay_value,
-		owner_id,
-		bot_id
-	);
-	auto results = database.QueryDatabase(query);
-	if (!results.Success())
-		return false;
-
-	return true;
-}
-
-bool BotDatabase::SaveFastHealDelay(const uint32 owner_id, const uint32 bot_id, const uint32 fheal_delay_value)
-{
-	if (!owner_id || !bot_id)
-		return false;
-
-	query = StringFormat(
-		"UPDATE `bot_data`"
-		" SET `fast_heal_delay` = '%u'"
-		" WHERE `owner_id` = '%u'"
-		" AND `bot_id` = '%u'",
-		fheal_delay_value,
+		buff_min_threshold_value,
 		owner_id,
 		bot_id
 	);
@@ -3274,17 +3593,17 @@ bool BotDatabase::SaveCompleteHealDelay(const uint32 owner_id, const uint32 bot_
 	return true;
 }
 
-bool BotDatabase::SaveHotHealDelay(const uint32 owner_id, const uint32 bot_id, const uint32 hot_heal_delay_value)
+bool BotDatabase::SaveCompleteHealThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 cheal_threshold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
 
 	query = StringFormat(
 		"UPDATE `bot_data`"
-		" SET `hot_heal_delay` = '%u'"
+		" SET `complete_heal_threshold` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hot_heal_delay_value,
+		cheal_threshold_value,
 		owner_id,
 		bot_id
 	);
@@ -3295,17 +3614,332 @@ bool BotDatabase::SaveHotHealDelay(const uint32 owner_id, const uint32 bot_id, c
 	return true;
 }
 
-bool BotDatabase::SaveHealThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 heal_threshold_value)
+bool BotDatabase::SaveCureDelay(const uint32 owner_id, const uint32 bot_id, const uint32 cure_delay_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
 
 	query = StringFormat(
 		"UPDATE `bot_data`"
-		" SET `heal_threshold` = '%u'"
+		" SET `cure_delay` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		heal_threshold_value,
+		cure_delay_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveCureThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 cure_threshold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `cure_threshold` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		cure_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveCureMinThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 cure_min_threshold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `cure_min_threshold` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		cure_min_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveDebuffDelay(const uint32 owner_id, const uint32 bot_id, const uint32 debuff_delay_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `debuff_delay` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		debuff_delay_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveDebuffThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 debuff_threshold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `debuff_threshold` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		debuff_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveDebuffMinThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 debuff_min_threshold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `debuff_min_threshold` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		debuff_min_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveDispelDelay(const uint32 owner_id, const uint32 bot_id, const uint32 dispel_delay_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `dispel_delay` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		dispel_delay_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveDispelThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 dispel_threshold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `dispel_threshold` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		dispel_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveDispelMinThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 dispel_min_threshold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `dispel_min_threshold` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		dispel_min_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveDotDelay(const uint32 owner_id, const uint32 bot_id, const uint32 dot_delay_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `dot_delay` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		dot_delay_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveDotThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 dot_threshold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `dot_threshold` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		dot_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveDotMinThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 dot_min_threshold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `dot_min_threshold` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		dot_min_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveEscapeDelay(const uint32 owner_id, const uint32 bot_id, const uint32 escape_delay_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `escape_delay` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		escape_delay_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveEscapeThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 escape_threshold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `escape_threshold` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		escape_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveEscapeMinThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 escape_min_threshold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `escape_min_threshold` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		escape_min_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveFastHealDelay(const uint32 owner_id, const uint32 bot_id, const uint32 fheal_delay_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `fast_heal_delay` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		fheal_delay_value,
 		owner_id,
 		bot_id
 	);
@@ -3337,17 +3971,122 @@ bool BotDatabase::SaveFastHealThreshold(const uint32 owner_id, const uint32 bot_
 	return true;
 }
 
-bool BotDatabase::SaveCompleteHealThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 cheal_threshold_value)
+bool BotDatabase::SaveHateReduxDelay(const uint32 owner_id, const uint32 bot_id, const uint32 hateredux_delay_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
 
 	query = StringFormat(
 		"UPDATE `bot_data`"
-		" SET `complete_heal_threshold` = '%u'"
+		" SET `hate_redux_delay` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		cheal_threshold_value,
+		hateredux_delay_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveHateReduxThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 hateredux_threshold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hate_redux_threshold` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		hateredux_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveHateReduxMinThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 hateredux_min_threshold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hate_redux_min_threshold` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		hateredux_min_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveHealDelay(const uint32 owner_id, const uint32 bot_id, const uint32 heal_delay_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `heal_delay` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		heal_delay_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveHealThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 heal_threshold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `heal_threshold` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		heal_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveHotHealDelay(const uint32 owner_id, const uint32 bot_id, const uint32 hot_heal_delay_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hot_heal_delay` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		hot_heal_delay_value,
 		owner_id,
 		bot_id
 	);
@@ -3369,6 +4108,447 @@ bool BotDatabase::SaveHotHealThreshold(const uint32 owner_id, const uint32 bot_i
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
 		hotheal_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveInCombatBuffDelay(const uint32 owner_id, const uint32 bot_id, const uint32 incombatbuff_delay_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `incombatbuff_delay` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		incombatbuff_delay_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveLifetapDelay(const uint32 owner_id, const uint32 bot_id, const uint32 lifetap_delay_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `lifetap_delay` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		lifetap_delay_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveInCombatBuffThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 incombatbuff_threshold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `incombatbuff_threshold` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		incombatbuff_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveInCombatBuffMinThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 incombatbuff_min_threshold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `incombatbuff_min_threshold` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		incombatbuff_min_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveLifetapThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 lifetap_threshold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `lifetap_threshold` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		lifetap_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveLifetapMinThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 lifetap_min_threshold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `lifetap_min_threshold` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		lifetap_min_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveMezDelay(const uint32 owner_id, const uint32 bot_id, const uint32 mez_delay_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `mez_delay` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		mez_delay_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveMezThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 mez_threshold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `mez_threshold` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		mez_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveMezMinThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 mez_min_threshold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `mez_min_threshold` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		mez_min_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveNukeDelay(const uint32 owner_id, const uint32 bot_id, const uint32 nuke_delay_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `nuke_delay` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		nuke_delay_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveNukeThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 nuke_threshold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `nuke_threshold` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		nuke_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveNukeMinThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 nuke_min_threshold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `nuke_min_threshold` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		nuke_min_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveRootDelay(const uint32 owner_id, const uint32 bot_id, const uint32 root_delay_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `root_delay` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		root_delay_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveRootThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 root_threshold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `root_threshold` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		root_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveRootMinThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 root_min_threshold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `root_min_threshold` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		root_min_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveSlowDelay(const uint32 owner_id, const uint32 bot_id, const uint32 slow_delay_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `slow_delay` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		slow_delay_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveSlowThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 slow_threshold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `slow_threshold` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		slow_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveSlowMinThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 slow_min_threshold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `slow_min_threshold` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		slow_min_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveSnareDelay(const uint32 owner_id, const uint32 bot_id, const uint32 snare_delay_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `snare_delay` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		snare_delay_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveSnareThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 snare_threshold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `snare_threshold` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		snare_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveSnareMinThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 snare_min_threshold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `snare_min_threshold` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		snare_min_threshold_value,
 		owner_id,
 		bot_id
 	);
@@ -4387,6 +5567,8 @@ const char* BotDatabase::fail::SaveAllFollowDistances() { return "Failed to save
 const char* BotDatabase::fail::CreateCloneBot() { return "Failed to create clone bot"; }
 const char* BotDatabase::fail::CreateCloneBotInventory() { return "Failed to create clone bot inventory"; }
 const char* BotDatabase::fail::SaveStopMeleeLevel() { return "Failed to save stop melee level"; }
+
+//Custom spell commands
 const char* BotDatabase::fail::SaveHoldBuffs() { return "Failed to save hold buffs status"; }
 const char* BotDatabase::fail::SaveHoldCures() { return "Failed to save hold cures status"; }
 const char* BotDatabase::fail::SaveHoldDoTs() { return "Failed to save hold DoTs status"; }
@@ -4401,29 +5583,67 @@ const char* BotDatabase::fail::SaveHoldLifetaps() { return "Failed to save hold 
 const char* BotDatabase::fail::SaveHoldMez() { return "Failed to save hold mez status"; }
 const char* BotDatabase::fail::SaveHoldNukes() { return "Failed to save hold nukes status"; }
 const char* BotDatabase::fail::SaveHoldOutOfCombatBuffSongs() { return "Failed to save hold out-of-combat buff songs status"; }
+const char* BotDatabase::fail::SaveHoldPetHeals() { return "Failed to save hold pet heals status"; }
 const char* BotDatabase::fail::SaveHoldPets() { return "Failed to save hold pets status"; }
 const char* BotDatabase::fail::SaveHoldPreCombatBuffs() { return "Failed to save hold pre-combat buffs status"; }
 const char* BotDatabase::fail::SaveHoldPreCombatBuffSongs() { return "Failed to save pre-combat buff songs status"; }
 const char* BotDatabase::fail::SaveHoldRoots() { return "Failed to save hold roots status"; }
 const char* BotDatabase::fail::SaveHoldSlows() { return "Failed to save hold slows status"; }
 const char* BotDatabase::fail::SaveHoldSnares() { return "Failed to save hold snares status"; }
-const char* BotDatabase::fail::SaveNukeDelay() { return "Failed to save nuke delay timer"; }
-const char* BotDatabase::fail::SaveAutoResist() { return "Failed to save auto resists"; }
 const char* BotDatabase::fail::SaveAutoDS() { return "Failed to save auto damage shields"; }
+const char* BotDatabase::fail::SaveAutoResist() { return "Failed to save auto resists"; }
 const char* BotDatabase::fail::SaveBehindMob() { return "Failed to save behind mob"; }
 const char* BotDatabase::fail::SaveBotCasterRange() { return "Failed to save caster range"; }
-const char* BotDatabase::fail::SaveDebuffDelay() { return "Failed to save debuff delay timer"; }
-const char* BotDatabase::fail::SaveSlowDelay() { return "Failed to save slow delay timer"; }
-const char* BotDatabase::fail::SaveDotDelay() { return "Failed to save dot delay timer"; }
-const char* BotDatabase::fail::SaveLifetapDelay() { return "Failed to save lifetap delay timer"; }
-const char* BotDatabase::fail::SaveHealDelay() { return "Failed to save heal delay timer"; }
-const char* BotDatabase::fail::SaveFastHealDelay() { return "Failed to save fast heal delay timer"; }
+const char* BotDatabase::fail::SaveBuffDelay() { return "Failed to save buff delay timer"; }
 const char* BotDatabase::fail::SaveCompleteHealDelay() { return "Failed to save complete heal delay timer"; }
-const char* BotDatabase::fail::SaveHotHealDelay() { return "Failed to save hot heal delay timer"; }
-const char* BotDatabase::fail::SaveHealThreshold() { return "Failed to save heal threshold"; }
-const char* BotDatabase::fail::SaveFastHealThreshold() { return "Failed to save fast heal threshold"; }
+const char* BotDatabase::fail::SaveCureDelay() { return "Failed to save cure delay timer"; }
+const char* BotDatabase::fail::SaveDebuffDelay() { return "Failed to save debuff delay timer"; }
+const char* BotDatabase::fail::SaveDispelDelay() { return "Failed to save dispel delay timer"; }
+const char* BotDatabase::fail::SaveDotDelay() { return "Failed to save DoT delay timer"; }
+const char* BotDatabase::fail::SaveEscapeDelay() { return "Failed to save escape delay timer"; }
+const char* BotDatabase::fail::SaveFastHealDelay() { return "Failed to save fast heal delay timer"; }
+const char* BotDatabase::fail::SaveHateReduxDelay() { return "Failed to save hate redux delay timer"; }
+const char* BotDatabase::fail::SaveHealDelay() { return "Failed to save heal delay timer"; }
+const char* BotDatabase::fail::SaveHotHealDelay() { return "Failed to save HoT heal delay timer"; }
+const char* BotDatabase::fail::SaveInCombatBuffDelay() { return "Failed to save in-combat buff delay timer"; }
+const char* BotDatabase::fail::SaveLifetapDelay() { return "Failed to save lifetap delay timer"; }
+const char* BotDatabase::fail::SaveMezDelay() { return "Failed to save mez delay timer"; }
+const char* BotDatabase::fail::SaveNukeDelay() { return "Failed to save nuke delay timer"; }
+const char* BotDatabase::fail::SaveRootDelay() { return "Failed to save root delay timer"; }
+const char* BotDatabase::fail::SaveSlowDelay() { return "Failed to save slow delay timer"; }
+const char* BotDatabase::fail::SaveSnareDelay() { return "Failed to save snare delay timer"; }
+const char* BotDatabase::fail::SaveBuffThreshold() { return "Failed to save buff threshold"; }
 const char* BotDatabase::fail::SaveCompleteHealThreshold() { return "Failed to save complete heal threshold"; }
+const char* BotDatabase::fail::SaveCureThreshold() { return "Failed to save cure threshold"; }
+const char* BotDatabase::fail::SaveDebuffThreshold() { return "Failed to save debuff threshold"; }
+const char* BotDatabase::fail::SaveDispelThreshold() { return "Failed to save dispel threshold"; }
+const char* BotDatabase::fail::SaveDotThreshold() { return "Failed to save DoT threshold"; }
+const char* BotDatabase::fail::SaveEscapeThreshold() { return "Failed to save escape threshold"; }
+const char* BotDatabase::fail::SaveFastHealThreshold() { return "Failed to save fast heal threshold"; }
+const char* BotDatabase::fail::SaveHateReduxThreshold() { return "Failed to save hate redux threshold"; }
+const char* BotDatabase::fail::SaveHealThreshold() { return "Failed to save heal threshold"; }
 const char* BotDatabase::fail::SaveHotHealThreshold() { return "Failed to save hot heal threshold"; }
+const char* BotDatabase::fail::SaveInCombatBuffThreshold() { return "Failed to save in-combat buff threshold"; }
+const char* BotDatabase::fail::SaveLifetapThreshold() { return "Failed to save lifetap threshold"; }
+const char* BotDatabase::fail::SaveMezThreshold() { return "Failed to save mez threshold"; }
+const char* BotDatabase::fail::SaveNukeThreshold() { return "Failed to save nuke threshold"; }
+const char* BotDatabase::fail::SaveRootThreshold() { return "Failed to save root threshold"; }
+const char* BotDatabase::fail::SaveSlowThreshold() { return "Failed to save slow threshold"; }
+const char* BotDatabase::fail::SaveSnareThreshold() { return "Failed to save snare threshold"; }
+const char* BotDatabase::fail::SaveBuffMinThreshold() { return "Failed to save minimum buff threshold"; }
+const char* BotDatabase::fail::SaveCureMinThreshold() { return "Failed to save minimum cure threshold"; }
+const char* BotDatabase::fail::SaveDebuffMinThreshold() { return "Failed to save minimum debuff threshold"; }
+const char* BotDatabase::fail::SaveDispelMinThreshold() { return "Failed to save minimum dispel threshold"; }
+const char* BotDatabase::fail::SaveDotMinThreshold() { return "Failed to save minimum DoT threshold"; }
+const char* BotDatabase::fail::SaveEscapeMinThreshold() { return "Failed to save minimum escape threshold"; }
+const char* BotDatabase::fail::SaveHateReduxMinThreshold() { return "Failed to save minimum hate redux threshold"; }
+const char* BotDatabase::fail::SaveInCombatBuffMinThreshold() { return "Failed to save minimum in-combat buff threshold"; }
+const char* BotDatabase::fail::SaveLifetapMinThreshold() { return "Failed to save minimum lifetap threshold"; }
+const char* BotDatabase::fail::SaveMezMinThreshold() { return "Failed to save minimum mez threshold"; }
+const char* BotDatabase::fail::SaveNukeMinThreshold() { return "Failed to save minimum nuke threshold"; }
+const char* BotDatabase::fail::SaveRootMinThreshold() { return "Failed to save minimum root threshold"; }
+const char* BotDatabase::fail::SaveSlowMinThreshold() { return "Failed to save minimum slow threshold"; }
+const char* BotDatabase::fail::SaveSnareMinThreshold() { return "Failed to save minimum snare threshold"; }
 
 /* fail::Bot heal rotation functions   */
 const char* BotDatabase::fail::LoadHealRotationIDByBotID() { return "Failed to load heal rotation ID by bot ID"; }

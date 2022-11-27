@@ -2350,6 +2350,23 @@ void Bot::SetStopMeleeLevel(uint8 level) {
 		_stopMeleeLevel = 255;
 }
 
+void Bot::SetGuardMode() {
+
+	StopMoving();
+	m_GuardPoint = GetPosition();
+	SetGuardFlag();
+
+	if (HasPet() && (GetClass() != ENCHANTER || GetPet()->GetPetType() != petAnimation || GetAA(aaAnimationEmpathy) >= 2)) {
+		GetPet()->StopMoving();
+	}
+}
+
+void Bot::SetHoldMode() {
+
+	SetHoldFlag();
+}
+
+// Custom commands for spells
 void Bot::SetHoldBuffs(uint8 holdstatus) {
 	_holdBuffs = holdstatus;
 }
@@ -2406,6 +2423,10 @@ void Bot::SetHoldOutOfCombatBuffSongs(uint8 holdstatus) {
 	_holdOutOfCombatBuffSongs = holdstatus;
 }
 
+void Bot::SetHoldPetHeals(uint8 holdstatus) {
+	_holdpetHeals = holdstatus;
+}
+
 void Bot::SetHoldPets(uint8 holdstatus) {
 	_holdPets = holdstatus;
 }
@@ -2430,16 +2451,12 @@ void Bot::SetHoldSnares(uint8 holdstatus) {
 	_holdSnares = holdstatus;
 }
 
-void Bot::SetNukeDelay(uint32 nukedelay) {
-	_nukeDelay = nukedelay;
+void Bot::SetAutoDS(uint8 autods) {
+	_autoDS = autods;
 }
 
 void Bot::SetAutoResist(uint8 autoresist) {
 	_autoResist = autoresist;
-}
-
-void Bot::SetAutoDS(uint8 autods) {
-	_autoDS = autods;
 }
 
 void Bot::SetBehindMob(uint8 behindmobstatus) {
@@ -2450,68 +2467,204 @@ void Bot::SetBotCasterRange(uint32 botcasterrange) {
 	_botcasterRange = botcasterrange;
 }
 
-void Bot::SetDebuffDelay(uint32 debuffdelay) {
-	_debuffDelay = debuffdelay;
-}
-
-void Bot::SetSlowDelay(uint32 slowdelay) {
-	_slowDelay = slowdelay;
-}
-
-void Bot::SetDotDelay(uint32 dotdelay) {
-	_dotDelay = dotdelay;
-}
-
-void Bot::SetLifetapDelay(uint32 lifetapdelay) {
-	_lifetapDelay = lifetapdelay;
-}
-
-void Bot::SetHealDelay(uint32 healdelay) {
-	_healDelay = healdelay;
-}
-
-void Bot::SetFastHealDelay(uint32 fhealdelay) {
-	_fhealDelay = fhealdelay;
+void Bot::SetBuffDelay(uint32 buffdelay) {
+	_buffDelay = buffdelay;
 }
 
 void Bot::SetCompleteHealDelay(uint32 chealdelay) {
 	_chealDelay = chealdelay;
 }
 
+void Bot::SetCureDelay(uint32 curedelay) {
+	_cureDelay = curedelay;
+}
+
+void Bot::SetDebuffDelay(uint32 debuffdelay) {
+	_debuffDelay = debuffdelay;
+}
+
+void Bot::SetDispelDelay(uint32 dispeldelay) {
+	_dispelDelay = dispeldelay;
+}
+
+void Bot::SetDotDelay(uint32 dotdelay) {
+	_dotDelay = dotdelay;
+}
+
+void Bot::SetEscapeDelay(uint32 escapedelay) {
+	_escapeDelay = escapedelay;
+}
+
+void Bot::SetFastHealDelay(uint32 fhealdelay) {
+	_fhealDelay = fhealdelay;
+}
+
+void Bot::SetHateReduxDelay(uint32 hatereduxdelay) {
+	_hatereduxDelay = hatereduxdelay;
+}
+
+void Bot::SetHealDelay(uint32 healdelay) {
+	_healDelay = healdelay;
+}
+
 void Bot::SetHotHealDelay(uint32 hothealdelay) {
 	_hothealDelay = hothealdelay;
 }
 
-void Bot::SetFastHealThreshold(uint8 fhealthreshold) {
-	_fhealThreshold = fhealthreshold;
+void Bot::SetInCombatBuffDelay(uint32 incombatbuffdelay) {
+	_incombatbuffDelay = incombatbuffdelay;
 }
 
-void Bot::SetHealThreshold(uint8 healthreshold) {
-	_healThreshold = healthreshold;
+void Bot::SetLifetapDelay(uint32 lifetapdelay) {
+	_lifetapDelay = lifetapdelay;
+}
+
+void Bot::SetMezDelay(uint32 mezdelay) {
+	_mezDelay = mezdelay;
+}
+
+void Bot::SetNukeDelay(uint32 nukedelay) {
+	_nukeDelay = nukedelay;
+}
+
+void Bot::SetRootDelay(uint32 rootdelay) {
+	_rootDelay = rootdelay;
+}
+
+void Bot::SetSlowDelay(uint32 slowdelay) {
+	_slowDelay = slowdelay;
+}
+
+void Bot::SetSnareDelay(uint32 snaredelay) {
+	_snareDelay = snaredelay;
 }
 
 void Bot::SetCompleteHealThreshold(uint8 chealthreshold) {
 	_chealThreshold = chealthreshold;
 }
 
+void Bot::SetBuffThreshold(uint8 buffthreshold) {
+	_buffThreshold = buffthreshold;
+}
+
+void Bot::SetBuffMinThreshold(uint8 buffminthreshold) {
+	_buffminThreshold = buffminthreshold;
+}
+
+void Bot::SetCureThreshold(uint8 curethreshold) {
+	_cureThreshold = curethreshold;
+}
+
+void Bot::SetCureMinThreshold(uint8 cureminthreshold) {
+	_cureminThreshold = cureminthreshold;
+}
+
+void Bot::SetDebuffThreshold(uint8 debuffthreshold) {
+	_debuffThreshold = debuffthreshold;
+}
+
+void Bot::SetDebuffMinThreshold(uint8 debuffminthreshold) {
+	_debuffminThreshold = debuffminthreshold;
+}
+
+void Bot::SetDispelThreshold(uint8 dispelthreshold) {
+	_dispelThreshold = dispelthreshold;
+}
+
+void Bot::SetDispelMinThreshold(uint8 dispelminthreshold) {
+	_dispelminThreshold = dispelminthreshold;
+}
+
+void Bot::SetDotThreshold(uint8 dotthreshold) {
+	_dotThreshold = dotthreshold;
+}
+
+void Bot::SetDotMinThreshold(uint8 dotminthreshold) {
+	_dotminThreshold = dotminthreshold;
+}
+
+void Bot::SetEscapeThreshold(uint8 escapethreshold) {
+	_escapeThreshold = escapethreshold;
+}
+
+void Bot::SetEscapeMinThreshold(uint8 escapeminthreshold) {
+	_escapeminThreshold = escapeminthreshold;
+}
+
+void Bot::SetFastHealThreshold(uint8 fhealthreshold) {
+	_fhealThreshold = fhealthreshold;
+}
+
+void Bot::SetHateReduxThreshold(uint8 hatereduxthreshold) {
+	_hatereduxThreshold = hatereduxthreshold;
+}
+
+void Bot::SetHateReduxMinThreshold(uint8 hatereduxminthreshold) {
+	_hatereduxminThreshold = hatereduxminthreshold;
+}
+
+void Bot::SetHealThreshold(uint8 healthreshold) {
+	_healThreshold = healthreshold;
+}
+
 void Bot::SetHotHealThreshold(uint8 hothealthreshold) {
 	_hothealThreshold = hothealthreshold;
 }
 
-void Bot::SetGuardMode() {
-
-	StopMoving();
-	m_GuardPoint = GetPosition();
-	SetGuardFlag();
-
-	if (HasPet() && (GetClass() != ENCHANTER || GetPet()->GetPetType() != petAnimation || GetAA(aaAnimationEmpathy) >= 2)) {
-		GetPet()->StopMoving();
-	}
+void Bot::SetInCombatBuffThreshold(uint8 incombatbuffthreshold) {
+	_incombatbuffThreshold = incombatbuffthreshold;
 }
 
-void Bot::SetHoldMode() {
+void Bot::SetInCombatBuffMinThreshold(uint8 incombatbuffminthreshold) {
+	_incombatbuffminThreshold = incombatbuffminthreshold;
+}
 
-	SetHoldFlag();
+void Bot::SetLifetapThreshold(uint8 lifetapthreshold) {
+	_lifetapThreshold = lifetapthreshold;
+}
+
+void Bot::SetLifetapMinThreshold(uint8 lifetapminthreshold) {
+	_lifetapminThreshold = lifetapminthreshold;
+}
+
+void Bot::SetMezThreshold(uint8 mezthreshold) {
+	_mezThreshold = mezthreshold;
+}
+
+void Bot::SetMezMinThreshold(uint8 mezminthreshold) {
+	_mezminThreshold = mezminthreshold;
+}
+
+void Bot::SetNukeThreshold(uint8 nukethreshold) {
+	_nukeThreshold = nukethreshold;
+}
+
+void Bot::SetNukeMinThreshold(uint8 nukeminthreshold) {
+	_nukeminThreshold = nukeminthreshold;
+}
+
+void Bot::SetRootThreshold(uint8 rootthreshold) {
+	_rootThreshold = rootthreshold;
+}
+
+void Bot::SetRootMinThreshold(uint8 rootminthreshold) {
+	_rootminThreshold = rootminthreshold;
+}
+
+void Bot::SetSlowThreshold(uint8 slowthreshold) {
+	_slowThreshold = slowthreshold;
+}
+
+void Bot::SetSlowMinThreshold(uint8 slowminthreshold) {
+	_slowminThreshold = slowminthreshold;
+}
+
+void Bot::SetSnareThreshold(uint8 snarethreshold) {
+	_snareThreshold = snarethreshold;
+}
+
+void Bot::SetSnareMinThreshold(uint8 snareminthreshold) {
+	_snareminThreshold = snareminthreshold;
 }
 
 // AI Processing for the Bot object
@@ -3277,8 +3430,8 @@ void Bot::AI_Process()
 									}
 
 									m_evade_timer.Start(timer_duration);
-									//BotGroupSay(this, "Attempting to evade %s", tar->GetCleanName());
-									bot_owner->Message(Chat::Tell, "%s tells you, Attempting to evade %s", GetCleanName(), tar->GetCleanName());
+									BotGroupSay(this, "Attempting to evade %s", tar->GetCleanName());
+									//bot_owner->Message(Chat::Tell, "%s tells you, Attempting to evade %s", GetCleanName(), tar->GetCleanName());
 									if (zone->random.Int(0, 260) < (int)GetSkill(EQ::skills::SkillHide)) {
 										SendAppearancePacket(AT_Invis, Invisibility::Invisible);
 										RogueEvade(tar);
@@ -3299,8 +3452,8 @@ void Bot::AI_Process()
 
 									m_monk_evade_timer.Start(timer_duration);
 									if (zone->random.Int(0, 260) < (int)GetSkill(EQ::skills::SkillFeignDeath)) {
-										//BotGroupSay(this, "Attempting to evade %s", tar->GetCleanName());
-										bot_owner->Message(Chat::Tell, "%s tells you, Attempting to evade %s", GetCleanName(), tar->GetCleanName());
+										BotGroupSay(this, "Attempting to evade %s", tar->GetCleanName());
+										//bot_owner->Message(Chat::Tell, "%s tells you, Attempting to evade %s", GetCleanName(), tar->GetCleanName());
 										if (zone->random.Int(0, 260) < (int)GetSkill(EQ::skills::SkillFeignDeath)) {
 											SetFeigned(false);
 											SendAppearancePacket(AT_Anim, ANIM_DEATH);
@@ -9633,44 +9786,48 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 	uint8 botCasterClass = caster->GetClass();
 
 	if( iSpellTypes == SpellType_Heal )	{
-		if( botCasterClass == CLERIC || botCasterClass == DRUID || botCasterClass == SHAMAN) {
+		if(botCasterClass == CLERIC || botCasterClass == DRUID || botCasterClass == SHAMAN) {
+			float hpRatioToHeal = 55.0f;
+			switch (caster->GetBotStance()) {
+			case EQ::constants::stanceReactive:
+				hpRatioToHeal = 85.0f;
+				break;
+			case EQ::constants::stanceBalanced:
+				hpRatioToHeal = 55.0f;
+				break;
+			case EQ::constants::stanceBurn:
+				hpRatioToHeal = 35.0f;
+				break;
+			case EQ::constants::stanceBurnAE:
+				hpRatioToHeal = 25.0f;
+				break;
+			case EQ::constants::stanceAggressive:
+				hpRatioToHeal = 0.0f;
+				break;
+			case EQ::constants::stanceEfficient:
+			default:
+				hpRatioToHeal = 70.0f;
+				break;
+			}
 			if(caster->HasGroup()) {
 				Group *g = caster->GetGroup();
 				if(g) {
 					for(int i = 0; i < MAX_GROUP_MEMBERS; i++) {
 						if(g->members[i] && !g->members[i]->qglobal) {
-							if(g->members[i]->IsClient() && g->members[i]->GetHPRatio() < 90) {
-								if(caster->AICastSpell(g->members[i], 100, SpellType_Heal))
-									return true;
-							} else if((g->members[i]->GetClass() == WARRIOR || g->members[i]->GetClass() == PALADIN || g->members[i]->GetClass() == SHADOWKNIGHT) && g->members[i]->GetHPRatio() < 95) {
-								if(caster->AICastSpell(g->members[i], 100, SpellType_Heal))
-									return true;
-							} else if(g->members[i]->GetClass() == ENCHANTER && g->members[i]->GetHPRatio() < 80) {
-								if(caster->AICastSpell(g->members[i], 100, SpellType_Heal))
-									return true;
-							} else if(g->members[i]->GetHPRatio() < 70) {
-								if(caster->AICastSpell(g->members[i], 100, SpellType_Heal))
+							if (g->members[i]->IsClient()) { //deleteme remove this after client addition
+								if (caster->AICastSpell(g->members[i], 100, SpellType_Heal))
 									return true;
 							}
-							else if (g->members[i]->IsBot()
-								&& (g->members[i]->CastToBot()->GetHealDelay() > 0
-									&& g->members[i]->CastToBot()->GetFastHealDelay() > 0
-									&& g->members[i]->CastToBot()->GetCompleteHealDelay() > 0
-									&& g->members[i]->CastToBot()->GetHotHealDelay() > 0)
-								&& (g->members[i]->CastToBot()->GetHealThreshold() <= g->members[i]->GetHPRatio()
-									|| g->members[i]->CastToBot()->GetFastHealThreshold() <= g->members[i]->GetHPRatio()
-									|| g->members[i]->CastToBot()->GetCompleteHealThreshold() <= g->members[i]->GetHPRatio()
-									|| g->members[i]->CastToBot()->GetHotHealThreshold() <= g->members[i]->GetHPRatio())
-								) {
+							else if (g->members[i]->IsBot()) { //deleteme remove this after client addition
 								if (caster->AICastSpell(g->members[i], 100, SpellType_Heal))
 									return true;
 							}
 						}
 
-						if(g->members[i] && !g->members[i]->qglobal && g->members[i]->HasPet() && g->members[i]->GetPet()->GetHPRatio() < 50) {
+						if(g->members[i] && !g->members[i]->qglobal && g->members[i]->HasPet() && g->members[i]->GetPet()->GetHPRatio() < hpRatioToHeal) {
 							if(g->members[i]->GetPet()->GetOwner() != caster && caster->IsEngaged() && g->members[i]->IsCasting() && g->members[i]->GetClass() != ENCHANTER )
 								continue;
-
+						
 							if(caster->AICastSpell(g->members[i]->GetPet(), 100, SpellType_Heal))
 								return true;
 						}
@@ -9692,39 +9849,18 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 					for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
 						//for (auto& iter : raid->GetRaidGroupMembers(g)) {
 						if (iter->member && entity_list.IsMobInZone(iter->member) && !iter->member->qglobal) { // do a message here to find hp to troubleshoot
-							if (iter->member->IsClient() && iter->member->GetHPRatio() < 90) {
+							if (iter->member->IsClient()) { //deleteme remove this after client addition
 								if (caster->AICastSpell(iter->member, 100, SpellType_Heal))
 									return true;
 							}
-							else if ((iter->member->GetClass() == WARRIOR || iter->member->GetClass() == PALADIN || iter->member->GetClass() == SHADOWKNIGHT) && iter->member->GetHPRatio() < 95) {
-								if (caster->AICastSpell(iter->member, 100, SpellType_Heal))
-									return true;
-							}
-							else if (iter->member->GetClass() == ENCHANTER && iter->member->GetHPRatio() < 80) {
-								if (caster->AICastSpell(iter->member, 100, SpellType_Heal))
-									return true;
-							}
-							else if (iter->member->GetHPRatio() < 70) {
-								if (caster->AICastSpell(iter->member, 100, SpellType_Heal))
-									return true;
-							}
-							else if (iter->member->IsBot()
-								&& (iter->member->CastToBot()->GetHealDelay() > 0
-									&& iter->member->CastToBot()->GetFastHealDelay() > 0
-									&& iter->member->CastToBot()->GetCompleteHealDelay() > 0
-									&& iter->member->CastToBot()->GetHotHealDelay() > 0)
-								&& (iter->member->CastToBot()->GetHealThreshold() <= iter->member->GetHPRatio()
-									|| iter->member->CastToBot()->GetFastHealThreshold() <= iter->member->GetHPRatio()
-									|| iter->member->CastToBot()->GetCompleteHealThreshold() <= iter->member->GetHPRatio()
-									|| iter->member->CastToBot()->GetHotHealThreshold() <= iter->member->GetHPRatio())
-								) {
+							else if (iter->member->IsBot()) { //deleteme remove this after client addition
 								if (caster->AICastSpell(iter->member, 100, SpellType_Heal))
 									return true;
 							}
 
 						}
 
-						if (iter->member && entity_list.IsMobInZone(iter->member) && !iter->member->qglobal && iter->member->HasPet() && iter->member->GetPet()->GetHPRatio() < 50) {
+						if (iter->member && entity_list.IsMobInZone(iter->member) && !iter->member->qglobal && iter->member->HasPet() && iter->member->GetPet()->GetHPRatio() < hpRatioToHeal) {
 							if (iter->member->GetPet()->GetOwner() != caster && caster->IsEngaged() && iter->member->IsCasting() && iter->member->GetClass() != ENCHANTER)
 								continue;
 
@@ -9738,81 +9874,80 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 		}
 
 		if( botCasterClass == PALADIN || botCasterClass == BEASTLORD || botCasterClass == RANGER) {
-			if(caster->HasGroup() || caster->IsRaidGrouped()) {
-				float hpRatioToHeal = 25.0f;
-				switch(caster->GetBotStance()) {
+			float hpRatioToHeal = 55.0f;
+			switch(caster->GetBotStance()) {
 				case EQ::constants::stanceReactive:
+					hpRatioToHeal = 85.0f;
+					break;
 				case EQ::constants::stanceBalanced:
-					hpRatioToHeal = 50.0f;
+					hpRatioToHeal = 55.0f;
 					break;
 				case EQ::constants::stanceBurn:
-				case EQ::constants::stanceBurnAE:
-					hpRatioToHeal = 20.0f;
+					hpRatioToHeal = 35.0f;
 					break;
-				case EQ::constants::stanceAggressive:
-				case EQ::constants::stanceEfficient:
-				default:
+				case EQ::constants::stanceBurnAE:
 					hpRatioToHeal = 25.0f;
 					break;
-				}
+				case EQ::constants::stanceAggressive:
+					hpRatioToHeal = 0.0f;
+					break;
+				case EQ::constants::stanceEfficient:
+				default:
+					hpRatioToHeal = 70.0f;
+					break;
+			}
+			if (caster->HasGroup()) {
 				Group* g = caster->GetGroup();
-				uint32 gid = 0xff;
-				Raid* raid = entity_list.GetRaidByBotName(caster->GetName());
-				if (raid)
-					uint32 gid = raid->GetGroup(caster->GetName());
-
-				if(g) {
-					for(int i = 0; i < MAX_GROUP_MEMBERS; i++) {
-						if(g->members[i] && !g->members[i]->qglobal) {
-							if(g->members[i]->IsClient() && g->members[i]->GetHPRatio() < hpRatioToHeal) {
-								if(caster->AICastSpell(g->members[i], 100, SpellType_Heal))
+				if (g) {
+					for (int i = 0; i < MAX_GROUP_MEMBERS; i++) {
+						if (g->members[i] && !g->members[i]->qglobal) {
+							if (g->members[i]->IsClient()) { //deleteme remove this after client addition
+								if (caster->AICastSpell(g->members[i], 100, SpellType_Heal))
 									return true;
-							} else if((g->members[i]->GetClass() == WARRIOR || g->members[i]->GetClass() == PALADIN || g->members[i]->GetClass() == SHADOWKNIGHT) && g->members[i]->GetHPRatio() < hpRatioToHeal) {
-								if(caster->AICastSpell(g->members[i], 100, SpellType_Heal))
-									return true;
-							} else if(g->members[i]->GetClass() == ENCHANTER && g->members[i]->GetHPRatio() < hpRatioToHeal) {
-								if(caster->AICastSpell(g->members[i], 100, SpellType_Heal))
-									return true;
-							} else if(g->members[i]->GetHPRatio() < hpRatioToHeal/2) {
-								if(caster->AICastSpell(g->members[i], 100, SpellType_Heal))
+							}
+							else if (g->members[i]->IsBot()) { //deleteme remove this after client addition
+								if (caster->AICastSpell(g->members[i], 100, SpellType_Heal))
 									return true;
 							}
 						}
 
-						if(g->members[i] && !g->members[i]->qglobal && g->members[i]->HasPet() && g->members[i]->GetPet()->GetHPRatio() < 25) {
-							if(g->members[i]->GetPet()->GetOwner() != caster && caster->IsEngaged() && g->members[i]->IsCasting() && g->members[i]->GetClass() != ENCHANTER )
+						if (g->members[i] && !g->members[i]->qglobal && g->members[i]->HasPet() && g->members[i]->GetPet()->GetHPRatio() < hpRatioToHeal) {
+							if (g->members[i]->GetPet()->GetOwner() != caster && caster->IsEngaged() && g->members[i]->IsCasting() && g->members[i]->GetClass() != ENCHANTER)
 								continue;
 
-							if(caster->AICastSpell(g->members[i]->GetPet(), 100, SpellType_Heal))
+							if (caster->AICastSpell(g->members[i]->GetPet(), 100, SpellType_Heal))
 								return true;
 						}
 					}
 				}
-				else if (gid < 12)
-				{
-					std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(gid);
+			}
+#ifdef BOTS
+			else if (caster->IsRaidGrouped())
+			{
+				//added raid check
+				Raid* raid = entity_list.GetRaidByBotName(caster->GetName());
+				uint32 gid = raid->GetGroup(caster->GetName());
+				if (gid < 12) {
+					//std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(gid);
+					std::vector<RaidMember> raid_group_members = raid->GetMembers();
+					//if (RuleB(Bots, CastOnAllRaidMembers)) {
+					//	std::vector<RaidMember> raid_group_members = raid->GetMembers();
+					//}
 					for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
-						//for (auto& iter : raid->GetRaidGroupMembers(gid)) {
-						if (iter->member && !iter->member->qglobal) {
-							if (iter->member->IsClient() && iter->member->GetHPRatio() < hpRatioToHeal) {
+						//for (auto& iter : raid->GetRaidGroupMembers(g)) {
+						if (iter->member && entity_list.IsMobInZone(iter->member) && !iter->member->qglobal) { // do a message here to find hp to troubleshoot
+							if (iter->member->IsClient()) { //deleteme remove this after client addition
 								if (caster->AICastSpell(iter->member, 100, SpellType_Heal))
 									return true;
 							}
-							else if ((iter->member->GetClass() == WARRIOR || iter->member->GetClass() == PALADIN || iter->member->GetClass() == SHADOWKNIGHT) && iter->member->GetHPRatio() < hpRatioToHeal) {
+							else if (iter->member->IsBot()) { //deleteme remove this after client addition
 								if (caster->AICastSpell(iter->member, 100, SpellType_Heal))
 									return true;
 							}
-							else if (iter->member->GetClass() == ENCHANTER && iter->member->GetHPRatio() < hpRatioToHeal) {
-								if (caster->AICastSpell(iter->member, 100, SpellType_Heal))
-									return true;
-							}
-							else if (iter->member->GetHPRatio() < hpRatioToHeal / 2) {
-								if (caster->AICastSpell(iter->member, 100, SpellType_Heal))
-									return true;
-							}
+
 						}
 
-						if (iter->member && !iter->member->qglobal && iter->member->HasPet() && iter->member->GetPet()->GetHPRatio() < 25) {
+						if (iter->member && entity_list.IsMobInZone(iter->member) && !iter->member->qglobal && iter->member->HasPet() && iter->member->GetPet()->GetHPRatio() < hpRatioToHeal) {
 							if (iter->member->GetPet()->GetOwner() != caster && caster->IsEngaged() && iter->member->IsCasting() && iter->member->GetClass() != ENCHANTER)
 								continue;
 
@@ -9822,6 +9957,7 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 					}
 				}
 			}
+#endif
 		}
 	}
 
@@ -9872,14 +10008,16 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 			if(g) {
 				for(int i = 0; i < MAX_GROUP_MEMBERS; i++) {
 					if(g->members[i] && caster->GetNeedsCured(g->members[i])) {
-						if(caster->AICastSpell(g->members[i], caster->GetChanceToCastBySpellType(SpellType_Cure), SpellType_Cure))
+						//if (caster->AICastSpell(g->members[i], caster->GetChanceToCastBySpellType(SpellType_Cure), SpellType_Cure))
+						if (caster->AICastSpell(g->members[i], 100, SpellType_Cure))
 							return true;
 						else if(botCasterClass == BARD)
 							return false;
 					}
 
 					if(g->members[i] && g->members[i]->GetPet() && caster->GetNeedsCured(g->members[i]->GetPet())) {
-						if(caster->AICastSpell(g->members[i]->GetPet(), (int)caster->GetChanceToCastBySpellType(SpellType_Cure)/4, SpellType_Cure))
+						//if(caster->AICastSpell(g->members[i]->GetPet(), (int)caster->GetChanceToCastBySpellType(SpellType_Cure)/4, SpellType_Cure))
+						if (caster->AICastSpell(g->members[i]->GetPet(), 50, SpellType_Cure))
 							return true;
 					}
 				}
@@ -9898,14 +10036,16 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 				//}
 				for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
 					if (iter->member && entity_list.IsMobInZone(iter->member) && caster->GetNeedsCured(iter->member)) {
-						if (caster->AICastSpell(iter->member, caster->GetChanceToCastBySpellType(SpellType_Cure), SpellType_Cure))
+						//if (caster->AICastSpell(iter->member, caster->GetChanceToCastBySpellType(SpellType_Cure), SpellType_Cure))
+						if (caster->AICastSpell(iter->member, 100, SpellType_Cure))
 							return true;
 						else if (botCasterClass == BARD)
 							return false;
 					}
 			
 					if (iter->member && entity_list.IsMobInZone(iter->member) && iter->member->GetPet() && caster->GetNeedsCured(iter->member->GetPet())) {
-						if (caster->AICastSpell(iter->member->GetPet(), (int)caster->GetChanceToCastBySpellType(SpellType_Cure) / 4, SpellType_Cure))
+						//if (caster->AICastSpell(iter->member->GetPet(), (int)caster->GetChanceToCastBySpellType(SpellType_Cure) / 4, SpellType_Cure))
+						if (caster->AICastSpell(iter->member->GetPet(), 50, SpellType_Cure))
 							return true;
 					}
 				}
@@ -9922,7 +10062,8 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 			if (g) {
 				for (int i = 0; i < MAX_GROUP_MEMBERS; i++) {
 					if (g->members[i] && caster->GetNeedsHateRedux(g->members[i])) {
-						if (caster->AICastSpell(g->members[i], caster->GetChanceToCastBySpellType(SpellType_HateRedux), SpellType_HateRedux))
+						//if (caster->AICastSpell(g->members[i], caster->GetChanceToCastBySpellType(SpellType_HateRedux), SpellType_HateRedux))
+						if (caster->AICastSpell(g->members[i], 100, SpellType_HateRedux))
 							return true;
 					}
 				}
@@ -9936,7 +10077,8 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 				std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(gid);
 				for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
 					if (iter->member && caster->GetNeedsHateRedux(iter->member)) {
-						if (caster->AICastSpell(iter->member, caster->GetChanceToCastBySpellType(SpellType_HateRedux), SpellType_HateRedux))
+						//if (caster->AICastSpell(iter->member, caster->GetChanceToCastBySpellType(SpellType_HateRedux), SpellType_HateRedux))
+						if (caster->AICastSpell(iter->member, 100, SpellType_HateRedux))
 							return true;
 					}
 				}
@@ -10388,7 +10530,7 @@ bool Bot::GetNeedsCured(Mob *tar) {
 				if(tar->GetBuffs()[j].spellid != SPELL_UNKNOWN) {
 					if(CalculateCounters(tar->GetBuffs()[j].spellid) > 0) {
 						buffsWithCounters++;
-						if(buffsWithCounters == 1 && (tar->GetBuffs()[j].ticsremaining < 2 || (int32)((tar->GetBuffs()[j].ticsremaining * 6) / tar->GetBuffs()[j].counters) < 2)) {
+						if(buffsWithCounters == 1 && tar->GetBuffs()[j].ticsremaining < 2) {// (tar->GetBuffs()[j].ticsremaining < 2 || (int32)((tar->GetBuffs()[j].ticsremaining * 6) / tar->GetBuffs()[j].counters) < 2)) {
 							needCured = false;
 							break;
 						}
@@ -10404,7 +10546,7 @@ bool Bot::GetNeedsHateRedux(Mob *tar) {
 	// This really should be a scalar function based in class Mob that returns 'this' state..but, is inline with current Bot coding...
 	// TODO: Good starting point..but, can be refined..
 	// TODO: Still awaiting bot spell rework..
-	if (!tar || !tar->IsEngaged() || !tar->HasTargetReflection() || !tar->GetTarget()->IsNPC())
+	if (!tar || !tar->IsEngaged() || !tar->HasTargetReflection() || !tar->GetTarget()->IsNPC() || (tar->IsBot() && tar->CastToBot()->IsTaunting()))
 		return false;
 
 	//if (tar->IsClient()) {
@@ -10472,11 +10614,43 @@ void Bot::BotGroupSay(Mob *speaker, const char *msg, ...) {
 	va_start(ap, msg);
 	vsnprintf(buf, 1000, msg, ap);
 	va_end(ap);
-	//if(speaker->HasGroup()) {
-	//	Group *g = speaker->GetGroup();
-	//	if(g)
-	//		g->GroupMessage(speaker->CastToMob(), 0, 100, buf);
-	//} else
+	if (speaker->IsRaidGrouped()) {
+		Raid* raid = entity_list.GetRaidByBotName(speaker->GetName());
+		if (raid)
+		{
+
+			for (int x = 0; x < MAX_RAID_MEMBERS; x++)
+			{
+				if (raid->members[x].member && entity_list.IsMobInZone(raid->members[x].member) && !raid->members[x].member->IsBot())
+				{
+					raid->members[x].member->FilteredMessageString(
+						speaker,
+						Chat::PetResponse,
+						FilterSocials,
+						GENERIC_SAY,
+						speaker->GetCleanName(),
+						buf
+					);
+				}
+			}
+		}
+	}
+	else if (speaker->HasGroup()) {
+		Group *g = speaker->GetGroup();
+		if(g)
+			for (int i = 0; i < MAX_GROUP_MEMBERS; i++) {
+				if (g->members[i] && !g->members[i]->qglobal && !g->members[i]->IsBot()) {
+					g->members[i]->FilteredMessageString(
+						speaker,
+						Chat::PetResponse,
+						FilterSocials,
+						GENERIC_SAY,
+						speaker->GetCleanName(),
+						buf
+					);
+				}
+			}
+	} else
 		//speaker->Say("%s", buf);
 		speaker->GetOwner()->FilteredMessageString(
 			speaker,
@@ -11400,6 +11574,131 @@ void Bot::ProcessRaidInvite(Bot* invitee, Client* invitor) {
 				//}
 			}
 		}
+	}
+}
+
+bool Bot::CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType) {
+
+	if (!botCaster || !spellType || !tar)
+		return false;
+
+	//bool result = false;
+	uint8 targetHP = tar->GetHPRatio();
+	uint8 botHP = GetHPRatio();
+
+	switch (spellType) {
+		case SpellType_Buff:
+			if (GetHoldBuffs() || targetHP < GetBuffMinThreshold() || targetHP > GetBuffThreshold() || (m_buff_delay_timer.Enabled() && m_buff_delay_timer.GetRemainingTime() > 0))
+				return false;
+			return true;
+			break;
+		case SpellType_Charm:
+			return true;
+			break;
+		case SpellType_Cure:
+			if (GetHoldCures() || targetHP < GetCureMinThreshold() || targetHP > GetCureThreshold() || (m_cure_delay_timer.Enabled() && !m_cure_delay_timer.Check()))
+				return false;
+			return true;
+			break;
+		case SpellType_Debuff:
+			if (GetHoldDebuffs() || targetHP < GetDebuffMinThreshold() || targetHP > GetDebuffThreshold() || (m_debuff_delay_timer.Enabled() && !m_debuff_delay_timer.Check()))
+				return false;
+			return true;
+			break;
+		case SpellType_Dispel:
+			if (GetHoldDispels() || targetHP < GetDispelMinThreshold() || targetHP > GetDispelThreshold() || (m_dispel_delay_timer.Enabled() && !m_dispel_delay_timer.Check()))
+				return false;
+			return true;
+			break;
+		case SpellType_DOT:
+			if (GetHoldDoTs() || targetHP < GetDotMinThreshold() || targetHP > GetDotThreshold() || (m_dot_delay_timer.Enabled() && !m_dot_delay_timer.Check()))
+				return false;
+			return true;
+			break;
+		case SpellType_Escape:
+			if (GetHoldEscapes() || botHP < GetEscapeMinThreshold() || botHP > GetEscapeThreshold() || (m_escape_delay_timer.Enabled() && !m_escape_delay_timer.Check()))
+				return false;
+			return true;
+			break;
+		case SpellType_HateRedux:
+			if (GetHoldHateRedux() || botHP < GetHateReduxMinThreshold() || botHP > GetHateReduxThreshold() || (m_hateredux_delay_timer.Enabled() && !m_hateredux_delay_timer.Check()))
+				return false;
+			return true;
+			break;
+		case SpellType_Heal:
+		{
+			if ((!tar->IsPet() && GetHoldHeals()) || (tar->IsPet() && GetHoldPetHeals()))
+				return false;
+			return true;
+			break;
+		}
+		case SpellType_InCombatBuff:
+			if ((GetClass() != SHAMAN) && (GetHoldInCombatBuffs() || targetHP < GetInCombatBuffMinThreshold() || targetHP > GetInCombatBuffThreshold() || (m_incombatbuff_delay_timer.Enabled() && !m_incombatbuff_delay_timer.Check())))
+				return false;
+			if ((GetClass() == SHAMAN) && (GetHoldInCombatBuffs() || (botHP < GetInCombatBuffMinThreshold() || botHP < 50) || (GetManaRatio() > GetInCombatBuffThreshold() || GetManaRatio() > 90) || (m_incombatbuff_delay_timer.Enabled() && !m_incombatbuff_delay_timer.Check())))
+				return false;
+			return true;
+			break;
+		case SpellType_InCombatBuffSong:
+			if (GetHoldInCombatBuffSongs())
+				return false;
+			return true;
+			break;
+		case SpellType_Lifetap:
+			if (GetHoldLifetaps() || botHP < GetLifetapMinThreshold() || botHP > GetLifetapThreshold() || (m_lifetap_delay_timer.Enabled() && !m_lifetap_delay_timer.Check()))
+				return false;
+			return true;
+			break;
+		case SpellType_Mez:
+			if (GetHoldMez() || targetHP < GetMezMinThreshold() || targetHP > GetMezThreshold() || (m_mez_delay_timer.Enabled() && !m_mez_delay_timer.Check()))
+				return false;
+			return true;
+			break;
+		case SpellType_Nuke:
+			if (GetHoldNukes() || targetHP < GetNukeMinThreshold() || targetHP > GetNukeThreshold() || (m_nuke_delay_timer.Enabled() && !m_nuke_delay_timer.Check()))
+				return false;
+			return true;
+			break;
+		case SpellType_OutOfCombatBuffSong:
+			if (GetHoldOutOfCombatBuffSongs())
+				return false;
+			return true;
+			break;
+		case SpellType_Pet:
+			if (GetHoldPets())
+				return false;
+			return true;
+			break;
+		case SpellType_PreCombatBuff:
+			if (GetHoldPreCombatBuffs())
+				return false;
+			return true;
+			break;
+		case SpellType_PreCombatBuffSong:
+			if (GetHoldPreCombatBuffSongs())
+				return false;
+			return true;
+			break;
+		case SpellType_Resurrect:
+			return true;
+			break;
+		case SpellType_Root:
+			if (GetHoldRoots() || targetHP < GetRootMinThreshold() || targetHP > GetRootThreshold() || (m_root_delay_timer.Enabled() && !m_root_delay_timer.Check()))
+				return false;
+			return true;
+			break;
+		case SpellType_Slow:
+			if (GetHoldSlows() || targetHP < GetSlowMinThreshold() || targetHP > GetSlowThreshold() || (m_slow_delay_timer.Enabled() && !m_slow_delay_timer.Check()))
+				return false;
+			return true;
+			break;
+		case SpellType_Snare:
+			if (GetHoldSnares() || targetHP < GetSnareMinThreshold() || targetHP > GetSnareThreshold() || (m_snare_delay_timer.Enabled() && !m_snare_delay_timer.Check()))
+				return false;
+			return true;
+			break;
+		default:
+			return true;
 	}
 }
 

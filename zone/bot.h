@@ -318,6 +318,12 @@ public:
 	bool GetPauseAI() { return _pauseAI; }
 	void SetPauseAI(bool pause_flag) { _pauseAI = pause_flag; }
 	uint8 GetStopMeleeLevel() { return _stopMeleeLevel; }
+	void SetStopMeleeLevel(uint8 level);
+	void SetGuardMode();
+	void SetHoldMode();
+
+	// Custom commands for spells
+	bool CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType);
 	uint8 GetHoldBuffs() { return _holdBuffs; }
 	uint8 GetHoldCures() { return _holdCures; }
 	uint8 GetHoldDoTs() { return _holdDoTs; }
@@ -332,30 +338,67 @@ public:
 	uint8 GetHoldMez() { return _holdMez; }
 	uint8 GetHoldNukes() { return _holdNukes; }
 	uint8 GetHoldOutOfCombatBuffSongs() { return _holdOutOfCombatBuffSongs; }
+	uint8 GetHoldPetHeals() { return _holdpetHeals; }
 	uint8 GetHoldPets() { return _holdPets; }
 	uint8 GetHoldPreCombatBuffs() { return _holdPreCombatBuffs; }
 	uint8 GetHoldPreCombatBuffSongs() { return _holdPreCombatBuffSongs; }
 	uint8 GetHoldRoots() { return _holdRoots; }
 	uint8 GetHoldSlows() { return _holdSlows; }
 	uint8 GetHoldSnares() { return _holdSnares; }
-	uint32 GetNukeDelay() { return _nukeDelay; }
-	uint8 GetAutoResist() { return _autoResist; }
 	uint8 GetAutoDS() { return _autoDS; }
+	uint8 GetAutoResist() { return _autoResist; }
 	uint8 GetBehindMob() { return _behindMobStatus; }
 	uint32 GetBotCasterRange() { return _botcasterRange; }
-	uint32 GetDebuffDelay() { return _debuffDelay; }
-	uint32 GetSlowDelay() { return _slowDelay; }
-	uint32 GetDotDelay() { return _dotDelay; }
-	uint32 GetLifetapDelay() { return _lifetapDelay; }
-	uint32 GetHealDelay() { return _healDelay; }
-	uint32 GetFastHealDelay() { return _fhealDelay; }
+	uint32 GetBuffDelay() { return _buffDelay; }
 	uint32 GetCompleteHealDelay() { return _chealDelay; }
+	uint32 GetCureDelay() { return _cureDelay; }
+	uint32 GetDebuffDelay() { return _debuffDelay; }
+	uint32 GetDispelDelay() { return _dispelDelay; }
+	uint32 GetDotDelay() { return _dotDelay; }
+	uint32 GetEscapeDelay() { return _escapeDelay; }
+	uint32 GetFastHealDelay() { return _fhealDelay; }
+	uint32 GetHateReduxDelay() { return _hatereduxDelay; }
+	uint32 GetHealDelay() { return _healDelay; }
 	uint32 GetHotHealDelay() { return _hothealDelay; }
-	uint8 GetHealThreshold() { return _healThreshold; }
-	uint8 GetFastHealThreshold() { return _fhealThreshold; }
+	uint32 GetInCombatBuffDelay() { return _incombatbuffDelay; }
+	uint32 GetLifetapDelay() { return _lifetapDelay; }
+	uint32 GetMezDelay() { return _mezDelay; }
+	uint32 GetNukeDelay() { return _nukeDelay; }
+	uint32 GetRootDelay() { return _rootDelay; }
+	uint32 GetSlowDelay() { return _slowDelay; }
+	uint32 GetSnareDelay() { return _snareDelay; }
+	uint8 GetBuffThreshold() { return _buffThreshold; }
+	uint8 GetBuffMinThreshold() { return _buffminThreshold; }
 	uint8 GetCompleteHealThreshold() { return _chealThreshold; }
+	uint8 GetCureThreshold() { return _cureThreshold; }
+	uint8 GetCureMinThreshold() { return _cureminThreshold; }
+	uint8 GetDebuffThreshold() { return _debuffThreshold; }
+	uint8 GetDebuffMinThreshold() { return _debuffminThreshold; }
+	uint8 GetDispelThreshold() { return _dispelThreshold; }
+	uint8 GetDispelMinThreshold() { return _dispelminThreshold; }
+	uint8 GetDotThreshold() { return _dotThreshold; }
+	uint8 GetDotMinThreshold() { return _dotminThreshold; }
+	uint8 GetEscapeThreshold() { return _escapeThreshold; }
+	uint8 GetEscapeMinThreshold() { return _escapeminThreshold; }
+	uint8 GetFastHealThreshold() { return _fhealThreshold; }
+	uint8 GetHateReduxThreshold() { return _hatereduxThreshold; }
+	uint8 GetHateReduxMinThreshold() { return _hatereduxminThreshold; }
+	uint8 GetHealThreshold() { return _healThreshold; }
 	uint8 GetHotHealThreshold() { return _hothealThreshold; }
-	void SetStopMeleeLevel(uint8 level);
+	uint8 GetInCombatBuffThreshold() { return _incombatbuffThreshold; }
+	uint8 GetInCombatBuffMinThreshold() { return _incombatbuffminThreshold; }
+	uint8 GetLifetapThreshold() { return _lifetapThreshold; }
+	uint8 GetLifetapMinThreshold() { return _lifetapminThreshold; }
+	uint8 GetMezThreshold() { return _mezThreshold; }
+	uint8 GetMezMinThreshold() { return _mezminThreshold; }
+	uint8 GetNukeThreshold() { return _nukeThreshold; }
+	uint8 GetNukeMinThreshold() { return _nukeminThreshold; }
+	uint8 GetRootThreshold() { return _rootThreshold; }
+	uint8 GetRootMinThreshold() { return _rootminThreshold; }
+	uint8 GetSlowThreshold() { return _slowThreshold; }
+	uint8 GetSlowMinThreshold() { return _slowminThreshold; }
+	uint8 GetSnareThreshold() { return _snareThreshold; }
+	uint8 GetSnareMinThreshold() { return _snareminThreshold; }
 	void SetHoldBuffs(uint8 holdstatus);
 	void SetHoldCures(uint8 holdstatus);
 	void SetHoldDoTs(uint8 holdstatus);
@@ -370,31 +413,67 @@ public:
 	void SetHoldMez(uint8 holdstatus);
 	void SetHoldNukes(uint8 holdstatus);
 	void SetHoldOutOfCombatBuffSongs(uint8 holdstatus);
+	void SetHoldPetHeals(uint8 holdstatus);
 	void SetHoldPets(uint8 holdstatus);
 	void SetHoldPreCombatBuffs(uint8 holdstatus);
 	void SetHoldPreCombatBuffSongs(uint8 holdstatus);
 	void SetHoldRoots(uint8 holdstatus);
 	void SetHoldSlows(uint8 holdstatus);
 	void SetHoldSnares(uint8 holdstatus);
-	void SetNukeDelay(uint32 nukedelay);
-	void SetAutoResist(uint8 autoresist);
 	void SetAutoDS(uint8 autods);
+	void SetAutoResist(uint8 autoresist);
 	void SetBehindMob(uint8 behindmobstatus);
 	void SetBotCasterRange(uint32 botcasterrange);
-	void SetDebuffDelay(uint32 debuffdelay);
-	void SetSlowDelay(uint32 slowdelay);
-	void SetDotDelay(uint32 dotdelay);
-	void SetLifetapDelay(uint32 lifetapdelay);
-	void SetHealDelay(uint32 healdelay);
-	void SetFastHealDelay(uint32 fhealdelay);
+	void SetBuffDelay(uint32 buffdelay);
 	void SetCompleteHealDelay(uint32 chealdelay);
+	void SetCureDelay(uint32 curedelay);
+	void SetDebuffDelay(uint32 debuffdelay);
+	void SetDispelDelay(uint32 dispeldelay);
+	void SetDotDelay(uint32 dotdelay);
+	void SetEscapeDelay(uint32 escapedelay);
+	void SetFastHealDelay(uint32 fhealdelay);
+	void SetHateReduxDelay(uint32 hatereduxdelay);
+	void SetHealDelay(uint32 healdelay);
 	void SetHotHealDelay(uint32 hothealdelay);
-	void SetHealThreshold(uint8 healthreshold);
-	void SetFastHealThreshold(uint8 fhealthreshold);
+	void SetInCombatBuffDelay(uint32 incombatbuffdelay);
+	void SetLifetapDelay(uint32 lifetapdelay);
+	void SetMezDelay(uint32 mezdelay);
+	void SetNukeDelay(uint32 nukedelay);
+	void SetRootDelay(uint32 rootdelay);
+	void SetSlowDelay(uint32 slowdelay);
+	void SetSnareDelay(uint32 snaredelay);
+	void SetBuffThreshold(uint8 buffthreshold);
+	void SetBuffMinThreshold(uint8 buffminthreshold);
 	void SetCompleteHealThreshold(uint8 chealthreshold);
+	void SetCureThreshold(uint8 curethreshold);
+	void SetCureMinThreshold(uint8 cureminthreshold);
+	void SetDebuffThreshold(uint8 debuffthreshold);
+	void SetDebuffMinThreshold(uint8 debuffminthreshold);
+	void SetDispelThreshold(uint8 dispelthreshold);
+	void SetDispelMinThreshold(uint8 dispelminthreshold);
+	void SetDotThreshold(uint8 dotthreshold);
+	void SetDotMinThreshold(uint8 dotminthreshold);
+	void SetEscapeThreshold(uint8 escapethreshold);
+	void SetEscapeMinThreshold(uint8 escapeminthreshold);
+	void SetFastHealThreshold(uint8 fhealthreshold);
+	void SetHateReduxThreshold(uint8 hatereduxthreshold);
+	void SetHateReduxMinThreshold(uint8 hatereduxminthreshold);
+	void SetHealThreshold(uint8 healthreshold);
 	void SetHotHealThreshold(uint8 hothealthreshold);
-	void SetGuardMode();
-	void SetHoldMode();
+	void SetInCombatBuffThreshold(uint8 incombatbuffthreshold);
+	void SetInCombatBuffMinThreshold(uint8 incombatbuffminthreshold);
+	void SetLifetapThreshold(uint8 lifetapthreshold);
+	void SetLifetapMinThreshold(uint8 lifetapminthreshold);
+	void SetMezThreshold(uint8 mezthreshold);
+	void SetMezMinThreshold(uint8 mezminthreshold);
+	void SetNukeThreshold(uint8 nukethreshold);
+	void SetNukeMinThreshold(uint8 nukeminthreshold);
+	void SetRootThreshold(uint8 rootthreshold);
+	void SetRootMinThreshold(uint8 rootminthreshold);
+	void SetSlowThreshold(uint8 slowthreshold);
+	void SetSlowMinThreshold(uint8 slowminthreshold);
+	void SetSnareThreshold(uint8 snarethreshold);
+	void SetSnareMinThreshold(uint8 snareminthreshold);
 
 	// Mob AI Virtual Override Methods
 	virtual void AI_Process();
@@ -486,7 +565,7 @@ public:
 	static BotSpell GetDebuffBotSpell(Bot* botCaster, Mob* target);
 	static BotSpell GetBestBotSpellForCure(Bot* botCaster, Mob* target);
 	static BotSpell GetBestBotSpellForResistDebuff(Bot* botCaster, Mob* target);
-	static bool DoResistCheck(uint16 botspellid, Mob* target, int32 resist_limit);
+	static bool DoResistCheck(Bot* botCaster, Mob* target, uint16 botspellid, int32 resist_limit);
 	
 	static NPCType *CreateDefaultNPCTypeStructForBot(std::string botName, std::string botLastName, uint8 botLevel, uint16 botRace, uint8 botClass, uint8 gender);
 
@@ -765,15 +844,27 @@ private:
 	Timer m_monk_evade_timer;
 	Timer m_alt_combat_hate_timer;
 	Timer m_auto_defend_timer;
-	Timer m_nuke_delay_timer; //timer for nuke delays set by ^nukedelay/^nd
-	Timer m_debuff_delay_timer; //timer for debuff delays set by ^debuffdelay/^dd
-	Timer m_slow_delay_timer; //timer for slow delays set by ^slowdelay/^sd
-	Timer m_dot_delay_timer; //timer for dot delays set by ^dotdelay/^dotd
-	Timer m_lifetap_delay_timer; //timer for lifetap delays set by ^lifetapdelay/^ltd
-	Timer m_heal_delay_timer; //timer for heal delays set by ^healdelay/^hd
-	Timer m_fheal_delay_timer; //timer for fast heal delays set by ^fasthealdelay/^fhd
-	Timer m_cheal_delay_timer; //timer for complete heal delays set by ^completehealdelay/^chd
-	Timer m_hotheal_delay_timer; //timer for hot heal delays set by ^hothealdelay/^hhd
+
+	// Custom timers for spells
+	Timer m_buff_delay_timer;
+	Timer m_cheal_delay_timer;
+	Timer m_cure_delay_timer;
+	Timer m_debuff_delay_timer;
+	Timer m_dispel_delay_timer;
+	Timer m_dot_delay_timer;
+	Timer m_escape_delay_timer;
+	Timer m_fheal_delay_timer;
+	Timer m_hateredux_delay_timer;
+	Timer m_heal_delay_timer;
+	Timer m_hotheal_delay_timer;
+	Timer m_incombatbuff_delay_timer;
+	Timer m_lifetap_delay_timer;
+	Timer m_mez_delay_timer;
+	Timer m_nuke_delay_timer;
+	Timer m_root_delay_timer;
+	Timer m_slow_delay_timer;
+	Timer m_snare_delay_timer;
+
 	//Timer m_combat_jitter_timer;
 	//bool m_combat_jitter_flag;
 	bool m_dirtyautohaters;
@@ -810,29 +901,67 @@ private:
 	uint8 _holdMez;
 	uint8 _holdNukes;
 	uint8 _holdOutOfCombatBuffSongs;
+	uint8 _holdpetHeals;
 	uint8 _holdPets;
 	uint8 _holdPreCombatBuffs;
 	uint8 _holdPreCombatBuffSongs;
 	uint8 _holdRoots;
 	uint8 _holdSlows;
 	uint8 _holdSnares;
-	uint32 _nukeDelay;
-	uint8 _autoResist;
 	uint8 _autoDS;
+	uint8 _autoResist;
 	uint8 _behindMobStatus;
 	uint32 _botcasterRange;
-	uint32 _debuffDelay;
-	uint32 _slowDelay;
-	uint32 _dotDelay;
-	uint32 _lifetapDelay;
-	uint32 _healDelay;
-	uint32 _fhealDelay;
+	uint32 _buffDelay;
+	uint32 _cureDelay;
 	uint32 _chealDelay;
+	uint32 _debuffDelay;
+	uint32 _dispelDelay;
+	uint32 _dotDelay;
+	uint32 _escapeDelay;
+	uint32 _fhealDelay;
+	uint32 _hatereduxDelay;
+	uint32 _healDelay;
 	uint32 _hothealDelay;
-	uint8 _healThreshold;
-	uint8 _fhealThreshold;
+	uint32 _incombatbuffDelay;
+	uint32 _lifetapDelay;
+	uint32 _mezDelay;
+	uint32 _nukeDelay;
+	uint32 _rootDelay;
+	uint32 _slowDelay;
+	uint32 _snareDelay;
+	uint8 _buffThreshold;
+	uint8 _buffminThreshold;
 	uint8 _chealThreshold;
+	uint8 _cureThreshold;
+	uint8 _cureminThreshold;
+	uint8 _debuffThreshold;
+	uint8 _debuffminThreshold;
+	uint8 _dispelThreshold;
+	uint8 _dispelminThreshold;
+	uint8 _dotThreshold;
+	uint8 _dotminThreshold;
+	uint8 _escapeThreshold;
+	uint8 _escapeminThreshold;
+	uint8 _fhealThreshold;
+	uint8 _hatereduxThreshold;
+	uint8 _hatereduxminThreshold;
+	uint8 _healThreshold;
 	uint8 _hothealThreshold;
+	uint8 _incombatbuffThreshold;
+	uint8 _incombatbuffminThreshold;
+	uint8 _lifetapThreshold;
+	uint8 _lifetapminThreshold;
+	uint8 _mezThreshold;
+	uint8 _mezminThreshold;
+	uint8 _nukeThreshold;
+	uint8 _nukeminThreshold;
+	uint8 _rootThreshold;
+	uint8 _rootminThreshold;
+	uint8 _slowThreshold;
+	uint8 _slowminThreshold;
+	uint8 _snareThreshold;
+	uint8 _snareminThreshold;
 
 
 	// Private "base stats" Members

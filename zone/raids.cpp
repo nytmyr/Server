@@ -1745,7 +1745,7 @@ void Raid::SendHPManaEndPacketsFrom(Mob *mob)
 
 	for(int x = 0; x < MAX_RAID_MEMBERS; x++) {
 #ifdef BOTS
-		if(members[x].member && !members[x].IsBot) {
+		if(members[x].member && entity_list.IsMobInZone(members[x].member) && !members[x].IsBot) {
 #else
 		if (members[x].member) {
 #endif

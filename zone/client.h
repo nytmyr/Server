@@ -1604,6 +1604,24 @@ public:
 	uint32 GetLastInvSnapshotTime() { return m_epp.last_invsnapshot_time; }
 	uint32 GetNextInvSnapshotTime() { return m_epp.next_invsnapshot_time; }
 
+	//custom commands
+	inline void SetClientFastHealThreshold(uint8 fast_heal_threshold) { m_pp.fast_heal_threshold = fast_heal_threshold; }
+	inline void SetClientHealThreshold(uint8 heal_threshold) { m_pp.heal_threshold = heal_threshold; }
+	inline void SetClientCompleteHealThreshold(uint8 complete_heal_threshold) { m_pp.complete_heal_threshold = complete_heal_threshold; }
+	inline void SetClientHotHealThreshold(uint8 hot_heal_threshold) { m_pp.hot_heal_threshold = hot_heal_threshold; }
+	inline void SetClientFastHealDelay(uint32 fast_heal_delay) { m_pp.fast_heal_delay = fast_heal_delay; }
+	inline void SetClientHealDelay(uint32 heal_delay) { m_pp.heal_delay = heal_delay; }
+	inline void SetClientCompleteHealDelay(uint32 complete_heal_delay) { m_pp.complete_heal_delay = complete_heal_delay; }
+	inline void SetClientHotHealDelay(uint32 hot_heal_delay) { m_pp.hot_heal_delay = hot_heal_delay; }
+	inline uint8 GetClientFastHealThreshold() { return m_pp.fast_heal_threshold; }
+	inline uint8 GetClientHealThreshold() { return m_pp.heal_threshold; }
+	inline uint8 GetClientCompleteHealThreshold() { return m_pp.complete_heal_threshold; }
+	inline uint8 GetClientHotHealThreshold() { return m_pp.hot_heal_threshold; }
+	inline uint32 GetClientFastHealDelay() { return m_pp.fast_heal_delay; }
+	inline uint32 GetClientHealDelay() { return m_pp.heal_delay; }
+	inline uint32 GetClientCompleteHealDelay() { return m_pp.complete_heal_delay; }
+	inline uint32 GetClientHotHealDelay() { return m_pp.hot_heal_delay; }
+
 	void QuestReward(Mob* target, uint32 copper = 0, uint32 silver = 0, uint32 gold = 0, uint32 platinum = 0, uint32 itemid = 0, uint32 exp = 0, bool faction = false);
 	void QuestReward(Mob* target, const QuestReward_Struct &reward, bool faction = false);
 	void CashReward(uint32 copper, uint32 silver, uint32 gold, uint32 platinum);

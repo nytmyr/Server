@@ -3484,8 +3484,17 @@ int Mob::CanBuffStack(uint16 spellid, uint8 caster_level, bool iFailIfOverwrite)
 			continue;
 		}
 
-		if(curbuf.spellid == spellid)
-			return(-1);	//do not recast a buff we already have on, we recast fast enough that we dont need to refresh our buffs
+		if (IsBot() && (GetClass() == BARD) && curbuf.spellid == spellid && curbuf.ticsremaining == 0 && curbuf.casterid == GetID()) {
+			LogAI("Bard check for song, spell [{}] has [{}] ticks remaining.", spellid, curbuf.ticsremaining);
+			firstfree = i;
+			return firstfree;
+		}
+		else {
+			if (curbuf.spellid == spellid) {
+				LogAI("Buff [{}] is already present and has [{}] ticks remaining.", spellid, curbuf.ticsremaining);
+				return(-1);	//do not recast a buff we already have on, we recast fast enough that we dont need to refresh our buffs
+			}
+		}
 
 		// there's a buff in this slot
 		ret = CheckStackConflict(curbuf.spellid, curbuf.casterlevel, spellid, caster_level, nullptr, nullptr, i);

@@ -370,6 +370,18 @@ int command_init(void)
 		command_add("zsky", "[Sky Type] [Permanent (0 = False, 1 = True)] - Change zone sky type", AccountStatus::QuestTroupe, command_zsky) ||
 		command_add("zstats", "Show info about zone header", AccountStatus::QuestTroupe, command_zstats) ||
 		command_add("zunderworld", "[Z] [Permanent (0 = False, 1 = True)] - Change zone underworld Z", AccountStatus::QuestTroupe, command_zunderworld)
+
+		// custom commands
+		||
+		command_add("fasthealthreshold", "Sets a threshold to when you will start receiving Fast Heals from bots", AccountStatus::Player, command_fasthealthreshold) ||
+		command_add("healthreshold", "Sets a threshold to when you will start receiving Regular Heals from bots", AccountStatus::Player, command_healthreshold) ||
+		command_add("completehealthreshold", "Sets a threshold to when you will start receiving Complete Heals from bots", AccountStatus::Player, command_completehealthreshold) ||
+		command_add("hothealthreshold", "Sets a threshold to when you will start receiving Heal Over Time Heals from bots", AccountStatus::Player, command_hothealthreshold) ||
+		command_add("fasthealdelay", "Sets a delay for how often you will receive Fast Heals from bots", AccountStatus::Player, command_fasthealdelay) ||
+		command_add("healdelay", "Sets a delay for how often you will receive Regular Heals from bots", AccountStatus::Player, command_healdelay) ||
+		command_add("completehealdelay", "Sets a delay for how often you will receive Complete Heals from bots", AccountStatus::Player, command_completehealdelay) ||
+		command_add("hothealdelay", "Sets a delay for how often you will receive Heal Over Time Heals from bots", AccountStatus::Player, command_hothealdelay)
+
 	) {
 		command_deinit();
 		return -1;
@@ -1207,3 +1219,14 @@ void command_bot(Client *c, const Seperator *sep)
 #include "gm_commands/zsky.cpp"
 #include "gm_commands/zstats.cpp"
 #include "gm_commands/zunderworld.cpp"
+
+// custom commands
+
+#include "gm_commands/fasthealthreshold.cpp"
+#include "gm_commands/healthreshold.cpp"
+#include "gm_commands/completehealthreshold.cpp"
+#include "gm_commands/hothealthreshold.cpp"
+#include "gm_commands/fasthealdelay.cpp"
+#include "gm_commands/healdelay.cpp"
+#include "gm_commands/completehealdelay.cpp"
+#include "gm_commands/hothealdelay.cpp"

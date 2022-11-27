@@ -1470,43 +1470,81 @@ int bot_command_init(void)
 		bot_command_add("waterbreathing", "Orders a bot to cast a water breathing spell", AccountStatus::Player, bot_command_water_breathing) ||
 		
 		// custom bot commands
-		bot_command_add("autoresist", "Toggles the ability for casters to automatically cast resist buffs", AccountStatus::Player, bot_command_auto_resist) ||
 		bot_command_add("autods", "Toggles the ability for casters to automatically cast damage shield buffs", AccountStatus::Player, bot_command_auto_ds) ||
+		bot_command_add("autoresist", "Toggles the ability for casters to automatically cast resist buffs", AccountStatus::Player, bot_command_auto_resist) ||
 		bot_command_add("casterrange", "Controls the range casters will try to stay away from a mob (if too far, they will skip spells that are out-of-range)", AccountStatus::Player, bot_command_caster_range) ||
 		bot_command_add("behindmob", "Toggles whether or not your bot tries to stay behind a mob", AccountStatus::Player, bot_command_behind_mob) ||
-		bot_command_add("holdbuffs", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_buffs) ||
-		bot_command_add("holdcures", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_cures) ||
-		bot_command_add("holddots", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_dots) ||
-		bot_command_add("holddebuffs", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_debuffs) ||
-		bot_command_add("holddispels", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_dispels) ||
-		bot_command_add("holdescapes", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_escapes) ||
-		bot_command_add("holdhateredux", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_hateredux) ||
-		bot_command_add("holdheals", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_heals) ||
+		bot_command_add("holdbuffs", "Toggles a bot's ability to cast buffs", AccountStatus::Player, bot_command_hold_buffs) ||
+		bot_command_add("holdcures", "Toggles a bot's ability to cast cures", AccountStatus::Player, bot_command_hold_cures) ||
+		bot_command_add("holddots", "Toggles a bot's ability to cast DoTs", AccountStatus::Player, bot_command_hold_dots) ||
+		bot_command_add("holddebuffs", "Toggles a bot's ability to cast debuffs", AccountStatus::Player, bot_command_hold_debuffs) ||
+		bot_command_add("holddispels", "Toggles a bot's ability to cast dispels", AccountStatus::Player, bot_command_hold_dispels) ||
+		bot_command_add("holdescapes", "Toggles a bot's ability to cast escapes", AccountStatus::Player, bot_command_hold_escapes) ||
+		bot_command_add("holdhateredux", "Toggles a bot's ability to cast hate reduction spells", AccountStatus::Player, bot_command_hold_hateredux) ||
+		bot_command_add("holdheals", "Toggles a bot's ability to cast heals", AccountStatus::Player, bot_command_hold_heals) ||
 		bot_command_add("holdincombatbuffs", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_incombatbuffs) ||
-		bot_command_add("holdincombatbuffsongs", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_incombatbuffsongs) ||
-		bot_command_add("holdlifetaps", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_lifetaps) ||
-		bot_command_add("holdmez", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_mez) ||
-		bot_command_add("holdnukes", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_nukes) ||
-		bot_command_add("holdoutofcombatbuffsongs", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_outofcombatbuffsongs) ||
-		bot_command_add("holdpets", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_pets) ||
-		bot_command_add("holdprecombatbuffs", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_precombatbuffs) ||
-		bot_command_add("holdprecombatbuffsongs", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_precombatbuffsongs) ||
-		bot_command_add("holdroots", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_roots) ||
-		bot_command_add("holdslows", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_slows) ||
-		bot_command_add("holdsnares", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_snares) ||
+		bot_command_add("holdincombatbuffsongs", "Toggles a bot's ability to cast in-combat buff songs", AccountStatus::Player, bot_command_hold_incombatbuffsongs) ||
+		bot_command_add("holdlifetaps", "Toggles a bot's ability to cast lifetaps", AccountStatus::Player, bot_command_hold_lifetaps) ||
+		bot_command_add("holdmez", "Toggles a bot's ability to cast mesmerization spells", AccountStatus::Player, bot_command_hold_mez) ||
+		bot_command_add("holdnukes", "Toggles a bot's ability to cast nukes", AccountStatus::Player, bot_command_hold_nukes) ||
+		bot_command_add("holdoutofcombatbuffsongs", "Toggles a bot's ability to cast out-of-combat buff songs", AccountStatus::Player, bot_command_hold_outofcombatbuffsongs) ||
+		bot_command_add("holdpetheals", "Toggles a bot's ability to heal pets", AccountStatus::Player, bot_command_hold_pet_heals) ||
+		bot_command_add("holdpets", "Toggles a bot's ability to summon pets", AccountStatus::Player, bot_command_hold_pets) ||
+		bot_command_add("holdprecombatbuffs", "Toggles a bot's ability to cast pre-combat buffs", AccountStatus::Player, bot_command_hold_precombatbuffs) ||
+		bot_command_add("holdprecombatbuffsongs", "Toggles a bot's ability to cast pre-combat buff songs", AccountStatus::Player, bot_command_hold_precombatbuffsongs) ||
+		bot_command_add("holdroots", "Toggles a bot's ability to cast roots", AccountStatus::Player, bot_command_hold_roots) ||
+		bot_command_add("holdslows", "Toggles a bot's ability to cast slows", AccountStatus::Player, bot_command_hold_slows) ||
+		bot_command_add("holdsnares", "Toggles a bot's ability to cast snares", AccountStatus::Player, bot_command_hold_snares) ||
+		bot_command_add("buffdelay", "Sets a timer that controls the frequency of bot buffs", AccountStatus::Player, bot_command_buff_delay) ||
+		bot_command_add("completehealdelay", "Sets a timer that controls the frequency of bot complete heals ", AccountStatus::Player, bot_command_complete_heal_delay) ||
+		bot_command_add("curedelay", "Sets a timer that controls the frequency of bot cures", AccountStatus::Player, bot_command_cure_delay) ||
 		bot_command_add("debuffdelay", "Sets a timer that controls the frequency of bot debuffs", AccountStatus::Player, bot_command_debuff_delay) ||
-		bot_command_add("slowdelay", "Sets a timer that controls the frequency of bot slows", AccountStatus::Player, bot_command_slow_delay) ||
-		bot_command_add("dotdelay", "Sets a timer that controls the frequency of bot dots", AccountStatus::Player, bot_command_dot_delay) ||
-		bot_command_add("lifetapdelay", "Sets a timer that controls the frequency of bot lifetaps", AccountStatus::Player, bot_command_lifetap_delay) ||
-		bot_command_add("healdelay", "Sets a timer that controls the frequency of bot heals", AccountStatus::Player, bot_command_heal_delay) ||
+		bot_command_add("dispeldelay", "Sets a timer that controls the frequency of bot dispels", AccountStatus::Player, bot_command_dispel_delay) ||
+		bot_command_add("dotdelay", "Sets a timer that controls the frequency of bot DoTs", AccountStatus::Player, bot_command_dot_delay) ||
+		bot_command_add("escapedelay", "Sets a timer that controls the frequency of bot escapes", AccountStatus::Player, bot_command_escape_delay) ||
 		bot_command_add("fasthealdelay", "Sets a timer that controls the frequency of bot fast heals", AccountStatus::Player, bot_command_fast_heal_delay) ||
-		bot_command_add("completehealdelay", "Sets a timer that controls the frequency of bot complete heals", AccountStatus::Player, bot_command_complete_heal_delay) ||
-		bot_command_add("hothealdelay", "Sets a timer that controls the frequency of bot heal over time heals", AccountStatus::Player, bot_command_hot_heal_delay) ||
-		bot_command_add("healthreshold", "Sets a threshold to start casting regular heals", AccountStatus::Player, bot_command_heal_threshold) ||
-		bot_command_add("fasthealthreshold", "Sets a threshold to start casting fast heals", AccountStatus::Player, bot_command_fast_heal_threshold) ||
-		bot_command_add("completehealthreshold", "Sets a threshold to start casting complete heals", AccountStatus::Player, bot_command_complete_heal_threshold) ||
-		bot_command_add("hothealthreshold", "Sets a threshold to start casting heal over time heals", AccountStatus::Player, bot_command_hot_heal_threshold) ||
+		bot_command_add("hatereduxdelay", "Sets a timer that controls the frequency of bot hate reduction spells", AccountStatus::Player, bot_command_hateredux_delay) ||
+		bot_command_add("healdelay", "Sets a timer that controls the frequency of bot heals", AccountStatus::Player, bot_command_heal_delay) ||
+		bot_command_add("hothealdelay", "Sets a timer that controls the frequency of bot HoT heals", AccountStatus::Player, bot_command_hot_heal_delay) ||
+		bot_command_add("incombatbuffdelay", "Sets a timer that controls the frequency of bot in-combat buffs", AccountStatus::Player, bot_command_incombatbuff_delay) ||
+		bot_command_add("lifetapdelay", "Sets a timer that controls the frequency of bot lifetaps", AccountStatus::Player, bot_command_lifetap_delay) ||
+		bot_command_add("mezdelay", "Sets a timer that controls the frequency of bot mesmerization spells", AccountStatus::Player, bot_command_mez_delay) ||
 		bot_command_add("nukedelay", "Sets a timer that controls the frequency of bot nukes", AccountStatus::Player, bot_command_nuke_delay) ||
+		bot_command_add("rootdelay", "Sets a timer that controls the frequency of bot roots", AccountStatus::Player, bot_command_root_delay) ||
+		bot_command_add("slowdelay", "Sets a timer that controls the frequency of bot slows", AccountStatus::Player, bot_command_slow_delay) ||
+		bot_command_add("snaredelay", "Sets a timer that controls the frequency of bot snares", AccountStatus::Player, bot_command_snare_delay) ||
+		bot_command_add("buffthreshold", "Sets a threshold to start casting buffs", AccountStatus::Player, bot_command_buff_threshold) ||
+		bot_command_add("completehealthreshold", "Sets a threshold to start casting complete heals", AccountStatus::Player, bot_command_complete_heal_threshold) ||
+		bot_command_add("curethreshold", "Sets a threshold to start casting cures", AccountStatus::Player, bot_command_cure_threshold) ||
+		bot_command_add("debuffthreshold", "Sets a threshold to start casting debuffs", AccountStatus::Player, bot_command_debuff_threshold) ||
+		bot_command_add("dispelthreshold", "Sets a threshold to start casting dispels", AccountStatus::Player, bot_command_dispel_threshold) ||
+		bot_command_add("dotthreshold", "Sets a threshold to start casting DoTs", AccountStatus::Player, bot_command_dot_threshold) ||
+		bot_command_add("escapethreshold", "Sets a threshold to start casting escapes", AccountStatus::Player, bot_command_escape_threshold) ||
+		bot_command_add("fasthealthreshold", "Sets a threshold to start casting fast heals", AccountStatus::Player, bot_command_fast_heal_threshold) ||
+		bot_command_add("hatereduxthreshold", "Sets a threshold to start casting hate reduction spells", AccountStatus::Player, bot_command_hateredux_threshold) ||
+		bot_command_add("healthreshold", "Sets a threshold to start casting heals", AccountStatus::Player, bot_command_heal_threshold) ||
+		bot_command_add("hothealthreshold", "Sets a threshold to start casting HoT heals", AccountStatus::Player, bot_command_hot_heal_threshold) ||
+		bot_command_add("incombatbuffthreshold", "Sets a threshold to start casting in-combat buffs", AccountStatus::Player, bot_command_incombatbuff_threshold) ||
+		bot_command_add("lifetapthreshold", "Sets a threshold to start casting lifetaps", AccountStatus::Player, bot_command_lifetap_threshold) ||
+		bot_command_add("mezthreshold", "Sets a threshold to start casting mesmerization spells", AccountStatus::Player, bot_command_mez_threshold) ||
+		bot_command_add("nukethreshold", "Sets a threshold to start casting nukes", AccountStatus::Player, bot_command_nuke_threshold) ||
+		bot_command_add("rootthreshold", "Sets a threshold to start casting roots", AccountStatus::Player, bot_command_root_threshold) ||
+		bot_command_add("slowthreshold", "Sets a threshold to start casting slows", AccountStatus::Player, bot_command_slow_threshold) ||
+		bot_command_add("snarethreshold", "Sets a threshold to start casting snares", AccountStatus::Player, bot_command_snare_threshold) ||
+		bot_command_add("buffminthreshold", "Sets a threshold to stop casting buffs", AccountStatus::Player, bot_command_buff_min_threshold) ||
+		bot_command_add("cureminthreshold", "Sets a threshold to stop casting cures", AccountStatus::Player, bot_command_cure_min_threshold) ||
+		bot_command_add("debuffminthreshold", "Sets a threshold to stop casting debuffs", AccountStatus::Player, bot_command_debuff_min_threshold) ||
+		bot_command_add("dispelminthreshold", "Sets a threshold to stop casting dispels", AccountStatus::Player, bot_command_dispel_min_threshold) ||
+		bot_command_add("dotminthreshold", "Sets a threshold to stop casting DoTs", AccountStatus::Player, bot_command_dot_min_threshold) ||
+		bot_command_add("escapeminthreshold", "Sets a threshold to stop casting escapes", AccountStatus::Player, bot_command_escape_min_threshold) ||
+		bot_command_add("hatereduxminthreshold", "Sets a threshold to stop casting hate reduction spells", AccountStatus::Player, bot_command_hateredux_min_threshold) ||
+		bot_command_add("incombatbuffminthreshold", "Sets a threshold to stop casting in-combat buffs", AccountStatus::Player, bot_command_incombatbuff_min_threshold) ||
+		bot_command_add("lifetapminthreshold", "Sets a threshold to stop casting lifetaps", AccountStatus::Player, bot_command_lifetap_min_threshold) ||
+		bot_command_add("mezminthreshold", "Sets a threshold to stop casting mesmerization spells", AccountStatus::Player, bot_command_mez_min_threshold) ||
+		bot_command_add("nukeminthreshold", "Sets a threshold to stop casting nukes", AccountStatus::Player, bot_command_nuke_min_threshold) ||
+		bot_command_add("rootminthreshold", "Sets a threshold to stop casting roots", AccountStatus::Player, bot_command_root_min_threshold) ||
+		bot_command_add("slowminthreshold", "Sets a threshold to stop casting slows", AccountStatus::Player, bot_command_slow_min_threshold) ||
+		bot_command_add("snareminthreshold", "Sets a threshold to stop casting snares", AccountStatus::Player, bot_command_snare_min_threshold) ||
 		bot_command_add("removefromraid", "This will remove a bot from a raid, can be used for stuck bots.", AccountStatus::Player, bot_command_remove_from_raid) ||
 		bot_command_add("useepic", "Orders your targeted bot to use their epic if it is equipped", AccountStatus::Player, bot_command_use_epic)
 	) {
@@ -2929,6 +2967,7 @@ void bot_command_auto_ds(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to prevent automatic buffing of damage shields.");
 		c->Message(Chat::White, "note: Set to 1 to resume automatic damage shield buffing.");
+		c->Message(Chat::White, "note: This is enabled by default. (1).");
 		return;
 	}
 
@@ -2965,9 +3004,8 @@ void bot_command_auto_ds(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "My current Auto DS status is %u.", my_bot->GetAutoDS());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^autods help for a list of options.");
 	}
-
 }
 
 void bot_command_auto_resist(Client* c, const Seperator* sep)
@@ -2980,6 +3018,7 @@ void bot_command_auto_resist(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to prevent automatic buffing of resists.");
 		c->Message(Chat::White, "note: Set to 1 to resume automatic resist buffing.");
+		c->Message(Chat::White, "note: This is enabled by default. (1).");
 		return;
 	}
 
@@ -3016,9 +3055,8 @@ void bot_command_auto_resist(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "My current Auto Resist status is %u.", my_bot->GetAutoResist());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^auroresist help for a list of options.");
 	}
-
 }
 
 void bot_command_behind_mob(Client* c, const Seperator* sep)
@@ -3031,6 +3069,7 @@ void bot_command_behind_mob(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to prevent a bot from positioning themselves behind a mob in combat.");
 		c->Message(Chat::White, "note: Set to 1 to force a bot to try to position itself behind a mob in combat.");
+		c->Message(Chat::White, "note: This is disabled by default. (0).");
 		return;
 	}
 
@@ -3063,9 +3102,8 @@ void bot_command_behind_mob(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "My current Behind Mob status is %u.", my_bot->GetBehindMob());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^behindmob help for a list of options.");
 	}
-
 }
 
 void bot_command_bind_affinity(Client *c, const Seperator *sep)
@@ -3169,6 +3207,155 @@ void bot_command_botgroup(Client *c, const Seperator *sep)
 	helper_send_available_subcommands(c, "bot-group", subcommand_list);
 }
 
+void bot_command_buff_delay(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_buff_delay", sep->arg[0], "buffdelay"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast buffs.");
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default interval is 0 (0 seconds).");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 delaydata = 0;
+	if (sep->IsNumber(1)) {
+		delaydata = atoi(sep->arg[1]);
+		int delaycheck = delaydata;
+		if (delaycheck >= 1 && delaycheck <= 60000) {
+			my_bot->SetBuffDelay(delaydata);
+			if (!database.botdb.SaveBuffDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveBuffDelay(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Buff Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetBuffDelay() / 1000.00);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Buff Timer is %.2f seconds.", my_bot->GetBuffDelay() / 1000.00);
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^buffdelay help for a list of options.");
+	}
+}
+
+void bot_command_buff_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_buff_threshold", sep->arg[0], "buffthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of target's total health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will begin to cast buff spells on its target.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 150 percent.");
+		c->Message(Chat::White, "note: This should be left to at least 100 percent to allow your bots to buff others all the time.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetBuffThreshold(thresholddata);
+			if (!database.botdb.SaveBuffThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveBuffThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Buff Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a value between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Buff Threshold is %u percent.", my_bot->GetBuffThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^bufftheshold help for a list of options.");
+	}
+}
+
+void bot_command_buff_min_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_buff_min_threshold", sep->arg[0], "buffminthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of target's total health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will stop casting buff spells on its target.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 0 percent.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetBuffMinThreshold(thresholddata);
+			if (!database.botdb.SaveBuffMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveBuffMinThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Minimum Buff Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a value between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Minimum Buff Threshold is %u percent.", my_bot->GetBuffMinThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^buffmintheshold help for a list of options.");
+	}
+}
+
 void bot_command_caster_range(Client* c, const Seperator* sep)
 {
 	if (helper_command_alias_fail(c, "bot_command_caster_range", sep->arg[0], "casterrange"))
@@ -3179,6 +3366,7 @@ void bot_command_caster_range(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set the value to the minimum distance you want your bot to try to remain from its target.");
 		c->Message(Chat::White, "note: If they are too far for a spell, it will be skipped.");
+		c->Message(Chat::White, "note: This is set to (90) units by default.");
 		return;
 	}
 
@@ -3214,9 +3402,8 @@ void bot_command_caster_range(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "My current range is %u.", my_bot->GetBotCasterRange());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^casterrange help for a list of options.");
 	}
-
 }
 
 void bot_command_charm(Client *c, const Seperator *sep)
@@ -3284,10 +3471,10 @@ void bot_command_complete_heal_delay(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_complete_heal_delay", sep->arg[0], "completehealdelay"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds.].", sep->arg[0]);
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
 		c->Message(Chat::White, "note: Set this to control how often a bot can cast a complete heal on the target.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: Set to 0 to remove timer and use the default intervals.");
+		c->Message(Chat::White, "note: The default interval is 8000 (8 seconds).");
 		return;
 	}
 
@@ -3301,28 +3488,27 @@ void bot_command_complete_heal_delay(Client* c, const Seperator* sep)
 	if (sep->IsNumber(1)) {
 		delaydata = atoi(sep->arg[1]);
 		int delaycheck = delaydata;
-		if (delaycheck >= 0 && delaycheck <= 60000) {
+		if (delaycheck >= 1 && delaycheck <= 60000) {
 			my_bot->SetCompleteHealDelay(delaydata);
 			if (!database.botdb.SaveCompleteHealDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveCompleteHealDelay(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Complete Heal Timer for %s to %lf seconds.", my_bot->GetCleanName(), my_bot->GetCompleteHealDelay() / 1000.00);
+				c->Message(Chat::White, "Successfully set a Complete Heal Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetCompleteHealDelay() / 1000.00);
 			}
 		}
 		else {
-			c->Message(Chat::White, "You must enter enter a value greater than 0 and less than 60000.");
+			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
 			return;
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Complete Heal Timer is %lf seconds.", my_bot->GetCompleteHealDelay() / 1000.00);
+		c->Message(Chat::White, "My current Complete Heal Timer is %.2f seconds.", my_bot->GetCompleteHealDelay() / 1000.00);
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^completehealdelay help for a list of options.");
 	}
-
 }
 
 void bot_command_complete_heal_threshold(Client* c, const Seperator* sep)
@@ -3330,11 +3516,11 @@ void bot_command_complete_heal_threshold(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_complete_heal_threshold", sep->arg[0], "completehealthreshold"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value % of total health].", sep->arg[0]);
-		c->Message(Chat::White, "note: Used to control at what percent of health the target will be complete healed at.");
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of total health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent of health the chosen bot will start being complete healed at.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: Set to 0 to remove threshold and use default heal AI.");
-		c->Message(Chat::White, "note: Set to above 100 to disable this type of heal on the target.");
+		c->Message(Chat::White, "note: Set to 0 to disable this type of heal on the chosen bot.");
+		c->Message(Chat::White, "note: The default threshold is 70 percent.");
 		return;
 	}
 
@@ -3348,7 +3534,7 @@ void bot_command_complete_heal_threshold(Client* c, const Seperator* sep)
 	if (sep->IsNumber(1)) {
 		thresholddata = atoi(sep->arg[1]);
 		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 999) {
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
 			my_bot->SetCompleteHealThreshold(thresholddata);
 			if (!database.botdb.SaveCompleteHealThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveCompleteHealThreshold(), my_bot->GetCleanName());
@@ -3359,7 +3545,7 @@ void bot_command_complete_heal_threshold(Client* c, const Seperator* sep)
 			}
 		}
 		else {
-			c->Message(Chat::White, "You must enter enter a value greater than 0 and less than 999.");
+			c->Message(Chat::White, "You must enter enter a value between 0 and 150.");
 			return;
 		}
 	}
@@ -3367,9 +3553,8 @@ void bot_command_complete_heal_threshold(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "My current Complete Heal Threshold is %u percent.", my_bot->GetCompleteHealThreshold());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^completehealthreshold help for a list of options.");
 	}
-
 }
 
 void bot_command_cure(Client *c, const Seperator *sep)
@@ -3449,16 +3634,16 @@ void bot_command_cure(Client *c, const Seperator *sep)
 	helper_no_available_bots(c, my_bot);
 }
 
-void bot_command_debuff_delay(Client* c, const Seperator* sep)
+void bot_command_cure_delay(Client* c, const Seperator* sep)
 {
-	if (helper_command_alias_fail(c, "bot_command_debuff_delay", sep->arg[0], "debuffdelay"))
+	if (helper_command_alias_fail(c, "bot_command_cure_delay", sep->arg[0], "curedelay"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds.].", sep->arg[0]);
-		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast debuffs.");
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast cures.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: Set to 0 to remove timer.");
+		c->Message(Chat::White, "note: The default interval is 0 (0 seconds).");
 		return;
 	}
 
@@ -3476,28 +3661,176 @@ void bot_command_debuff_delay(Client* c, const Seperator* sep)
 	if (sep->IsNumber(1)) {
 		delaydata = atoi(sep->arg[1]);
 		int delaycheck = delaydata;
-		if (delaycheck >= 0 && delaycheck <= 60000) {
+		if (delaycheck >= 1 && delaycheck <= 60000) {
+			my_bot->SetCureDelay(delaydata);
+			if (!database.botdb.SaveCureDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveCureDelay(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Cure Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetCureDelay() / 1000.00);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Cure Timer is %.2f seconds.", my_bot->GetCureDelay() / 1000.00);
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^curedelay help for a list of options.");
+	}
+}
+
+void bot_command_cure_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_cure_threshold", sep->arg[0], "curethreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of target's total health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will begin to cast cure spells on its target.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 150 percent.");
+		c->Message(Chat::White, "note: This should be left to at least 100 percent to allow your bots to cure others all the time.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetCureThreshold(thresholddata);
+			if (!database.botdb.SaveCureThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveCureThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Cure Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a value between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Cure Threshold is %u percent.", my_bot->GetCureThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^curethreshold help for a list of options.");
+	}
+}
+
+void bot_command_cure_min_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_cure_min_threshold", sep->arg[0], "cureminthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of target's total health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will stop casting cure spells on its target.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 0 percent.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetCureMinThreshold(thresholddata);
+			if (!database.botdb.SaveCureMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveCureMinThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Minimum Cure Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a value between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Minimum Cure Threshold is %u percent.", my_bot->GetCureMinThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^cureminthreshold help for a list of options.");
+	}
+}
+
+void bot_command_debuff_delay(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_debuff_delay", sep->arg[0], "debuffdelay"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast debuffs.");
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default interval is 12000 (12 seconds).");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 delaydata = 0;
+	if (sep->IsNumber(1)) {
+		delaydata = atoi(sep->arg[1]);
+		int delaycheck = delaydata;
+		if (delaycheck >= 1 && delaycheck <= 60000) {
 			my_bot->SetDebuffDelay(delaydata);
 			if (!database.botdb.SaveDebuffDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveDebuffDelay(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Debuff Timer for %s to %lf seconds.", my_bot->GetCleanName(), my_bot->GetDebuffDelay() / 1000.00);
+				c->Message(Chat::White, "Successfully set a Debuff Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetDebuffDelay() / 1000.00);
 			}
 		}
 		else {
-			c->Message(Chat::White, "You must enter enter a value greater than 0 and less than 60000.");
+			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
 			return;
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Debuff Timer is %lf seconds.", my_bot->GetDebuffDelay() / 1000.00);
+		c->Message(Chat::White, "My current Debuff Timer is %.2f seconds.", my_bot->GetDebuffDelay() / 1000.00);
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^debuffdelay help for a list of options.");
 	}
-
 }
 
 void bot_command_defensive(Client *c, const Seperator *sep)
@@ -3611,16 +3944,16 @@ void bot_command_depart(Client *c, const Seperator *sep)
 	helper_no_available_bots(c, my_bot);
 }
 
-void bot_command_dot_delay(Client* c, const Seperator* sep)
+void bot_command_dispel_delay(Client* c, const Seperator* sep)
 {
-	if (helper_command_alias_fail(c, "bot_command_dot_delay", sep->arg[0], "dotdelay"))
+	if (helper_command_alias_fail(c, "bot_command_dispel_delay", sep->arg[0], "dispeldelay"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds.].", sep->arg[0]);
-		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast DoTs.");
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast dispels.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: Set to 0 to remove timer.");
+		c->Message(Chat::White, "note: The default interval is 0 (0 seconds).");
 		return;
 	}
 
@@ -3638,28 +3971,373 @@ void bot_command_dot_delay(Client* c, const Seperator* sep)
 	if (sep->IsNumber(1)) {
 		delaydata = atoi(sep->arg[1]);
 		int delaycheck = delaydata;
-		if (delaycheck >= 0 && delaycheck <= 60000) {
+		if (delaycheck >= 1 && delaycheck <= 60000) {
+			my_bot->SetDispelDelay(delaydata);
+			if (!database.botdb.SaveDispelDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveDispelDelay(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Dispel Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetDispelDelay() / 1000.00);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Dispel Timer is %.2f seconds.", my_bot->GetDispelDelay() / 1000.00);
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^dispeldelay help for a list of options.");
+	}
+}
+
+void bot_command_dispel_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_dispel_threshold", sep->arg[0], "dispelthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of target's total health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will begin to cast dispel spells on its target.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 95 percent.");
+		c->Message(Chat::White, "note: This should be left to at least 100 percent to allow your bots to dispel others all the time.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetDispelThreshold(thresholddata);
+			if (!database.botdb.SaveDispelThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveDispelThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Dispel Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a value between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Dispel Threshold is %u percent.", my_bot->GetDispelThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^dispelthreshold help for a list of options.");
+	}
+}
+
+void bot_command_dispel_min_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_dispel_min_threshold", sep->arg[0], "dispelminthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of target's total health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will stop casting dispel spells on its target.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 25 percent.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetDispelMinThreshold(thresholddata);
+			if (!database.botdb.SaveDispelMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveDispelMinThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Minimum Dispel Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a value between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Minimum Dispel Threshold is %u percent.", my_bot->GetDispelMinThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^dispelminthreshold help for a list of options.");
+	}
+}
+
+void bot_command_debuff_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_debuff_threshold", sep->arg[0], "debuffthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of target's total health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will begin to cast debuff spells on its target.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 95 percent.");
+		c->Message(Chat::White, "note: This should be left to at least 100 percent to allow your bots to debuff others all the time.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetDebuffThreshold(thresholddata);
+			if (!database.botdb.SaveDebuffThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveDebuffThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Debuff Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a value between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Debuff Threshold is %u percent.", my_bot->GetDebuffThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^debuffthreshold help for a list of options.");
+	}
+}
+
+void bot_command_debuff_min_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_debuff_min_threshold", sep->arg[0], "debuffminthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of target's total health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will stop casting debuff spells on its target.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 25 percent.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetDebuffMinThreshold(thresholddata);
+			if (!database.botdb.SaveDebuffMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveDebuffMinThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Minimum Debuff Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a value between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Minimum Debuff Threshold is %u percent.", my_bot->GetDebuffMinThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^debuffminthreshold help for a list of options.");
+	}
+}												
+
+void bot_command_dot_delay(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_dot_delay", sep->arg[0], "dotdelay"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast DoTs.");
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default interval is 12000 (12 seconds).");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 delaydata = 0;
+	if (sep->IsNumber(1)) {
+		delaydata = atoi(sep->arg[1]);
+		int delaycheck = delaydata;
+		if (delaycheck >= 1 && delaycheck <= 60000) {
 			my_bot->SetDotDelay(delaydata);
 			if (!database.botdb.SaveDotDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveDotDelay(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a DoT Timer for %s to %lf seconds.", my_bot->GetCleanName(), my_bot->GetDotDelay() / 1000.00);
+				c->Message(Chat::White, "Successfully set a DoT Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetDotDelay() / 1000.00);
 			}
 		}
 		else {
-			c->Message(Chat::White, "You must enter enter a value greater than 0 and less than 60000.");
+			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
 			return;
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current DoT Timer is %lf seconds.", my_bot->GetDotDelay() / 1000.00);
+		c->Message(Chat::White, "My current DoT Timer is %.2f seconds.", my_bot->GetDotDelay() / 1000.00);
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^dotdelay help for a list of options.");
+	}
+}
+
+void bot_command_dot_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_dot_threshold", sep->arg[0], "dotthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of own's health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will begin to cast DoT spells.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 95 percent.");
+		return;
 	}
 
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetDotThreshold(thresholddata);
+			if (!database.botdb.SaveDotThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveDotThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a DoT Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current DoT Threshold is %u percent.", my_bot->GetDotThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^dotthreshold help for a list of options.");
+	}
+}
+
+void bot_command_dot_min_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_dot_min_threshold", sep->arg[0], "dotminthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of own's health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will stop casting DoT spells.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 35 percent.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetDotMinThreshold(thresholddata);
+			if (!database.botdb.SaveDotMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveDotMinThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Minimum DoT Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Minimum DoT Threshold is %u percent.", my_bot->GetDotMinThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^dotminthreshold help for a list of options.");
+	}
 }
 
 void bot_command_escape(Client *c, const Seperator *sep)
@@ -3712,15 +4390,163 @@ void bot_command_escape(Client *c, const Seperator *sep)
 	helper_no_available_bots(c, my_bot);
 }
 
+void bot_command_escape_delay(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_escape_delay", sep->arg[0], "escapedelay"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast escapes.");
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default interval is 0 (0 seconds).");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 delaydata = 0;
+	if (sep->IsNumber(1)) {
+		delaydata = atoi(sep->arg[1]);
+		int delaycheck = delaydata;
+		if (delaycheck >= 1 && delaycheck <= 60000) {
+			my_bot->SetEscapeDelay(delaydata);
+			if (!database.botdb.SaveEscapeDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveEscapeDelay(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Escape Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetEscapeDelay() / 1000.00);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Escape Timer is %.2f seconds.", my_bot->GetEscapeDelay() / 1000.00);
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^escapedelay help for a list of options.");
+	}
+}
+
+void bot_command_escape_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_escape_threshold", sep->arg[0], "escapethreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of own's health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will begin to cast escape spells.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 35 percent.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetEscapeThreshold(thresholddata);
+			if (!database.botdb.SaveEscapeThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveEscapeThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Escape Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Escape Threshold is %u percent.", my_bot->GetEscapeThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^escapethreshold help for a list of options.");
+	}
+}
+
+void bot_command_escape_min_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_escape_min_threshold", sep->arg[0], "escapeminthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of own's health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will stop casting escape spells.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 0 percent.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetEscapeMinThreshold(thresholddata);
+			if (!database.botdb.SaveEscapeMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveEscapeMinThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Minimum Escape Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Minimum Escape Threshold is %u percent.", my_bot->GetEscapeMinThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^escapeminthreshold help for a list of options.");
+	}
+}
+
 void bot_command_fast_heal_delay(Client* c, const Seperator* sep)
 {
 	if (helper_command_alias_fail(c, "bot_command_fast_heal_delay", sep->arg[0], "fasthealdelay"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds.].", sep->arg[0]);
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
 		c->Message(Chat::White, "note: Set this to control how often a bot can cast a fast heal on the target.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: Set to 0 to remove timer and use the default intervals.");
+		c->Message(Chat::White, "note: The default interval is 2500 (2.5 seconds).");
 		return;
 	}
 
@@ -3734,28 +4560,27 @@ void bot_command_fast_heal_delay(Client* c, const Seperator* sep)
 	if (sep->IsNumber(1)) {
 		delaydata = atoi(sep->arg[1]);
 		int delaycheck = delaydata;
-		if (delaycheck >= 0 && delaycheck <= 60000) {
+		if (delaycheck >= 1 && delaycheck <= 60000) {
 			my_bot->SetFastHealDelay(delaydata);
 			if (!database.botdb.SaveFastHealDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveFastHealDelay(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Fast Heal Timer for %s to %lf seconds.", my_bot->GetCleanName(), my_bot->GetFastHealDelay() / 1000.00);
+				c->Message(Chat::White, "Successfully set a Fast Heal Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetFastHealDelay() / 1000.00);
 			}
 		}
 		else {
-			c->Message(Chat::White, "You must enter enter a value greater than 0 and less than 60000.");
+			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
 			return;
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Fast Heal Timer is %lf seconds.", my_bot->GetFastHealDelay() / 1000.00);
+		c->Message(Chat::White, "My current Fast Heal Timer is %.2f seconds.", my_bot->GetFastHealDelay() / 1000.00);
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^fasthealdelay help for a list of options.");
 	}
-
 }
 
 void bot_command_fast_heal_threshold(Client* c, const Seperator* sep)
@@ -3763,11 +4588,11 @@ void bot_command_fast_heal_threshold(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_fast_heal_threshold", sep->arg[0], "fasthealthreshold"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value % of total health].", sep->arg[0]);
-		c->Message(Chat::White, "note: Used to control at what percent of health the target will be fast healed at.");
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of total health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent of health the chosen bot will start being fast healed at.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: Set to 0 to remove threshold and use default heal AI.");
-		c->Message(Chat::White, "note: Set to above 100 to disable this type of heal on the target.");
+		c->Message(Chat::White, "note: Set to 0 to disable this type of heal on the chosen bot.");
+		c->Message(Chat::White, "note: healreshold is 35 percent.");
 		return;
 	}
 
@@ -3781,7 +4606,7 @@ void bot_command_fast_heal_threshold(Client* c, const Seperator* sep)
 	if (sep->IsNumber(1)) {
 		thresholddata = atoi(sep->arg[1]);
 		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 999) {
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
 			my_bot->SetFastHealThreshold(thresholddata);
 			if (!database.botdb.SaveFastHealThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveFastHealThreshold(), my_bot->GetCleanName());
@@ -3792,7 +4617,7 @@ void bot_command_fast_heal_threshold(Client* c, const Seperator* sep)
 			}
 		}
 		else {
-			c->Message(Chat::White, "You must enter enter a value greater than 0 and less than 999.");
+			c->Message(Chat::White, "You must enter enter a value between 0 and 150.");
 			return;
 		}
 	}
@@ -3800,9 +4625,8 @@ void bot_command_fast_heal_threshold(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "My current Fast Heal Threshold is %u percent.", my_bot->GetFastHealThreshold());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^fasthealthreshold help for a list of options.");
 	}
-
 }
 
 void bot_command_find_aliases(Client *c, const Seperator *sep)
@@ -3972,15 +4796,163 @@ void bot_command_guard(Client *c, const Seperator *sep)
 	}
 }
 
+void bot_command_hateredux_delay(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hateredux_delay", sep->arg[0], "hatereduxdelay"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast hate reduction spells.");
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default interval is 0 (0 seconds).");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 delaydata = 0;
+	if (sep->IsNumber(1)) {
+		delaydata = atoi(sep->arg[1]);
+		int delaycheck = delaydata;
+		if (delaycheck >= 1 && delaycheck <= 60000) {
+			my_bot->SetHateReduxDelay(delaydata);
+			if (!database.botdb.SaveHateReduxDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHateReduxDelay(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Hate Reduction Spell Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetHateReduxDelay() / 1000.00);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hate Reduction Spell Timer is %.2f seconds.", my_bot->GetHateReduxDelay() / 1000.00);
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^hatereduxdelay help for a list of options.");
+	}
+}
+
+void bot_command_hateredux_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hateredux_threshold", sep->arg[0], "hatereduxthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of own's health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will begin to cast Hate Reduction spells.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 80 percent.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetHateReduxThreshold(thresholddata);
+			if (!database.botdb.SaveHateReduxThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHateReduxThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Hate Reduction Spell Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hate Reduction Spell Threshold is %u percent.", my_bot->GetHateReduxThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^hatereduxthreshold help for a list of options.");
+	}
+}
+
+void bot_command_hateredux_min_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hateredux_min_threshold", sep->arg[0], "hatereduxminthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of own's health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will stop casting Hate Reduction spells.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 0 percent.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetHateReduxMinThreshold(thresholddata);
+			if (!database.botdb.SaveHateReduxMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHateReduxMinThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Minimum Hate Reduction Spell Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Minimum Hate Reduction Spell Threshold is %u percent.", my_bot->GetHateReduxMinThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^hatereduxminthreshold help for a list of options.");
+	}
+}
+
 void bot_command_heal_delay(Client* c, const Seperator* sep)
 {
 	if (helper_command_alias_fail(c, "bot_command_heal_delay", sep->arg[0], "healdelay"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds.].", sep->arg[0]);
-		c->Message(Chat::White, "note: Set this to control how often a bot can cast a heal on the target.");
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "note: Set this to control how often a bot can cast a regular heal on the target.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: Set to 0 to remove timer and use the default intervals.");
+		c->Message(Chat::White, "note: The default interval is 4500 (4.5 seconds).");
 		return;
 	}
 
@@ -3994,28 +4966,27 @@ void bot_command_heal_delay(Client* c, const Seperator* sep)
 	if (sep->IsNumber(1)) {
 		delaydata = atoi(sep->arg[1]);
 		int delaycheck = delaydata;
-		if (delaycheck >= 0 && delaycheck <= 60000) {
+		if (delaycheck >= 1 && delaycheck <= 60000) {
 			my_bot->SetHealDelay(delaydata);
 			if (!database.botdb.SaveHealDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHealDelay(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Heal Timer for %s to %lf seconds.", my_bot->GetCleanName(), my_bot->GetHealDelay() / 1000.00);
+				c->Message(Chat::White, "Successfully set a Heal Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetHealDelay() / 1000.00);
 			}
 		}
 		else {
-			c->Message(Chat::White, "You must enter enter a value greater than 0 and less than 60000.");
+			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
 			return;
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Heal Timer is %lf seconds.", my_bot->GetHealDelay() / 1000.00);
+		c->Message(Chat::White, "My current Heal Timer is %.2f seconds.", my_bot->GetHealDelay() / 1000.00);
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^healdelay help for a list of options.");
 	}
-
 }
 
 void bot_command_heal_rotation(Client *c, const Seperator *sep)
@@ -4079,11 +5050,11 @@ void bot_command_heal_threshold(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_heal_threshold", sep->arg[0], "healthreshold"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value % of total health].", sep->arg[0]);
-		c->Message(Chat::White, "note: Used to control at what percent of health the target will be regular healed at.");
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of total health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent of health the chosen bot will start being regular healed at.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: Set to 0 to remove threshold and use default heal AI.");
-		c->Message(Chat::White, "note: Set to above 100 to disable this type of heal on the target.");
+		c->Message(Chat::White, "note: Set to 0 to disable this type of heal on the chosen bot.");
+		c->Message(Chat::White, "note: The default threshold is 55 percent.");
 		return;
 	}
 
@@ -4097,7 +5068,7 @@ void bot_command_heal_threshold(Client* c, const Seperator* sep)
 	if (sep->IsNumber(1)) {
 		thresholddata = atoi(sep->arg[1]);
 		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 999) {
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
 			my_bot->SetHealThreshold(thresholddata);
 			if (!database.botdb.SaveHealThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHealThreshold(), my_bot->GetCleanName());
@@ -4108,7 +5079,7 @@ void bot_command_heal_threshold(Client* c, const Seperator* sep)
 			}
 		}
 		else {
-			c->Message(Chat::White, "You must enter enter a value greater than 0 and less than 999.");
+			c->Message(Chat::White, "You must enter enter a value between 0 and 150.");
 			return;
 		}
 	}
@@ -4116,9 +5087,8 @@ void bot_command_heal_threshold(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "My current Heal Threshold is %u percent.", my_bot->GetHealThreshold());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^healthreshold help for a list of options.");
 	}
-
 }
 
 void bot_command_help(Client *c, const Seperator *sep)
@@ -4206,6 +5176,7 @@ void bot_command_hold_buffs(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast buffs.");
 		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting buffs.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
 		return;
 	}
 
@@ -4242,9 +5213,8 @@ void bot_command_hold_buffs(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "My current Hold Buffs status is %u.", my_bot->GetHoldBuffs());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^holdbuffs help for a list of options.");
 	}
-
 }
 
 void bot_command_hold_cures(Client* c, const Seperator* sep)
@@ -4257,6 +5227,7 @@ void bot_command_hold_cures(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast cures.");
 		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting cures.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
 		return;
 	}
 
@@ -4293,9 +5264,8 @@ void bot_command_hold_cures(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "My current Hold Cures status is %u.", my_bot->GetHoldCures());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^holdcures help for a list of options.");
 	}
-
 }
 
 void bot_command_hold_dots(Client* c, const Seperator* sep)
@@ -4308,6 +5278,7 @@ void bot_command_hold_dots(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast DoTs.");
 		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting DoTs.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
 		return;
 	}
 
@@ -4344,9 +5315,8 @@ void bot_command_hold_dots(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "My current Hold DoTs status is %u.", my_bot->GetHoldDoTs());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^holddots help for a list of options.");
 	}
-
 }
 
 void bot_command_hold_debuffs(Client* c, const Seperator* sep)
@@ -4359,6 +5329,7 @@ void bot_command_hold_debuffs(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast debuffs.");
 		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting debuffs.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
 		return;
 	}
 
@@ -4395,9 +5366,8 @@ void bot_command_hold_debuffs(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "My current Hold Debuffs status is %u.", my_bot->GetHoldDebuffs());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^holddebuffs help for a list of options.");
 	}
-
 }
 
 void bot_command_hold_dispels(Client* c, const Seperator* sep)
@@ -4410,6 +5380,7 @@ void bot_command_hold_dispels(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast dispels.");
 		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting dispels.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
 		return;
 	}
 
@@ -4446,9 +5417,8 @@ void bot_command_hold_dispels(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "My current Hold Dispels status is %u.", my_bot->GetHoldDispels());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^holddispels help for a list of options.");
 	}
-
 }
 
 void bot_command_hold_escapes(Client* c, const Seperator* sep)
@@ -4461,6 +5431,7 @@ void bot_command_hold_escapes(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast escapes.");
 		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting escapes.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
 		return;
 	}
 
@@ -4497,9 +5468,8 @@ void bot_command_hold_escapes(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "My current Hold Escapes status is %u.", my_bot->GetHoldEscapes());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^holdescapes help for a list of options.");
 	}
-
 }
 
 void bot_command_hold_hateredux(Client* c, const Seperator* sep)
@@ -4512,6 +5482,7 @@ void bot_command_hold_hateredux(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Hate Reduction Spells.");
 		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Hate Reduction Spells.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
 		return;
 	}
 
@@ -4548,9 +5519,8 @@ void bot_command_hold_hateredux(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "My current Hold HateRedux status is %u.", my_bot->GetHoldHateRedux());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^holdhateredux help for a list of options.");
 	}
-
 }
 
 void bot_command_hold_heals(Client* c, const Seperator* sep)
@@ -4563,6 +5533,7 @@ void bot_command_hold_heals(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Heals.");
 		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Heals.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
 		return;
 	}
 
@@ -4599,9 +5570,8 @@ void bot_command_hold_heals(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "My current Hold Heal status is %u.", my_bot->GetHoldHeals());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^holdheals help for a list of options.");
 	}
-
 }
 
 void bot_command_hold_incombatbuffs(Client* c, const Seperator* sep)
@@ -4614,6 +5584,7 @@ void bot_command_hold_incombatbuffs(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast In-Combat Buffs.");
 		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting In-Combat Buffs.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
 		return;
 	}
 
@@ -4650,9 +5621,8 @@ void bot_command_hold_incombatbuffs(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "My current Hold In-Combat Buffs status is %u.", my_bot->GetHoldInCombatBuffs());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^holdincombatbuffs help for a list of options.");
 	}
-
 }
 
 void bot_command_hold_incombatbuffsongs(Client* c, const Seperator* sep)
@@ -4665,6 +5635,7 @@ void bot_command_hold_incombatbuffsongs(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast In-Combat Buff Songs.");
 		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting In-Combat Buff Songs.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
 		return;
 	}
 
@@ -4701,9 +5672,8 @@ void bot_command_hold_incombatbuffsongs(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "My current Hold In-Combat Buff Songs status is %u.", my_bot->GetHoldInCombatBuffSongs());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^holdincombatbuffsongs help for a list of options.");
 	}
-
 }
 
 void bot_command_hold_lifetaps(Client* c, const Seperator* sep)
@@ -4716,6 +5686,7 @@ void bot_command_hold_lifetaps(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Lifetaps.");
 		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Lifetaps.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
 		return;
 	}
 
@@ -4752,9 +5723,8 @@ void bot_command_hold_lifetaps(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "My current Hold Lifetaps status is %u.", my_bot->GetHoldLifetaps());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^holdlifetaps help for a list of options.");
 	}
-
 }
 
 void bot_command_hold_mez(Client* c, const Seperator* sep)
@@ -4765,8 +5735,9 @@ void bot_command_hold_mez(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Mez.");
-		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Mez.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Mesmerization Spells.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Mesmerization Spells.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
 		return;
 	}
 
@@ -4791,7 +5762,7 @@ void bot_command_hold_mez(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Mez for %s to %u.", my_bot->GetCleanName(), hmez);
+				c->Message(Chat::White, "Successfully set Hold Mesmerization Spells for %s to %u.", my_bot->GetCleanName(), hmez);
 			}
 		}
 		else {
@@ -4800,12 +5771,11 @@ void bot_command_hold_mez(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Mez status is %u.", my_bot->GetHoldMez());
+		c->Message(Chat::White, "My current Hold Mesmerization Spells status is %u.", my_bot->GetHoldMez());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^holdmez help for a list of options.");
 	}
-
 }
 
 void bot_command_hold_nukes(Client* c, const Seperator* sep)
@@ -4818,6 +5788,7 @@ void bot_command_hold_nukes(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast nukes.");
 		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting nukes.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
 		return;
 	}
 
@@ -4842,7 +5813,7 @@ void bot_command_hold_nukes(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Nuke for %s to %u.", my_bot->GetCleanName(), hn);
+				c->Message(Chat::White, "Successfully set Hold Nukes for %s to %u.", my_bot->GetCleanName(), hn);
 			}
 		}
 		else {
@@ -4854,9 +5825,8 @@ void bot_command_hold_nukes(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "My current Hold Nukes status is %u.", my_bot->GetHoldNukes());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^holdnukes help for a list of options.");
 	}
-
 }
 
 void bot_command_hold_outofcombatbuffsongs(Client* c, const Seperator* sep)
@@ -4869,6 +5839,7 @@ void bot_command_hold_outofcombatbuffsongs(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Out-Of-Combat Buff Songs.");
 		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Out-Of-Combat Buff Songs.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
 		return;
 	}
 
@@ -4905,9 +5876,59 @@ void bot_command_hold_outofcombatbuffsongs(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "My current Hold Out-Of-Combat Buff Songs status is %u.", my_bot->GetHoldOutOfCombatBuffSongs());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^holdoutofcombatbuffsongs help for a list of options.");
+	}
+}
+
+void bot_command_hold_pet_heals(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_pet_heals", sep->arg[0], "holdpetheals"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to heal Pets.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from healing Pets.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
+		return;
 	}
 
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 hpets = 0;
+	if (sep->IsNumber(1)) {
+		hpets = atoi(sep->arg[1]);
+		int hpetscheck = hpets;
+		if (hpetscheck == 0 || hpetscheck == 1) {
+			my_bot->SetHoldPetHeals(hpets);
+			if (!database.botdb.SaveHoldPetHeals(c->CharacterID(), my_bot->GetBotID(), hpets)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldPetHeals(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold Pet Heals for %s to %u.", my_bot->GetCleanName(), hpets);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold Pet Heals status is %u.", my_bot->GetHoldPetHeals());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^holdpetheals help for a list of options.");
+	}
 }
 
 void bot_command_hold_pets(Client* c, const Seperator* sep)
@@ -4920,6 +5941,7 @@ void bot_command_hold_pets(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Pets.");
 		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Pets.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
 		return;
 	}
 
@@ -4956,9 +5978,8 @@ void bot_command_hold_pets(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "My current Hold Pets status is %u.", my_bot->GetHoldPets());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^holdpets help for a list of options.");
 	}
-
 }
 
 void bot_command_hold_precombatbuffs(Client* c, const Seperator* sep)
@@ -4971,6 +5992,7 @@ void bot_command_hold_precombatbuffs(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Pre-Combat Buffs.");
 		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Pre-Combat Buffs.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
 		return;
 	}
 
@@ -5007,9 +6029,8 @@ void bot_command_hold_precombatbuffs(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "My current Hold Pre-Combat Buffs status is %u.", my_bot->GetHoldPreCombatBuffs());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^holdprecombatbuffs help for a list of options.");
 	}
-
 }
 
 void bot_command_hold_precombatbuffsongs(Client* c, const Seperator* sep)
@@ -5022,6 +6043,7 @@ void bot_command_hold_precombatbuffsongs(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Pre-Combat Buffs Songs.");
 		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Pre-Combat Buffs Songs.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
 		return;
 	}
 
@@ -5058,9 +6080,8 @@ void bot_command_hold_precombatbuffsongs(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "My current Hold Pre-Combat Buffs status is %u.", my_bot->GetHoldPreCombatBuffSongs());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^holdprecombatbuffsongs help for a list of options.");
 	}
-
 }
 
 void bot_command_hold_roots(Client* c, const Seperator* sep)
@@ -5073,6 +6094,7 @@ void bot_command_hold_roots(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Roots.");
 		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Roots.");
+		c->Message(Chat::White, "note: The default hold is enabled (1).");
 		return;
 	}
 
@@ -5109,9 +6131,8 @@ void bot_command_hold_roots(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "My current Hold Roots status is %u.", my_bot->GetHoldRoots());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^holdroots help for a list of options.");
 	}
-
 }
 
 void bot_command_hold_slows(Client* c, const Seperator* sep)
@@ -5124,6 +6145,7 @@ void bot_command_hold_slows(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Slows.");
 		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Slows.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
 		return;
 	}
 
@@ -5160,9 +6182,8 @@ void bot_command_hold_slows(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "My current Hold Slows status is %u.", my_bot->GetHoldSlows());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^holdslows help for a list of options.");
 	}
-
 }
 
 void bot_command_hold_snares(Client* c, const Seperator* sep)
@@ -5175,6 +6196,7 @@ void bot_command_hold_snares(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Snares.");
 		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Snares.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
 		return;
 	}
 
@@ -5211,9 +6233,8 @@ void bot_command_hold_snares(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "My current Hold Snares status is %u.", my_bot->GetHoldSnares());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^holdsnares help for a list of options.");
 	}
-
 }
 
 void bot_command_hot_heal_delay(Client* c, const Seperator* sep)
@@ -5221,10 +6242,10 @@ void bot_command_hot_heal_delay(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hot_heal_delay", sep->arg[0], "hothealdelay"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds.].", sep->arg[0]);
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
 		c->Message(Chat::White, "note: Set this to control how often a bot can cast a HoT heal on the target.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: Set to 0 to remove timer and use the default intervals.");
+		c->Message(Chat::White, "note: The default interval is 22000 (22 seconds).");
 		return;
 	}
 
@@ -5238,28 +6259,27 @@ void bot_command_hot_heal_delay(Client* c, const Seperator* sep)
 	if (sep->IsNumber(1)) {
 		delaydata = atoi(sep->arg[1]);
 		int delaycheck = delaydata;
-		if (delaycheck >= 0 && delaycheck <= 60000) {
+		if (delaycheck >= 1 && delaycheck <= 60000) {
 			my_bot->SetHotHealDelay(delaydata);
 			if (!database.botdb.SaveHotHealDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHotHealDelay(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a HoT Heal Timer for %s to %lf seconds.", my_bot->GetCleanName(), my_bot->GetHotHealDelay() / 1000.00);
+				c->Message(Chat::White, "Successfully set a HoT Heal Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetHotHealDelay() / 1000.00);
 			}
 		}
 		else {
-			c->Message(Chat::White, "You must enter enter a value greater than 0 and less than 60000.");
+			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
 			return;
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current HoT Heal Timer is %lf seconds.", my_bot->GetHotHealDelay() / 1000.00);
+		c->Message(Chat::White, "My current HoT Heal Timer is %.2f seconds.", my_bot->GetHotHealDelay() / 1000.00);
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^hothealdelay help for a list of options.");
 	}
-
 }
 
 void bot_command_hot_heal_threshold(Client* c, const Seperator* sep)
@@ -5267,11 +6287,11 @@ void bot_command_hot_heal_threshold(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hot_heal_threshold", sep->arg[0], "hothealthreshold"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value % of total health].", sep->arg[0]);
-		c->Message(Chat::White, "note: Used to control at what percent of health the target will be HoT healed at.");
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of total health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent of health the chosen bot will start being HoT healed at.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: Set to 0 to remove threshold and use default heal AI.");
-		c->Message(Chat::White, "note: Set to above 100 to disable this type of heal on the target.");
+		c->Message(Chat::White, "note: Set to 0 to disable this type of heal on the chosen bot.");
+		c->Message(Chat::White, "note: The default threshold is 85 percent.");
 		return;
 	}
 
@@ -5285,7 +6305,7 @@ void bot_command_hot_heal_threshold(Client* c, const Seperator* sep)
 	if (sep->IsNumber(1)) {
 		thresholddata = atoi(sep->arg[1]);
 		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 999) {
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
 			my_bot->SetHotHealThreshold(thresholddata);
 			if (!database.botdb.SaveHotHealThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHotHealThreshold(), my_bot->GetCleanName());
@@ -5296,7 +6316,7 @@ void bot_command_hot_heal_threshold(Client* c, const Seperator* sep)
 			}
 		}
 		else {
-			c->Message(Chat::White, "You must enter enter a value greater than 0 and less than 999.");
+			c->Message(Chat::White, "You must enter enter a value between 0 and 150.");
 			return;
 		}
 	}
@@ -5304,9 +6324,204 @@ void bot_command_hot_heal_threshold(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "My current HoT Heal Threshold is %u percent.", my_bot->GetHotHealThreshold());
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^hothealthreshold help for a list of options.");
+	}
+}
+
+void bot_command_incombatbuff_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_incombatbuff_threshold", sep->arg[0], "incombatbuffthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of own's health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will begin to cast in-combat buff spells.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 150 percent.");
+		return;
 	}
 
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetInCombatBuffThreshold(thresholddata);
+			if (!database.botdb.SaveInCombatBuffThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveInCombatBuffThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a In-Combat Buff Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current In-Combat Buff Threshold is %u percent.", my_bot->GetInCombatBuffThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^incombatbuffthreshold help for a list of options.");
+	}
+}
+
+void bot_command_incombatbuff_min_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_incombatbuff_min_threshold", sep->arg[0], "incombatbuffminthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of own's health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will stop casting in-combat buff spells.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 0 percent.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetInCombatBuffMinThreshold(thresholddata);
+			if (!database.botdb.SaveInCombatBuffMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveInCombatBuffMinThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Minimum In-Combat Buff Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Minimum In-Combat Buff Threshold is %u percent.", my_bot->GetInCombatBuffMinThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^incombatbuffminthreshold help for a list of options.");
+	}
+}
+
+void bot_command_lifetap_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_lifetap_threshold", sep->arg[0], "lifetapthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of own's health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will begin to cast lifetap spells.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 60 percent.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetLifetapThreshold(thresholddata);
+			if (!database.botdb.SaveLifetapThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveLifetapThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Lifetap Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Lifetap Threshold is %u percent.", my_bot->GetLifetapThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^lifetapthreshold help for a list of options.");
+	}
+}
+
+void bot_command_lifetap_min_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_lifetap_min_threshold", sep->arg[0], "lifetapminthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of own's health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will stop casting lifetap spells.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 0 percent.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetLifetapMinThreshold(thresholddata);
+			if (!database.botdb.SaveLifetapMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveLifetapMinThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Minimum Lifetap Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Minimum Lifetap Threshold is %u percent.", my_bot->GetLifetapMinThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^lifetapminthreshold help for a list of options.");
+	}
 }
 
 void bot_command_identify(Client *c, const Seperator *sep)
@@ -5585,16 +6800,16 @@ void bot_command_levitation(Client *c, const Seperator *sep)
 	helper_no_available_bots(c, my_bot);
 }
 
-void bot_command_lifetap_delay(Client* c, const Seperator* sep)
+void bot_command_incombatbuff_delay(Client* c, const Seperator* sep)
 {
-	if (helper_command_alias_fail(c, "bot_command_lifetap_delay", sep->arg[0], "lifetapdelay"))
+	if (helper_command_alias_fail(c, "bot_command_incombatbuff_delay", sep->arg[0], "incombatbuffdelay"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds.].", sep->arg[0]);
-		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast lifetaps.");
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast in-combat buffs.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: Set to 0 to remove timer.");
+		c->Message(Chat::White, "note: The default interval is 0 (0 seconds).");
 		return;
 	}
 
@@ -5612,28 +6827,77 @@ void bot_command_lifetap_delay(Client* c, const Seperator* sep)
 	if (sep->IsNumber(1)) {
 		delaydata = atoi(sep->arg[1]);
 		int delaycheck = delaydata;
-		if (delaycheck >= 0 && delaycheck <= 60000) {
+		if (delaycheck >= 1 && delaycheck <= 60000) {
+			my_bot->SetInCombatBuffDelay(delaydata);
+			if (!database.botdb.SaveInCombatBuffDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveInCombatBuffDelay(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a In-Combat Buff Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetInCombatBuffDelay() / 1000.00);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current In-Combat Buff Timer is %.2f seconds.", my_bot->GetInCombatBuffDelay() / 1000.00);
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^incombatbuffdelay help for a list of options.");
+	}
+}
+
+void bot_command_lifetap_delay(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_lifetap_delay", sep->arg[0], "lifetapdelay"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast lifetaps.");
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default interval is 0 (0 seconds).");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 delaydata = 0;
+	if (sep->IsNumber(1)) {
+		delaydata = atoi(sep->arg[1]);
+		int delaycheck = delaydata;
+		if (delaycheck >= 1 && delaycheck <= 60000) {
 			my_bot->SetLifetapDelay(delaydata);
 			if (!database.botdb.SaveLifetapDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveLifetapDelay(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Lifetap Timer for %s to %lf seconds.", my_bot->GetCleanName(), my_bot->GetLifetapDelay() / 1000.00);
+				c->Message(Chat::White, "Successfully set a Lifetap Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetLifetapDelay() / 1000.00);
 			}
 		}
 		else {
-			c->Message(Chat::White, "You must enter enter a value greater than 0 and less than 60000.");
+			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
 			return;
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Lifetap Timer is %lf seconds.", my_bot->GetLifetapDelay() / 1000.00);
+		c->Message(Chat::White, "My current Lifetap Timer is %.2f seconds.", my_bot->GetLifetapDelay() / 1000.00);
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^lifetapdelay help for a list of options.");
 	}
-
 }
 
 void bot_command_lull(Client *c, const Seperator *sep)
@@ -5734,6 +6998,154 @@ void bot_command_mesmerize(Client *c, const Seperator *sep)
 	helper_no_available_bots(c, my_bot);
 }
 
+void bot_command_mez_delay(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_mez_delay", sep->arg[0], "mezdelay"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast mesmerization spells.");
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default interval is 0 (0 seconds).");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 delaydata = 0;
+	if (sep->IsNumber(1)) {
+		delaydata = atoi(sep->arg[1]);
+		int delaycheck = delaydata;
+		if (delaycheck >= 1 && delaycheck <= 60000) {
+			my_bot->SetMezDelay(delaydata);
+			if (!database.botdb.SaveMezDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveMezDelay(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Mesmerization Spell Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetMezDelay() / 1000.00);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Mesmerization Spell Timer is %.2f seconds.", my_bot->GetMezDelay() / 1000.00);
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^mezdelay help for a list of options.");
+	}
+}
+
+void bot_command_mez_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_mez_threshold", sep->arg[0], "mezthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of target's health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will begin to cast Mesmerization spells.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 150 percent.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetMezThreshold(thresholddata);
+			if (!database.botdb.SaveMezThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveMezThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Mesmerization Spell Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Mesmerization Spell Threshold is %u percent.", my_bot->GetMezThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^mezthreshold help for a list of options.");
+	}
+}
+
+void bot_command_mez_min_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_mez_min_threshold", sep->arg[0], "mezminthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of target's health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will stop casting Mesmerization spells.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 85 percent.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetMezMinThreshold(thresholddata);
+			if (!database.botdb.SaveMezMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveMezMinThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Minimum Mesmerization Spell Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Minimum Mesmerization Spell Threshold is %u percent.", my_bot->GetMezMinThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^mezminthreshold help for a list of options.");
+	}
+}
+
 void bot_command_movement_speed(Client *c, const Seperator *sep)
 {
 	bcst_list* local_list = &bot_command_spells[BCEnum::SpT_MovementSpeed];
@@ -5795,11 +7207,11 @@ void bot_command_nuke_delay(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_nuke_delay", sep->arg[0], "nukedelay"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in ms. For example, 5000 = 5 seconds.].", sep->arg[0]);
-		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast nukes.");
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast nuke spells.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: Set to 0 to remove timer.");
+		c->Message(Chat::White, "note: The default interval is 8000 (8 seconds).");
 		return;
 	}
 
@@ -5813,32 +7225,129 @@ void bot_command_nuke_delay(Client* c, const Seperator* sep)
 		return;
 	}
 
-	uint32 nd = 0;
+	uint32 delaydata = 0;
 	if (sep->IsNumber(1)) {
-		nd = atoi(sep->arg[1]);
-		int ntcheck = nd;
-		if (ntcheck >= 0 && ntcheck <= 60000) {
-			my_bot->SetNukeDelay(nd);
-			if (!database.botdb.SaveNukeDelay(c->CharacterID(), my_bot->GetBotID(), nd)) {
+		delaydata = atoi(sep->arg[1]);
+		int delaycheck = delaydata;
+		if (delaycheck >= 1 && delaycheck <= 60000) {
+			my_bot->SetNukeDelay(delaydata);
+			if (!database.botdb.SaveNukeDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveNukeDelay(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Nuke Timer for %s to %lf seconds.", my_bot->GetCleanName(), my_bot->GetNukeDelay() / 1000.00);
+				c->Message(Chat::White, "Successfully set a Nuke Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetNukeDelay() / 1000.00);
 			}
 		}
 		else {
-			c->Message(Chat::White, "You must enter enter a value greater than 0 and less than 60000.");
+			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
 			return;
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Nuke Timer is %lf seconds.", my_bot->GetNukeDelay() / 1000.00);
+		c->Message(Chat::White, "My current Nuke Timer is %.2f seconds.", my_bot->GetNukeDelay() / 1000.00);
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^nukedelay help for a list of options.");
+	}
+}
+
+void bot_command_nuke_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_nuke_threshold", sep->arg[0], "nukethreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of target's health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will begin to cast Nuke spells.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 95 percent.");
+		return;
 	}
 
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetNukeThreshold(thresholddata);
+			if (!database.botdb.SaveNukeThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveNukeThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Nuke Spell Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Nuke Spell Threshold is %u percent.", my_bot->GetNukeThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^nukethreshold help for a list of options.");
+	}
+}
+
+void bot_command_nuke_min_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_nuke_min_threshold", sep->arg[0], "nukeminthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of target's health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will stop casting Nuke spells.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 20 percent.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetNukeMinThreshold(thresholddata);
+			if (!database.botdb.SaveNukeMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveNukeMinThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Minimum Nuke Spell Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Minimum Nuke Spell Threshold is %u percent.", my_bot->GetNukeMinThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^nukeminthreshold help for a list of options.");
+	}
 }
 
 void bot_command_remove_from_raid(Client* c, const Seperator* sep)
@@ -6642,6 +8151,154 @@ void bot_command_root(Client *c, const Seperator *sep)
 	helper_no_available_bots(c, my_bot);
 }
 
+void bot_command_root_delay(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_root_delay", sep->arg[0], "rootdelay"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast root spells.");
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default interval is 12000 (12 seconds).");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 delaydata = 0;
+	if (sep->IsNumber(1)) {
+		delaydata = atoi(sep->arg[1]);
+		int delaycheck = delaydata;
+		if (delaycheck >= 1 && delaycheck <= 60000) {
+			my_bot->SetRootDelay(delaydata);
+			if (!database.botdb.SaveRootDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveRootDelay(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Root Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetRootDelay() / 1000.00);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Root Timer is %.2f seconds.", my_bot->GetRootDelay() / 1000.00);
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^rootdelay help for a list of options.");
+	}
+}
+
+void bot_command_root_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_root_threshold", sep->arg[0], "rootthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of target's health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will begin to cast root spells.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 95 percent.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetRootThreshold(thresholddata);
+			if (!database.botdb.SaveRootThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveRootThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Root Spell Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Root Spell Threshold is %u percent.", my_bot->GetRootThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^rootthreshold help for a list of options.");
+	}
+}
+
+void bot_command_root_min_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_root_min_threshold", sep->arg[0], "rootminthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of target's health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will stop casting root spells.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 15 percent.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetRootMinThreshold(thresholddata);
+			if (!database.botdb.SaveRootMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveRootMinThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Minimum Root Spell Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Minimum Root Spell Threshold is %u percent.", my_bot->GetRootMinThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^rootminthreshold help for a list of options.");
+	}
+}
+
 void bot_command_rune(Client *c, const Seperator *sep)
 {
 	// temp
@@ -6804,12 +8461,11 @@ void bot_command_slow_delay(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_slow_delay", sep->arg[0], "slowdelay"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds.].", sep->arg[0]);
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds.].", sep->arg[0]);
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
 		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast slows.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: Set to 0 to remove timer.");
+		c->Message(Chat::White, "note: The default interval is 12000 (12 seconds).");
 		return;
 	}
 
@@ -6827,28 +8483,125 @@ void bot_command_slow_delay(Client* c, const Seperator* sep)
 	if (sep->IsNumber(1)) {
 		delaydata = atoi(sep->arg[1]);
 		int delaycheck = delaydata;
-		if (delaycheck >= 0 && delaycheck <= 60000) {
+		if (delaycheck >= 1 && delaycheck <= 60000) {
 			my_bot->SetSlowDelay(delaydata);
 			if (!database.botdb.SaveSlowDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveSlowDelay(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Slow Timer for %s to %lf seconds.", my_bot->GetCleanName(), my_bot->GetSlowDelay() / 1000.00);
+				c->Message(Chat::White, "Successfully set a Slow Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetSlowDelay() / 1000.00);
 			}
 		}
 		else {
-			c->Message(Chat::White, "You must enter enter a value greater than 0 and less than 60000.");
+			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
 			return;
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Slow Timer is %lf seconds.", my_bot->GetSlowDelay() / 1000.00);
+		c->Message(Chat::White, "My current Slow Timer is %.2f seconds.", my_bot->GetSlowDelay() / 1000.00);
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use ^slowdelay help for a list of options.");
+	}
+}
+
+void bot_command_slow_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_slow_threshold", sep->arg[0], "slowthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of target's health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will begin to cast slow spells.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 95 percent.");
+		return;
 	}
 
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetSlowThreshold(thresholddata);
+			if (!database.botdb.SaveSlowThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveSlowThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Slow Spell Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Slow Spell Threshold is %u percent.", my_bot->GetSlowThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^slowthreshold help for a list of options.");
+	}
+}
+
+void bot_command_slow_min_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_slow_min_threshold", sep->arg[0], "slowminthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of target's health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will stop casting slow spells.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 25 percent.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetSlowMinThreshold(thresholddata);
+			if (!database.botdb.SaveSlowMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveSlowMinThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Minimum Slow Spell Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Minimum Slow Spell Threshold is %u percent.", my_bot->GetSlowMinThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^slowminthreshold help for a list of options.");
+	}
 }
 
 void bot_command_snare(Client* c, const Seperator* sep)
@@ -6895,6 +8648,154 @@ void bot_command_snare(Client* c, const Seperator* sep)
 	}
 
 	helper_no_available_bots(c, my_bot);
+}
+
+void bot_command_snare_delay(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_snare_delay", sep->arg[0], "snaredelay"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast snare spells.");
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default interval is 12000 (12 seconds).");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 delaydata = 0;
+	if (sep->IsNumber(1)) {
+		delaydata = atoi(sep->arg[1]);
+		int delaycheck = delaydata;
+		if (delaycheck >= 1 && delaycheck <= 60000) {
+			my_bot->SetSnareDelay(delaydata);
+			if (!database.botdb.SaveSnareDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveSnareDelay(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Snare Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetSnareDelay() / 1000.00);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Snare Timer is %.2f seconds.", my_bot->GetSnareDelay() / 1000.00);
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^snaredelay help for a list of options.");
+	}
+}
+
+void bot_command_snare_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_snare_threshold", sep->arg[0], "snarethreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of target's health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will begin to cast snare spells.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 95 percent.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetSnareThreshold(thresholddata);
+			if (!database.botdb.SaveSnareThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveSnareThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Snare Spell Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Snare Spell Threshold is %u percent.", my_bot->GetSnareThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^snarethreshold help for a list of options.");
+	}
+}
+
+void bot_command_snare_min_threshold(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_snare_min_threshold", sep->arg[0], "snareminthreshold"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of target's health].", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control at what percent the bot will stop casting snare spells.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: The default is 0 percent.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint32 thresholddata = 0;
+	if (sep->IsNumber(1)) {
+		thresholddata = atoi(sep->arg[1]);
+		int thresholdcheck = thresholddata;
+		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
+			my_bot->SetSnareMinThreshold(thresholddata);
+			if (!database.botdb.SaveSnareMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveSnareMinThreshold(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set a Minimum Snare Spell Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Minimum Snare Spell Threshold is %u percent.", my_bot->GetSnareMinThreshold());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^snareminthreshold help for a list of options.");
+	}
 }
 
 void bot_command_summon_corpse(Client *c, const Seperator *sep)
@@ -10416,12 +12317,12 @@ void bot_subcommand_heal_rotation_adjust_critical(Client *c, const Seperator *se
 		critical_ratio = CRITICAL_HP_RATIO_ABS;
 
 	if (!(*current_member->MemberOfHealRotation())->SetArmorTypeCriticalHPRatio(armor_type_value, critical_ratio)) {
-		c->Message(Chat::White, "Critical value %3.1f%%(%u) exceeds safe value %3.1f%%(%u) for %s's Heal Rotation",
+		c->Message(Chat::White, "Critical percent value3.1f%%(%u) exceeds safe percent value3.1f%%(%u) for %s's Heal Rotation",
 			critical_ratio, armor_type_value, (*current_member->MemberOfHealRotation())->ArmorTypeSafeHPRatio(armor_type_value), armor_type_value, current_member->GetCleanName());
 		return;
 	}
 
-	c->Message(Chat::White, "Class Armor Type %u critical value %3.1f%% set for %s's Heal Rotation",
+	c->Message(Chat::White, "Class Armor Type %u critical percent value3.1f%% set for %s's Heal Rotation",
 		armor_type_value, (*current_member->MemberOfHealRotation())->ArmorTypeCriticalHPRatio(armor_type_value), current_member->GetCleanName());
 }
 
@@ -10482,12 +12383,12 @@ void bot_subcommand_heal_rotation_adjust_safe(Client *c, const Seperator *sep)
 		safe_ratio = CRITICAL_HP_RATIO_ABS;
 
 	if (!(*current_member->MemberOfHealRotation())->SetArmorTypeSafeHPRatio(armor_type_value, safe_ratio)) {
-		c->Message(Chat::White, "Safe value %3.1f%%(%u) does not exceed critical value %3.1f%%(%u) for %s's Heal Rotation",
+		c->Message(Chat::White, "Safe percent value3.1f%%(%u) does not exceed critical percent value3.1f%%(%u) for %s's Heal Rotation",
 			safe_ratio, armor_type_value, (*current_member->MemberOfHealRotation())->ArmorTypeCriticalHPRatio(armor_type_value), armor_type_value, current_member->GetCleanName());
 		return;
 	}
 
-	c->Message(Chat::White, "Class Armor Type %u safe value %3.1f%% set for %s's Heal Rotation",
+	c->Message(Chat::White, "Class Armor Type %u safe percent value3.1f%% set for %s's Heal Rotation",
 		armor_type_value, (*current_member->MemberOfHealRotation())->ArmorTypeSafeHPRatio(armor_type_value), current_member->GetCleanName());
 }
 

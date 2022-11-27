@@ -893,7 +893,15 @@ bool ZoneDatabase::LoadCharacterData(uint32 character_id, PlayerProfile_Struct* 
 		"`e_aa_effects`,			"
 		"`e_percent_to_aa`,			"
 		"`e_expended_aa_spent`,		"
-		"`e_last_invsnapshot`		"
+		"`e_last_invsnapshot`,		"
+		"fast_heal_threshold,		"
+		"heal_threshold,			"
+		"complete_heal_threshold,	"
+		"hot_heal_threshold,		"
+		"fast_heal_delay,			"
+		"heal_delay,				"
+		"complete_heal_delay,		"
+		"hot_heal_delay				"
 		"FROM                       "
 		"character_data             "
 		"WHERE `id` = %i         ", character_id);
@@ -992,6 +1000,15 @@ bool ZoneDatabase::LoadCharacterData(uint32 character_id, PlayerProfile_Struct* 
 		m_epp->expended_aa = atoi(row[r]); r++;									 // "`e_expended_aa_spent`,		"
 		m_epp->last_invsnapshot_time = atoul(row[r]); r++;						 // "`e_last_invsnapshot`		"
 		m_epp->next_invsnapshot_time = m_epp->last_invsnapshot_time + (RuleI(Character, InvSnapshotMinIntervalM) * 60);
+		pp->fast_heal_threshold = atoi(row[r]); r++;							 // "`fast_heal_threshold`		"
+		pp->heal_threshold = atoi(row[r]); r++;									 // "`heal_threshold`			"
+		pp->complete_heal_threshold = atoi(row[r]); r++;						 // "`complete_heal_threshold`	"
+		pp->hot_heal_threshold = atoi(row[r]); r++;								 // "`hot_heal_threshold`		"
+		pp->fast_heal_delay = atoi(row[r]); r++;								 // "`fast_heal_delay`		"
+		pp->heal_delay = atoi(row[r]); r++;										 // "`heal_delay`			"
+		pp->complete_heal_delay = atoi(row[r]); r++;							 // "`complete_heal_delay`	"
+		pp->hot_heal_delay = atoi(row[r]); r++;									  // "`hot_heal_delay`		"
+
 	}
 	return true;
 }
@@ -1501,7 +1518,15 @@ bool ZoneDatabase::SaveCharacterData(uint32 character_id, uint32 account_id, Pla
 		" e_percent_to_aa,			 "
 		" e_expended_aa_spent,		 "
 		" e_last_invsnapshot,		 "
-		" mailkey					 "
+		" mailkey,					 "
+		" fast_heal_threshold,		 "
+		" heal_threshold,			 "
+		" complete_heal_threshold,	 "
+		" hot_heal_threshold,		 "
+		" fast_heal_delay,			 "
+		" heal_delay,				 "
+		" complete_heal_delay,		 "
+		" hot_heal_delay			 "
 		")							 "
 		"VALUES ("
 		"%u,"  // id																" id,                        "
@@ -1598,7 +1623,15 @@ bool ZoneDatabase::SaveCharacterData(uint32 character_id, uint32 account_id, Pla
 		"%u,"  // e_percent_to_aa
 		"%u,"  // e_expended_aa_spent
 		"%u,"  // e_last_invsnapshot
-		"'%s'" // mailkey					  mail_key
+		"'%s'," // mailkey					  mail_key
+		"%u,"  // fast_heal_threshold
+		"%u,"  // heal_threshold
+		"%u,"  // complete_heal_threshold
+		"%u,"  // hot_heal_threshold
+		"%u,"  // fast_heal_delay
+		"%u,"  // heal_delay
+		"%u,"  // complete_heal_delay
+		"%u"  // hot_heal_delay
 		")",
 		character_id,					  // " id,                        "
 		account_id,						  // " account_id,                "
@@ -1694,7 +1727,15 @@ bool ZoneDatabase::SaveCharacterData(uint32 character_id, uint32 account_id, Pla
 		m_epp->perAA,
 		m_epp->expended_aa,
 		m_epp->last_invsnapshot_time,
-		mail_key.c_str()
+		mail_key.c_str(),
+		pp->fast_heal_threshold,
+		pp->heal_threshold,
+		pp->complete_heal_threshold,
+		pp->hot_heal_threshold,
+		pp->fast_heal_delay,
+		pp->heal_delay,
+		pp->complete_heal_delay,
+		pp->hot_heal_delay
 	);
 	auto results = database.QueryDatabase(query);
 	LogDebug("ZoneDatabase::SaveCharacterData [{}], done Took [{}] seconds", character_id, ((float)(std::clock() - t)) / CLOCKS_PER_SEC);
