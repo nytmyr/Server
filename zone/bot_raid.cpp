@@ -2672,64 +2672,61 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 			}
 
 			switch (botClass) {
-			case BARD: {
-				// probably needs attackable check
-				std::list<BotSpell_wPriority> botSongList = GetPrioritizedBotSpellsBySpellType(this, SpellType_Slow);
-				for (auto iter : botSongList) {
-					if (!iter.SpellId)
-						continue;
-					if (!CheckSpellRecastTimers(this, iter.SpellIndex))
-						continue;
+				case BARD: {
+					// probably needs attackable check
+					std::list<BotSpell_wPriority> botSongList = GetPrioritizedBotSpellsBySpellType(this, SpellType_Slow);
+					for (auto iter : botSongList) {
+						if (!iter.SpellId)
+							continue;
+						if (!CheckSpellRecastTimers(this, iter.SpellIndex))
+							continue;
 
-					if (spells[iter.SpellId].zone_type != -1 && zone->GetZoneType() != -1 && spells[iter.SpellId].zone_type != zone->GetZoneType() && zone->CanCastOutdoor() != 1) // is this bit or index?
-						continue;
-					if (spells[iter.SpellId].target_type != ST_Target)
-						continue;
-					if (tar->CanBuffStack(iter.SpellId, botLevel, true) < 0)
-						continue;
+						if (spells[iter.SpellId].zone_type != -1 && zone->GetZoneType() != -1 && spells[iter.SpellId].zone_type != zone->GetZoneType() && zone->CanCastOutdoor() != 1) // is this bit or index?
+							continue;
+						if (spells[iter.SpellId].target_type != ST_Target)
+							continue;
+						if (tar->CanBuffStack(iter.SpellId, botLevel, true) < 0)
+							continue;
 
-					if (!DoResistCheck(this, tar, iter.SpellId, RuleI(Bots, SlowResistLimit)))
-						continue;
+						if (!DoResistCheck(this, tar, iter.SpellId, RuleI(Bots, SlowResistLimit)))
+							continue;
 
-					castedSpell = AIDoSpellCast(iter.SpellIndex, tar, iter.ManaCost);
+						castedSpell = AIDoSpellCast(iter.SpellIndex, tar, iter.ManaCost);
 
-					if (!castedSpell)
-						continue;
+						if (!castedSpell)
+							continue;
 
-					//if (castedSpell)
-						//BotGroupSay(this, "Slowing %s with [%s].", tar->GetCleanName(), GetSpellName(iter.SpellId));
+						//if (castedSpell)
+							//BotGroupSay(this, "Slowing %s with [%s].", tar->GetCleanName(), GetSpellName(iter.SpellId));
 
-					m_slow_delay_timer.Start(GetSlowDelay());
+						m_slow_delay_timer.Start(GetSlowDelay());
 
-					if (castedSpell)
-						break;
+						if (castedSpell)
+							break;
+					}
+
+					break;
 				}
-
-				break;
-			}
-			case ENCHANTER: {
-				botSpell = GetBestBotSpellForMagicBasedSlow(this);
-
-				if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, SlowResistLimit)))
-					break;
-
-				break;
-			}
-			case SHAMAN:
-			case BEASTLORD: {
-				botSpell = GetBestBotSpellForDiseaseBasedSlow(this);
-				if (botSpell.SpellId == 0 || tar->GetMR() <= RuleI(Bots, SlowResistLimit))
+				case ENCHANTER: {
 					botSpell = GetBestBotSpellForMagicBasedSlow(this);
-
-				if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, SlowResistLimit)))
 					break;
+				}
+				case SHAMAN:
+				case BEASTLORD: {
+					botSpell = GetBestBotSpellForMagicBasedSlow(this);
+					if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, SlowResistLimit))) {
+						botSpell = GetBestBotSpellForDiseaseBasedSlow(this);
+					}
+					break;
+				}
+			}
 
+			if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, SlowResistLimit)))
 				break;
-			}
-			}
 
 			if (botSpell.SpellId == 0)
 				break;
+
 			if (!CheckSpellRecastTimers(this, botSpell.SpellIndex))
 				break;
 

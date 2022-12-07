@@ -1141,27 +1141,24 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					}
 					case ENCHANTER: {
 						botSpell = GetBestBotSpellForMagicBasedSlow(this);
-
-						if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, SlowResistLimit)))
-							break;
-
 						break;
 					}
 					case SHAMAN:
 					case BEASTLORD: {
-						botSpell = GetBestBotSpellForDiseaseBasedSlow(this);
-						if (botSpell.SpellId == 0 || tar->GetMR() <= RuleI(Bots, SlowResistLimit))
-							botSpell = GetBestBotSpellForMagicBasedSlow(this);
-
-						if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, SlowResistLimit)))
-							break;
-
+						botSpell = GetBestBotSpellForMagicBasedSlow(this);
+						if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, SlowResistLimit))) {
+							botSpell = GetBestBotSpellForDiseaseBasedSlow(this);
+						}
 						break;
 					}
 				}
 
+				if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, SlowResistLimit)))
+					break;
+
 				if (botSpell.SpellId == 0)
 					break;
+
 				if (!CheckSpellRecastTimers(this, botSpell.SpellIndex))
 					break;
 
@@ -2015,7 +2012,8 @@ bool Bot::AIHealRotation(Mob* tar, bool useFastHeals) {
 	castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost, &TempDontHealMeBeforeTime);
 
 	if(castedSpell)
-		Say("Casting %s on %s, please stay in range!", spells[botSpell.SpellId].name, tar->GetCleanName());
+		//Say("Casting %s on %s, please stay in range!", spells[botSpell.SpellId].name, tar->GetCleanName());
+		BotGroupSay(this, "Casting [%s] on [%s], please stay in range!", spells[botSpell.SpellId].name, tar->GetCleanName());
 
 	return castedSpell;
 }
