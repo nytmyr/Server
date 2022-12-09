@@ -1637,28 +1637,32 @@ void Client::Handle_Connect_OP_ZoneEntry(const EQApplicationPacket *app)
 	outapp->priority = 6;
 	FastQueuePacket(&outapp);
 
-	if (m_pp.RestTimer)
+	if (m_pp.RestTimer) {
 		rest_timer.Start(m_pp.RestTimer * 1000);
+	}
 
-	/* Load Pet */
-	database.LoadPetInfo(this);
-	if (m_petinfo.SpellID > 1 && !GetPet() && m_petinfo.SpellID <= SPDAT_RECORDS) {
-		MakePoweredPet(m_petinfo.SpellID, spells[m_petinfo.SpellID].teleport_zone, m_petinfo.petpower, m_petinfo.Name, m_petinfo.size);
-		if (GetPet() && GetPet()->IsNPC()) {
-			NPC *pet = GetPet()->CastToNPC();
-			pet->SetPetState(m_petinfo.Buffs, m_petinfo.Items);
-			pet->CalcBonuses();
-			pet->SetHP(m_petinfo.HP);
-			pet->SetMana(m_petinfo.Mana);
+	if (RuleB(NPC, PetZoneWithOwner)) {
+		/* Load Pet */
+		database.LoadPetInfo(this);
+		if (m_petinfo.SpellID > 1 && !GetPet() && m_petinfo.SpellID <= SPDAT_RECORDS) {
+			MakePoweredPet(m_petinfo.SpellID, spells[m_petinfo.SpellID].teleport_zone, m_petinfo.petpower,
+						   m_petinfo.Name, m_petinfo.size);
+			if (GetPet() && GetPet()->IsNPC()) {
+				NPC *pet = GetPet()->CastToNPC();
+				pet->SetPetState(m_petinfo.Buffs, m_petinfo.Items);
+				pet->CalcBonuses();
+				pet->SetHP(m_petinfo.HP);
+				pet->SetMana(m_petinfo.Mana);
 
-			// Taunt persists when zoning on newer clients, overwrite default.
-			if (m_ClientVersionBit & EQ::versions::maskUFAndLater) {
-				if (!firstlogon) {
-					pet->SetTaunting(m_petinfo.taunting);
+				// Taunt persists when zoning on newer clients, overwrite default.
+				if (m_ClientVersionBit & EQ::versions::maskUFAndLater) {
+					if (!firstlogon) {
+						pet->SetTaunting(m_petinfo.taunting);
+					}
 				}
 			}
+			m_petinfo.SpellID = 0;
 		}
-		m_petinfo.SpellID = 0;
 	}
 	/* Moved here so it's after where we load the pet data. */
 	if (!aabonuses.ZoneSuspendMinion && !spellbonuses.ZoneSuspendMinion && !itembonuses.ZoneSuspendMinion) {
@@ -1756,8 +1760,8 @@ void Client::Handle_Connect_OP_ZoneEntry(const EQApplicationPacket *app)
 	 * DevTools Load Settings
 	 */
 	if (Admin() >= EQ::DevTools::GM_ACCOUNT_STATUS_LEVEL) {
-		std::string dev_tools_window_key = StringFormat("%i-dev-tools-disabled", AccountID());
-		if (DataBucket::GetData(dev_tools_window_key) == "true") {
+		const auto dev_tools_key = fmt::format("{}-dev-tools-disabled", AccountID());
+		if (DataBucket::GetData(dev_tools_key) == "true") {
 			dev_tools_enabled = false;
 		}
 	}
@@ -2242,7 +2246,14 @@ void Client::Handle_OP_AdventureMerchantSell(const EQApplicationPacket *app)
 	}
 
 	// 06/11/2016 This formula matches RoF2 client side calculation.
-	int32 price = (item->LDoNPrice + 1) * item->LDoNSellBackRate / 100;
+	uint32 price = EQ::Clamp(
+		price,
+		EQ::ClampUpper(
+			(item->LDoNPrice + 1) * item->LDoNSellBackRate / 100,
+			item->LDoNPrice
+		),
+		item->LDoNPrice
+	);
 
 	if (price == 0)
 	{
@@ -2726,7 +2737,15 @@ void Client::Handle_OP_AltCurrencySell(const EQApplicationPacket *app)
 				continue;
 
 			if (item->ID == inst->GetItem()->ID) {
-				cost = ml.alt_currency_cost;
+				// 06/11/2016 This formula matches RoF2 client side calculation.
+				cost = EQ::Clamp(
+					cost,
+					EQ::ClampUpper(
+						static_cast<uint32>((ml.alt_currency_cost + 1) * item->LDoNSellBackRate / 100),
+						static_cast<uint32>(ml.alt_currency_cost)
+					),
+					static_cast<uint32>(ml.alt_currency_cost)
+				);
 				found = true;
 				break;
 			}
@@ -2830,7 +2849,15 @@ void Client::Handle_OP_AltCurrencySellSelection(const EQApplicationPacket *app)
 					continue;
 
 				if (item->ID == inst->GetItem()->ID) {
-					cost = ml.alt_currency_cost;
+					// 06/11/2016 This formula matches RoF2 client side calculation.
+					cost = EQ::Clamp(
+						cost,
+						EQ::ClampUpper(
+							static_cast<uint32>((ml.alt_currency_cost + 1) * item->LDoNSellBackRate / 100),
+							static_cast<uint32>(ml.alt_currency_cost)
+						),
+						static_cast<uint32>(ml.alt_currency_cost)
+					);
 					found = true;
 					break;
 				}
@@ -3975,23 +4002,17 @@ void Client::Handle_OP_BuffRemoveRequest(const EQApplicationPacket *app)
 void Client::Handle_OP_Bug(const EQApplicationPacket *app)
 {
 	if (!RuleB(Bugs, ReportingSystemActive)) {
-		Message(0, "Bug reporting is disabled on this server.");
+		Message(Chat::White, "Bug reporting is disabled on this server.");
 		return;
 	}
 
 	if (app->size != sizeof(BugReport_Struct)) {
-		printf("Wrong size of BugReport_Struct got %d expected %zu!\n", app->size, sizeof(BugReport_Struct));
-	}
-	else {
-		BugReport_Struct* bug_report = (BugReport_Struct*)app->pBuffer;
-
-		if (RuleB(Bugs, UseOldReportingMethod))
-			database.RegisterBug(bug_report);
-		else
-			database.RegisterBug(this, bug_report);
+		LogError("Wrong size of BugReport_Struct got {} expected {}!", app->size, sizeof(BugReport_Struct));
+		return;
 	}
 
-	return;
+	auto *r = (BugReport_Struct *) app->pBuffer;
+	RegisterBug(r);
 }
 
 void Client::Handle_OP_Camp(const EQApplicationPacket *app)
@@ -9257,7 +9278,13 @@ void Client::Handle_OP_LDoNInspect(const EQApplicationPacket *app)
 {
 	Mob * target = GetTarget();
 	if (target && target->GetClass() == LDON_TREASURE && !target->IsAura())
-		Message(Chat::Yellow, "%s", target->GetCleanName());
+	{
+		std::vector<std::any> args = { target };
+		if (parse->EventPlayer(EVENT_INSPECT, this, "", target->GetID(), &args) == 0)
+		{
+			Message(Chat::Yellow, "%s", target->GetCleanName());
+		}
+	}
 }
 
 void Client::Handle_OP_LDoNOpen(const EQApplicationPacket *app)
@@ -11295,8 +11322,8 @@ void Client::Handle_OP_PopupResponse(const EQApplicationPacket *app)
 			break;
 
 		case POPUPID_DIAWIND_ONE:
-			if (EntityVariableExists(DIAWIND_RESPONSE_ONE_KEY.c_str())) {
-				response = GetEntityVariable(DIAWIND_RESPONSE_ONE_KEY.c_str());
+			if (EntityVariableExists(DIAWIND_RESPONSE_ONE_KEY)) {
+				response = GetEntityVariable(DIAWIND_RESPONSE_ONE_KEY);
 				if (!response.empty()) {
 					ChannelMessageReceived(8, 0, 100, response.c_str(), nullptr, true);
 				}
@@ -11304,8 +11331,8 @@ void Client::Handle_OP_PopupResponse(const EQApplicationPacket *app)
 			break;
 
 		case POPUPID_DIAWIND_TWO:
-			if (EntityVariableExists(DIAWIND_RESPONSE_TWO_KEY.c_str())) {
-				response = GetEntityVariable(DIAWIND_RESPONSE_TWO_KEY.c_str());
+			if (EntityVariableExists(DIAWIND_RESPONSE_TWO_KEY)) {
+				response = GetEntityVariable(DIAWIND_RESPONSE_TWO_KEY);
 				if (!response.empty()) {
 					ChannelMessageReceived(8, 0, 100, response.c_str(), nullptr, true);
 				}
@@ -11320,13 +11347,19 @@ void Client::Handle_OP_PopupResponse(const EQApplicationPacket *app)
 			break;
 	}
 
-	std::string export_string = fmt::format("{}", popup_response->popupid);
+	const auto export_string = fmt::format("{}", popup_response->popupid);
 
 	parse->EventPlayer(EVENT_POPUP_RESPONSE, this, export_string, 0);
 
-	Mob *Target = GetTarget();
-	if (Target && Target->IsNPC()) {
-		parse->EventNPC(EVENT_POPUP_RESPONSE, Target->CastToNPC(), this, export_string, 0);
+	auto t = GetTarget();
+	if (t) {
+		if (t->IsNPC()) {
+			parse->EventNPC(EVENT_POPUP_RESPONSE, t->CastToNPC(), this, export_string, 0);
+#ifdef BOTS
+		} else if (t->IsBot()) {
+			parse->EventBot(EVENT_POPUP_RESPONSE, t->CastToBot(), this, export_string, 0);
+#endif
+		}
 	}
 }
 
@@ -13275,10 +13308,14 @@ void Client::Handle_OP_Shielding(const EQApplicationPacket *app)
 		return;
 	}
 
-	pTimerType timer = pTimerShieldAbility;
+	if (!RuleB(Combat, EnableWarriorShielding)) {
+		Message(Chat::White, "/shield is disabled.");
+		return;
+	}
 
+	pTimerType timer = pTimerShieldAbility;
 	if (!p_timers.Expired(&database, timer, false)) {
-		uint32 remaining_time = p_timers.GetRemainingTime(timer);
+		auto remaining_time = p_timers.GetRemainingTime(timer);
 		Message(
 			Chat::White,
 			fmt::format(
@@ -13289,8 +13326,7 @@ void Client::Handle_OP_Shielding(const EQApplicationPacket *app)
 		return;
 	}
 
-	Shielding_Struct* shield = (Shielding_Struct*)app->pBuffer;
-
+	auto shield = (Shielding_Struct*) app->pBuffer;
 	if (ShieldAbility(shield->target_id, 15, 12000, 50, 25, true, false)) {
 		p_timers.Start(timer, SHIELD_ABILITY_RECAST_TIME);
 	}

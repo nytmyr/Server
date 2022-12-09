@@ -45,6 +45,7 @@
 #define strcasecmp _stricmp
 #endif
 
+#include "../common/data_verification.h"
 #include "../common/global_define.h"
 #include "../common/eq_packet.h"
 #include "../common/features.h"
@@ -72,6 +73,7 @@
 #include "titles.h"
 #include "water_map.h"
 #include "worldserver.h"
+#include "dialogue_window.h"
 
 #include <fmt/format.h>
 
@@ -1406,6 +1408,7 @@ int bot_command_init(void)
 		bot_command_add("cure", "Orders a bot to remove any ailments", AccountStatus::Player, bot_command_cure) ||
 		bot_command_add("defensive", "Orders a bot to use a defensive discipline", AccountStatus::Player, bot_command_defensive) ||
 		bot_command_add("depart", "Orders a bot to open a magical doorway to a specified destination", AccountStatus::Player, bot_command_depart) ||
+		bot_command_add("enforcespellsettings", "Toggles your Bot to cast only spells in their spell settings list.", AccountStatus::Player, bot_command_enforce_spell_list) ||
 		bot_command_add("escape", "Orders a bot to send a target group to a safe location within the zone", AccountStatus::Player, bot_command_escape) ||
 		bot_command_add("findaliases", "Find available aliases for a bot command", AccountStatus::Player, bot_command_find_aliases) ||
 		bot_command_add("follow", "Orders bots to follow a designated target (option 'chain' auto-links eligible spawned bots)", AccountStatus::Player, bot_command_follow) ||
@@ -1461,7 +1464,13 @@ int bot_command_init(void)
 		bot_command_add("rune", "Orders a bot to cast a rune of protection", AccountStatus::Player, bot_command_rune) ||
 		bot_command_add("sendhome", "Orders a bot to open a magical doorway home", AccountStatus::Player, bot_command_send_home) ||
 		bot_command_add("size", "Orders a bot to change a player's size", AccountStatus::Player, bot_command_size) ||
-		bot_command_add("snare", "Orders a bot to snare the target", AccountStatus::Player, bot_command_snare) ||
+		bot_command_add("spellinfo", "Opens a dialogue window with spell info", AccountStatus::Player, bot_spell_info_dialogue_window) ||
+		bot_command_add("spells", "Lists all Spells learned by the Bot.", AccountStatus::Player, bot_command_spell_list) ||
+		bot_command_add("spellsettings", "Lists a bot's spell setting entries", AccountStatus::Player, bot_command_spell_settings_list) ||
+		bot_command_add("spellsettingsadd", "Add a bot spell setting entry", AccountStatus::Player, bot_command_spell_settings_add) ||
+		bot_command_add("spellsettingsdelete", "Delete a bot spell setting entry", AccountStatus::Player, bot_command_spell_settings_delete) ||
+		bot_command_add("spellsettingstoggle", "Toggle a bot spell use", AccountStatus::Player, bot_command_spell_settings_toggle) ||
+		bot_command_add("spellsettingsupdate", "Update a bot spell setting entry", AccountStatus::Player, bot_command_spell_settings_update) ||
 		bot_command_add("summoncorpse", "Orders a bot to summon a corpse to its feet", AccountStatus::Player, bot_command_summon_corpse) ||
 		bot_command_add("suspend", "Suspends a bot's AI processing until released", AccountStatus::Player, bot_command_suspend) ||
 		bot_command_add("taunt", "Toggles taunt use by a bot", AccountStatus::Player, bot_command_taunt) ||
@@ -1470,6 +1479,7 @@ int bot_command_init(void)
 		bot_command_add("waterbreathing", "Orders a bot to cast a water breathing spell", AccountStatus::Player, bot_command_water_breathing) ||
 		
 		// custom bot commands
+		bot_command_add("snare", "Orders a bot to snare the target", AccountStatus::Player, bot_command_snare) ||
 		bot_command_add("autods", "Toggles the ability for casters to automatically cast damage shield buffs", AccountStatus::Player, bot_command_auto_ds) ||
 		bot_command_add("autoresist", "Toggles the ability for casters to automatically cast resist buffs", AccountStatus::Player, bot_command_auto_resist) ||
 		bot_command_add("casterrange", "Controls the range casters will try to stay away from a mob (if too far, they will skip spells that are out-of-range)", AccountStatus::Player, bot_command_caster_range) ||
@@ -2717,8 +2727,16 @@ void bot_command_aggressive(Client *c, const Seperator *sep)
 			}
 
 			my_bot->InterruptSpell();
-			if (candidate_count == 1)
-				c->Message(Chat::Tell, "%s tells you, 'Using '%s''", my_bot->GetCleanName(), spells[local_entry->spell_id].name);
+			if (candidate_count == 1) {
+				Bot::BotGroupSay(
+					my_bot,
+					fmt::format(
+						"Using {}.",
+						spells[local_entry->spell_id].name
+					).c_str()
+				);
+			}
+
 			my_bot->UseDiscipline(local_entry->spell_id, my_bot->GetID());
 			++success_count;
 
@@ -2950,10 +2968,22 @@ void bot_command_attack(Client *c, const Seperator *sep)
 	}
 
 	if (attacker_count == 1 && first_attacker) {
-		c->Message(Chat::Tell, "%s tells you, 'Attacking %s!'", first_attacker->GetCleanName(), target_mob->GetCleanName());
-	}
-	else {
-		c->Message(Chat::White, "%i of your bots are attacking %s!", sbl.size(), target_mob->GetCleanName());
+		Bot::BotGroupSay(
+			first_attacker,
+			fmt::format(
+				"Attacking {}.",
+				target_mob->GetCleanName()
+			).c_str()
+		);
+	} else {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"{} of your bots are attacking {}.",
+				sbl.size(),
+				target_mob->GetCleanName()
+			).c_str()
+		);
 	}
 }
 
@@ -3874,8 +3904,16 @@ void bot_command_defensive(Client *c, const Seperator *sep)
 			}
 
 			my_bot->InterruptSpell();
-			if (candidate_count == 1)
-				c->Message(Chat::Tell, "%s tells you, 'Using '%s''", my_bot->GetCleanName(), spells[local_entry->spell_id].name);
+			if (candidate_count == 1) {
+				Bot::BotGroupSay(
+					my_bot,
+					fmt::format(
+						"Using {}.",
+						spells[local_entry->spell_id].name
+					).c_str()
+				);
+			}
+
 			my_bot->UseDiscipline(local_entry->spell_id, my_bot->GetID());
 			++success_count;
 
@@ -4736,15 +4774,35 @@ void bot_command_follow(Client *c, const Seperator *sep)
 		bot_iter->GetPet()->WipeHateList();
 		bot_iter->GetPet()->SetFollowID(bot_iter->GetID());
 	}
+
 	if (sbl.size() == 1) {
 		Mob* follow_mob = entity_list.GetMob(sbl.front()->GetFollowID());
-		c->Message(Chat::Tell, "%i bot(s) tell you, following %s", sbl.size(), ((follow_mob) ? (follow_mob->GetCleanName()) : ("'nullptr'")));
-	}
-	else {
-		if (reset)
-			c->Message(Chat::White, "%i of your bots are following their default assignments", sbl.size());
-		else
-			c->Message(Chat::White, "%i of your bots are following %s", sbl.size(), target_mob->GetCleanName());
+		Bot::BotGroupSay(
+			sbl.front(),
+			fmt::format(
+				"Following {}.",
+				follow_mob ? follow_mob->GetCleanName() : "no one"
+			).c_str()
+		);
+	} else {
+		if (reset) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots are following their default assignments.",
+					sbl.size()
+				).c_str()
+			);
+		} else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots are following {}.",
+					sbl.size(),
+					target_mob->GetCleanName()
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -4789,9 +4847,14 @@ void bot_command_guard(Client *c, const Seperator *sep)
 	}
 
 	if (sbl.size() == 1) {
-		c->Message(Chat::Tell, "%i bot(s) tell you, %suarding this position.", sbl.size(), (clear ? "no longer g" : "g"));
-	}
-	else {
+		Bot::BotGroupSay(
+			sbl.front(),
+			fmt::format(
+				"{}uarding this position.",
+				clear ? "No longer g" : "G"
+			).c_str()
+		);
+	} else {
 		c->Message(Chat::White, "%i of your bots are %sguarding their positions.", sbl.size(), (clear ? "no longer " : ""));
 	}
 }
@@ -5159,10 +5222,22 @@ void bot_command_hold(Client *c, const Seperator *sep)
 	}
 
 	if (sbl.size() == 1) {
-		c->Message(Chat::Tell, "%i bot(s) tell you, %solding my attacks.", sbl.size(), (clear ? "no longer h" : "h"));
-	}
-	else {
-		c->Message(Chat::White, "%i of your bots are %sholding their attacks.", sbl.size(), (clear ? "no longer " : ""));
+		Bot::BotGroupSay(
+			sbl.front(),
+			fmt::format(
+				"{}olding my attacks.",
+				clear ? "No longer h" : "H"
+			).c_str()
+		);
+	} else {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"{} of your bots are {}holding their attacks.",
+				sbl.size(),
+				clear ? "no longer " : ""
+			).c_str()
+		);
 	}
 }
 
@@ -6654,7 +6729,6 @@ void bot_command_invisibility(Client *c, const Seperator *sep)
 void bot_command_item_use(Client* c, const Seperator* sep)
 {
 	if (helper_is_help_or_usage(sep->arg[1])) {
-
 		c->Message(Chat::White, "usage: %s ([empty])", sep->arg[0]);
 		return;
 	}
@@ -6667,20 +6741,17 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 
 	const auto item_instance = c->GetInv().GetItem(EQ::invslot::slotCursor);
 	if (!item_instance) {
-
 		c->Message(Chat::White, "No item found on cursor!");
 		return;
 	}
 
 	auto item_data = item_instance->GetItem();
 	if (!item_data) {
-
 		c->Message(Chat::White, "No data found for cursor item!");
 		return;
 	}
 
 	if (item_data->ItemClass != EQ::item::ItemClassCommon || item_data->Slots == 0) {
-
 		c->Message(Chat::White, "'%s' is not an equipable item!", item_data->Name);
 		return;
 	}
@@ -6701,8 +6772,7 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 	std::list<Bot*> sbl;
 	MyBots::PopulateSBL_BySpawnedBots(c, sbl);
 
-	for (auto bot_iter : sbl) {
-
+	for (const auto& bot_iter : sbl) {
 		if (!bot_iter) {
 			continue;
 		}
@@ -6715,7 +6785,6 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 		text_link = bot_iter->CreateSayLink(c, msg.c_str(), bot_iter->GetCleanName());
 
 		for (auto slot_iter : equipable_slot_list) {
-
 			// needs more failure criteria - this should cover the bulk for now
 			if (slot_iter == EQ::invslot::slotSecondary && item_data->Damage && !bot_iter->CanThisClassDualWield()) {
 				continue;
@@ -6724,32 +6793,45 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 			auto equipped_item = bot_iter->GetBotInv()[slot_iter];
 
 			if (equipped_item && !empty_only) {
-
 				linker.SetItemInst(equipped_item);
 
 				c->Message(
-					Chat::White,
+					Chat::Say,
 					fmt::format(
-						"[{}] says, 'I can use that for my {}! (replaces: {} | {})'",
-						text_link.c_str(),
+						"{} says, 'I can use that for my {} instead of my {}! Would you like to {} my {}?'",
+						text_link,
 						EQ::invslot::GetInvPossessionsSlotName(slot_iter),
-						linker.GenerateLink().c_str(),
+						linker.GenerateLink(),
 						Saylink::Silent(
-							fmt::format("^inventoryremove {} byname {}", slot_iter, bot_iter->GetCleanName()),
-							"[Remove]"
+							fmt::format(
+								"^inventoryremove {} byname {}",
+								slot_iter,
+								bot_iter->GetCleanName()
+							),
+							"remove"
+						),
+						linker.GenerateLink()
+					).c_str()
+				);
+
+				bot_iter->DoAnim(29);
+			} else if (!equipped_item) {
+				c->Message(
+					Chat::Say,
+					fmt::format(
+						"{} says, 'I can use that for my {}! Would you like to {} it to me?'",
+						text_link,
+						EQ::invslot::GetInvPossessionsSlotName(slot_iter),
+						Saylink::Silent(
+							fmt::format(
+								"^inventorygive byname {}",
+								bot_iter->GetCleanName()
+							),
+							"give"
 						)
 					).c_str()
 				);
-				bot_iter->DoAnim(29);
-			}
-			else if (!equipped_item) {
 
-				c->Message(
-					Chat::White,
-					"[%s] says, 'I can use that for my %s!'",
-					text_link.c_str(),
-					EQ::invslot::GetInvPossessionsSlotName(slot_iter)
-				);
 				bot_iter->DoAnim(29);
 			}
 		}
@@ -7758,7 +7840,7 @@ void bot_command_pick_lock(Client *c, const Seperator *sep)
 	Bot* my_bot = sbl.front();
 
 	my_bot->InterruptSpell();
-	c->Message(Chat::Tell, "%s tells you, 'Attempting to pick the lock...'", my_bot->GetCleanName());
+	Bot::BotGroupSay(my_bot, "Attempting to pick the lock.");
 
 	std::list<Doors*> door_list;
 	entity_list.GetDoorsList(door_list);
@@ -7785,7 +7867,7 @@ void bot_command_pick_lock(Client *c, const Seperator *sep)
 			++open_count;
 		}
 		else {
-			c->Message(Chat::Tell, "%s tells you, 'I am not skilled enough for this lock...'", my_bot->GetCleanName());
+			Bot::BotGroupSay(my_bot, "I am not skilled enough for this lock.");
 		}
 	}
 	c->Message(Chat::White, "%i door%s attempted - %i door%s successful", door_count, ((door_count != 1) ? ("s") : ("")), open_count, ((open_count != 1) ? ("s") : ("")));
@@ -8907,38 +8989,78 @@ void bot_command_taunt(Client *c, const Seperator *sep)
 
 	int taunting_count = 0;
 	for (auto bot_iter : sbl) {
-		if (!bot_iter->GetSkill(EQ::skills::SkillTaunt))
+		if (!bot_iter->GetSkill(EQ::skills::SkillTaunt)) {
 			continue;
+		}
 
-		if (toggle_taunt)
+		if (toggle_taunt) {
 			bot_iter->SetTaunting(!bot_iter->IsTaunting());
-		else
+		} else {
 			bot_iter->SetTaunting(taunt_state);
+		}
 
-		if (sbl.size() == 1)
-			c->Message(Chat::Tell, "%s tells you, 'I am %s taunting'", bot_iter->GetCleanName(), bot_iter->IsTaunting() ? "now" : "no longer");
+		if (sbl.size() == 1) {
+			Bot::BotGroupSay(
+				bot_iter,
+				fmt::format(
+					"I am {} taunting.",
+					bot_iter->IsTaunting() ? "now" : "no longer"
+				).c_str()
+			);
+		}
 
 		++taunting_count;
 	}
+
 	for (auto bot_iter : sbl) {
-		if (!bot_iter->HasPet())
+		if (!bot_iter->HasPet()) {
 			continue;
-		if (!bot_iter->GetPet()->GetSkill(EQ::skills::SkillTaunt))
+		}
+
+		if (!bot_iter->GetPet()->GetSkill(EQ::skills::SkillTaunt)) {
 			continue;
-		if (toggle_taunt)
+		}
+
+		if (toggle_taunt) {
 			bot_iter->GetPet()->CastToNPC()->SetTaunting(!bot_iter->GetPet()->CastToNPC()->IsTaunting());
-		else
+		} else {
 			bot_iter->GetPet()->CastToNPC()->SetTaunting(taunt_state);
-		if (sbl.size() == 1)
-			c->Message(Chat::Tell, "%s tells you, 'My pet is %s taunting'", bot_iter->GetCleanName(), bot_iter->GetPet()->CastToNPC()->IsTaunting() ? "now" : "no longer");
+		}
+
+		if (sbl.size() == 1) {
+			Bot::BotGroupSay(
+				bot_iter,
+				fmt::format(
+					"My Pet is {} taunting.",
+					bot_iter->GetPet()->CastToNPC()->IsTaunting() ? "now" : "no longer"
+				).c_str()
+			);
+		}
+
 		++taunting_count;
 	}
 
 	if (taunting_count) {
-		if (toggle_taunt)
-			c->Message(Chat::White, "%i of your bots and their pets %s toggled their taunting state", taunting_count, ((taunting_count != 1) ? ("have") : ("has")));
-		else
-			c->Message(Chat::White, "%i of your bots and their pets %s %s taunting", taunting_count, ((taunting_count != 1) ? ("have") : ("has")), ((taunt_state) ? ("started") : ("stopped")));
+		if (toggle_taunt) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots and their pets {} toggled their taunting state",
+					taunting_count,
+					taunting_count != 1 ? "have" : "has"
+				).c_str()
+			);
+		} else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots and their pets {} {} taunting.",
+					taunting_count,
+					taunting_count != 1 ? "have" : "has",
+					taunt_state ? "started" : "stopped"
+				).c_str()
+			);
+		}
 	}
 	else {
 		c->Message(Chat::White, "None of your bots are capable of taunting");
@@ -9407,33 +9529,63 @@ void bot_subcommand_bot_camp(Client *c, const Seperator *sep)
 
 void bot_subcommand_bot_clone(Client *c, const Seperator *sep)
 {
-	if (helper_command_alias_fail(c, "bot_subcommand_bot_clone", sep->arg[0], "botclone"))
+	if (helper_command_alias_fail(c, "bot_subcommand_bot_clone", sep->arg[0], "botclone")) {
 		return;
+	}
+
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [clone_name]", sep->arg[0]);
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Usage: <target_bot> {} [clone_name]",
+				sep->arg[0]
+			).c_str()
+		);
 		return;
 	}
 
 	auto my_bot = ActionableBots::AsTarget_ByBot(c);
 	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command");
+		c->Message(Chat::White, "You must target a bot that you own to use this command!");
 		return;
 	}
+
 	if (!my_bot->GetBotID()) {
-		c->Message(Chat::White, "An unknown error has occured - BotName: %s, BotID: %u", my_bot->GetCleanName(), my_bot->GetBotID());
-		LogCommands("bot_command_clone(): - Error: Active bot reported invalid ID (BotName: [{}], BotID: [{}], OwnerName: [{}], OwnerID: [{}], AcctName: [{}], AcctID: [{}])",
-			my_bot->GetCleanName(), my_bot->GetBotID(), c->GetCleanName(), c->CharacterID(), c->AccountName(), c->AccountID());
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"An unknown error has occured with {} (Bot ID {}).",
+				my_bot->GetCleanName(),
+				my_bot->GetBotID()
+			).c_str()
+		);
+		LogCommands(
+			"bot_command_clone(): - Error: Active bot reported invalid ID (BotName: [{}], BotID: [{}], OwnerName: [{}], OwnerID: [{}], AcctName: [{}], AcctID: [{}])",
+			my_bot->GetCleanName(),
+			my_bot->GetBotID(),
+			c->GetCleanName(),
+			c->CharacterID(),
+			c->AccountName(),
+			c->AccountID()
+		);
 		return;
 	}
 
 	if (sep->arg[1][0] == '\0' || sep->IsNumber(1)) {
-		c->Message(Chat::White, "You must [name] your bot clone");
+		c->Message(Chat::White, "You must name your bot clone.");
 		return;
 	}
+
 	std::string bot_name = sep->arg[1];
 
 	if (!Bot::IsValidName(bot_name)) {
-		c->Message(Chat::White, "'%s' is an invalid name. You may only use characters 'A-Z', 'a-z' and '_'", bot_name.c_str());
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"'{}' is an invalid name. You may only use characters 'A-Z', 'a-z' and '_'.",
+				bot_name
+			).c_str()
+		);
 		return;
 	}
 
@@ -9441,43 +9593,129 @@ void bot_subcommand_bot_clone(Client *c, const Seperator *sep)
 
 	bool available_flag = false;
 	if (!database.botdb.QueryNameAvailablity(bot_name, available_flag)) {
-		c->Message(Chat::White, "%s", BotDatabase::fail::QueryNameAvailablity());
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Failed to query name availability for '{}'.",
+				bot_name
+			).c_str()
+		);
 		return;
 	}
+
 	if (!available_flag) {
-		c->Message(Chat::White, "The name %s is already being used. Please choose a different name", bot_name.c_str());
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"The name '{}' is already being used. Please choose a different name.",
+				bot_name
+			).c_str()
+		);
 		return;
 	}
 
 	uint32 max_bot_count = RuleI(Bots, CreationLimit);
 	uint32 max_bot_bypass = RuleI(Bots, CreationLimitStatusBypass);
 	
+	auto bot_creation_limit = c->GetBotCreationLimit();
+	auto bot_creation_limit_class = c->GetBotCreationLimit(my_bot->GetClass());
+
 	uint32 bot_count = 0;
-	if (!database.botdb.QueryBotCount(c->CharacterID(), bot_count)) {
-		c->Message(Chat::White, "%s", BotDatabase::fail::QueryBotCount());
+	uint32 bot_class_count = 0;
+	if (!database.botdb.QueryBotCount(c->CharacterID(), my_bot->GetClass(), bot_count, bot_class_count)) {
+		c->Message(Chat::White, "Failed to query bot count.");
 		return;
 	}
-	if (bot_count >= max_bot_count && c->Admin() < max_bot_bypass) {
-		c->Message(Chat::White, "You have reached the maximum limit of %i bots", max_bot_count);
+
+	if (bot_creation_limit >= 0 && bot_count >= bot_creation_limit) {
+		std::string message;
+
+		if (bot_creation_limit) {
+			message =  fmt::format(
+				"You have reached the maximum limit of {} bot{}.",
+				bot_creation_limit,
+				bot_creation_limit != 1 ? "s" : ""
+			);
+		} else {
+			message = "You cannot create any bots.";
+		}
+
+		c->Message(Chat::White, message.c_str());
+		return;
+	}
+
+	if (bot_creation_limit_class >= 0 && bot_class_count >= bot_creation_limit_class) {
+		std::string message;
+
+		if (bot_creation_limit_class) {
+			message = fmt::format(
+				"You cannot create anymore than {} {} bot{}.",
+				bot_creation_limit_class,
+				GetClassIDName(my_bot->GetClass()),
+				bot_creation_limit_class != 1 ? "s" : ""
+			);
+		} else {
+			message = fmt::format(
+				"You cannot create any {} bots.",
+				GetClassIDName(my_bot->GetClass())
+			);
+		}
+
+		c->Message(Chat::White, message.c_str());
 		return;
 	}
 
 	uint32 clone_id = 0;
 	if (!database.botdb.CreateCloneBot(c->CharacterID(), my_bot->GetBotID(), bot_name, clone_id) || !clone_id) {
-		c->Message(Chat::White, "%s '%s'", BotDatabase::fail::CreateCloneBot(), bot_name.c_str());
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Failed to create clone bot '{}'.",
+				bot_name
+			).c_str()
+		);
 		return;
 	}
 
 	int clone_stance = EQ::constants::stancePassive;
-	if (!database.botdb.LoadStance(my_bot->GetBotID(), clone_stance))
-		c->Message(Chat::White, "%s for bot '%s'", BotDatabase::fail::LoadStance(), my_bot->GetCleanName());
-	if (!database.botdb.SaveStance(clone_id, clone_stance))
-		c->Message(Chat::White, "%s for clone '%s'", BotDatabase::fail::SaveStance(), bot_name.c_str());
+	if (!database.botdb.LoadStance(my_bot->GetBotID(), clone_stance)) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Failed to load stance from '{}'.",
+				my_bot->GetCleanName()
+			).c_str()
+		);
+	}
 
-	if (!database.botdb.CreateCloneBotInventory(c->CharacterID(), my_bot->GetBotID(), clone_id))
-		c->Message(Chat::White, "%s for clone '%s'", BotDatabase::fail::CreateCloneBotInventory(), bot_name.c_str());
+	if (!database.botdb.SaveStance(clone_id, clone_stance)) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Failed to save stance for clone '{}'.",
+				bot_name
+			).c_str()
+		);
+	}
 
-	c->Message(Chat::White, "Bot '%s' was successfully cloned to bot '%s'", my_bot->GetCleanName(), bot_name.c_str());
+	if (!database.botdb.CreateCloneBotInventory(c->CharacterID(), my_bot->GetBotID(), clone_id)) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Failed to create clone bot inventory for clone '{}'.",
+				bot_name
+			).c_str()
+		);
+	}
+
+	c->Message(
+		Chat::White,
+		fmt::format(
+			"Bot Cloned | From: {} To: {}",
+			my_bot->GetCleanName(),
+			bot_name
+		).c_str()
+	);
 }
 
 void bot_command_view_combos(Client *c, const Seperator *sep)
@@ -9544,21 +9782,24 @@ void bot_command_view_combos(Client *c, const Seperator *sep)
 
 void bot_subcommand_bot_create(Client *c, const Seperator *sep)
 {
-	const std::string class_substrs[17] = { "",
-		"%u (WAR)", "%u (CLR)", "%u (PAL)", "%u (RNG)",
-		"%u (SHD)", "%u (DRU)", "%u (MNK)", "%u (BRD)",
-		"%u (ROG)", "%u (SHM)", "%u (NEC)", "%u (WIZ)",
-		"%u (MAG)", "%u (ENC)", "%u (BST)", "%u (BER)"
+	const std::string class_substrs[17] = {
+		"",
+		"{} (WAR)", "{} (CLR)", "{} (PAL)", "{} (RNG)",
+		"{} (SHD)", "{} (DRU)", "{} (MNK)", "{} (BRD)",
+		"{} (ROG)", "{} (SHM)", "{} (NEC)", "{} (WIZ)",
+		"{} (MAG)", "{} (ENC)", "{} (BST)", "{} (BER)"
 	};
 
-	const std::string race_substrs[17] = { "",
-		"%u (HUM)", "%u (BAR)", "%u (ERU)", "%u (ELF)",
-		"%u (HIE)", "%u (DEF)", "%u (HEF)", "%u (DWF)",
-		"%u (TRL)", "%u (OGR)", "%u (HFL)", "%u (GNM)",
-		"%u (IKS)", "%u (VAH)", "%u (FRG)", "%u (DRK)"
+	const std::string race_substrs[17] = {
+		"",
+		"{} (HUM)", "{} (BAR)", "{} (ERU)", "{} (ELF)",
+		"{} (HIE)", "{} (DEF)", "{} (HEF)", "{} (DWF)",
+		"{} (TRL)", "{} (OGR)", "{} (HFL)", "{} (GNM)",
+		"{} (IKS)", "{} (VAH)", "{} (FRG)", "{} (DRK)"
 	};
 
-	const uint16 race_values[17] = { 0,
+	const uint16 race_values[17] = {
+		0,
 		HUMAN, BARBARIAN, ERUDITE, WOOD_ELF,
 		HIGH_ELF, DARK_ELF, HALF_ELF, DWARF,
 		TROLL, OGRE, HALFLING, GNOME,
@@ -9566,86 +9807,137 @@ void bot_subcommand_bot_create(Client *c, const Seperator *sep)
 	};
 
 	const std::string gender_substrs[2] = {
-		"%u (M)", "%u (F)",
+		"{} (M)", "{} (F)",
 	};
 
-	if (helper_command_alias_fail(c, "bot_subcommand_bot_create", sep->arg[0], "botcreate"))
+	if (helper_command_alias_fail(c, "bot_subcommand_bot_create", sep->arg[0], "botcreate")) {
 		return;
+	}
+
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s [bot_name] [bot_class] [bot_race] [bot_gender]", sep->arg[0]);
-		std::string window_title = "Bot Create Options";
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Usage: {} [bot_name] [bot_class] [bot_race] [bot_gender]",
+				sep->arg[0]
+			).c_str()
+		);
+
 		std::string window_text;
 		std::string message_separator;
 		int object_count = 0;
 		const int object_max = 5;
 
 		window_text.append("<c \"#FFFFFF\">Classes:<c \"#FFFF\">");
+
 		message_separator = " ";
 		object_count = 1;
 		for (int i = 0; i <= 15; ++i) {
 			window_text.append(message_separator);
+
 			if (object_count >= object_max) {
 				window_text.append("<br>");
 				object_count = 0;
 			}
-			window_text.append(StringFormat(class_substrs[i + 1].c_str(), (i + 1)));
+
+			window_text.append(
+				fmt::format(
+					class_substrs[i + 1],
+					(i + 1)
+				)
+			);
+
 			++object_count;
 			message_separator = ", ";
 		}
+
 		window_text.append("<br><br>");
 
 		window_text.append("<c \"#FFFFFF\">Races:<c \"#FFFF\">");
+
 		message_separator = " ";
 		object_count = 1;
 		for (int i = 0; i <= 15; ++i) {
 			window_text.append(message_separator);
+
 			if (object_count >= object_max) {
 				window_text.append("<br>");
 				object_count = 0;
 			}
-			window_text.append(StringFormat(race_substrs[i + 1].c_str(), race_values[i + 1]));
+
+			window_text.append(
+				fmt::format(
+					race_substrs[i + 1],
+					race_values[i + 1]
+				)
+			);
+
 			++object_count;
 			message_separator = ", ";
 		}
+
 		window_text.append("<br><br>");
 
 		window_text.append("<c \"#FFFFFF\">Genders:<c \"#FFFF\">");
+
 		message_separator = " ";
 		for (int i = 0; i <= 1; ++i) {
 			window_text.append(message_separator);
-			window_text.append(StringFormat(gender_substrs[i].c_str(), i));
+
+			window_text.append(
+				fmt::format(
+					gender_substrs[i],
+					i
+				)
+			);
+
 			message_separator = ", ";
 		}
 
-
-		c->SendPopupToClient(window_title.c_str(), window_text.c_str());
+		c->SendPopupToClient("Bot Create Options", window_text.c_str());
 
 		return;
 	}
 
-	if (sep->arg[1][0] == '\0' || sep->IsNumber(1)) {
-		c->Message(Chat::White, "You must [name] your bot");
+	auto arguments = sep->argnum;
+
+	if (!arguments || sep->IsNumber(1)) {
+		c->Message(Chat::White, "You must name your bot!");
 		return;
 	}
+
 	std::string bot_name = sep->arg[1];
 	bot_name = Strings::UcFirst(bot_name);
-	if (sep->arg[2][0] == '\0' || !sep->IsNumber(2)) {
-		c->Message(Chat::White, "Invalid Class!");
+	if (arguments < 2 || !sep->IsNumber(2)) {
+		c->Message(Chat::White, "Invalid class!");
 		return;
 	}
-	uint8 bot_class = atoi(sep->arg[2]);
 
-	if (sep->arg[3][0] == '\0' || !sep->IsNumber(3)) {
-		c->Message(Chat::White, "Invalid Race!");
-		return;
-	}
-	uint16 bot_race = atoi(sep->arg[3]);
+	auto bot_class = static_cast<uint8>(std::stoul(sep->arg[2]));
 
-	if (sep->arg[4][0] == '\0') {
-		c->Message(Chat::White, "Invalid Gender!");
+	if (arguments < 3 || !sep->IsNumber(3)) {
+		c->Message(Chat::White, "Invalid race!");
 		return;
 	}
-	uint8 bot_gender = atoi(sep->arg[4]);
+
+	auto bot_race = static_cast<uint16>(std::stoul(sep->arg[3]));
+
+	if (arguments < 4) {
+		c->Message(Chat::White, "Invalid gender!");
+		return;
+	}
+
+	auto bot_gender = 0;
+
+	if (sep->IsNumber(4)) {
+		bot_gender = static_cast<uint8>(std::stoul(sep->arg[4]));
+	} else {
+		if (!strcasecmp(sep->arg[4], "m") || !strcasecmp(sep->arg[4], "male")) {
+			bot_gender = 0;
+		} else if (!strcasecmp(sep->arg[4], "f") || !strcasecmp(sep->arg[4], "female")) {
+			bot_gender = 1;
+		}
+	}
 
 	helper_bot_create(c, bot_name, bot_class, bot_race, bot_gender);
 }
@@ -10302,10 +10594,6 @@ void bot_subcommand_bot_list(Client *c, const Seperator *sep)
 		}
 
 		auto* bot = entity_list.GetBotByBotName(bots_iter.Name);
-		auto bot_spawn_saylink = Saylink::Silent(
-			fmt::format("^spawn {}", bots_iter.Name),
-			bots_iter.Name
-		);
 
 		c->Message(
 			Chat::White,
@@ -10314,7 +10602,10 @@ void bot_subcommand_bot_list(Client *c, const Seperator *sep)
 				bot_number,
 				(
 					(c->CharacterID() == bots_iter.Owner_ID && !bot) ?
-					bot_spawn_saylink :
+					Saylink::Silent(
+						fmt::format("^spawn {}", bots_iter.Name),
+						bots_iter.Name
+					) :
 					bots_iter.Name
 				),
 				bots_iter.Level,
@@ -10351,14 +10642,34 @@ void bot_subcommand_bot_list(Client *c, const Seperator *sep)
 
 		c->Message(Chat::White, "Note: You can spawn any owned bots by clicking their name if they are not already spawned.");
 
+		c->Message(Chat::White, "Your bot creation limits are as follows:");
+
+		const auto overall_bot_creation_limit = c->GetBotCreationLimit();
+
 		c->Message(
 			Chat::White,
 			fmt::format(
-				"Your bot creation limit is {} bot{}.",
-				RuleI(Bots, CreationLimit),
-				RuleI(Bots, CreationLimit) != 1 ? "s" : ""
+				"Overall | {} Bot{}",
+				overall_bot_creation_limit,
+				overall_bot_creation_limit != 1 ? "s" : ""
 			).c_str()
 		);
+
+		for (uint8 class_id = WARRIOR; class_id <= BERSERKER; class_id++) {
+			auto class_creation_limit = c->GetBotCreationLimit(class_id);
+
+			if (class_creation_limit != overall_bot_creation_limit) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} | {} Bot{}",
+						GetClassIDName(class_id),
+						class_creation_limit,
+						class_creation_limit != 1 ? "s" : ""
+					).c_str()
+				);
+			}
+		}
 	}
 }
 
@@ -10536,25 +10847,44 @@ void bot_subcommand_bot_report(Client *c, const Seperator *sep)
 
 void bot_subcommand_bot_spawn(Client *c, const Seperator *sep)
 {
-	if (helper_command_alias_fail(c, "bot_subcommand_bot_spawn", sep->arg[0], "botspawn"))
-		return;
-	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s [bot_name]", sep->arg[0]);
+	if (helper_command_alias_fail(c, "bot_subcommand_bot_spawn", sep->arg[0], "botspawn")) {
 		return;
 	}
 
-	int rule_level = RuleI(Bots, BotCharacterLevel);
-	if (c->GetLevel() < rule_level) {
-		c->Message(Chat::White, "You must be level %i to use bots", rule_level);
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Usage: {} [bot_name]",
+				sep->arg[0]
+			).c_str()
+		);
+		return;
+	}
+
+	auto bot_character_level = c->GetBotRequiredLevel();
+	if (
+		bot_character_level >= 0 &&
+		c->GetLevel() < bot_character_level &&
+		!c->GetGM()
+	) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"You must be level {} to spawn bots.",
+				bot_character_level
+			).c_str()
+		);
 		return;
 	}
 
 	if (c->GetFeigned()) {
-		c->Message(Chat::White, "You can not spawn a bot while feigned");
+		c->Message(Chat::White, "You cannot spawn a bot while feigned.");
 		return;
 	}
 
-	int spawned_bot_count = Bot::SpawnedBotCount(c->CharacterID());
+	auto bot_spawn_limit = c->GetBotSpawnLimit();
+	auto spawned_bot_count = Bot::SpawnedBotCount(c->CharacterID());
 
 	int rule_limit;
 	int level_requirement;
@@ -10599,30 +10929,24 @@ void bot_subcommand_bot_spawn(Client *c, const Seperator *sep)
 			return;
 		}
 	}
-
-	if (RuleB(Bots, QuestableSpawnLimit) && !c->GetGM()) {
-		int allowed_bot_count = 0;
-		if (!database.botdb.LoadQuestableSpawnCount(c->CharacterID(), allowed_bot_count)) {
-			c->Message(Chat::White, "Failed to load questable spawn count.");
-			return;
-		}
-
-		if (!allowed_bot_count) {
-			c->Message(Chat::White, "You are not currently allowed to spawn any bots.");
-			return;
-		}
-
-		if (spawned_bot_count >= allowed_bot_count) {
-			c->Message(
-				Chat::White,
-				fmt::format(
-					"You have reached your current limit of {} spawned bot{}.",
-					allowed_bot_count,
-					allowed_bot_count != 1 ? "s" : ""
-				).c_str()
+	if (
+		bot_spawn_limit >= 0 &&
+		spawned_bot_count >= bot_spawn_limit &&
+		!c->GetGM()
+	) {
+		std::string message;
+		if (bot_spawn_limit) {
+			message = fmt::format(
+				"You cannot have more than {} spawned bot{}.",
+				bot_spawn_limit,
+				bot_spawn_limit != 1 ? "s" : ""
 			);
-			return;
+		} else {
+			message = "You are not currently allowed to spawn any bots.";
 		}
+
+		c->Message(Chat::White, message.c_str());
+		return;
 	}
 
 	if (sep->arg[1][0] == '\0' || sep->IsNumber(1)) {
@@ -10633,17 +10957,82 @@ void bot_subcommand_bot_spawn(Client *c, const Seperator *sep)
 	std::string bot_name = sep->arg[1];
 
 	uint32 bot_id = 0;
-	if (!database.botdb.LoadBotID(c->CharacterID(), bot_name, bot_id)) {
-		c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::LoadBotID(), bot_name.c_str());
+	uint8 bot_class = 0;
+	if (!database.botdb.LoadBotID(c->CharacterID(), bot_name, bot_id, bot_class)) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Failed to load bot ID for '{}'.",
+				bot_name
+			).c_str()
+		);
 		return;
 	}
+
+	auto bot_spawn_limit_class = c->GetBotSpawnLimit(bot_class);
+	auto spawned_bot_count_class = Bot::SpawnedBotCount(c->CharacterID(), bot_class);
+
+	if (
+		bot_spawn_limit_class >= 0 &&
+		spawned_bot_count_class >= bot_spawn_limit_class &&
+		!c->GetGM()
+	) {
+		std::string message;
+
+		if (bot_spawn_limit_class) {
+			message = fmt::format(
+				"You cannot have more than {} spawned {} bot{}.",
+				bot_spawn_limit_class,
+				GetClassIDName(bot_class),
+				bot_spawn_limit_class != 1 ? "s" : ""
+			);
+		} else {
+			message = fmt::format(
+				"You are not currently allowed to spawn any {} bots.",
+				GetClassIDName(bot_class)
+			);
+		}
+
+		c->Message(Chat::White, message.c_str());
+		return;
+	}
+
+	auto bot_character_level_class = c->GetBotRequiredLevel(bot_class);
+	if (
+		bot_character_level_class >= 0 &&
+		c->GetLevel() < bot_character_level_class &&
+		!c->GetGM()
+	) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"You must be level {} to spawn {} bots.",
+				bot_character_level_class,
+				GetClassIDName(bot_class)
+			).c_str()
+		);
+		return;
+	}
+
 	if (!bot_id) {
-		c->Message(Chat::White, "You don't own a bot named '%s'", bot_name.c_str());
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"You don't own a bot named '{}'.",
+				bot_name
+			).c_str()
+		);
 		return;
 	}
 
 	if (entity_list.GetMobByBotID(bot_id)) {
-		c->Message(Chat::White, "'%s' is already spawned in zone", bot_name.c_str());
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"'{}' is already spawned.",
+				bot_name
+			).c_str()
+		);
 		return;
 	}
 
@@ -10711,17 +11100,31 @@ void bot_subcommand_bot_spawn(Client *c, const Seperator *sep)
 
 	auto my_bot = Bot::LoadBot(bot_id);
 	if (!my_bot) {
-		c->Message(Chat::White, "No valid bot '%s' (id: %i) exists", bot_name.c_str(), bot_id);
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Invalid bot '{}' (ID {})",
+				bot_name,
+				bot_id
+			).c_str()
+		);
 		return;
 	}
 
 	if (!my_bot->Spawn(c)) {
-		c->Message(Chat::White, "Failed to spawn bot '%s' (id: %i)", bot_name.c_str(), bot_id);
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Failed to spawn '{}' (ID {})",
+				bot_name,
+				bot_id
+			).c_str()
+		);
 		safe_delete(my_bot);
 		return;
 	}
 
-	static const char* bot_spawn_message[17] = {
+	static std::string bot_spawn_message[17] = {
 		"I am ready to fight!", // DEFAULT
 		"A solid weapon is my ally!", // WARRIOR
 		"The pious shall never die!", // CLERIC
@@ -10747,10 +11150,9 @@ void bot_subcommand_bot_spawn(Client *c, const Seperator *sep)
 	}
 
 	if (c->GetBotOption(Client::booSpawnMessageSay)) {
-		c->Message(Chat::Tell, "%s tells you, '%s'", my_bot->GetCleanName(), bot_spawn_message[message_index]);
-	}
-	else if (c->GetBotOption(Client::booSpawnMessageTell)) {
-		c->Message(Chat::Tell, "%s tells you, \"%s\"", my_bot->GetCleanName(), bot_spawn_message[message_index]);
+		Bot::BotGroupSay(my_bot, bot_spawn_message[message_index].c_str());
+	} else if (c->GetBotOption(Client::booSpawnMessageTell)) {
+		my_bot->OwnerMessage(bot_spawn_message[message_index]);
 	}
 }
 
@@ -10804,11 +11206,13 @@ void bot_subcommand_bot_stance(Client *c, const Seperator *sep)
 			bot_iter->Save();
 		}
 
-		c->Message(Chat::Tell,
-			"%s tells you, 'My current stance is '%s' (%i)'",
-			bot_iter->GetCleanName(),
-			EQ::constants::GetStanceName(bot_iter->GetBotStance()),
-			bot_iter->GetBotStance()
+		Bot::BotGroupSay(
+			bot_iter,
+			fmt::format(
+				"My current stance is {} ({}).",
+				EQ::constants::GetStanceName(bot_iter->GetBotStance()),
+				bot_iter->GetBotStance()
+			).c_str()
 		);
 	}
 }
@@ -10862,41 +11266,63 @@ void bot_subcommand_bot_stop_melee_level(Client *c, const Seperator *sep)
 
 void bot_subcommand_bot_summon(Client *c, const Seperator *sep)
 {
-	if (helper_command_alias_fail(c, "bot_subcommand_bot_summon", sep->arg[0], "botsummon"))
+	if (helper_command_alias_fail(c, "bot_subcommand_bot_summon", sep->arg[0], "botsummon")) {
 		return;
+	}
+
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s ([actionable: target | byname | ownergroup | botgroup | targetgroup | namesgroup | healrotation | spawned] ([actionable_name]))", sep->arg[0]);
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Usage: {} ([actionable: target | byname | ownergroup | botgroup | targetgroup | namesgroup | healrotation | spawned] ([actionable_name]))",
+				sep->arg[0]
+			).c_str()
+		);
 		return;
 	}
 	const int ab_mask = ActionableBots::ABM_NoFilter;
 
 	std::list<Bot*> sbl;
-	if (ActionableBots::PopulateSBL(c, sep->arg[1], sbl, ab_mask, sep->arg[2]) == ActionableBots::ABT_None)
+	if (ActionableBots::PopulateSBL(c, sep->arg[1], sbl, ab_mask, sep->arg[2]) == ActionableBots::ABT_None) {
 		return;
+	}
 
 	for (auto bot_iter : sbl) {
-		if (!bot_iter)
+		if (!bot_iter) {
 			continue;
-
-		//Bot::BotGroupSay(bot_iter, "Whee!");
+		}
 
 		bot_iter->WipeHateList();
 		bot_iter->SetTarget(nullptr);
 		bot_iter->Teleport(c->GetPosition());
 		bot_iter->DoAnim(0);
 
-		if (!bot_iter->HasPet())
+		if (!bot_iter->HasPet()) {
 			continue;
+		}
 
 		bot_iter->GetPet()->WipeHateList();
 		bot_iter->GetPet()->SetTarget(nullptr);
 		bot_iter->GetPet()->Teleport(c->GetPosition());
 	}
 
-	if (sbl.size() == 1)
-		c->Message(Chat::White, "Summoned %s to you", ((sbl.front()) ? (sbl.front()->GetCleanName()) : ("'nullptr'")));
-	else
-		c->Message(Chat::White, "Summoned %i bots to you", sbl.size());
+	if (sbl.size() == 1) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Summoned {} to you.",
+				sbl.front() ? sbl.front()->GetCleanName() : "no one"
+			).c_str()
+		);
+	} else {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Summoned {} bots to you.",
+				sbl.size()
+			).c_str()
+		);
+	}
 }
 
 void bot_subcommand_bot_tattoo(Client *c, const Seperator *sep)
@@ -10940,8 +11366,9 @@ void bot_subcommand_bot_tattoo(Client *c, const Seperator *sep)
 
 void bot_subcommand_bot_toggle_archer(Client *c, const Seperator *sep)
 {
-	if (helper_command_alias_fail(c, "bot_subcommand_bot_toggle_archer", sep->arg[0], "bottogglearcher"))
+	if (helper_command_alias_fail(c, "bot_subcommand_bot_toggle_archer", sep->arg[0], "bottogglearcher")) {
 		return;
+	}
 	if (helper_is_help_or_usage(sep->arg[1])) {
 		c->Message(Chat::White, "usage: %s ([option: on | off]) ([actionable: target | byname] ([actionable_name]))", sep->arg[0]);
 		return;
@@ -10964,21 +11391,26 @@ void bot_subcommand_bot_toggle_archer(Client *c, const Seperator *sep)
 	}
 
 	std::list<Bot*> sbl;
-	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, sep->arg[(ab_arg + 1)]) == ActionableBots::ABT_None)
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, sep->arg[(ab_arg + 1)]) == ActionableBots::ABT_None) {
 		return;
+	}
 
 	for (auto bot_iter : sbl) {
-		if (!bot_iter)
+		if (!bot_iter) {
 			continue;
+		}
 
-		if (toggle_archer)
-			bot_iter->SetBotArcher(!bot_iter->IsBotArcher());
-		else
-			bot_iter->SetBotArcher(archer_state);
+		if (toggle_archer) {
+			bot_iter->SetBotArcherySetting(!bot_iter->IsBotArcher(), true);
+		}
+		else {
+			bot_iter->SetBotArcherySetting(archer_state, true);
+		}
 		bot_iter->ChangeBotArcherWeapons(bot_iter->IsBotArcher());
 
-		if (bot_iter->GetClass() == RANGER && bot_iter->GetLevel() >= 61)
+		if (bot_iter->GetClass() == RANGER && bot_iter->GetLevel() >= 61) {
 			bot_iter->SetRangerAutoWeaponSelect(bot_iter->IsBotArcher());
+		}
 	}
 }
 
@@ -11830,13 +12262,13 @@ void bot_subcommand_botgroup_load(Client *c, const Seperator *sep)
 
 		for (auto member_iter : member_list) {
 			if (member_iter->IsEngaged() || member_iter->GetAggroCount() > 0) {
-				c->Message(Chat::White, "You can't spawn bots while your group is engaged,");
+				c->Message(Chat::White, "You cannot spawn bots while your group is engaged,");
 				return;
 			}
 		}
 	} else {
 		if (c->GetAggroCount() > 0) {
-			c->Message(Chat::White, "You can't spawn bots while you are engaged,");
+			c->Message(Chat::White, "You cannot spawn bots while you are engaged,");
 			return;
 		}
 	}
@@ -11876,43 +12308,28 @@ void bot_subcommand_botgroup_load(Client *c, const Seperator *sep)
 		return;
 	}
 
-	int spawned_bot_count = Bot::SpawnedBotCount(c->CharacterID());
+	auto spawned_bot_count = Bot::SpawnedBotCount(c->CharacterID());
 
-	if (RuleB(Bots, QuestableSpawnLimit)) {
-		int allowed_bot_count = 0;
-		if (!database.botdb.LoadQuestableSpawnCount(c->CharacterID(), allowed_bot_count)) {
-			c->Message(Chat::White, "Failed to load questable spawn count.");
-			return;
-		}
-
-		if (!allowed_bot_count) {
-			c->Message(Chat::White, "You can not spawn any bots");
-			return;
-		}
-
-		if (spawned_bot_count >= allowed_bot_count || (spawned_bot_count + member_list.begin()->second.size()) > allowed_bot_count) {
-			c->Message(
-				Chat::White,
-				fmt::format(
-					"You can not spawn more than {} bot{}.",
-					allowed_bot_count,
-					allowed_bot_count != 1 ? "s" : ""
-				).c_str()
+	auto bot_spawn_limit = c->GetBotSpawnLimit();
+	if (
+		bot_spawn_limit >= 0 &&
+		(
+			spawned_bot_count >= bot_spawn_limit ||
+			(spawned_bot_count + member_list.begin()->second.size()) > bot_spawn_limit
+		)
+	) {
+		std::string message;
+		if (bot_spawn_limit) {
+			message = fmt::format(
+				"You cannot have more than {} spawned bot{}.",
+				bot_spawn_limit,
+				bot_spawn_limit != 1 ? "s" : ""
 			);
-			return;
+		} else {
+			message = "You are not currently allowed to spawn any bots.";
 		}
-	}
 
-	const int allowed_bot_limit = RuleI(Bots, SpawnLimit);
-	if (spawned_bot_count >= allowed_bot_limit || (spawned_bot_count + member_list.begin()->second.size()) > allowed_bot_limit) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"You can not spawn more than {} bot{}.",
-				allowed_bot_limit,
-				allowed_bot_limit != 1 ? "s" : ""
-			).c_str()
-		);
+		c->Message(Chat::White, message.c_str());
 		return;
 	}
 
@@ -13384,15 +13801,13 @@ void bot_subcommand_inventory_remove(Client *c, const Seperator *sep)
 				break;
 		}
 
-		c->Message(
-			Chat::Tell,
+		my_bot->OwnerMessage(
 			fmt::format(
-				"{} tells you, 'My {} (Slot {}) {} already unequipped.'",
-				my_bot->GetCleanName(),
+				"My {} (Slot {}) {} already unequipped.",
 				EQ::invslot::GetInvPossessionsSlotName(slot_id),
 				slot_id,
 				slot_message
-			).c_str()
+			)
 		);
 		return;
 	}
@@ -13427,11 +13842,9 @@ void bot_subcommand_inventory_remove(Client *c, const Seperator *sep)
 		c->PushItemOnCursor(*inst, true);
 		if (
 			slot_id == EQ::invslot::slotRange ||
-			slot_id == EQ::invslot::slotAmmo ||
-			slot_id == EQ::invslot::slotPrimary ||
-			slot_id == EQ::invslot::slotSecondary
+			slot_id == EQ::invslot::slotAmmo
 		) {
-			my_bot->SetBotArcher(false);
+			my_bot->SetBotArcherySetting(false, true);
 		}
 
 		my_bot->RemoveBotItemBySlot(slot_id, &error_message);
@@ -13449,15 +13862,13 @@ void bot_subcommand_inventory_remove(Client *c, const Seperator *sep)
 		my_bot->BotRemoveEquipItem(slot_id);
 		my_bot->CalcBotStats(c->GetBotOption(Client::booStatsUpdate));
 
-		c->Message(
-			Chat::Tell,
+		my_bot->OwnerMessage(
 			fmt::format(
-				"{} tells you, 'I have unequipped {} from my {} (Slot {}).'",
-				my_bot->GetCleanName(),
+				"I have unequipped {} from my {} (Slot {}).",
 				linker.GenerateLink(),
 				EQ::invslot::GetInvPossessionsSlotName(slot_id),
 				slot_id
-			).c_str()
+			)
 		);
 	}
 }
@@ -13854,27 +14265,52 @@ void helper_bot_appearance_form_update(Bot *my_bot)
 uint32 helper_bot_create(Client *bot_owner, std::string bot_name, uint8 bot_class, uint16 bot_race, uint8 bot_gender)
 {
 	uint32 bot_id = 0;
-	if (!bot_owner)
+	if (!bot_owner) {
 		return bot_id;
+	}
+
 	if (!Bot::IsValidName(bot_name)) {
-		bot_owner->Message(Chat::White, "'%s' is an invalid name. You may only use characters 'A-Z', 'a-z' and '_'", bot_name.c_str());
+		bot_owner->Message(
+			Chat::White,
+			fmt::format(
+				"'{}' is an invalid name. You may only use characters 'A-Z', 'a-z' and '_'.",
+				bot_name
+			).c_str()
+		);
 		return bot_id;
 	}
 
 	bool available_flag = false;
 	if (!database.botdb.QueryNameAvailablity(bot_name, available_flag)) {
-		bot_owner->Message(Chat::White, "%s for '%s'", BotDatabase::fail::QueryNameAvailablity(), bot_name.c_str());
-		return bot_id;
-	}
-	if (!available_flag) {
-		bot_owner->Message(Chat::White, "The name %s is already being used. Please choose a different name", bot_name.c_str());
+		bot_owner->Message(
+			Chat::White,
+			fmt::format(
+				"Failed to query name availability for '{}'.",
+				bot_name
+			).c_str()
+		);
 		return bot_id;
 	}
 
-	if (!Bot::IsValidRaceClassCombo(bot_race, bot_class)) {
-		const char* bot_race_name = GetRaceIDName(bot_race);
-		const char* bot_class_name = GetClassIDName(bot_class);
-		std::string view_saylink = Saylink::Silent(fmt::format("^viewcombos {}", bot_race), "view");
+	if (!available_flag) {
+		bot_owner->Message(
+			Chat::White,
+			fmt::format(
+				"The name '{}' is already being used. Please choose a different name",
+				bot_name
+			).c_str()
+		);
+		return bot_id;
+	}
+
+	if (!Bot::IsValidRaceClassCombo(bot_race, bot_class) && bot_owner->IsPlayerRace(bot_race)) {
+		const std::string bot_race_name = GetRaceIDName(bot_race);
+		const std::string bot_class_name = GetClassIDName(bot_class);
+		const auto view_saylink = Saylink::Silent(
+			fmt::format("^viewcombos {}", bot_race),
+			"view"
+		);
+
 		bot_owner->Message(
 			Chat::White,
 			fmt::format(
@@ -13885,36 +14321,134 @@ uint32 helper_bot_create(Client *bot_owner, std::string bot_name, uint8 bot_clas
 				bot_race_name
 			).c_str()
 		);
+
 		return bot_id;
 	}
 
-	if (bot_gender > FEMALE) {
-		bot_owner->Message(Chat::White, "gender: %u (M), %u (F)", MALE, FEMALE);
+	if (!EQ::ValueWithin(bot_gender, MALE, FEMALE)) {
+		bot_owner->Message(
+			Chat::White,
+			fmt::format(
+				"Gender: {} ({}) or {} ({})",
+				GetGenderName(MALE),
+				MALE,
+				GetGenderName(FEMALE),
+				FEMALE
+			).c_str()
+		);
 		return bot_id;
 	}
 
 	uint32 max_bot_count = RuleI(Bots, CreationLimit);
 	uint32 max_bot_bypass = RuleI(Bots, CreationLimitStatusBypass);
+	auto bot_creation_limit = bot_owner->GetBotCreationLimit();
+	auto bot_creation_limit_class = bot_owner->GetBotCreationLimit(bot_class);
 
 	uint32 bot_count = 0;
-	if (!database.botdb.QueryBotCount(bot_owner->CharacterID(), bot_count)) {
-		bot_owner->Message(Chat::White, "%s", BotDatabase::fail::QueryBotCount());
+	uint32 bot_class_count = 0;
+	if (!database.botdb.QueryBotCount(bot_owner->CharacterID(), bot_class, bot_count, bot_class_count)) {
+		bot_owner->Message(Chat::White, "Failed to query bot count.");
+		return bot_id;
+	}
+
+	if (bot_creation_limit >= 0 && bot_count >= bot_creation_limit) {
+		std::string message;
+
+		if (bot_creation_limit) {
+			message = fmt::format(
+				"You cannot create anymore than {} bot{}.",
+				bot_creation_limit,
+				bot_creation_limit != 1 ? "s" : ""
+			);
+		} else {
+			message = "You cannot create any bots.";
+		}
+
+		bot_owner->Message(Chat::White, message.c_str());
+		return bot_id;
+	}
+
+	if (bot_creation_limit_class >= 0 && bot_class_count >= bot_creation_limit_class) {
+		std::string message;
+
+		if (bot_creation_limit_class) {
+			message = fmt::format(
+				"You cannot create anymore than {} {} bot{}.",
+				bot_creation_limit_class,
+				GetClassIDName(bot_class),
+				bot_creation_limit_class != 1 ? "s" : ""
+			);
+		} else {
+			message = fmt::format(
+				"You cannot create any {} bots.",
+				GetClassIDName(bot_class)
+			);
+		}
+
+		bot_owner->Message(Chat::White, message.c_str());
+		return bot_id;
+	}
+
+	auto bot_character_level = bot_owner->GetBotRequiredLevel();
+
+	if (
+		bot_character_level >= 0 &&
+		bot_owner->GetLevel() < bot_character_level
+	) {
+		bot_owner->Message(
+			Chat::White,
+			fmt::format(
+				"You must be level {} to use bots.",
+				bot_character_level
+			).c_str()
+		);
 		return bot_id;
 	}
 	if (bot_count >= max_bot_count && bot_owner->Admin() < max_bot_bypass) {
 		bot_owner->Message(Chat::White, "You have reached the maximum limit of %i bots.", max_bot_count);
+
+	auto bot_character_level_class = bot_owner->GetBotRequiredLevel(bot_class);
+
+	if (
+		bot_character_level_class >= 0 &&
+		bot_owner->GetLevel() < bot_character_level_class
+	) {
+		bot_owner->Message(
+			Chat::White,
+			fmt::format(
+				"You must be level {} to use {} bots.",
+				bot_character_level_class,
+				GetClassIDName(bot_class)
+			).c_str()
+		);
 		return bot_id;
 	}
+
 
 	auto my_bot = new Bot(Bot::CreateDefaultNPCTypeStructForBot(bot_name.c_str(), "", bot_owner->GetLevel(), bot_race, bot_class, bot_gender), bot_owner);
 
 	if (!my_bot->Save()) {
-		bot_owner->Message(Chat::White, "Failed to create '%s' due to unknown cause", my_bot->GetCleanName());
+		bot_owner->Message(
+			Chat::White,
+			fmt::format(
+				"Failed to create '{}' due to unknown cause.",
+				my_bot->GetCleanName()
+			).c_str()
+		);
 		safe_delete(my_bot);
 		return bot_id;
 	}
 
-	bot_owner->Message(Chat::White, "Successfully created '%s' (id: %u)", my_bot->GetCleanName(), my_bot->GetBotID());
+	bot_owner->Message(
+		Chat::White,
+		fmt::format(
+			"Bot Created | Name: {} ID: {} Race: {} Class: {}",
+			my_bot->GetCleanName(),
+			my_bot->GetBotID(),
+			GetRaceIDName(my_bot->GetRace()),
+			GetClassIDName(my_bot->GetClass())
+		).c_str()
+	);
 
 	bot_id = my_bot->GetBotID();
 	safe_delete(my_bot);
@@ -14031,8 +14565,16 @@ bool helper_cast_standard_spell(Bot* casting_bot, Mob* target_mob, int spell_id,
 		return false;
 
 	casting_bot->InterruptSpell();
-	if (annouce_cast)
-		Bot::BotGroupSay(casting_bot, "Attempting to cast '%s' on %s", spells[spell_id].name, target_mob->GetCleanName());
+	if (annouce_cast) {
+		Bot::BotGroupSay(
+			casting_bot,
+			fmt::format(
+				"Attempting to cast {} on {}.",
+				spells[spell_id].name,
+				target_mob->GetCleanName()
+			).c_str()
+		);
+	}
 
 	return casting_bot->CastSpell(spell_id, target_mob->GetID(), EQ::spells::CastingSlot::Gem2, -1, -1, dont_root_before);
 }
@@ -14060,54 +14602,115 @@ bool helper_command_alias_fail(Client *bot_owner, const char* command_handler, c
 
 void helper_command_depart_list(Client* bot_owner, Bot* druid_bot, Bot* wizard_bot, bcst_list* local_list, bool single_flag)
 {
-	if (!bot_owner)
+	if (!bot_owner) {
 		return;
+	}
 
-	if (!MyBots::IsMyBot(bot_owner, druid_bot))
+	if (!MyBots::IsMyBot(bot_owner, druid_bot)) {
 		druid_bot = nullptr;
-	if (!MyBots::IsMyBot(bot_owner, wizard_bot))
+	}
+
+	if (!MyBots::IsMyBot(bot_owner, wizard_bot)) {
 		wizard_bot = nullptr;
+	}
+
 	if (!druid_bot && !wizard_bot) {
 		bot_owner->Message(Chat::White, "No bots are capable of performing this action");
 		return;
 	}
 
-	bot_owner->Message(Chat::White, "The following destinations are available:");
 	if (!local_list) {
-		bot_owner->Message(Chat::White, "None");
+		bot_owner->Message(Chat::White, "There are no destinations you can be taken to.");
 		return;
 	}
 
 	std::string msg;
 	std::string text_link;
 
-	int destinations = 0;
+	auto destination_count = 0;
+	auto destination_number = 1;
 	for (auto list_iter : *local_list) {
 		auto local_entry = list_iter->SafeCastToDepart();
-		if (!local_entry)
-			continue;
-
-		if (druid_bot && druid_bot->GetClass() == local_entry->caster_class && druid_bot->GetLevel() >= local_entry->spell_level) {
-			if (local_entry->single != single_flag)
-				continue;
-			msg = StringFormat("%ccircle %s%s", BOT_COMMAND_CHAR, spells[local_entry->spell_id].teleport_zone, ((single_flag) ? (" single") : ("")));
-			text_link = druid_bot->CreateSayLink(bot_owner, msg.c_str(), local_entry->long_name.c_str());
-			Bot::BotGroupSay(druid_bot, "dest: '%s' click: %s", spells[local_entry->spell_id].teleport_zone, text_link.c_str());
-			++destinations;
+		if (!local_entry) {
 			continue;
 		}
-		if (wizard_bot && wizard_bot->GetClass() == local_entry->caster_class && wizard_bot->GetLevel() >= local_entry->spell_level) {
-			if (local_entry->single != single_flag)
+
+		if (
+			druid_bot &&
+			druid_bot->GetClass() == local_entry->caster_class &&
+			druid_bot->GetLevel() >= local_entry->spell_level
+		) {
+			if (local_entry->single != single_flag) {
 				continue;
-			msg = StringFormat("%cportal %s%s", BOT_COMMAND_CHAR, spells[local_entry->spell_id].teleport_zone, ((single_flag) ? (" single") : ("")));
-			text_link = wizard_bot->CreateSayLink(bot_owner, msg.c_str(), local_entry->long_name.c_str());
-			Bot::BotGroupSay(wizard_bot, "dest: '%s' click: %s", spells[local_entry->spell_id].teleport_zone, text_link.c_str());
-			++destinations;
+			}
+
+			msg = fmt::format(
+				"{}circle {}{}",
+				std::to_string(BOT_COMMAND_CHAR),
+				spells[local_entry->spell_id].teleport_zone,
+				single_flag ? " single" : ""
+			);
+
+			text_link = druid_bot->CreateSayLink(
+				bot_owner,
+				msg.c_str(),
+				"Goto"
+			);
+
+			druid_bot->OwnerMessage(
+				fmt::format(
+					"Destination {} | {} | {}",
+					destination_number,
+					local_entry->long_name,
+					text_link
+				).c_str()
+			);
+
+			destination_count++;
+			destination_number++;
+			continue;
+		}
+
+		if (
+			wizard_bot &&
+			wizard_bot->GetClass() == local_entry->caster_class &&
+			wizard_bot->GetLevel() >= local_entry->spell_level
+		) {
+			if (local_entry->single != single_flag) {
+				continue;
+			}
+
+			msg = fmt::format(
+				"{}portal {}{}",
+				std::to_string(BOT_COMMAND_CHAR),
+				spells[local_entry->spell_id].teleport_zone,
+				single_flag ? " single" : ""
+			);
+
+			text_link = wizard_bot->CreateSayLink(
+				bot_owner,
+				msg.c_str(),
+				"Goto"
+			);
+
+			wizard_bot->OwnerMessage(
+				fmt::format(
+					"Destination {} | {} | {}",
+					destination_number,
+					local_entry->long_name,
+					text_link
+				).c_str()
+			);
+
+			destination_count++;
+			destination_number++;
 			continue;
 		}
 	}
-	if (!destinations)
-		bot_owner->Message(Chat::White, "None");
+
+	if (!destination_count) {
+		bot_owner->Message(Chat::White, "There are no destinations you can be taken to.");
+	}
 }
 
 bool helper_is_help_or_usage(const char* arg)
@@ -14178,6 +14781,580 @@ bool helper_spell_list_fail(Client *bot_owner, bcst_list* spell_list, BCEnum::Sp
 	}
 
 	return false;
+}
+
+void bot_command_spell_list(Client* c, const Seperator *sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_spell_list", sep->arg[0], "spells")) {
+		return;
+	}
+
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Usage: {} [Min Level] (Level is optional)",
+				sep->arg[0]
+			).c_str()
+		);
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must target a bot that you own to use this command.");
+		return;
+	}
+
+	uint8 min_level = 0;
+
+	if (sep->IsNumber(1)) {
+		min_level = static_cast<uint8>(std::stoul(sep->arg[1]));
+	}
+
+	my_bot->ListBotSpells(min_level);
+}
+
+void bot_command_spell_settings_add(Client *c, const Seperator *sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_spell_settings_add", sep->arg[0], "spellsettingsadd")) {
+		return;
+	}
+
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Usage: {} [Spell ID] [Priority] [Min HP] [Max HP]",
+				sep->arg[0]
+			).c_str()
+		);
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must target a bot that you own to use this command.");
+		return;
+	}
+
+	auto arguments = sep->argnum;
+	if (
+		arguments < 4 ||
+		!sep->IsNumber(1) ||
+		!sep->IsNumber(2) ||
+		!sep->IsNumber(3) ||
+		!sep->IsNumber(4)
+	) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Usage: {} [Spell ID] [Priority] [Min HP] [Max HP]",
+				sep->arg[0]
+			).c_str()
+		);
+		return;
+	}
+
+	auto spell_id = static_cast<uint16>(std::stoul(sep->arg[1]));
+
+	if (!IsValidSpell(spell_id)) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Spell ID {} is invalid or could not be found.",
+				spell_id
+			).c_str()
+		);
+		return;
+	}
+
+	if (my_bot->GetBotSpellSetting(spell_id)) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"{} already has a spell setting for {} ({}), trying using {} instead.",
+				my_bot->GetCleanName(),
+				spells[spell_id].name,
+				spell_id,
+				Saylink::Silent("^spellsettingsupdate")
+			).c_str()
+		);
+		return;
+	}
+
+	auto priority = static_cast<int16>(std::stoi(sep->arg[2]));
+	auto min_hp = static_cast<int8>(EQ::Clamp(std::stoi(sep->arg[3]), -1, 99));
+	auto max_hp = static_cast<int8>(EQ::Clamp(std::stoi(sep->arg[4]), -1, 100));
+
+	BotSpellSetting bs;
+
+	bs.priority = priority;
+	bs.min_hp = min_hp;
+	bs.max_hp = max_hp;
+
+	if (!my_bot->AddBotSpellSetting(spell_id, &bs)) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Failed to add spell setting for {}.",
+				my_bot->GetCleanName()
+			).c_str()
+		);
+		return;
+	}
+
+	my_bot->AI_AddBotSpells(my_bot->GetBotSpellID());
+
+	c->Message(
+		Chat::White,
+		fmt::format(
+			"Successfully added spell setting for {}.",
+			my_bot->GetCleanName()
+		).c_str()
+	);
+
+	c->Message(
+		Chat::White,
+		fmt::format(
+			"Spell Setting Added | Spell: {} ({}) ",
+			spells[spell_id].name,
+			spell_id
+		).c_str()
+	);
+
+	c->Message(
+		Chat::White,
+		fmt::format(
+			"Spell Setting Added | Priority: {} Health: {}",
+			priority,
+			my_bot->GetHPString(min_hp, max_hp)
+		).c_str()
+	);
+}
+
+void bot_command_spell_settings_delete(Client *c, const Seperator *sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_spell_settings_delete", sep->arg[0], "spellsettingsdelete")) {
+		return;
+	}
+
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Usage: {} [Spell ID]",
+				sep->arg[0]
+			).c_str()
+		);
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must target a bot that you own to use this command.");
+		return;
+	}
+
+	auto arguments = sep->argnum;
+	if (
+		arguments < 1 ||
+		!sep->IsNumber(1)
+	) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Usage: {} [Spell ID]",
+				sep->arg[0]
+			).c_str()
+		);
+		return;
+	}
+
+	auto spell_id = static_cast<uint16>(std::stoul(sep->arg[1]));
+
+	if (!IsValidSpell(spell_id)) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Spell ID {} is invalid or could not be found.",
+				spell_id
+			).c_str()
+		);
+		return;
+	}
+
+	if (!my_bot->DeleteBotSpellSetting(spell_id)) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Failed to delete spell setting for {}.",
+				my_bot->GetCleanName()
+			).c_str()
+		);
+		return;
+	}
+
+	my_bot->AI_AddBotSpells(my_bot->GetBotSpellID());
+
+	c->Message(
+		Chat::White,
+		fmt::format(
+			"Successfully deleted spell setting for {}.",
+			my_bot->GetCleanName()
+		).c_str()
+	);
+
+	c->Message(
+		Chat::White,
+		fmt::format(
+			"Spell Setting Deleted | Spell: {} ({})",
+			spells[spell_id].name,
+			spell_id
+		).c_str()
+	);
+}
+
+void bot_command_spell_settings_list(Client *c, const Seperator *sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_spell_settings_list", sep->arg[0], "spellsettings")) {
+		return;
+	}
+
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Usage: {}",
+				sep->arg[0]
+			).c_str()
+		);
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must target a bot that you own to use this command.");
+		return;
+	}
+
+	my_bot->ListBotSpellSettings();
+}
+
+void bot_command_spell_settings_toggle(Client *c, const Seperator *sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_spell_settings_toggle", sep->arg[0], "spellsettingstoggle")) {
+		return;
+	}
+
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Usage: {} [Spell ID] [Toggle]",
+				sep->arg[0]
+			).c_str()
+		);
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must target a bot that you own to use this command.");
+		return;
+	}
+
+	auto arguments = sep->argnum;
+	if (
+		arguments < 2 ||
+		!sep->IsNumber(1)
+	) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Usage: {} [Spell ID] [Toggle]",
+				sep->arg[0]
+			).c_str()
+		);
+		return;
+	}
+
+	auto spell_id = static_cast<uint16>(std::stoul(sep->arg[1]));
+	if (!IsValidSpell(spell_id)) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Spell ID {} is invalid or could not be found.",
+				spell_id
+			).c_str()
+		);
+		return;
+	}
+
+	bool toggle = (
+		sep->IsNumber(2) ?
+		(std::stoi(sep->arg[2]) ? true : false) :
+		atobool(sep->arg[2])
+	);
+
+	auto obs = my_bot->GetBotSpellSetting(spell_id);
+	if (!obs) {
+		return;
+	}
+
+	BotSpellSetting bs;
+
+	bs.priority = obs->priority;
+	bs.min_hp = obs->min_hp;
+	bs.max_hp = obs->max_hp;
+	bs.is_enabled = toggle;
+
+	if (!my_bot->UpdateBotSpellSetting(spell_id, &bs)) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Failed to {}able spell for {}.",
+				toggle ? "en" : "dis",
+				my_bot->GetCleanName()
+			).c_str()
+		);
+		return;
+	}
+
+	my_bot->AI_AddBotSpells(my_bot->GetBotSpellID());
+
+	c->Message(
+		Chat::White,
+		fmt::format(
+			"Successfully {}abled spell for {}.",
+			toggle ? "en" : "dis",
+			my_bot->GetCleanName()
+		).c_str()
+	);
+
+	c->Message(
+		Chat::White,
+		fmt::format(
+			"Spell {}abled | Spell: {} ({})",
+			toggle ? "En" : "Dis",
+			spells[spell_id].name,
+			spell_id
+		).c_str()
+	);
+}
+
+void bot_command_spell_settings_update(Client *c, const Seperator *sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_spell_settings_update", sep->arg[0], "spellsettingsupdate")) {
+		return;
+	}
+
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Usage: {} [Spell ID] [Priority] [Min HP] [Max HP]",
+				sep->arg[0]
+			).c_str()
+		);
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must target a bot that you own to use this command.");
+		return;
+	}
+
+	auto arguments = sep->argnum;
+	if (
+		arguments < 4 ||
+		!sep->IsNumber(1) ||
+		!sep->IsNumber(2) ||
+		!sep->IsNumber(3) ||
+		!sep->IsNumber(4)
+	) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Usage: {} [Spell ID] [Priority] [Min HP] [Max HP]",
+				sep->arg[0]
+			).c_str()
+		);
+		return;
+	}
+
+	auto spell_id = static_cast<uint16>(std::stoul(sep->arg[1]));
+
+	if (!IsValidSpell(spell_id)) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Spell ID {} is invalid or could not be found.",
+				spell_id
+			).c_str()
+		);
+		return;
+	}
+
+	auto priority = static_cast<int16>(std::stoi(sep->arg[2]));
+	auto min_hp = static_cast<int8>(EQ::Clamp(std::stoi(sep->arg[3]), -1, 99));
+	auto max_hp = static_cast<int8>(EQ::Clamp(std::stoi(sep->arg[4]), -1, 100));
+
+	BotSpellSetting bs;
+
+	bs.priority = priority;
+	bs.min_hp = min_hp;
+	bs.max_hp = max_hp;
+
+	if (!my_bot->UpdateBotSpellSetting(spell_id, &bs)) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Failed to update spell setting for {}.",
+				my_bot->GetCleanName()
+			).c_str()
+		);
+		return;
+	}
+
+	my_bot->AI_AddBotSpells(my_bot->GetBotSpellID());
+
+	c->Message(
+		Chat::White,
+		fmt::format(
+			"Successfully updated spell setting for {}.",
+			my_bot->GetCleanName()
+		).c_str()
+	);
+
+	c->Message(
+		Chat::White,
+		fmt::format(
+			"Spell Setting Updated | Spell: {} ({})",
+			spells[spell_id].name,
+			spell_id
+		).c_str()
+	);
+
+	c->Message(
+		Chat::White,
+		fmt::format(
+			"Spell Setting Updated | Priority: {} Health: {}",
+			priority,
+			my_bot->GetHPString(min_hp, max_hp)
+		).c_str()
+	);
+}
+
+void bot_spell_info_dialogue_window(Client* c, const Seperator *sep)
+{
+	if (helper_command_alias_fail(c, "bot_spell_info_dialogue_window", sep->arg[0], "spellinfo")) {
+		return;
+	}
+
+	auto arguments = sep->argnum;
+	if (
+		arguments < 1 ||
+		!sep->IsNumber(1)
+	) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Usage: {} [Spell ID]",
+				sep->arg[0]
+			).c_str()
+		);
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must target a bot that you own to use this command.");
+		return;
+	}
+
+	auto spell_id = static_cast<uint16>(std::stoul(sep->arg[1]));
+	auto min_level = spells[spell_id].classes;
+	auto class_level = min_level[my_bot->GetBotClass() - 1];
+
+	if (class_level > my_bot->GetLevel()) {
+		c->Message(Chat::White, "This is not a usable spell by your bot.");
+		return;
+	}
+
+	auto results = database.QueryDatabase(
+		fmt::format(
+			"SELECT value FROM db_str WHERE id = {} and type = 6 LIMIT 1",
+			spells[spell_id].effect_description_id
+		)
+	);
+
+	if (!results.Success() || !results.RowCount()) {
+		c->Message(Chat::White, "No Spell Information Available for this.");
+		return;
+	}
+
+	auto row = results.begin();
+	std::string spell_desc = row[0];
+
+	auto m = DialogueWindow::TableRow(
+		DialogueWindow::TableCell("Spell Effect: ") +
+		DialogueWindow::TableCell(spell_desc)
+	);
+
+	 m += DialogueWindow::TableRow(
+		DialogueWindow::TableCell("Spell Level: ") +
+		DialogueWindow::TableCell(fmt::format("{}", class_level))
+	);
+
+	c->SendPopupToClient(
+		fmt::format(
+			"Spell: {}", spells[spell_id].name
+		).c_str(),
+		DialogueWindow::Table(m).c_str()
+	);
+}
+
+void bot_command_enforce_spell_list(Client* c, const Seperator *sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_enforce_spell_list", sep->arg[0], "enforcespellsettings")) {
+		return;
+	}
+
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Usage: {} [True/False]",
+				sep->arg[0]
+			).c_str()
+		);
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must target a bot that you own to use this command.");
+		return;
+	}
+
+	bool toggle = (
+		sep->IsNumber(1) ?
+		(std::stoi(sep->arg[1]) ? true : false) :
+		atobool(sep->arg[1])
+	);
+
+	my_bot->SetBotEnforceSpellSetting(toggle, true);
+
+	c->Message(
+		Chat::White,
+		fmt::format(
+			"{}'s Spell Settings List entries are now {}.",
+			my_bot->GetCleanName(),
+			toggle ? "enforced" : "optional"
+		).c_str()
+	);
 }
 
 #endif // BOTS

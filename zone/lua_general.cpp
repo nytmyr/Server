@@ -27,6 +27,7 @@
 #include "lua_encounter.h"
 #include "data_bucket.h"
 #include "expedition.h"
+#include "dialogue_window.h"
 
 struct Events { };
 struct Factions { };
@@ -541,8 +542,8 @@ void lua_set_proximity(float min_x, float max_x, float min_y, float max_y, float
 	quest_manager.set_proximity(min_x, max_x, min_y, max_y, min_z, max_z);
 }
 
-void lua_set_proximity(float min_x, float max_x, float min_y, float max_y, float min_z, float max_z, bool say) {
-	quest_manager.set_proximity(min_x, max_x, min_y, max_y, min_z, max_z, say);
+void lua_set_proximity(float min_x, float max_x, float min_y, float max_y, float min_z, float max_z, bool enable_say) {
+	quest_manager.set_proximity(min_x, max_x, min_y, max_y, min_z, max_z, enable_say);
 }
 
 void lua_clear_proximity() {
@@ -760,6 +761,30 @@ std::string lua_get_task_name(uint32 task_id) {
 	return quest_manager.gettaskname(task_id);
 }
 
+int lua_get_dz_task_id() {
+	return quest_manager.GetCurrentDzTaskID();
+}
+
+void lua_end_dz_task() {
+	quest_manager.EndCurrentDzTask();
+}
+
+void lua_end_dz_task(bool send_fail) {
+	quest_manager.EndCurrentDzTask(send_fail);
+}
+
+void lua_popup(const char *title, const char *text) {
+	quest_manager.popup(title, text, 0, 0, 0);
+}
+
+void lua_popup(const char *title, const char *text, uint32 id) {
+	quest_manager.popup(title, text, id, 0, 0);
+}
+
+void lua_popup(const char *title, const char *text, uint32 id, uint32 buttons) {
+	quest_manager.popup(title, text, id, buttons, 0);
+}
+
 void lua_popup(const char *title, const char *text, uint32 id, uint32 buttons, uint32 duration) {
 	quest_manager.popup(title, text, id, buttons, duration);
 }
@@ -812,8 +837,8 @@ void lua_create_door(const char *model, float x, float y, float z, float h, int 
 	quest_manager.CreateDoor(model, x, y, z, h, open_type, size);
 }
 
-void lua_modify_npc_stat(const char *id, const char *value) {
-	quest_manager.ModifyNPCStat(id, value);
+void lua_modify_npc_stat(std::string stat, std::string value) {
+	quest_manager.ModifyNPCStat(stat, value);
 }
 
 int lua_collect_items(uint32 item_id, bool remove) {
@@ -977,16 +1002,46 @@ int lua_get_instance_id(const char *zone, uint32 version) {
 	return quest_manager.GetInstanceID(zone, version);
 }
 
-int lua_get_instance_id_by_char_id(const char *zone, uint32 version, uint32 char_id) {
-	return quest_manager.GetInstanceIDByCharID(zone, version, char_id);
+uint8 lua_get_instance_version_by_id(uint16 instance_id) {
+	return database.GetInstanceVersion(instance_id);
+}
+
+uint32 lua_get_instance_zone_id_by_id(uint16 instance_id) {
+	return database.GetInstanceZoneID(instance_id);
+}
+
+luabind::adl::object lua_get_instance_ids(lua_State* L, std::string zone_name) {
+	luabind::adl::object ret = luabind::newtable(L);
+
+	auto instance_ids = quest_manager.GetInstanceIDs(zone_name);
+	for (int i = 0; i < instance_ids.size(); i++) {
+		ret[i] = instance_ids[i];
+	}
+
+	return ret;
+}
+
+luabind::adl::object lua_get_instance_ids_by_char_id(lua_State* L, std::string zone_name, uint32 character_id) {
+	luabind::adl::object ret = luabind::newtable(L);
+
+	auto instance_ids = quest_manager.GetInstanceIDs(zone_name, character_id);
+	for (int i = 0; i < instance_ids.size(); i++) {
+		ret[i] = instance_ids[i];
+	}
+
+	return ret;
+}
+
+int lua_get_instance_id_by_char_id(const char *zone, uint32 version, uint32 character_id) {
+	return quest_manager.GetInstanceIDByCharID(zone, version, character_id);
 }
 
 void lua_assign_to_instance(uint32 instance_id) {
 	quest_manager.AssignToInstance(instance_id);
 }
 
-void lua_assign_to_instance_by_char_id(uint32 instance_id, uint32 char_id) {
-	quest_manager.AssignToInstanceByCharID(instance_id, char_id);
+void lua_assign_to_instance_by_char_id(uint32 instance_id, uint32 character_id) {
+	quest_manager.AssignToInstanceByCharID(instance_id, character_id);
 }
 
 void lua_assign_group_to_instance(uint32 instance_id) {
@@ -1001,12 +1056,12 @@ void lua_remove_from_instance(uint32 instance_id) {
 	quest_manager.RemoveFromInstance(instance_id);
 }
 
-void lua_remove_from_instance_by_char_id(uint32 instance_id, uint32 char_id) {
-	quest_manager.RemoveFromInstanceByCharID(instance_id, char_id);
+void lua_remove_from_instance_by_char_id(uint32 instance_id, uint32 character_id) {
+	quest_manager.RemoveFromInstanceByCharID(instance_id, character_id);
 }
 
-bool lua_check_instance_by_char_id(uint32 instance_id, uint32 char_id) {
-	return quest_manager.CheckInstanceByCharID(instance_id, char_id);
+bool lua_check_instance_by_char_id(uint32 instance_id, uint32 character_id) {
+	return quest_manager.CheckInstanceByCharID(instance_id, character_id);
 }
 
 void lua_remove_all_from_instance(uint32 instance_id) {
@@ -1190,11 +1245,11 @@ int lua_get_zone_instance_version() {
 luabind::adl::object lua_get_characters_in_instance(lua_State *L, uint16 instance_id) {
 	luabind::adl::object ret = luabind::newtable(L);
 
-	std::list<uint32> charid_list;
+	std::list<uint32> character_ids;
 	uint16 i = 1;
-	database.GetCharactersInInstance(instance_id,charid_list);
-	auto iter = charid_list.begin();
-	while(iter != charid_list.end()) {
+	database.GetCharactersInInstance(instance_id, character_ids);
+	auto iter = character_ids.begin();
+	while(iter != character_ids.end()) {
 		ret[i] = *iter;
 		++i;
 		++iter;
@@ -1868,7 +1923,11 @@ void lua_remove_all_expedition_lockouts_by_char_id(uint32 char_id, std::string e
 }
 
 std::string lua_seconds_to_time(int duration) {
-	return quest_manager.secondstotime(duration);
+	return Strings::SecondsToTime(duration);
+}
+
+uint32 lua_time_to_seconds(std::string time_string) {
+	return Strings::TimeToSeconds(time_string);
 }
 
 std::string lua_get_hex_color_code(std::string color_name) {
@@ -2809,40 +2868,40 @@ void lua_cross_zone_set_entity_variable_by_client_name(const char* character_nam
 	quest_manager.CrossZoneSetEntityVariable(update_type, update_identifier, variable_name, variable_value, character_name);
 }
 
-void lua_cross_zone_signal_client_by_char_id(uint32 character_id, int signal) {
+void lua_cross_zone_signal_client_by_char_id(uint32 character_id, int signal_id) {
 	uint8 update_type = CZUpdateType_Character;
-	quest_manager.CrossZoneSignal(update_type, character_id, signal);
+	quest_manager.CrossZoneSignal(update_type, character_id, signal_id);
 }
 
-void lua_cross_zone_signal_client_by_group_id(uint32 group_id, int signal) {
+void lua_cross_zone_signal_client_by_group_id(uint32 group_id, int signal_id) {
 	uint8 update_type = CZUpdateType_Group;
-	quest_manager.CrossZoneSignal(update_type, group_id, signal);
+	quest_manager.CrossZoneSignal(update_type, group_id, signal_id);
 }
 
-void lua_cross_zone_signal_client_by_raid_id(uint32 raid_id, int signal) {
+void lua_cross_zone_signal_client_by_raid_id(uint32 raid_id, int signal_id) {
 	uint8 update_type = CZUpdateType_Raid;
-	quest_manager.CrossZoneSignal(update_type, raid_id, signal);
+	quest_manager.CrossZoneSignal(update_type, raid_id, signal_id);
 }
 
-void lua_cross_zone_signal_client_by_guild_id(uint32 guild_id, int signal) {
+void lua_cross_zone_signal_client_by_guild_id(uint32 guild_id, int signal_id) {
 	uint8 update_type = CZUpdateType_Guild;
-	quest_manager.CrossZoneSignal(update_type, guild_id, signal);
+	quest_manager.CrossZoneSignal(update_type, guild_id, signal_id);
 }
 
-void lua_cross_zone_signal_client_by_expedition_id(uint32 expedition_id, int signal) {
+void lua_cross_zone_signal_client_by_expedition_id(uint32 expedition_id, int signal_id) {
 	uint8 update_type = CZUpdateType_Expedition;
-	quest_manager.CrossZoneSignal(update_type, expedition_id, signal);
+	quest_manager.CrossZoneSignal(update_type, expedition_id, signal_id);
 }
 
-void lua_cross_zone_signal_client_by_name(const char* client_name, int signal) {
+void lua_cross_zone_signal_client_by_name(const char* client_name, int signal_id) {
 	uint8 update_type = CZUpdateType_ClientName;
 	int update_identifier = 0;
-	quest_manager.CrossZoneSignal(update_type, update_identifier, signal, client_name);
+	quest_manager.CrossZoneSignal(update_type, update_identifier, signal_id, client_name);
 }
 
-void lua_cross_zone_signal_npc_by_npctype_id(uint32 npctype_id, int signal) {
+void lua_cross_zone_signal_npc_by_npctype_id(uint32 npctype_id, int signal_id) {
 	uint8 update_type = CZUpdateType_NPC;
-	quest_manager.CrossZoneSignal(update_type, npctype_id, signal);
+	quest_manager.CrossZoneSignal(update_type, npctype_id, signal_id);
 }
 
 void lua_cross_zone_update_activity_by_char_id(int character_id, uint32 task_id, int activity_id) {
@@ -3270,24 +3329,24 @@ void lua_world_wide_set_entity_variable_npc(const char* variable_name, const cha
 	quest_manager.WorldWideSetEntityVariable(update_type, variable_name, variable_value);
 }
 
-void lua_world_wide_signal_client(uint32 signal) {
+void lua_world_wide_signal_client(int signal_id) {
 	uint8 update_type = WWSignalUpdateType_Character;
-	quest_manager.WorldWideSignal(update_type, signal);
+	quest_manager.WorldWideSignal(update_type, signal_id);
 }
 
-void lua_world_wide_signal_client(uint32 signal, uint8 min_status) {
+void lua_world_wide_signal_client(int signal_id, uint8 min_status) {
 	uint8 update_type = WWSignalUpdateType_Character;
-	quest_manager.WorldWideSignal(update_type, signal, min_status);
+	quest_manager.WorldWideSignal(update_type, signal_id, min_status);
 }
 
-void lua_world_wide_signal_client(uint32 signal, uint8 min_status, uint8 max_status) {
+void lua_world_wide_signal_client(int signal_id, uint8 min_status, uint8 max_status) {
 	uint8 update_type = WWSignalUpdateType_Character;
-	quest_manager.WorldWideSignal(update_type, signal, min_status, max_status);
+	quest_manager.WorldWideSignal(update_type, signal_id, min_status, max_status);
 }
 
-void lua_world_wide_signal_npc(uint32 signal) {
+void lua_world_wide_signal_npc(int signal_id) {
 	uint8 update_type = WWSignalUpdateType_NPC;
-	quest_manager.WorldWideSignal(update_type, signal);
+	quest_manager.WorldWideSignal(update_type, signal_id);
 }
 
 void lua_world_wide_update_activity(uint32 task_id, int activity_id) {
@@ -3442,6 +3501,131 @@ bool lua_is_snowing() {
 	}
 
 	return zone->IsSnowing();
+}
+
+std::string lua_get_aa_name(int aa_id) {
+	if (!zone) {
+		return std::string();
+	}
+
+	return zone->GetAAName(aa_id);
+}
+
+std::string lua_popup_break() {
+	return DialogueWindow::Break();
+}
+
+std::string lua_popup_break(uint32 break_count) {
+	return DialogueWindow::Break(break_count);
+}
+
+std::string lua_popup_center_message(std::string message) {
+	return DialogueWindow::CenterMessage(message);
+}
+
+std::string lua_popup_color_message(std::string color, std::string message) {
+	return DialogueWindow::ColorMessage(color, message);
+}
+
+std::string lua_popup_indent() {
+	return DialogueWindow::Indent();
+}
+
+std::string lua_popup_indent(uint32 indent_count) {
+	return DialogueWindow::Indent(indent_count);
+}
+
+std::string lua_popup_link(std::string link) {
+	return DialogueWindow::Link(link);
+}
+
+std::string lua_popup_link(std::string link, std::string message) {
+	return DialogueWindow::Link(link, message);
+}
+
+std::string lua_popup_table(std::string message) {
+	return DialogueWindow::Table(message);
+}
+
+std::string lua_popup_table_cell() {
+	return DialogueWindow::TableCell();
+}
+
+std::string lua_popup_table_cell(std::string message) {
+	return DialogueWindow::TableCell(message);
+}
+
+std::string lua_popup_table_row(std::string message) {
+	return DialogueWindow::TableRow(message);
+}
+
+void lua_marquee(uint32 type, std::string message) {
+	quest_manager.marquee(type, message);
+}
+
+void lua_marquee(uint32 type, std::string message, uint32 duration) {
+	quest_manager.marquee(type, message, duration);
+}
+
+void lua_marquee(uint32 type, uint32 priority, uint32 fade_in, uint32 fade_out, uint32 duration, std::string message) {
+	quest_manager.marquee(type, priority, fade_in, fade_out, duration, message);
+}
+
+void lua_zone_marquee(uint32 type, std::string message) {
+	if (!zone) {
+		return;
+	}
+
+	entity_list.Marquee(type, message);
+}
+
+void lua_zone_marquee(uint32 type, std::string message, uint32 duration) {
+	if (!zone) {
+		return;
+	}
+
+	entity_list.Marquee(type, message, duration);
+}
+
+void lua_zone_marquee(uint32 type, uint32 priority, uint32 fade_in, uint32 fade_out, uint32 duration, std::string message) {
+	if (!zone) {
+		return;
+	}
+
+	entity_list.Marquee(type, priority, fade_in, fade_out, duration, message);
+}
+
+bool lua_is_hotzone()
+{
+	if (!zone) {
+		return false;
+	}
+
+	return zone->IsHotzone();
+}
+
+void lua_set_hotzone(bool is_hotzone)
+{
+	if (!zone) {
+		return;
+	}
+
+	zone->SetIsHotzone(is_hotzone);
+}
+
+void lua_set_proximity_range(float x_range, float y_range)
+{
+	quest_manager.set_proximity_range(x_range, y_range);
+}
+
+void lua_set_proximity_range(float x_range, float y_range, float z_range)
+{
+	quest_manager.set_proximity_range(x_range, y_range, z_range);
+}
+
+void lua_set_proximity_range(float x_range, float y_range, float z_range, bool enable_say)
+{
+	quest_manager.set_proximity_range(x_range, y_range, z_range, enable_say);
 }
 
 #define LuaCreateNPCParse(name, c_type, default_value) do { \
@@ -3712,6 +3896,9 @@ luabind::scope lua_register_general() {
 		luabind::def("set_proximity", (void(*)(float,float,float,float))&lua_set_proximity),
 		luabind::def("set_proximity", (void(*)(float,float,float,float,float,float))&lua_set_proximity),
 		luabind::def("set_proximity", (void(*)(float,float,float,float,float,float,bool))&lua_set_proximity),
+		luabind::def("set_proximity_range", (void(*)(float,float))&lua_set_proximity_range),
+		luabind::def("set_proximity_range", (void(*)(float,float,float))&lua_set_proximity_range),
+		luabind::def("set_proximity_range", (void(*)(float,float,float,bool))&lua_set_proximity_range),
 		luabind::def("clear_proximity", &lua_clear_proximity),
 		luabind::def("enable_proximity_say", &lua_enable_proximity_say),
 		luabind::def("disable_proximity_say", &lua_disable_proximity_say),
@@ -3751,7 +3938,9 @@ luabind::scope lua_register_general() {
 		luabind::def("completed_tasks_in_set", &lua_completed_tasks_in_set),
 		luabind::def("is_task_appropriate", &lua_is_task_appropriate),
 		luabind::def("get_task_name", (std::string(*)(uint32))&lua_get_task_name),
-		luabind::def("popup", &lua_popup),
+		luabind::def("get_dz_task_id", &lua_get_dz_task_id),
+		luabind::def("end_dz_task", (void(*)())&lua_end_dz_task),
+		luabind::def("end_dz_task", (void(*)(bool))&lua_end_dz_task),
 		luabind::def("clear_spawn_timers", &lua_clear_spawn_timers),
 		luabind::def("zone_emote", &lua_zone_emote),
 		luabind::def("world_emote", &lua_world_emote),
@@ -3802,8 +3991,12 @@ luabind::scope lua_register_general() {
 		luabind::def("update_instance_timer", &lua_update_instance_timer),
 		luabind::def("get_instance_id", &lua_get_instance_id),
 		luabind::def("get_instance_id_by_char_id", &lua_get_instance_id_by_char_id),
+		luabind::def("get_instance_ids", &lua_get_instance_ids),
+		luabind::def("get_instance_ids_by_char_id", &lua_get_instance_id_by_char_id),
 		luabind::def("get_instance_timer", &lua_get_instance_timer),
 		luabind::def("get_instance_timer_by_id", &lua_get_instance_timer_by_id),
+		luabind::def("get_instance_version_by_id", &lua_get_instance_version_by_id),
+		luabind::def("get_instance_zone_id_by_id", &lua_get_instance_zone_id_by_id),
 		luabind::def("get_characters_in_instance", &lua_get_characters_in_instance),
 		luabind::def("assign_to_instance", &lua_assign_to_instance),
 		luabind::def("assign_to_instance_by_char_id", &lua_assign_to_instance_by_char_id),
@@ -3872,6 +4065,7 @@ luabind::scope lua_register_general() {
 		luabind::def("debug", (void(*)(std::string, int))&lua_debug),
 		luabind::def("log_combat", (void(*)(std::string))&lua_log_combat),
 		luabind::def("seconds_to_time", &lua_seconds_to_time),
+		luabind::def("time_to_seconds", &lua_time_to_seconds),
 		luabind::def("get_hex_color_code", &lua_get_hex_color_code),
 		luabind::def("get_aa_exp_modifier_by_char_id", (double(*)(uint32,uint32))&lua_get_aa_exp_modifier_by_char_id),
 		luabind::def("get_aa_exp_modifier_by_char_id", (double(*)(uint32,uint32,int16))&lua_get_aa_exp_modifier_by_char_id),
@@ -3910,6 +4104,31 @@ luabind::scope lua_register_general() {
 		luabind::def("has_recipe_learned", &lua_has_recipe_learned),
 		luabind::def("is_raining", &lua_is_raining),
 		luabind::def("is_snowing", &lua_is_snowing),
+		luabind::def("get_aa_name", &lua_get_aa_name),
+		luabind::def("popup", (void(*)(const char*,const char*))&lua_popup),
+		luabind::def("popup", (void(*)(const char*,const char*,uint32))&lua_popup),
+		luabind::def("popup", (void(*)(const char*,const char*,uint32,uint32))&lua_popup),
+		luabind::def("popup", (void(*)(const char*,const char*,uint32,uint32,uint32))&lua_popup),
+		luabind::def("popup_break", (std::string(*)(void))&lua_popup_break),
+		luabind::def("popup_break", (std::string(*)(uint32))&lua_popup_break),
+		luabind::def("popup_center_message", &lua_popup_center_message),
+		luabind::def("popup_color_message", &lua_popup_color_message),
+		luabind::def("popup_indent", (std::string(*)(void))&lua_popup_indent),
+		luabind::def("popup_indent", (std::string(*)(uint32))&lua_popup_indent),
+		luabind::def("popup_link", (std::string(*)(std::string))&lua_popup_link),
+		luabind::def("popup_link", (std::string(*)(std::string,std::string))&lua_popup_link),
+		luabind::def("popup_table", &lua_popup_table),
+		luabind::def("popup_table_cell", (std::string(*)(void))&lua_popup_table_cell),
+		luabind::def("popup_table_cell", (std::string(*)(std::string))&lua_popup_table_cell),
+		luabind::def("popup_table_row", &lua_popup_table_row),
+		luabind::def("marquee", (void(*)(uint32,std::string))&lua_marquee),
+		luabind::def("marquee", (void(*)(uint32,std::string,uint32))&lua_marquee),
+		luabind::def("marquee", (void(*)(uint32,uint32,uint32,uint32,uint32,std::string))&lua_marquee),
+		luabind::def("zone_marquee", (void(*)(uint32,std::string))&lua_zone_marquee),
+		luabind::def("zone_marquee", (void(*)(uint32,std::string,uint32))&lua_zone_marquee),
+		luabind::def("zone_marquee", (void(*)(uint32,uint32,uint32,uint32,uint32,std::string))&lua_zone_marquee),
+		luabind::def("is_hotzone", (bool(*)(void))&lua_is_hotzone),
+		luabind::def("set_hotzone", (void(*)(bool))&lua_set_hotzone),
 
 		/*
 			Cross Zone
@@ -4110,9 +4329,9 @@ luabind::scope lua_register_general() {
 		luabind::def("world_wide_set_entity_variable_client", (void(*)(const char*,const char*,uint8))&lua_world_wide_set_entity_variable_client),
 		luabind::def("world_wide_set_entity_variable_client", (void(*)(const char*,const char*,uint8,uint8))&lua_world_wide_set_entity_variable_client),
 		luabind::def("world_wide_set_entity_variable_npc", &lua_world_wide_set_entity_variable_npc),
-		luabind::def("world_wide_signal_client", (void(*)(uint32))&lua_world_wide_signal_client),
-		luabind::def("world_wide_signal_client", (void(*)(uint32,uint8))&lua_world_wide_signal_client),
-		luabind::def("world_wide_signal_client", (void(*)(uint32,uint8,uint8))&lua_world_wide_signal_client),
+		luabind::def("world_wide_signal_client", (void(*)(int))&lua_world_wide_signal_client),
+		luabind::def("world_wide_signal_client", (void(*)(int,uint8))&lua_world_wide_signal_client),
+		luabind::def("world_wide_signal_client", (void(*)(int,uint8,uint8))&lua_world_wide_signal_client),
 		luabind::def("world_wide_signal_npc", &lua_world_wide_signal_npc),
 		luabind::def("world_wide_update_activity", (void(*)(uint32,int))&lua_world_wide_update_activity),
 		luabind::def("world_wide_update_activity", (void(*)(uint32,int,int))&lua_world_wide_update_activity),
@@ -4307,6 +4526,11 @@ luabind::scope lua_register_events() {
 			luabind::value("alt_currency_merchant_sell", static_cast<int>(EVENT_ALT_CURRENCY_MERCHANT_SELL)),
 			luabind::value("merchant_buy", static_cast<int>(EVENT_MERCHANT_BUY)),
 			luabind::value("merchant_sell", static_cast<int>(EVENT_MERCHANT_SELL)),
+			luabind::value("inspect", static_cast<int>(EVENT_INSPECT)),
+			luabind::value("task_before_update", static_cast<int>(EVENT_TASK_BEFORE_UPDATE)),
+			luabind::value("aa_buy", static_cast<int>(EVENT_AA_BUY)),
+			luabind::value("aa_gain", static_cast<int>(EVENT_AA_GAIN)),
+			luabind::value("payload", static_cast<int>(EVENT_PAYLOAD)),
 			luabind::value("summon_pc", static_cast<int>(EVENT_SUMMON_PC))
 		];
 }

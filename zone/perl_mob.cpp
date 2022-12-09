@@ -277,11 +277,6 @@ void Perl_Mob_ChangeSize(Mob* self, float in_size, bool no_restriction) // @cate
 	self->ChangeSize(in_size, no_restriction);
 }
 
-void Perl_Mob_RandomizeFeatures(Mob* self, bool send_illusion, bool save_variables) // @categories Script Utility
-{
-	self->RandomizeFeatures(send_illusion, save_variables);
-}
-
 void Perl_Mob_GMMove(Mob* self, float x, float y, float z) // @categories Script Utility
 {
 	self->GMMove(x, y, z);
@@ -1110,7 +1105,7 @@ void Perl_Mob_SetOwnerID(Mob* self, uint16 new_owner_id) // @categories Pet
 	self->SetOwnerID(new_owner_id);
 }
 
-int Perl_Mob_GetOwnerID(Mob* self) // @categories Script Utility, Pet
+uint16 Perl_Mob_GetOwnerID(Mob* self) // @categories Script Utility, Pet
 {
 	return self->GetOwnerID();
 }
@@ -1550,22 +1545,6 @@ void Perl_Mob_SetOOCRegen(Mob* self, int64 new_ooc_regen) // @categories Stats a
 	self->SetOOCRegen(new_ooc_regen);
 }
 
-const char* Perl_Mob_GetEntityVariable(Mob* self, const char* id) // @categories Script Utility
-{
-	// supports possible nullptr return
-	return self->GetEntityVariable(id);
-}
-
-bool Perl_Mob_EntityVariableExists(Mob* self, const char* id)
-{
-	return self->EntityVariableExists(id);
-}
-
-void Perl_Mob_SetEntityVariable(Mob* self, const char* id, const char* var) // @categories Script Utility
-{
-	self->SetEntityVariable(id, var);
-}
-
 perl::array Perl_Mob_GetHateList(Mob* self)
 {
 	perl::array result;
@@ -1577,9 +1556,9 @@ perl::array Perl_Mob_GetHateList(Mob* self)
 	return result;
 }
 
-void Perl_Mob_SignalClient(Mob* self, Client* client, uint32 data) // @categories Script Utility
+void Perl_Mob_SignalClient(Mob* self, Client* client, int signal_id) // @categories Script Utility
 {
-	client->Signal(data);
+	client->Signal(signal_id);
 }
 
 bool Perl_Mob_CombatRange(Mob* self, Mob* target) // @categories Script Utility
@@ -2039,6 +2018,11 @@ void Perl_Mob_SetSlotTint(Mob* self, uint8 material_slot, uint8 red_tint, uint8 
 	self->SetSlotTint(material_slot, red_tint, green_tint, blue_tint);
 }
 
+void Perl_Mob_WearChange(Mob* self, uint8 material_slot, uint16 texture) // @categories Script Utility
+{
+	self->WearChange(material_slot, texture);
+}
+
 void Perl_Mob_WearChange(Mob* self, uint8 material_slot, uint16 texture, uint32 color) // @categories Script Utility
 {
 	self->WearChange(material_slot, texture, color);
@@ -2418,22 +2402,24 @@ bool Perl_Mob_IsHorse(Mob* self) // @categories Script Utility
 perl::array Perl_Mob_GetHateListByDistance(Mob* self) // @categories Hate and Aggro
 {
 	perl::array result;
-	auto list = self->GetHateListByDistance();
-	for (auto hate_entry : list)
-	{
-		result.push_back(hate_entry);
+
+	auto h_list = self->GetFilteredHateList();
+	for (auto h : h_list) {
+		result.push_back(h);
 	}
+
 	return result;
 }
 
-perl::array Perl_Mob_GetHateListByDistance(Mob* self, int distance) // @categories Hate and Aggro
+perl::array Perl_Mob_GetHateListByDistance(Mob* self, uint32 distance) // @categories Hate and Aggro
 {
 	perl::array result;
-	auto list = self->GetHateListByDistance(distance);
-	for (auto hate_entry : list)
-	{
-		result.push_back(hate_entry);
+
+	auto h_list = self->GetFilteredHateList(EntityFilterType::All, distance);
+	for (auto h : h_list) {
+		result.push_back(h);
 	}
+
 	return result;
 }
 
@@ -2532,7 +2518,317 @@ int Perl_Mob_GetSkillDmgAmt(Mob* self, uint16 skill_id)
 	return self->GetSkillDmgAmt(skill_id);
 }
 
+Mob* Perl_Mob_GetUltimateOwner(Mob* self) // @categories Script Utility, Pet
+{
+	return self->GetUltimateOwner();
+}
+
+bool Perl_Mob_RandomizeFeatures(Mob* self) // @categories Script Utility
+{
+	return self->RandomizeFeatures();
+}
+
+bool Perl_Mob_RandomizeFeatures(Mob* self, bool send_illusion) // @categories Script Utility
+{
+	return self->RandomizeFeatures(send_illusion);
+}
+
+bool Perl_Mob_RandomizeFeatures(Mob* self, bool send_illusion, bool save_variables) // @categories Script Utility
+{
+	return self->RandomizeFeatures(send_illusion, save_variables);
+}
+
+void Perl_Mob_CloneAppearance(Mob* self, Mob* other) // @categories Script Utility
+{
+	self->CloneAppearance(other);
+}
+
+void Perl_Mob_CloneAppearance(Mob* self, Mob* other, bool clone_name) // @categories Script Utility
+{
+	self->CloneAppearance(other, clone_name);
+}
+
+Mob* Perl_Mob_GetOwner(Mob* self) // @categories Script Utility, Pet
+{
+	return self->GetOwner();
+}
+
+void Perl_Mob_DamageArea(Mob* self, int64 damage) // @categories Hate and Aggro
+{
+	self->DamageArea(damage);
+}
+
+void Perl_Mob_DamageArea(Mob* self, int64 damage, uint32 distance) // @categories Hate and Aggro
+{
+	self->DamageArea(damage, distance, EntityFilterType::All);
+}
+
+void Perl_Mob_DamageAreaPercentage(Mob* self, int64 damage) // @categories Hate and Aggro
+{
+	self->DamageArea(damage, 0, EntityFilterType::All, true);
+}
+
+void Perl_Mob_DamageAreaPercentage(Mob* self, int64 damage, uint32 distance) // @categories Hate and Aggro
+{
+	self->DamageArea(damage, distance, EntityFilterType::All, true);
+}
+
+void Perl_Mob_DamageAreaClients(Mob* self, int64 damage) // @categories Hate and Aggro
+{
+	self->DamageArea(damage, 0, EntityFilterType::Clients);
+}
+
+void Perl_Mob_DamageAreaClients(Mob* self, int64 damage, uint32 distance) // @categories Hate and Aggro
+{
+	self->DamageArea(damage, distance, EntityFilterType::Clients);
+}
+
+void Perl_Mob_DamageAreaClientsPercentage(Mob* self, int64 damage) // @categories Hate and Aggro
+{
+	self->DamageArea(damage, 0, EntityFilterType::Clients, true);
+}
+
+void Perl_Mob_DamageAreaClientsPercentage(Mob* self, int64 damage, uint32 distance) // @categories Hate and Aggro
+{
+	self->DamageArea(damage, distance, EntityFilterType::Clients, true);
+}
+
+void Perl_Mob_DamageAreaNPCs(Mob* self, int64 damage) // @categories Hate and Aggro
+{
+	self->DamageArea(damage, 0, EntityFilterType::NPCs);
+}
+
+void Perl_Mob_DamageAreaNPCs(Mob* self, int64 damage, uint32 distance) // @categories Hate and Aggro
+{
+	self->DamageArea(damage, distance, EntityFilterType::NPCs);
+}
+
+void Perl_Mob_DamageAreaNPCsPercentage(Mob* self, int64 damage) // @categories Hate and Aggro
+{
+	self->DamageArea(damage, 0, EntityFilterType::NPCs, true);
+}
+
+void Perl_Mob_DamageAreaNPCsPercentage(Mob* self, int64 damage, uint32 distance) // @categories Hate and Aggro
+{
+	self->DamageArea(damage, distance, EntityFilterType::NPCs, true);
+}
+
+void Perl_Mob_DamageHateList(Mob* self, int64 damage) // @categories Hate and Aggro
+{
+	self->DamageHateList(damage);
+}
+
+void Perl_Mob_DamageHateList(Mob* self, int64 damage, uint32 distance) // @categories Hate and Aggro
+{
+	self->DamageHateList(damage, distance, EntityFilterType::All);
+}
+
+void Perl_Mob_DamageHateListPercentage(Mob* self, int64 damage) // @categories Hate and Aggro
+{
+	self->DamageHateList(damage, 0, EntityFilterType::All, true);
+}
+
+void Perl_Mob_DamageHateListPercentage(Mob* self, int64 damage, uint32 distance) // @categories Hate and Aggro
+{
+	self->DamageHateList(damage, distance, EntityFilterType::All, true);
+}
+
+void Perl_Mob_DamageHateListClients(Mob* self, int64 damage) // @categories Hate and Aggro
+{
+	self->DamageHateList(damage, 0, EntityFilterType::Clients);
+}
+
+void Perl_Mob_DamageHateListClients(Mob* self, int64 damage, uint32 distance) // @categories Hate and Aggro
+{
+	self->DamageHateList(damage, distance, EntityFilterType::Clients);
+}
+
+void Perl_Mob_DamageHateListClientsPercentage(Mob* self, int64 damage) // @categories Hate and Aggro
+{
+	self->DamageHateList(damage, 0, EntityFilterType::Clients, true);
+}
+
+void Perl_Mob_DamageHateListClientsPercentage(Mob* self, int64 damage, uint32 distance) // @categories Hate and Aggro
+{
+	self->DamageHateList(damage, distance, EntityFilterType::Clients, true);
+}
+
+void Perl_Mob_DamageHateListNPCs(Mob* self, int64 damage) // @categories Hate and Aggro
+{
+	self->DamageHateList(damage, 0, EntityFilterType::NPCs);
+}
+
+void Perl_Mob_DamageHateListNPCs(Mob* self, int64 damage, uint32 distance) // @categories Hate and Aggro
+{
+	self->DamageHateList(damage, distance, EntityFilterType::NPCs);
+}
+
+void Perl_Mob_DamageHateListNPCsPercentage(Mob* self, int64 damage) // @categories Hate and Aggro
+{
+	self->DamageHateList(damage, 0, EntityFilterType::NPCs, true);
+}
+
+void Perl_Mob_DamageHateListNPCsPercentage(Mob* self, int64 damage, uint32 distance) // @categories Hate and Aggro
+{
+	self->DamageHateList(damage, distance, EntityFilterType::NPCs, true);
+}
+
+perl::array Perl_Mob_GetHateListClients(Mob* self)
+{
+	perl::array result;
+
+	auto h_list = self->GetFilteredHateList(EntityFilterType::Clients);
+	for (auto h : h_list) {
+		result.push_back(h);
+	}
+
+	return result;
+}
+
+perl::array Perl_Mob_GetHateListClients(Mob* self, uint32 distance)
+{
+	perl::array result;
+
+	auto h_list = self->GetFilteredHateList(EntityFilterType::Clients, distance);
+	for (auto h : h_list) {
+		result.push_back(h);
+	}
+
+	return result;
+}
+
+perl::array Perl_Mob_GetHateListNPCs(Mob* self)
+{
+	perl::array result;
+
+	auto h_list = self->GetFilteredHateList(EntityFilterType::NPCs);
+	for (auto h : h_list) {
+		result.push_back(h);
+	}
+
+	return result;
+}
+
+perl::array Perl_Mob_GetHateListNPCs(Mob* self, uint32 distance)
+{
+	perl::array result;
+
+	auto h_list = self->GetFilteredHateList(EntityFilterType::NPCs, distance);
+	for (auto h : h_list) {
+		result.push_back(h);
+	}
+
+	return result;
+}
+
+bool Perl_Mob_ClearEntityVariables(Mob* self) // @categories Script Utility
+{
+	return self->ClearEntityVariables();
+}
+
+bool Perl_Mob_DeleteEntityVariable(Mob* self, std::string variable_name) // @categories Script Utility
+{
+	return self->DeleteEntityVariable(variable_name);
+}
+
+bool Perl_Mob_EntityVariableExists(Mob* self, std::string variable_name) // @categories Script Utility
+{
+	return self->EntityVariableExists(variable_name);
+}
+
+std::string Perl_Mob_GetEntityVariable(Mob* self, std::string variable_name) // @categories Script Utility
+{
+	return self->GetEntityVariable(variable_name);
+}
+
+perl::array Perl_Mob_GetEntityVariables(Mob* self) // @categories Script Utility
+{
+	perl::array a;
+
+	const auto& l = self->GetEntityVariables();
+	for (const auto& v : l) {
+		a.push_back(v);
+	}
+
+	return a;
+}
+
+void Perl_Mob_SetEntityVariable(Mob* self, std::string variable_name, std::string variable_value) // @categories Script Utility
+{
+	self->SetEntityVariable(variable_name, variable_value);
+}
+
+void Perl_Mob_CopyHateList(Mob* self, Mob* to)
+{
+	self->CopyHateList(to);
+}
+
 #ifdef BOTS
+void Perl_Mob_DamageAreaBots(Mob* self, int64 damage) // @categories Hate and Aggro
+{
+	self->DamageArea(damage, 0, EntityFilterType::Bots);
+}
+
+void Perl_Mob_DamageAreaBots(Mob* self, int64 damage, uint32 distance) // @categories Hate and Aggro
+{
+	self->DamageArea(damage, distance, EntityFilterType::Bots);
+}
+
+void Perl_Mob_DamageAreaBotsPercentage(Mob* self, int64 damage) // @categories Hate and Aggro
+{
+	self->DamageArea(damage, 0, EntityFilterType::Bots, true);
+}
+
+void Perl_Mob_DamageAreaBotsPercentage(Mob* self, int64 damage, uint32 distance) // @categories Hate and Aggro
+{
+	self->DamageArea(damage, distance, EntityFilterType::Bots, true);
+}
+
+void Perl_Mob_DamageHateListBots(Mob* self, int64 damage) // @categories Hate and Aggro
+{
+	self->DamageHateList(damage, 0, EntityFilterType::Bots);
+}
+
+void Perl_Mob_DamageHateListBots(Mob* self, int64 damage, uint32 distance) // @categories Hate and Aggro
+{
+	self->DamageHateList(damage, distance, EntityFilterType::Bots);
+}
+
+void Perl_Mob_DamageHateListBotsPercentage(Mob* self, int64 damage) // @categories Hate and Aggro
+{
+	self->DamageHateList(damage, 0, EntityFilterType::Bots, true);
+}
+
+void Perl_Mob_DamageHateListBotsPercentage(Mob* self, int64 damage, uint32 distance) // @categories Hate and Aggro
+{
+	self->DamageHateList(damage, distance, EntityFilterType::Bots, true);
+}
+
+perl::array Perl_Mob_GetHateListBots(Mob* self)
+{
+	perl::array result;
+
+	auto h_list = self->GetFilteredHateList(EntityFilterType::Bots);
+	for (auto h : h_list) {
+		result.push_back(h);
+	}
+
+	return result;
+}
+
+perl::array Perl_Mob_GetHateListBots(Mob* self, uint32 distance)
+{
+	perl::array result;
+
+	auto h_list = self->GetFilteredHateList(EntityFilterType::Bots, distance);
+	for (auto h : h_list)
+	{
+		result.push_back(h);
+	}
+
+	return result;
+}
+
 Bot* Perl_Mob_CastToBot(Mob* self)
 {
 	return self->CastToBot();
@@ -2610,15 +2906,56 @@ void perl_register_mob()
 	package.add("CheckLoS", &Perl_Mob_CheckLoS);
 	package.add("CheckLoSToLoc", (bool(*)(Mob*, float, float, float))&Perl_Mob_CheckLoSToLoc);
 	package.add("CheckLoSToLoc", (bool(*)(Mob*, float, float, float, float))&Perl_Mob_CheckLoSToLoc);
+	package.add("ClearEntityVariables", &Perl_Mob_ClearEntityVariables);
 	package.add("ClearFeignMemory", &Perl_Mob_ClearFeignMemory);
 	package.add("ClearSpecialAbilities", &Perl_Mob_ClearSpecialAbilities);
+	package.add("CloneAppearance", (void(*)(Mob*, Mob*))&Perl_Mob_CloneAppearance);
+	package.add("CloneAppearance", (void(*)(Mob*, Mob*, bool))&Perl_Mob_CloneAppearance);
 	package.add("CombatRange", &Perl_Mob_CombatRange);
+	package.add("CopyHateList", &Perl_Mob_CopyHateList);
 	package.add("Damage", (void(*)(Mob*, Mob*, int64, uint16_t, int))&Perl_Mob_Damage);
 	package.add("Damage", (void(*)(Mob*, Mob*, int64, uint16_t, int, bool))&Perl_Mob_Damage);
 	package.add("Damage", (void(*)(Mob*, Mob*, int64, uint16_t, int, bool, int8_t))&Perl_Mob_Damage);
 	package.add("Damage", (void(*)(Mob*, Mob*, int64, uint16_t, int, bool, int8_t, bool))&Perl_Mob_Damage);
+	package.add("DamageArea", (void(*)(Mob*, int64))&Perl_Mob_DamageArea);
+	package.add("DamageArea", (void(*)(Mob*, int64, uint32))&Perl_Mob_DamageArea);
+#ifdef BOTS
+	package.add("DamageAreaBots", (void(*)(Mob*, int64))&Perl_Mob_DamageAreaBots);
+	package.add("DamageAreaBots", (void(*)(Mob*, int64, uint32))&Perl_Mob_DamageAreaBots);
+	package.add("DamageAreaBotsPercentage", (void(*)(Mob*, int64))&Perl_Mob_DamageAreaBotsPercentage);
+	package.add("DamageAreaBotsPercentage", (void(*)(Mob*, int64, uint32))&Perl_Mob_DamageAreaBotsPercentage);
+#endif
+	package.add("DamageAreaClients", (void(*)(Mob*, int64))&Perl_Mob_DamageAreaClients);
+	package.add("DamageAreaClients", (void(*)(Mob*, int64, uint32))&Perl_Mob_DamageAreaClients);
+	package.add("DamageAreaClientsPercentage", (void(*)(Mob*, int64))&Perl_Mob_DamageAreaClientsPercentage);
+	package.add("DamageAreaClientsPercentage", (void(*)(Mob*, int64, uint32))&Perl_Mob_DamageAreaClientsPercentage);
+	package.add("DamageAreaNPCs", (void(*)(Mob*, int64))&Perl_Mob_DamageAreaNPCs);
+	package.add("DamageAreaNPCs", (void(*)(Mob*, int64, uint32))&Perl_Mob_DamageAreaNPCs);
+	package.add("DamageAreaNPCsPercentage", (void(*)(Mob*, int64))&Perl_Mob_DamageAreaNPCsPercentage);
+	package.add("DamageAreaNPCsPercentage", (void(*)(Mob*, int64, uint32))&Perl_Mob_DamageAreaNPCsPercentage);
+	package.add("DamageAreaPercentage", (void(*)(Mob*, int64))&Perl_Mob_DamageAreaPercentage);
+	package.add("DamageAreaPercentage", (void(*)(Mob*, int64, uint32))&Perl_Mob_DamageAreaPercentage);
+	package.add("DamageHateList", (void(*)(Mob*, int64))&Perl_Mob_DamageHateList);
+	package.add("DamageHateList", (void(*)(Mob*, int64, uint32))&Perl_Mob_DamageHateList);
+#ifdef BOTS
+	package.add("DamageHateListBots", (void(*)(Mob*, int64))&Perl_Mob_DamageHateListBots);
+	package.add("DamageHateListBots", (void(*)(Mob*, int64, uint32))&Perl_Mob_DamageHateListBots);
+	package.add("DamageHateListBotsPercentage", (void(*)(Mob*, int64))&Perl_Mob_DamageHateListBotsPercentage);
+	package.add("DamageHateListBotsPercentage", (void(*)(Mob*, int64, uint32))&Perl_Mob_DamageHateListBotsPercentage);
+#endif
+	package.add("DamageHateListClients", (void(*)(Mob*, int64))&Perl_Mob_DamageHateListClients);
+	package.add("DamageHateListClients", (void(*)(Mob*, int64, uint32))&Perl_Mob_DamageHateListClients);
+	package.add("DamageHateListClientsPercentage", (void(*)(Mob*, int64))&Perl_Mob_DamageHateListClientsPercentage);
+	package.add("DamageHateListClientsPercentage", (void(*)(Mob*, int64, uint32))&Perl_Mob_DamageHateListClientsPercentage);
+	package.add("DamageHateListNPCs", (void(*)(Mob*, int64))&Perl_Mob_DamageHateListNPCs);
+	package.add("DamageHateListNPCs", (void(*)(Mob*, int64, uint32))&Perl_Mob_DamageHateListNPCs);
+	package.add("DamageHateListNPCsPercentage", (void(*)(Mob*, int64))&Perl_Mob_DamageHateListNPCsPercentage);
+	package.add("DamageHateListNPCsPercentage", (void(*)(Mob*, int64, uint32))&Perl_Mob_DamageHateListNPCsPercentage);
+	package.add("DamageHateListPercentage", (void(*)(Mob*, int64))&Perl_Mob_DamageHateListPercentage);
+	package.add("DamageHateListPercentage", (void(*)(Mob*, int64, uint32))&Perl_Mob_DamageHateListPercentage);
 	package.add("DelGlobal", &Perl_Mob_DelGlobal);
 	package.add("DeleteBucket", &Perl_Mob_DeleteBucket);
+	package.add("DeleteEntityVariable", &Perl_Mob_DeleteEntityVariable);
 	package.add("Depop", (void(*)(Mob*))&Perl_Mob_Depop);
 	package.add("Depop", (void(*)(Mob*, bool))&Perl_Mob_Depop);
 	package.add("DivineAura", &Perl_Mob_DivineAura);
@@ -2698,6 +3035,7 @@ void perl_register_mob()
 	package.add("GetDrakkinHeritage", &Perl_Mob_GetDrakkinHeritage);
 	package.add("GetDrakkinTattoo", &Perl_Mob_GetDrakkinTattoo);
 	package.add("GetEntityVariable", &Perl_Mob_GetEntityVariable);
+	package.add("GetEntityVariables", &Perl_Mob_GetEntityVariables);
 	package.add("GetEquipment", &Perl_Mob_GetEquipment);
 	package.add("GetEquipmentColor", &Perl_Mob_GetEquipmentColor);
 	package.add("GetEquipmentMaterial", &Perl_Mob_GetEquipmentMaterial);
@@ -2720,8 +3058,16 @@ void perl_register_mob()
 	package.add("GetHateClosest", &Perl_Mob_GetHateClosest);
 	package.add("GetHateDamageTop", &Perl_Mob_GetHateDamageTop);
 	package.add("GetHateList", &Perl_Mob_GetHateList);
+#ifdef BOTS
+	package.add("GetHateListBots", (perl::array(*)(Mob*))&Perl_Mob_GetHateListBots);
+	package.add("GetHateListBots", (perl::array(*)(Mob*, uint32))&Perl_Mob_GetHateListBots);
+#endif
+	package.add("GetHateListClients", (perl::array(*)(Mob*))&Perl_Mob_GetHateListClients);
+	package.add("GetHateListClients", (perl::array(*)(Mob*, uint32))&Perl_Mob_GetHateListClients);
+	package.add("GetHateListNPCs", (perl::array(*)(Mob*))&Perl_Mob_GetHateListNPCs);
+	package.add("GetHateListNPCs", (perl::array(*)(Mob*, uint32))&Perl_Mob_GetHateListNPCs);
 	package.add("GetHateListByDistance", (perl::array(*)(Mob*))&Perl_Mob_GetHateListByDistance);
-	package.add("GetHateListByDistance", (perl::array(*)(Mob*, int))&Perl_Mob_GetHateListByDistance);
+	package.add("GetHateListByDistance", (perl::array(*)(Mob*, uint32))&Perl_Mob_GetHateListByDistance);
 	package.add("GetHateRandom", &Perl_Mob_GetHateRandom);
 #ifdef BOTS
 	package.add("GetHateRandomBot", &Perl_Mob_GetHateRandomBot);
@@ -2764,6 +3110,7 @@ void perl_register_mob()
 	package.add("GetNimbusEffect1", &Perl_Mob_GetNimbusEffect1);
 	package.add("GetNimbusEffect2", &Perl_Mob_GetNimbusEffect2);
 	package.add("GetNimbusEffect3", &Perl_Mob_GetNimbusEffect3);
+	package.add("GetOwner", &Perl_Mob_GetOwner);
 	package.add("GetOwnerID", &Perl_Mob_GetOwnerID);
 	package.add("GetUltimateOwner", &Perl_Mob_GetUltimateOwner);
 	package.add("GetPR", &Perl_Mob_GetPR);
@@ -2807,6 +3154,7 @@ void perl_register_mob()
 	package.add("GetSpellStat", (int(*)(Mob*, uint32, const char*, uint8))&Perl_Mob_GetSpellStat);
 	package.add("GetTarget", &Perl_Mob_GetTarget);
 	package.add("GetTexture", &Perl_Mob_GetTexture);
+	package.add("GetUltimateOwner", &Perl_Mob_GetUltimateOwner);
 	package.add("GetWIS", &Perl_Mob_GetWIS);
 	package.add("GetWalkspeed", &Perl_Mob_GetWalkspeed);
 	package.add("GetWaypointH", &Perl_Mob_GetWaypointH);
@@ -2896,7 +3244,9 @@ void perl_register_mob()
 	package.add("ProjectileAnim", (void(*)(Mob*, Mob*, int, bool, float, float, float))&Perl_Mob_ProjectileAnim);
 	package.add("ProjectileAnim", (void(*)(Mob*, Mob*, int, bool, float, float, float, float))&Perl_Mob_ProjectileAnim);
 	package.add("ProjectileAnim", (void(*)(Mob*, Mob*, int, bool, float, float, float, float, const char*))&Perl_Mob_ProjectileAnim);
-	package.add("RandomizeFeatures", &Perl_Mob_RandomizeFeatures);
+	package.add("RandomizeFeatures", (bool(*)(Mob*))&Perl_Mob_RandomizeFeatures);
+	package.add("RandomizeFeatures", (bool(*)(Mob*, bool))&Perl_Mob_RandomizeFeatures);
+	package.add("RandomizeFeatures", (bool(*)(Mob*, bool, bool))&Perl_Mob_RandomizeFeatures);
 	package.add("RangedAttack", &Perl_Mob_RangedAttack);
 	package.add("RemoveAllAppearanceEffects", &Perl_Mob_RemoveAllAppearanceEffects);
 	package.add("RemoveAllNimbusEffects", &Perl_Mob_RemoveAllNimbusEffects);
@@ -3048,6 +3398,7 @@ void perl_register_mob()
 	package.add("TypesTempPet", (void(*)(Mob*, uint32, const char*, uint32, bool, Mob*))&Perl_Mob_TypesTempPet);
 	package.add("TypesTempPet", (void(*)(Mob*, uint32, const char*, uint32, bool, Mob*, bool))&Perl_Mob_TypesTempPet);
 	package.add("WalkTo", &Perl_Mob_WalkTo);
+	package.add("WearChange", (void(*)(Mob*, uint8, uint16))&Perl_Mob_WearChange);
 	package.add("WearChange", (void(*)(Mob*, uint8, uint16, uint32))&Perl_Mob_WearChange);
 	package.add("WearChange", (void(*)(Mob*, uint8, uint16, uint32, uint32))&Perl_Mob_WearChange);
 	package.add("WipeHateList", &Perl_Mob_WipeHateList);

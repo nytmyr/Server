@@ -1057,34 +1057,78 @@ void Object::SetHeading(float heading)
 	safe_delete(app2);
 }
 
-void Object::SetEntityVariable(const char *id, const char *m_var)
+bool Object::ClearEntityVariables()
 {
-	std::string n_m_var = m_var;
-	o_EntityVariables[id] = n_m_var;
-}
-
-const char* Object::GetEntityVariable(const char *id)
-{
-	if(!id)
-		return nullptr;
-
-	auto iter = o_EntityVariables.find(id);
-	if(iter != o_EntityVariables.end())
-	{
-		return iter->second.c_str();
-	}
-	return nullptr;
-}
-
-bool Object::EntityVariableExists(const char * id)
-{
-	if(!id)
+	if (o_EntityVariables.empty()) {
 		return false;
+	}
 
-	auto iter = o_EntityVariables.find(id);
-	if(iter != o_EntityVariables.end())
-	{
+	o_EntityVariables.clear();
+	return true;
+}
+
+bool Object::DeleteEntityVariable(std::string variable_name)
+{
+	if (o_EntityVariables.empty() || variable_name.empty()) {
+		return false;
+	}
+
+	auto v = o_EntityVariables.find(variable_name);
+	if (v == o_EntityVariables.end()) {
+		return false;
+	}
+
+	o_EntityVariables.erase(v);
+	return true;
+}
+
+std::string Object::GetEntityVariable(std::string variable_name)
+{
+	if (o_EntityVariables.empty() || variable_name.empty()) {
+		return std::string();
+	}
+
+	const auto& v = o_EntityVariables.find(variable_name);
+	if (v != o_EntityVariables.end()) {
+		return v->second;
+	}
+
+	return std::string();
+}
+
+std::vector<std::string> Object::GetEntityVariables()
+{
+	std::vector<std::string> l;
+	if (o_EntityVariables.empty()) {
+		return l;
+	}
+
+	for (const auto& v : o_EntityVariables) {
+		l.push_back(v.first);
+	}
+
+	return l;
+}
+
+bool Object::EntityVariableExists(std::string variable_name)
+{
+	if (o_EntityVariables.empty() || variable_name.empty()) {
+		return false;
+	}
+
+	const auto& v = o_EntityVariables.find(variable_name);
+	if (v != o_EntityVariables.end()) {
 		return true;
 	}
+
 	return false;
+}
+
+void Object::SetEntityVariable(std::string variable_name, std::string variable_value)
+{
+	if (variable_name.empty()) {
+		return;
+	}
+
+	o_EntityVariables[variable_name] = variable_value;
 }

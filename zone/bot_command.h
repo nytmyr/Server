@@ -535,7 +535,6 @@ typedef std::map<BCEnum::SpType, std::map<uint8, std::string>> bcst_required_bot
 typedef std::map<uint8, uint8> bcst_levels;
 typedef std::map<BCEnum::SpType, bcst_levels> bcst_levels_map;
 
-
 #define	BOT_COMMAND_CHAR '^'
 
 typedef void (*BotCmdFuncPtr)(Client *,const Seperator *);
@@ -549,8 +548,7 @@ typedef struct {
 extern int (*bot_command_dispatch)(Client *,char const*);
 extern int bot_command_count;	// number of bot commands loaded
 
-
-// the bot command system:
+// Bot Command System:
 int bot_command_init(void);
 void bot_command_deinit(void);
 int bot_command_add(std::string bot_command_name, const char *desc, int access, BotCmdFuncPtr function);
@@ -558,8 +556,7 @@ int bot_command_not_avail(Client *c, const char *message);
 int bot_command_real_dispatch(Client *c, char const *message);
 void bot_command_log_command(Client *c, const char *message);
 
-
-// bot commands
+// Bot Commands
 void bot_command_actionable(Client *c, const Seperator *sep);
 void bot_command_aggressive(Client *c, const Seperator *sep);
 void bot_command_apply_poison(Client *c, const Seperator *sep);
@@ -599,7 +596,14 @@ void bot_command_root(Client* c, const Seperator* sep);
 void bot_command_rune(Client *c, const Seperator *sep);
 void bot_command_send_home(Client *c, const Seperator *sep);
 void bot_command_size(Client *c, const Seperator *sep);
-void bot_command_snare(Client* c, const Seperator* sep);
+void bot_command_spell_list(Client* c, const Seperator *sep);
+void bot_command_spell_settings_add(Client* c, const Seperator *sep);
+void bot_command_spell_settings_delete(Client* c, const Seperator *sep);
+void bot_command_spell_settings_list(Client* c, const Seperator *sep);
+void bot_command_spell_settings_toggle(Client* c, const Seperator *sep);
+void bot_command_spell_settings_update(Client* c, const Seperator *sep);
+void bot_spell_info_dialogue_window(Client* c, const Seperator *sep);
+void bot_command_enforce_spell_list(Client* c, const Seperator* sep);
 void bot_command_summon_corpse(Client *c, const Seperator *sep);
 void bot_command_suspend(Client *c, const Seperator *sep);
 void bot_command_taunt(Client *c, const Seperator *sep);
@@ -608,6 +612,7 @@ void bot_command_view_combos(Client *c, const Seperator *sep);
 void bot_command_water_breathing(Client *c, const Seperator *sep);
 
 // custom bot commands
+void bot_command_snare(Client* c, const Seperator* sep);
 void bot_command_auto_ds(Client* c, const Seperator* sep);
 void bot_command_auto_resist(Client* c, const Seperator* sep);
 void bot_command_behind_mob(Client* c, const Seperator* sep);

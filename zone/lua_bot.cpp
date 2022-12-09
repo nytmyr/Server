@@ -84,6 +84,66 @@ uint32 Lua_Bot::GetBotItemIDBySlot(uint16 slot_id) {
 	return self->GetBotItemBySlot(slot_id);
 }
 
+void Lua_Bot::Signal(int signal_id) {
+	Lua_Safe_Call_Void();
+	self->Signal(signal_id);
+}
+
+void Lua_Bot::OwnerMessage(std::string message) {
+	Lua_Safe_Call_Void();
+	self->OwnerMessage(message);
+}
+
+int Lua_Bot::GetExpansionBitmask() {
+	Lua_Safe_Call_Int();
+	return self->GetExpansionBitmask();
+}
+
+void Lua_Bot::SetExpansionBitmask(int expansion_bitmask) {
+	Lua_Safe_Call_Void();
+	self->SetExpansionBitmask(expansion_bitmask);
+}
+
+void Lua_Bot::SetExpansionBitmask(int expansion_bitmask, bool save) {
+	Lua_Safe_Call_Void();
+	self->SetExpansionBitmask(expansion_bitmask, save);
+}
+
+bool Lua_Bot::ReloadBotDataBuckets() {
+	Lua_Safe_Call_Bool();
+	return self->GetBotDataBuckets();
+}
+
+bool Lua_Bot::ReloadBotOwnerDataBuckets() {
+	Lua_Safe_Call_Bool();
+	return self->GetBotOwnerDataBuckets();
+}
+
+bool Lua_Bot::ReloadBotSpells() {
+	Lua_Safe_Call_Bool();
+	return self->AI_AddBotSpells(self->GetBotSpellID());
+}
+
+void Lua_Bot::ReloadBotSpellSettings() {
+	Lua_Safe_Call_Void();
+	self->LoadBotSpellSettings();
+}
+
+bool Lua_Bot::HasBotSpellEntry(uint16 spellid) {
+	Lua_Safe_Call_Bool();
+	return self->HasBotSpellEntry(spellid);
+}
+
+void Lua_Bot::SendPayload(int payload_id) {
+	Lua_Safe_Call_Void();
+	self->SendPayload(payload_id);
+}
+
+void Lua_Bot::SendPayload(int payload_id, std::string payload_value) {
+	Lua_Safe_Call_Void();
+	self->SendPayload(payload_id, payload_value);
+}
+
 luabind::scope lua_register_bot() {
 	return luabind::class_<Lua_Bot, Lua_Mob>("Bot")
 	.def(luabind::constructor<>())
@@ -99,9 +159,21 @@ luabind::scope lua_register_bot() {
 	.def("CountBotItem", (uint32(Lua_Bot::*)(uint32))&Lua_Bot::CountBotItem)
 	.def("GetBotItem", (Lua_ItemInst(Lua_Bot::*)(uint16))&Lua_Bot::GetBotItem)
 	.def("GetBotItemIDBySlot", (uint32(Lua_Bot::*)(uint16))&Lua_Bot::GetBotItemIDBySlot)
+	.def("GetExpansionBitmask", (int(Lua_Bot::*)(void))&Lua_Bot::GetExpansionBitmask)
 	.def("GetOwner", (Lua_Mob(Lua_Bot::*)(void))&Lua_Bot::GetOwner)
 	.def("HasBotItem", (bool(Lua_Bot::*)(uint32))&Lua_Bot::HasBotItem)
-	.def("RemoveBotItem", (void(Lua_Bot::*)(uint32))&Lua_Bot::RemoveBotItem);
+	.def("HasBotSpellEntry", (bool(Lua_Bot::*)(uint16)) & Lua_Bot::HasBotSpellEntry)
+	.def("OwnerMessage", (void(Lua_Bot::*)(std::string))&Lua_Bot::OwnerMessage)
+	.def("ReloadBotDataBuckets", (bool(Lua_Bot::*)(void))&Lua_Bot::ReloadBotDataBuckets)
+	.def("ReloadBotOwnerDataBuckets", (bool(Lua_Bot::*)(void))&Lua_Bot::ReloadBotOwnerDataBuckets)
+	.def("ReloadBotSpells", (bool(Lua_Bot::*)(void))&Lua_Bot::ReloadBotSpells)
+	.def("ReloadBotSpellSettings", (void(Lua_Bot::*)(void))&Lua_Bot::ReloadBotSpellSettings)
+	.def("RemoveBotItem", (void(Lua_Bot::*)(uint32))&Lua_Bot::RemoveBotItem)
+	.def("SetExpansionBitmask", (void(Lua_Bot::*)(int))&Lua_Bot::SetExpansionBitmask)
+	.def("SetExpansionBitmask", (void(Lua_Bot::*)(int,bool))&Lua_Bot::SetExpansionBitmask)
+	.def("SendPayload", (void(Lua_Bot::*)(int))&Lua_Bot::SendPayload)
+	.def("SendPayload", (void(Lua_Bot::*)(int,std::string))&Lua_Bot::SendPayload)
+	.def("Signal", (void(Lua_Bot::*)(int))&Lua_Bot::Signal);
 }
 
 #endif

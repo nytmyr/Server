@@ -27,6 +27,7 @@ public:
 	}
 
 	bool IsRaidMember(const char *name);
+	bool IsRaidMember(Lua_Client c);
 	void CastGroupSpell(Lua_Mob caster, int spell_id, uint32 group_id);
 	int GroupCount(uint32 group_id);
 	int RaidCount();
@@ -40,14 +41,15 @@ public:
 	bool IsLeader(const char *c);
 	bool IsLeader(Lua_Client c);
 	bool IsGroupLeader(const char *name);
+	bool IsGroupLeader(Lua_Client c);
 	int GetHighestLevel();
 	int GetLowestLevel();
-	Lua_Client GetClientByIndex(int index);
+	Lua_Client GetClientByIndex(int member_index);
 	void TeleportGroup(Lua_Mob sender, uint32 zone_id, uint32 instance_id, float x, float y, float z, float h, uint32 group_id);
 	void TeleportRaid(Lua_Mob sender, uint32 zone_id, uint32 instance_id, float x, float y, float z, float h);
 	int GetID();
-	Lua_Client GetMember(int index);
-	int GetGroupNumber(int index);
+	Lua_Client GetMember(int member_index);
+	int GetGroupNumber(int member_index);
 	bool DoesAnyMemberHaveExpeditionLockout(std::string expedition_name, std::string event_name);
 	bool DoesAnyMemberHaveExpeditionLockout(std::string expedition_name, std::string event_name, int max_check_count);
 };

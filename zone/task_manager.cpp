@@ -8,9 +8,11 @@
 #include "../common/repositories/tasks_repository.h"
 #include "../common/repositories/tasksets_repository.h"
 #include "client.h"
+#include "dynamic_zone.h"
 #include "string_ids.h"
 #include "task_manager.h"
 #include "../common/repositories/shared_task_activity_state_repository.h"
+#include "../common/repositories/shared_task_dynamic_zones_repository.h"
 #include "../common/repositories/shared_task_members_repository.h"
 #include "../common/shared_tasks.h"
 #include "worldserver.h"
@@ -100,7 +102,7 @@ bool TaskManager::LoadTasks(int single_task)
 		LogTasksDetail(
 			"[LoadTasks] (Task) task_id [{}] type [{}] () duration [{}] duration_code [{}] title [{}] description [{}] "
 			" reward_text [{}] reward_id_list [{}] cash_reward [{}] exp_reward [{}] reward_method [{}] faction_reward [{}] min_level [{}] "
-			" max_level [{}] level_spread [{}] min_players [{}] max_players [{}] repeatable [{}] completion_emote [{}]",
+			" max_level [{}] level_spread [{}] min_players [{}] max_players [{}] repeatable [{}] completion_emote [{}]"
 			" replay_group [{}] replay_timer_seconds [{}] request_group [{}] request_timer_seconds [{}]",
 			task.id,
 			task.type,
@@ -722,15 +724,9 @@ void TaskManager::SharedTaskSelector(Client* client, Mob* mob, const std::vector
 		std::vector<int> task_list;
 
 		for (int i = 0; i < tasks.size() && task_list.size() < MAXCHOOSERENTRIES; ++i) {
-			// todo: are there non repeatable shared tasks? (would need to check all group/raid members)
-			auto task = tasks[i];
-			const auto task_data = GetTaskData(task);
-			if (task_data &&
-			    task_data->type == TaskType::Shared &&
-			    request.lowest_level >= task_data->min_level &&
-			    (task_data->max_level == 0 || request.highest_level <= task_data->max_level))
+			if (CanOfferSharedTask(tasks[i], request))
 			{
-				task_list.push_back(task);
+				task_list.push_back(tasks[i]);
 			}
 		}
 
@@ -742,6 +738,39 @@ void TaskManager::SharedTaskSelector(Client* client, Mob* mob, const std::vector
 			client->MessageString(Chat::Red, TaskStr::NOT_MEET_REQ);
 		}
 	}
+}
+
+bool TaskManager::CanOfferSharedTask(int task_id, const SharedTaskRequest& request)
+{
+	// todo: are there non repeatable shared tasks? (would need to check all group/raid members)
+	const auto task = GetTaskData(task_id);
+	if (!task)
+	{
+		LogTasksDetail("[CanOfferSharedTask] task data for task id [{}] not found", task_id);
+		return false;
+	}
+
+	if (task->type != TaskType::Shared)
+	{
+		LogTasksDetail("[CanOfferSharedTask] task [{}] is not a shared task type", task_id);
+		return false;
+	}
+
+	if (task->min_level > 0 && request.lowest_level < task->min_level)
+	{
+		LogTasksDetail("[CanOfferSharedTask] lowest level [{}] is below task [{}] min level [{}]",
+			request.lowest_level, task_id, task->min_level);
+		return false;
+	}
+
+	if (task->max_level > 0 && request.highest_level > task->max_level)
+	{
+		LogTasksDetail("[CanOfferSharedTask] highest level [{}] exceeds task [{}] max level [{}]",
+			request.highest_level, task_id, task->max_level);
+		return false;
+	}
+
+	return true;
 }
 
 // sends task selector to client
@@ -1805,4 +1834,49 @@ bool TaskManager::IsActiveTaskComplete(ClientTaskInformation& client_task)
 		}
 	}
 	return true;
+}
+
+int TaskManager::GetCurrentDzTaskID()
+{
+	auto dz = zone->GetDynamicZone();
+	if (dz)
+	{
+		// currently only supports shared tasks
+		auto res = SharedTasksRepository::GetWhere(database, fmt::format(
+			"id = (SELECT shared_task_id FROM shared_task_dynamic_zones WHERE dynamic_zone_id = {})", dz->GetID()));
+
+		if (!res.empty())
+		{
+			return res.front().task_id;
+		}
+	}
+	return 0;
+}
+
+void TaskManager::EndCurrentDzTask(bool send_fail)
+{
+	auto dz = zone->GetDynamicZone();
+	if (dz)
+	{
+		EndSharedTask(dz->GetID(), send_fail);
+	}
+}
+
+void TaskManager::EndSharedTask(uint32_t dz_id, bool send_fail)
+{
+	ServerPacket pack(ServerOP_SharedTaskEndByDz, sizeof(ServerSharedTaskEnd_Struct));
+	auto buf = reinterpret_cast<ServerSharedTaskEnd_Struct*>(pack.pBuffer);
+	buf->dz_id = dz_id;
+	buf->send_fail = send_fail;
+	worldserver.SendPacket(&pack);
+}
+
+void TaskManager::EndSharedTask(Client& client, int task_id, bool send_fail)
+{
+	ServerPacket pack(ServerOP_SharedTaskEnd, sizeof(ServerSharedTaskEnd_Struct));
+	auto buf = reinterpret_cast<ServerSharedTaskEnd_Struct*>(pack.pBuffer);
+	buf->character_id = client.CharacterID();
+	buf->task_id = task_id;
+	buf->send_fail = send_fail;
+	worldserver.SendPacket(&pack);
 }

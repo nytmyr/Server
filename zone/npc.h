@@ -36,25 +36,15 @@
 	#define M_PI	3.141592
 #endif
 
-#define LEAVECOMBAT 0
-#define ENTERCOMBAT 1
-#define	ONDEATH		2
-#define	AFTERDEATH	3
-#define HAILED		4
-#define	KILLEDPC	5
-#define	KILLEDNPC	6
-#define	ONSPAWN		7
-#define	ONDESPAWN	8
-
 typedef struct {
-	float min_x;
-	float max_x;
-	float min_y;
-	float max_y;
-	float min_z;
-	float max_z;
-	bool say;
-	bool proximity_set;
+	float	min_x;
+	float	max_x;
+	float	min_y;
+	float	max_y;
+	float	min_z;
+	float	max_z;
+	bool	say;
+	bool	proximity_set;
 } NPCProximity;
 
 struct AISpells_Struct {
@@ -77,17 +67,17 @@ struct AISpellsEffects_Struct {
 };
 
 struct AISpellsVar_Struct {
-	uint32  fail_recast;
+	uint32	fail_recast;
 	uint32	engaged_no_sp_recast_min;
 	uint32	engaged_no_sp_recast_max;
 	uint8	engaged_beneficial_self_chance;
 	uint8	engaged_beneficial_other_chance;
 	uint8	engaged_detrimental_chance;
-	uint32  pursue_no_sp_recast_min;
-	uint32  pursue_no_sp_recast_max;
-	uint8   pursue_detrimental_chance;
-	uint32  idle_no_sp_recast_min;
-	uint32  idle_no_sp_recast_max;
+	uint32	pursue_no_sp_recast_min;
+	uint32	pursue_no_sp_recast_max;
+	uint8	pursue_detrimental_chance;
+	uint32	idle_no_sp_recast_min;
+	uint32	idle_no_sp_recast_max;
 	uint8	idle_beneficial_chance;
 };
 
@@ -272,6 +262,7 @@ public:
 	void	PetOnSpawn(NewSpawn_Struct* ns);
 
 	void	SignalNPC(int _signal_id);
+	void	SendPayload(int payload_id, std::string payload_value = std::string());
 
 	inline int32 GetNPCFactionID() const
 	{ return npc_faction_id; }
@@ -331,8 +322,9 @@ public:
 
 	bool MeetsLootDropLevelRequirements(LootDropEntries_Struct loot_drop, bool verbose=false);
 
+	void CheckSignal();
+
 	virtual void DoClassAttacks(Mob *target);
-	void	CheckSignal();
 	inline bool IsNotTargetableWithHotkey() const { return no_target_hotkey; }
 	int64 GetNPCHPRegen() const { return hp_regen + itembonuses.HPRegen + spellbonuses.HPRegen; }
 	inline const char* GetAmmoIDfile() const { return ammo_idfile; }
@@ -420,8 +412,8 @@ public:
 	void	SetAvoidanceRating(int32 d) { avoidance_rating = d;}
 	int32 GetRawAC() const { return AC; }
 
-	float	GetNPCStat(const char *identifier);
-	void	ModifyNPCStat(const char *identifier, const char *new_value);
+	float	GetNPCStat(std::string stat);
+	void	ModifyNPCStat(std::string stat, std::string value);
 	virtual void SetLevel(uint8 in_level, bool command = false);
 
 	bool IsLDoNTrapped() const { return (ldon_trapped); }

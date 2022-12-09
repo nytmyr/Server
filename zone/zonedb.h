@@ -107,6 +107,47 @@ struct DBnpcspellseffects_Struct {
 	DBnpcspellseffects_entries_Struct entries[0];
 };
 
+#pragma pack(1)
+struct DBbotspells_entries_Struct {
+	uint16		spellid;
+	uint8		minlevel;
+	uint8		maxlevel;
+	uint32		type;
+	int16		manacost;
+	int16		priority;
+	int32		recast_delay;
+	int16		resist_adjust;
+	int8		min_hp;
+	int8		max_hp;
+	std::string	bucket_name;
+	std::string	bucket_value;
+	uint8		bucket_comparison;
+};
+#pragma pack()
+
+struct DBbotspells_Struct {
+	uint32	parent_list;
+	uint16	attack_proc;
+	uint8	proc_chance;
+	uint16	range_proc;
+	int16	rproc_chance;
+	uint16	defensive_proc;
+	int16	dproc_chance;
+	uint32	fail_recast;
+	uint32	engaged_no_sp_recast_min;
+	uint32	engaged_no_sp_recast_max;
+	uint8	engaged_beneficial_self_chance;
+	uint8	engaged_beneficial_other_chance;
+	uint8	engaged_detrimental_chance;
+	uint32	pursue_no_sp_recast_min;
+	uint32	pursue_no_sp_recast_max;
+	uint8	pursue_detrimental_chance;
+	uint32	idle_no_sp_recast_min;
+	uint32	idle_no_sp_recast_max;
+	uint8	idle_beneficial_chance;
+	std::vector<DBbotspells_entries_Struct> entries;
+};
+
 struct DBTradeskillRecipe_Struct {
 	EQ::skills::SkillType tradeskill;
 	int16 skill_needed;
@@ -491,6 +532,10 @@ public:
 	void ClearNPCSpells() { npc_spells_cache.clear(); npc_spells_loadtried.clear(); }
 	const NPCType* LoadNPCTypesData(uint32 id, bool bulk_load = false);
 
+	/*Bots	*/
+	DBbotspells_Struct*	GetBotSpells(uint32 bot_spell_id);
+	void ClearBotSpells() { bot_spells_cache.clear(); bot_spells_loadtried.clear(); }
+
 	/* Mercs   */
 	const	NPCType*	GetMercType(uint32 id, uint16 raceid, uint32 clientlevel);
 	void	LoadMercEquipment(Merc *merc);
@@ -502,9 +547,6 @@ public:
 	bool	DeleteMerc(uint32 merc_id);
 
 	/* Petitions   */
-	void	RegisterBug(BugReport_Struct* bug_report); // old method
-	void	RegisterBug(Client* client, BugReport_Struct* bug_report); // new method
-	//void	UpdateBug(PetitionBug_Struct* bug);
 	void	DeletePetitionFromDB(Petition* wpet);
 	void	UpdatePetitionToDB(Petition* wpet);
 	void	InsertPetitionToDB(Petition* wpet);
@@ -595,6 +637,9 @@ protected:
 	std::unordered_set<uint32> npc_spells_loadtried;
 	DBnpcspellseffects_Struct** npc_spellseffects_cache;
 	bool*				npc_spellseffects_loadtried;
+	std::unordered_map<uint32, DBbotspells_Struct> bot_spells_cache;
+	std::unordered_set<uint32> bot_spells_loadtried;
+
 };
 
 extern ZoneDatabase database;

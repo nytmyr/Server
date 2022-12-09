@@ -32,6 +32,10 @@
 #include "fastmath.h"
 #include "../common/data_verification.h"
 
+#ifdef BOTS
+#include "bot.h"
+#endif
+
 #include <glm/gtx/projection.hpp>
 #include <algorithm>
 #include <iostream>
@@ -84,7 +88,7 @@ bool NPC::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes, bool bInnates
 
 	float manaR = GetManaRatio();
 	for (int i = static_cast<int>(AIspells.size()) - 1; i >= 0; i--) {
-		if (AIspells[i].spellid <= 0 || AIspells[i].spellid >= SPDAT_RECORDS) {
+		if (!IsValidSpell(AIspells[i].spellid)) {
 			// this is both to quit early to save cpu and to avoid casting bad spells
 			// Bad info from database can trigger this incorrectly, but that should be fixed in DB, not here
 			//return false;
@@ -1923,10 +1927,11 @@ void Mob::AI_Event_Engaged(Mob *attacker, bool yell_for_help)
 			if (attacker->GetHP() > 0) {
 				if (!CastToNPC()->GetCombatEvent() && GetHP() > 0) {
 					parse->EventNPC(EVENT_COMBAT, CastToNPC(), attacker, "1", 0);
-					uint32 emoteid = GetEmoteID();
-					if (emoteid != 0) {
-						CastToNPC()->DoNPCEmote(ENTERCOMBAT, emoteid);
+					auto emote_id = GetEmoteID();
+					if (emote_id) {
+						CastToNPC()->DoNPCEmote(EQ::constants::EmoteEventTypes::EnterCombat, emoteid);
 					}
+
 					std::string mob_name = GetCleanName();
 					combat_record.Start(mob_name);
 					CastToNPC()->SetCombatEvent(true);
@@ -1934,18 +1939,28 @@ void Mob::AI_Event_Engaged(Mob *attacker, bool yell_for_help)
 			}
 		}
 	}
+
+#ifdef BOTS
+	if (IsBot()) {
+		parse->EventBot(EVENT_COMBAT, CastToBot(), attacker, "1", 0);
+	}
+#endif
 }
 
 // Note: Hate list may not be actually clear until after this function call completes
 void Mob::AI_Event_NoLongerEngaged() {
-	if (!IsAIControlled())
+	if (!IsAIControlled()) {
 		return;
+	}
+
 	AI_walking_timer->Start(RandomTimer(3000,20000));
 	time_until_can_move = Timer::GetCurrentTime();
-	if (minLastFightingDelayMoving == maxLastFightingDelayMoving)
+
+	if (minLastFightingDelayMoving == maxLastFightingDelayMoving) {
 		time_until_can_move += minLastFightingDelayMoving;
-	else
+	} else {
 		time_until_can_move += zone->random.Int(minLastFightingDelayMoving, maxLastFightingDelayMoving);
+	}
 
 	StopNavigation();
 	ClearRampage();
@@ -1954,16 +1969,21 @@ void Mob::AI_Event_NoLongerEngaged() {
 		SetPrimaryAggro(false);
 		SetAssistAggro(false);
 		if (CastToNPC()->GetCombatEvent() && GetHP() > 0) {
-			if (entity_list.GetNPCByID(this->GetID())) {
-				uint32 emoteid = CastToNPC()->GetEmoteID();
+			if (entity_list.GetNPCByID(GetID())) {
+				auto emote_id = CastToNPC()->GetEmoteID();
 				parse->EventNPC(EVENT_COMBAT, CastToNPC(), nullptr, "0", 0);
-				if (emoteid != 0) {
-					CastToNPC()->DoNPCEmote(LEAVECOMBAT, emoteid);
+				if (emote_id) {
+					CastToNPC()->DoNPCEmote(EQ::constants::EmoteEventTypes::LeaveCombat, emoteid);
 				}
+
 				combat_record.Stop();
 				CastToNPC()->SetCombatEvent(false);
 			}
 		}
+#ifdef BOTS
+	} else if (IsBot()) {
+		parse->EventBot(EVENT_COMBAT, CastToBot(), nullptr, "0", 0);
+#endif
 	}
 }
 
@@ -2133,7 +2153,7 @@ bool Mob::Flurry(ExtraAttackOptions *opts)
 				GetCleanName(),
 				target->GetCleanName());
 		}
-		
+
 		int num_attacks = GetSpecialAbilityParam(SPECATK_FLURRY, 1);
 		num_attacks = num_attacks > 0 ? num_attacks : RuleI(Combat, MaxFlurryHits);
 		for (int i = 0; i < num_attacks; i++)
@@ -2171,7 +2191,7 @@ bool Mob::Rampage(ExtraAttackOptions *opts)
 		entity_list.MessageCloseString(this, true, 200, Chat::PetFlurry, NPC_RAMPAGE, GetCleanName());
 	} else {
 		entity_list.MessageCloseString(this, true, 200, Chat::NPCRampage, NPC_RAMPAGE, GetCleanName());
-	}	
+	}
 	int rampage_targets = GetSpecialAbilityParam(SPECATK_RAMPAGE, 1);
 	if (rampage_targets == 0) // if set to 0 or not set in the DB
 		rampage_targets = RuleI(Combat, DefaultRampageTargets);
@@ -2457,36 +2477,10 @@ void NPC::CheckSignal() {
 	if (!signal_q.empty()) {
 		int signal_id = signal_q.front();
 		signal_q.pop_front();
-		std::string export_string = fmt::format("{}", signal_id);
+		const auto export_string = fmt::format("{}", signal_id);
 		parse->EventNPC(EVENT_SIGNAL, this, nullptr, export_string, 0);
 	}
 }
-
-
-
-/*
-alter table npc_types drop column usedspells;
-alter table npc_types add column npc_spells_id int(11) unsigned not null default 0 after merchant_id;
-Create Table npc_spells (
-	id int(11) unsigned not null auto_increment primary key,
-	name tinytext,
-	parent_list int(11) unsigned not null default 0,
-	attack_proc smallint(5) not null default -1,
-	proc_chance tinyint(3) not null default 3
-	);
-create table npc_spells_entries (
-	id int(11) unsigned not null auto_increment primary key,
-	npc_spells_id int(11) not null,
-	spellid smallint(5) not null default 0,
-	type smallint(5) unsigned not null default 0,
-	minlevel tinyint(3) unsigned not null default 0,
-	maxlevel tinyint(3) unsigned not null default 255,
-	manacost smallint(5) not null default '-1',
-	recast_delay int(11) not null default '-1',
-	priority smallint(5) not null default 0,
-	index npc_spells_id (npc_spells_id)
-	);
-*/
 
 bool IsSpellInList(DBnpcspells_Struct* spell_list, uint16 iSpellID);
 bool IsSpellEffectInList(DBnpcspellseffects_Struct* spelleffect_list, uint16 iSpellEffectID, int32 base_value, int32 limit, int32 max_value);
@@ -2896,7 +2890,7 @@ void NPC::AISpellsList(Client *c)
 				c->Message(
 					Chat::White,
 					fmt::format(
-						"Spell {} | Resist Adjust : {}",
+						"Spell {} | Resist Adjust: {}",
 						spell_slot,
 						ai_spell.resist_adjust
 					).c_str()
@@ -2988,16 +2982,9 @@ DBnpcspells_Struct *ZoneDatabase::GetNPCSpells(uint32 iDBSpellsID)
 		query = StringFormat(
 		    "SELECT spellid, type, minlevel, maxlevel, "
 		    "manacost, recast_delay, priority, min_hp, max_hp, resist_adjust "
-#ifdef BOTS
-		    "FROM %s "
-		    "WHERE npc_spells_id=%d ORDER BY minlevel",
-		    (iDBSpellsID >= 3001 && iDBSpellsID <= 3016 ? "bot_spells_entries" : "npc_spells_entries"),
-		    iDBSpellsID);
-#else
 		    "FROM npc_spells_entries "
 		    "WHERE npc_spells_id=%d ORDER BY minlevel",
 		    iDBSpellsID);
-#endif
 		results = QueryDatabase(query);
 
 		if (!results.Success()) {

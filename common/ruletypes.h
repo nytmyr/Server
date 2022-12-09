@@ -193,6 +193,7 @@ RULE_INT(Character, EnchanterTrackingDistanceMultiplier, 0, "If you want enchant
 RULE_INT(Character, BeastlordTrackingDistanceMultiplier, 0, "If you want beastlords to be able to track, increase this above 0.  0 disables tracking packets.")
 RULE_INT(Character, BerserkerTrackingDistanceMultiplier, 0, "If you want berserkers to be able to track, increase this above 0.  0 disables tracking packets.")
 RULE_BOOL(Character, OnInviteReceiveAlreadyinGroupMessage, true, "If you want clients to receive a message when trying to invite a player into a group that is currently in another group.")
+RULE_BOOL(Character, PetZoneWithOwner, true, "Should Pets Zone with Owner")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(Mercs)
@@ -494,6 +495,7 @@ RULE_BOOL(Combat, NPCsUseFrontalStunImmunityRaces, true, "Enable or disable NPCs
 RULE_BOOL(Combat, WaterMatchRequiredForAutoFireLoS, false, "Enable/Disable the requirement of both the attacker/victim being both in or out of water for AutoFire LoS to pass.")
 RULE_BOOL(Combat, AssassinateOnlyHumanoids, true, "Enable or disable Assassinate only being allowed on Humanoids, true by default.")
 RULE_BOOL(Combat, HeadshotOnlyHumanoids, true, "Enable or disable Headshot only being allowed on Humanoids, true by default.")
+RULE_BOOL(Combat, EnableWarriorShielding, true, "Enable or disable Warrior Shielding Ability (/shield), true by default.")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(NPC)
@@ -583,6 +585,7 @@ RULE_CATEGORY_END()
 RULE_CATEGORY(Bots)
 RULE_INT(Bots, BotExpansionSettings, 16383, "Sets the expansion settings for bot use. Defaults to all expansions enabled up to TSS")
 RULE_BOOL(Bots, AllowCamelCaseNames, false, "Allows the use of 'MyBot' type names")
+RULE_BOOL(Bots, AllowBotEquipAnyRaceGear, false, "Allows Bots to wear Equipment even if their race is not valid")
 RULE_INT(Bots, CommandSpellRank, 1, "Filters bot command spells by rank. 1, 2 and 3 are valid filters - any other number allows all ranks")
 RULE_INT(Bots, CreationLimit, 150, "Number of bots that each account can create")
 RULE_INT(Bots, CreationLimitStatusBypass, 120, "Default 120, account status to bypass creation limit")
@@ -809,8 +812,6 @@ RULE_CATEGORY_END()
 
 RULE_CATEGORY(Bugs)
 RULE_BOOL(Bugs, ReportingSystemActive, true, "Activates bug reporting")
-RULE_BOOL(Bugs, UseOldReportingMethod, true, "Forces the use of the old bug reporting system")
-RULE_BOOL(Bugs, DumpTargetEntity, false, "Dumps the target entity, if one is provided")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(Faction)

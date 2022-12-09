@@ -26,6 +26,7 @@
 #include "lua_parser.h"
 #include "../common/strings.h"
 #include "../common/say_link.h"
+#include "../common/repositories/bot_spell_settings_repository.h"
 
 extern volatile bool is_zone_loaded;
 extern bool Critical;
@@ -73,7 +74,6 @@ Bot::Bot(NPCType *npcTypeData, Client* botOwner) : NPC(npcTypeData, nullptr, glm
 	SetBotID(0);
 	SetBotSpellID(0);
 	SetSpawnStatus(false);
-	SetBotArcher(false);
 	SetBotCharmer(false);
 	SetPetChooser(false);
 	SetRangerAutoWeaponSelect(false);
@@ -168,16 +168,30 @@ Bot::Bot(uint32 botID, uint32 botOwnerCharacterID, uint32 botSpellsID, double to
 	SetBotID(botID);
 	SetBotSpellID(botSpellsID);
 	SetSpawnStatus(false);
-	SetBotArcher(false);
 	SetBotCharmer(false);
 	SetPetChooser(false);
 	SetRangerAutoWeaponSelect(false);
 
 	bool stance_flag = false;
-	if (!database.botdb.LoadStance(this, stance_flag) && bot_owner)
-		bot_owner->Message(Chat::White, "%s for '%s'", BotDatabase::fail::LoadStance(), GetCleanName());
-	if (!stance_flag && bot_owner)
-		bot_owner->Message(Chat::White, "Could not locate stance for '%s'", GetCleanName());
+	if (!database.botdb.LoadStance(this, stance_flag) && bot_owner) {
+		bot_owner->Message(
+			Chat::White,
+			fmt::format(
+				"Failed to load stance for '{}'.",
+				GetCleanName()
+			).c_str()
+		);
+	}
+
+	if (!stance_flag && bot_owner) {
+		bot_owner->Message(
+			Chat::White,
+			fmt::format(
+				"Could not locate stance for '{}'.",
+				GetCleanName()
+			).c_str()
+		);
+	}
 
 	SetTaunting((GetClass() == WARRIOR || GetClass() == PALADIN || GetClass() == SHADOWKNIGHT) && (GetBotStance() == EQ::constants::stanceAggressive));
 	SetPauseAI(false);
@@ -578,253 +592,284 @@ bool Bot::IsStanding() {
 	return result;
 }
 
-NPCType *Bot::FillNPCTypeStruct(uint32 botSpellsID, std::string botName, std::string botLastName, uint8 botLevel, uint16 botRace, uint8 botClass, uint8 gender, float size, uint32 face, uint32 hairStyle, uint32 hairColor, uint32 eyeColor, uint32 eyeColor2, uint32 beardColor, uint32 beard, uint32 drakkinHeritage, uint32 drakkinTattoo, uint32 drakkinDetails, int32 hp, int32 mana, int32 mr, int32 cr, int32 dr, int32 fr, int32 pr, int32 corrup, int32 ac, uint32 str, uint32 sta, uint32 dex, uint32 agi, uint32 _int, uint32 wis, uint32 cha, uint32 attack) {
-	auto bot_npc_type = new NPCType{ 0 };
-	int copy_length = 0;
+NPCType *Bot::FillNPCTypeStruct(
+	uint32 botSpellsID,
+	std::string botName,
+	std::string botLastName,
+	uint8 botLevel,
+	uint16 botRace,
+	uint8 botClass,
+	uint8 gender,
+	float size,
+	uint32 face,
+	uint32 hairStyle,
+	uint32 hairColor,
+	uint32 eyeColor,
+	uint32 eyeColor2,
+	uint32 beard,
+	uint32 beardColor,
+	uint32 drakkinHeritage,
+	uint32 drakkinTattoo,
+	uint32 drakkinDetails,
+	int32 hp,
+	int32 mana,
+	int32 mr,
+	int32 cr,
+	int32 dr,
+	int32 fr,
+	int32 pr,
+	int32 corrup,
+	int32 ac,
+	uint32 str,
+	uint32 sta,
+	uint32 dex,
+	uint32 agi,
+	uint32 _int,
+	uint32 wis,
+	uint32 cha,
+	uint32 attack
+) {
+	auto n = new NPCType{ 0 };
 
-	copy_length = botName.copy(bot_npc_type->name, 63);
-	bot_npc_type->name[copy_length] = '\0';
-	copy_length = 0;
+	strn0cpy(n->name, botName.c_str(), sizeof(n->name));
+	strn0cpy(n->lastname, botLastName.c_str(), sizeof(n->lastname));
 
-	copy_length = botLastName.copy(bot_npc_type->lastname, 69);
-	bot_npc_type->lastname[copy_length] = '\0';
-	copy_length = 0;
+	n->current_hp = hp;
+	n->max_hp = hp;
+	n->size = size;
+	n->runspeed = 0.7f;
+	n->gender = gender;
+	n->race = botRace;
+	n->class_ = botClass;
+	n->bodytype = 1;
+	n->deity = EQ::deity::DeityAgnostic;
+	n->level = botLevel;
+	//n->npc_id = 0;
+	//n->texture = 0;
+	//n->helmtexture = 0;
+	//n->herosforgemodel = 0;
+	//n->loottable_id = 0;
+	n->npc_spells_id = botSpellsID;
+	//n->npc_spells_effects_id = 0;
+	//n->npc_faction_id = 0;
+	//n->merchanttype = 0;
+	//n->alt_currency_type = 0;
+	//n->adventure_template = 0;
+	//n->trap_template = 0;
+	//n->light = 0;
+	n->AC = ac;
+	n->Mana = mana;
+	n->ATK = attack;
+	n->STR = str;
+	n->STA = sta;
+	n->DEX = dex;
+	n->AGI = agi;
+	n->INT = _int;
+	n->WIS = wis;
+	n->CHA = cha;
+	n->MR = mr;
+	n->FR = fr;
+	n->CR = cr;
+	n->PR = pr;
+	n->DR = dr;
+	n->Corrup = corrup;
+	//n->PhR = 0;
+	n->haircolor = hairColor;
+	n->beardcolor = beardColor;
+	n->eyecolor1 = eyeColor;
+	n->eyecolor2 = eyeColor2;
+	n->hairstyle = hairStyle;
+	n->luclinface = face;
+	n->beard = beard;
+	n->drakkin_heritage = drakkinHeritage;
+	n->drakkin_tattoo = drakkinTattoo;
+	n->drakkin_details = drakkinDetails;
+	//n->armor_tint = { 0 };
+	//n->min_dmg = 0;
+	//n->max_dmg = 0;
+	//n->charm_ac = 0;
+	//n->charm_min_dmg = 0;
+	//n->charm_max_dmg = 0;
+	//n->charm_attack_delay = 0;
+	//n->charm_accuracy_rating = 0;
+	//n->charm_avoidance_rating = 0;
+	//n->charm_atk = 0;
+	//n->attack_count = 0;
+	//*n->special_abilities = { 0 };
+	//n->d_melee_texture1 = 0;
+	//n->d_melee_texture2 = 0;
+	//*n->ammo_idfile = { 0 };
+	//n->prim_melee_type = 0;
+	//n->sec_melee_type = 0;
+	//n->ranged_type = 0;
+	n->hp_regen = 1;
+	n->mana_regen = 1;
+	//n->aggroradius = 0;
+	//n->assistradius = 0;
+	//n->see_invis = 0;
+	//n->see_invis_undead = false;
+	//n->see_hide = false;
+	//n->see_improved_hide = false;
+	//n->qglobal = false;
+	//n->npc_aggro = false;
+	//n->spawn_limit = 0;
+	//n->mount_color = 0;
+	//n->attack_speed = 0.0f;
+	//n->attack_delay = 0;
+	//n->accuracy_rating = 0;
+	//n->avoidance_rating = 0;
+	//n->findable = false;
+	n->trackable = true;
+	//n->slow_mitigation = 0;
+	n->maxlevel = botLevel;
+	//n->scalerate = 0;
+	//n->private_corpse = false;
+	//n->unique_spawn_by_name = false;
+	//n->underwater = false;
+	//n->emoteid = 0;
+	//n->spellscale = 0.0f;
+	//n->healscale = 0.0f;
+	//n->no_target_hotkey = false;
+	//n->raid_target = false;
+	//n->armtexture = 0;
+	//n->bracertexture = 0;
+	//n->handtexture = 0;
+	//n->legtexture = 0;
+	//n->feettexture = 0;
+	//n->ignore_despawn = false;
+	n->show_name = true;
+	//n->untargetable = false;
+	n->skip_global_loot = true;
+	//n->rare_spawn = false;
+	n->stuck_behavior = Ground;
+	n->skip_auto_scale = true;
 
-	bot_npc_type->current_hp = hp;
-	bot_npc_type->max_hp = hp;
-	bot_npc_type->size = size;
-	bot_npc_type->runspeed = 0.7f;
-	bot_npc_type->gender = gender;
-	bot_npc_type->race = botRace;
-	bot_npc_type->class_ = botClass;
-	bot_npc_type->bodytype = 1;
-	bot_npc_type->deity = EQ::deity::DeityAgnostic;
-	bot_npc_type->level = botLevel;
-	//bot_npc_type->npc_id = 0;
-	//bot_npc_type->texture = 0;
-	//bot_npc_type->helmtexture = 0;
-	//bot_npc_type->herosforgemodel = 0;
-	//bot_npc_type->loottable_id = 0;
-	bot_npc_type->npc_spells_id = botSpellsID;
-	//bot_npc_type->npc_spells_effects_id = 0;
-	//bot_npc_type->npc_faction_id = 0;
-	//bot_npc_type->merchanttype = 0;
-	//bot_npc_type->alt_currency_type = 0;
-	//bot_npc_type->adventure_template = 0;
-	//bot_npc_type->trap_template = 0;
-	//bot_npc_type->light = 0;
-	bot_npc_type->AC = ac;
-	bot_npc_type->Mana = mana;
-	bot_npc_type->ATK = attack;
-	bot_npc_type->STR = str;
-	bot_npc_type->STA = sta;
-	bot_npc_type->DEX = dex;
-	bot_npc_type->AGI = agi;
-	bot_npc_type->INT = _int;
-	bot_npc_type->WIS = wis;
-	bot_npc_type->CHA = cha;
-	bot_npc_type->MR = mr;
-	bot_npc_type->FR = fr;
-	bot_npc_type->CR = cr;
-	bot_npc_type->PR = pr;
-	bot_npc_type->DR = dr;
-	bot_npc_type->Corrup = corrup;
-	//bot_npc_type->PhR = 0;
-	bot_npc_type->haircolor = hairColor;
-	bot_npc_type->beardcolor = beardColor;
-	bot_npc_type->eyecolor1 = eyeColor;
-	bot_npc_type->eyecolor2 = eyeColor2;
-	bot_npc_type->hairstyle = hairStyle;
-	bot_npc_type->luclinface = face;
-	bot_npc_type->beard = beard;
-	bot_npc_type->drakkin_heritage = drakkinHeritage;
-	bot_npc_type->drakkin_tattoo = drakkinTattoo;
-	bot_npc_type->drakkin_details = drakkinDetails;
-	//bot_npc_type->armor_tint = { 0 };
-	//bot_npc_type->min_dmg = 0;
-	//bot_npc_type->max_dmg = 0;
-	//bot_npc_type->charm_ac = 0;
-	//bot_npc_type->charm_min_dmg = 0;
-	//bot_npc_type->charm_max_dmg = 0;
-	//bot_npc_type->charm_attack_delay = 0;
-	//bot_npc_type->charm_accuracy_rating = 0;
-	//bot_npc_type->charm_avoidance_rating = 0;
-	//bot_npc_type->charm_atk = 0;
-	//bot_npc_type->attack_count = 0;
-	//*bot_npc_type->special_abilities = { 0 };
-	//bot_npc_type->d_melee_texture1 = 0;
-	//bot_npc_type->d_melee_texture2 = 0;
-	//*bot_npc_type->ammo_idfile = { 0 };
-	//bot_npc_type->prim_melee_type = 0;
-	//bot_npc_type->sec_melee_type = 0;
-	//bot_npc_type->ranged_type = 0;
-	bot_npc_type->hp_regen = 1;
-	bot_npc_type->mana_regen = 1;
-	//bot_npc_type->aggroradius = 0;
-	//bot_npc_type->assistradius = 0;
-	//bot_npc_type->see_invis = 0;
-	//bot_npc_type->see_invis_undead = false;
-	//bot_npc_type->see_hide = false;
-	//bot_npc_type->see_improved_hide = false;
-	//bot_npc_type->qglobal = false;
-	//bot_npc_type->npc_aggro = false;
-	//bot_npc_type->spawn_limit = 0;
-	//bot_npc_type->mount_color = 0;
-	//bot_npc_type->attack_speed = 0.0f;
-	//bot_npc_type->attack_delay = 0;
-	//bot_npc_type->accuracy_rating = 0;
-	//bot_npc_type->avoidance_rating = 0;
-	//bot_npc_type->findable = false;
-	bot_npc_type->trackable = true;
-	//bot_npc_type->slow_mitigation = 0;
-	bot_npc_type->maxlevel = botLevel;
-	//bot_npc_type->scalerate = 0;
-	//bot_npc_type->private_corpse = false;
-	//bot_npc_type->unique_spawn_by_name = false;
-	//bot_npc_type->underwater = false;
-	//bot_npc_type->emoteid = 0;
-	//bot_npc_type->spellscale = 0.0f;
-	//bot_npc_type->healscale = 0.0f;
-	//bot_npc_type->no_target_hotkey = false;
-	//bot_npc_type->raid_target = false;
-	//bot_npc_type->armtexture = 0;
-	//bot_npc_type->bracertexture = 0;
-	//bot_npc_type->handtexture = 0;
-	//bot_npc_type->legtexture = 0;
-	//bot_npc_type->feettexture = 0;
-	//bot_npc_type->ignore_despawn = false;
-	bot_npc_type->show_name = true;
-	//bot_npc_type->untargetable = false;
-	bot_npc_type->skip_global_loot = true;
-	//bot_npc_type->rare_spawn = false;
-	bot_npc_type->stuck_behavior = Ground;
-	bot_npc_type->skip_auto_scale = true;
-
-	return bot_npc_type;
+	return n;
 }
 
-NPCType *Bot::CreateDefaultNPCTypeStructForBot(std::string botName, std::string botLastName, uint8 botLevel, uint16 botRace, uint8 botClass, uint8 gender) {
-	auto bot_npc_type = new NPCType{ 0 };
-	int copy_length = 0;
+NPCType *Bot::CreateDefaultNPCTypeStructForBot(
+	std::string botName,
+	std::string botLastName,
+	uint8 botLevel,
+	uint16 botRace,
+	uint8 botClass,
+	uint8 gender
+) {
+	auto n = new NPCType{ 0 };
 
-	copy_length = botName.copy(bot_npc_type->name, 63);
-	bot_npc_type->name[copy_length] = '\0';
-	copy_length = 0;
+	strn0cpy(n->name, botName.c_str(), sizeof(n->name));
+	strn0cpy(n->lastname, botLastName.c_str(), sizeof(n->lastname));
 
-	copy_length = botLastName.copy(bot_npc_type->lastname, 69);
-	bot_npc_type->lastname[copy_length] = '\0';
-	copy_length = 0;
+	//n->current_hp = 0;
+	//n->max_hp = 0;
+	n->size = 6.0f;
+	n->runspeed = 0.7f;
+	n->gender = gender;
+	n->race = botRace;
+	n->class_ = botClass;
+	n->bodytype = 1;
+	n->deity = EQ::deity::DeityAgnostic;
+	n->level = botLevel;
+	//n->npc_id = 0;
+	//n->texture = 0;
+	//n->helmtexture = 0;
+	//n->herosforgemodel = 0;
+	//n->loottable_id = 0;
+	//n->npc_spells_id = 0;
+	//n->npc_spells_effects_id = 0;
+	//n->npc_faction_id = 0;
+	//n->merchanttype = 0;
+	//n->alt_currency_type = 0;
+	//n->adventure_template = 0;
+	//n->trap_template = 0;
+	//n->light = 0;
+	n->AC = 12;
+	//n->Mana = 0;
+	n->ATK = 75;
+	n->STR = 75;
+	n->STA = 75;
+	n->DEX = 75;
+	n->AGI = 75;
+	n->INT = 75;
+	n->WIS = 75;
+	n->CHA = 75;
+	n->MR = 25;
+	n->FR = 25;
+	n->CR = 25;
+	n->PR = 15;
+	n->DR = 15;
+	n->Corrup = 15;
+	//n->PhR = 0;
+	//n->haircolor = 0;
+	//n->beardcolor = 0;
+	//n->eyecolor1 = 0;
+	//n->eyecolor2 = 0;
+	//n->hairstyle = 0;
+	//n->luclinface = 0;
+	//n->beard = 0;
+	//n->drakkin_heritage = 0;
+	//n->drakkin_tattoo = 0;
+	//n->drakkin_details = 0;
+	//n->armor_tint = { 0 };
+	//n->min_dmg = 0;
+	//n->max_dmg = 0;
+	//n->charm_ac = 0;
+	//n->charm_min_dmg = 0;
+	//n->charm_max_dmg = 0;
+	//n->charm_attack_delay = 0;
+	//n->charm_accuracy_rating = 0;
+	//n->charm_avoidance_rating = 0;
+	//n->charm_atk = 0;
+	//n->attack_count = 0;
+	//*n->special_abilities = { 0 };
+	//n->d_melee_texture1 = 0;
+	//n->d_melee_texture2 = 0;
+	//*n->ammo_idfile = { 0 };
+	//n->prim_melee_type = 0;
+	//n->sec_melee_type = 0;
+	//n->ranged_type = 0;
+	n->hp_regen = 1;
+	n->mana_regen = 1;
+	//n->aggroradius = 0;
+	//n->assistradius = 0;
+	//n->see_invis = 0;
+	//n->see_invis_undead = false;
+	//n->see_hide = false;
+	//n->see_improved_hide = false;
+	//n->qglobal = false;
+	//n->npc_aggro = false;
+	//n->spawn_limit = 0;
+	//n->mount_color = 0;
+	//n->attack_speed = 0.0f;
+	//n->attack_delay = 0;
+	//n->accuracy_rating = 0;
+	//n->avoidance_rating = 0;
+	//n->findable = false;
+	n->trackable = true;
+	//n->slow_mitigation = 0;
+	n->maxlevel = botLevel;
+	//n->scalerate = 0;
+	//n->private_corpse = false;
+	//n->unique_spawn_by_name = false;
+	//n->underwater = false;
+	//n->emoteid = 0;
+	//n->spellscale = 0.0f;
+	//n->healscale = 0.0f;
+	//n->no_target_hotkey = false;
+	//n->raid_target = false;
+	//n->armtexture = 0;
+	//n->bracertexture = 0;
+	//n->handtexture = 0;
+	//n->legtexture = 0;
+	//n->feettexture = 0;
+	//n->ignore_despawn = false;
+	n->show_name = true;
+	//n->untargetable = false;
+	n->skip_global_loot = true;
+	//n->rare_spawn = false;
+	n->stuck_behavior = Ground;
 
-	//bot_npc_type->current_hp = 0;
-	//bot_npc_type->max_hp = 0;
-	bot_npc_type->size = 6.0f;
-	bot_npc_type->runspeed = 0.7f;
-	bot_npc_type->gender = gender;
-	bot_npc_type->race = botRace;
-	bot_npc_type->class_ = botClass;
-	bot_npc_type->bodytype = 1;
-	bot_npc_type->deity = EQ::deity::DeityAgnostic;
-	bot_npc_type->level = botLevel;
-	//bot_npc_type->npc_id = 0;
-	//bot_npc_type->texture = 0;
-	//bot_npc_type->helmtexture = 0;
-	//bot_npc_type->herosforgemodel = 0;
-	//bot_npc_type->loottable_id = 0;
-	//bot_npc_type->npc_spells_id = 0;
-	//bot_npc_type->npc_spells_effects_id = 0;
-	//bot_npc_type->npc_faction_id = 0;
-	//bot_npc_type->merchanttype = 0;
-	//bot_npc_type->alt_currency_type = 0;
-	//bot_npc_type->adventure_template = 0;
-	//bot_npc_type->trap_template = 0;
-	//bot_npc_type->light = 0;
-	bot_npc_type->AC = 12;
-	//bot_npc_type->Mana = 0;
-	bot_npc_type->ATK = 75;
-	bot_npc_type->STR = 75;
-	bot_npc_type->STA = 75;
-	bot_npc_type->DEX = 75;
-	bot_npc_type->AGI = 75;
-	bot_npc_type->INT = 75;
-	bot_npc_type->WIS = 75;
-	bot_npc_type->CHA = 75;
-	bot_npc_type->MR = 25;
-	bot_npc_type->FR = 25;
-	bot_npc_type->CR = 25;
-	bot_npc_type->PR = 15;
-	bot_npc_type->DR = 15;
-	bot_npc_type->Corrup = 15;
-	//bot_npc_type->PhR = 0;
-	//bot_npc_type->haircolor = 0;
-	//bot_npc_type->beardcolor = 0;
-	//bot_npc_type->eyecolor1 = 0;
-	//bot_npc_type->eyecolor2 = 0;
-	//bot_npc_type->hairstyle = 0;
-	//bot_npc_type->luclinface = 0;
-	//bot_npc_type->beard = 0;
-	//bot_npc_type->drakkin_heritage = 0;
-	//bot_npc_type->drakkin_tattoo = 0;
-	//bot_npc_type->drakkin_details = 0;
-	//bot_npc_type->armor_tint = { 0 };
-	//bot_npc_type->min_dmg = 0;
-	//bot_npc_type->max_dmg = 0;
-	//bot_npc_type->charm_ac = 0;
-	//bot_npc_type->charm_min_dmg = 0;
-	//bot_npc_type->charm_max_dmg = 0;
-	//bot_npc_type->charm_attack_delay = 0;
-	//bot_npc_type->charm_accuracy_rating = 0;
-	//bot_npc_type->charm_avoidance_rating = 0;
-	//bot_npc_type->charm_atk = 0;
-	//bot_npc_type->attack_count = 0;
-	//*bot_npc_type->special_abilities = { 0 };
-	//bot_npc_type->d_melee_texture1 = 0;
-	//bot_npc_type->d_melee_texture2 = 0;
-	//*bot_npc_type->ammo_idfile = { 0 };
-	//bot_npc_type->prim_melee_type = 0;
-	//bot_npc_type->sec_melee_type = 0;
-	//bot_npc_type->ranged_type = 0;
-	bot_npc_type->hp_regen = 1;
-	bot_npc_type->mana_regen = 1;
-	//bot_npc_type->aggroradius = 0;
-	//bot_npc_type->assistradius = 0;
-	//bot_npc_type->see_invis = 0;
-	//bot_npc_type->see_invis_undead = false;
-	//bot_npc_type->see_hide = false;
-	//bot_npc_type->see_improved_hide = false;
-	//bot_npc_type->qglobal = false;
-	//bot_npc_type->npc_aggro = false;
-	//bot_npc_type->spawn_limit = 0;
-	//bot_npc_type->mount_color = 0;
-	//bot_npc_type->attack_speed = 0.0f;
-	//bot_npc_type->attack_delay = 0;
-	//bot_npc_type->accuracy_rating = 0;
-	//bot_npc_type->avoidance_rating = 0;
-	//bot_npc_type->findable = false;
-	bot_npc_type->trackable = true;
-	//bot_npc_type->slow_mitigation = 0;
-	bot_npc_type->maxlevel = botLevel;
-	//bot_npc_type->scalerate = 0;
-	//bot_npc_type->private_corpse = false;
-	//bot_npc_type->unique_spawn_by_name = false;
-	//bot_npc_type->underwater = false;
-	//bot_npc_type->emoteid = 0;
-	//bot_npc_type->spellscale = 0.0f;
-	//bot_npc_type->healscale = 0.0f;
-	//bot_npc_type->no_target_hotkey = false;
-	//bot_npc_type->raid_target = false;
-	//bot_npc_type->armtexture = 0;
-	//bot_npc_type->bracertexture = 0;
-	//bot_npc_type->handtexture = 0;
-	//bot_npc_type->legtexture = 0;
-	//bot_npc_type->feettexture = 0;
-	//bot_npc_type->ignore_despawn = false;
-	bot_npc_type->show_name = true;
-	//bot_npc_type->untargetable = false;
-	bot_npc_type->skip_global_loot = true;
-	//bot_npc_type->rare_spawn = false;
-	bot_npc_type->stuck_behavior = Ground;
-
-	return bot_npc_type;
+	return n;
 }
 
 void Bot::GenerateBaseStats()
@@ -848,7 +893,7 @@ void Bot::GenerateBaseStats()
 	int32 CorruptionResist = _baseCorrup;
 
 	// pulling fixed values from an auto-increment field is dangerous...
-	switch(GetClass()) {
+	switch (GetClass()) {
 		case WARRIOR:
 			BotSpellID = 3001;
 			Strength += 10;
@@ -1789,8 +1834,16 @@ bool Bot::Save()
 		bot_owner->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveBuffs(), GetCleanName());
 	if (!database.botdb.SaveTimers(this))
 		bot_owner->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveTimers(), GetCleanName());
-	if (!database.botdb.SaveStance(this))
-		bot_owner->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveStance(), GetCleanName());
+
+	if (!database.botdb.SaveStance(this)) {
+		bot_owner->Message(
+			Chat::White,
+			fmt::format(
+				"Failed to save stance for '{}'.",
+				GetCleanName()
+			).c_str()
+		);
+	}
 
 	if (!SavePet())
 		bot_owner->Message(Chat::White, "Failed to save pet for '%s'", GetCleanName());
@@ -2090,7 +2143,7 @@ bool Bot::Process()
 	}
 
 	if (mob_close_scan_timer.Check()) {
-		LogAIScanClose(
+		LogAIScanCloseDetail(
 			"is_moving [{}] bot [{}] timer [{}]",
 			moving ? "true" : "false",
 			GetCleanName(),
@@ -2102,16 +2155,12 @@ bool Bot::Process()
 
 	SpellProcess();
 
-	if(tic_timer.Check()) {
+	if (tic_timer.Check()) {
 
 		// 6 seconds, or whatever the rule is set to has passed, send this position to everyone to avoid ghosting
-		if(!IsMoving() && !IsEngaged()) {
-
-			if(IsSitting()) {
-
-				if (!rest_timer.Enabled()) {
-					rest_timer.Start(RuleI(Character, RestRegenTimeToActivate) * 1000);
-				}
+		if (!IsEngaged()) {
+			if (!rest_timer.Enabled()) {
+				rest_timer.Start(RuleI(Character, RestRegenTimeToActivate) * 1000);
 			}
 		}
 
@@ -2185,6 +2234,46 @@ bool Bot::Process()
 	return true;
 }
 
+void Bot::AI_Bot_Start(uint32 iMoveDelay) {
+	Mob::AI_Start(iMoveDelay);
+	if (!pAIControlled) {
+		return;
+	}
+
+	if (AIBot_spells.empty()) {
+		AIautocastspell_timer = std::make_unique<Timer>(1000);
+		AIautocastspell_timer->Disable();
+	} else {
+		AIautocastspell_timer = std::make_unique<Timer>(500);
+		AIautocastspell_timer->Start(RandomTimer(0, 300), false);
+	}
+
+	if (NPCTypedata) {
+		ProcessSpecialAbilities(NPCTypedata->special_abilities);
+		AI_AddNPCSpellsEffects(NPCTypedata->npc_spells_effects_id);
+	}
+
+	SendTo(GetX(), GetY(), GetZ());
+	SaveGuardSpot(GetPosition());
+}
+
+void Bot::AI_Bot_Init()
+{
+	AIautocastspell_timer.reset(nullptr);
+	casting_spell_AIindex = static_cast<uint8>(AIBot_spells.size());
+
+	roambox_max_x = 0;
+	roambox_max_y = 0;
+	roambox_min_x = 0;
+	roambox_min_y = 0;
+	roambox_distance = 0;
+	roambox_destination_x = 0;
+	roambox_destination_y = 0;
+	roambox_destination_z = 0;
+	roambox_min_delay = 2500;
+	roambox_delay = 2500;
+}
+
 void Bot::SpellProcess() {
 	if(spellend_timer.Check(false))	{
 		NPC::SpellProcess();
@@ -2196,25 +2285,21 @@ void Bot::SpellProcess() {
 }
 
 void Bot::BotMeditate(bool isSitting) {
-	if(isSitting) {
-		if(GetManaRatio() < 99.0f || GetHPRatio() < 99.0f) {
-			if (!IsEngaged() && !IsSitting())
+	if (isSitting) {
+		if (GetManaRatio() < 99.0f || GetHPRatio() < 99.0f) {
+			if (!IsEngaged() && !IsSitting()) {
 				Sit();
+			}
 		} else {
-			if(IsSitting())
+			if (IsSitting()) {
 				Stand();
+			}
 		}
 	} else {
-		if(IsSitting())
+		if (IsSitting()) {
 			Stand();
+		}
 	}
-
-	if(IsSitting()) {
-		if(!rest_timer.Enabled())
-			rest_timer.Start(RuleI(Character, RestRegenTimeToActivate) * 1000);
-	}
-	else
-		rest_timer.Disable();
 }
 
 void Bot::BotRangedAttack(Mob* other) {
@@ -2271,7 +2356,7 @@ void Bot::BotRangedAttack(Mob* other) {
 	if (spellbonuses.NegateIfCombat)
 		BuffFadeByEffect(SE_NegateIfCombat);
 
-	if(hidden || improved_hidden){
+	if (hidden || improved_hidden) {
 		hidden = false;
 		improved_hidden = false;
 		EQApplicationPacket* outapp = new EQApplicationPacket(OP_SpawnAppearance, sizeof(SpawnAppearance_Struct));
@@ -2690,11 +2775,11 @@ void Bot::AI_Process()
 
 	Client* bot_owner = (GetBotOwner() && GetBotOwner()->IsClient() ? GetBotOwner()->CastToClient() : nullptr);
 	Group* bot_group = GetGroup();
-	
+
 //#pragma region PRIMARY AI SKIP CHECKS
 
 	// Primary reasons for not processing AI
-	if (!bot_owner || (!bot_group) || !IsAIControlled()) {
+	if (!bot_owner || !bot_group || !IsAIControlled()) {
 		return;
 	}
 
@@ -2888,7 +2973,13 @@ void Bot::AI_Process()
 			auto pull_target = bot_owner->GetTarget();
 			if (pull_target) {
 
-				Bot::BotGroupSay(this, "Pulling %s to the group..", pull_target->GetCleanName());
+				BotGroupSay(
+					this,
+					fmt::format(
+						"Pulling {}.",
+						pull_target->GetCleanName()
+					).c_str()
+				);
 				InterruptSpell();
 				WipeHateList();
 				AddToHateList(pull_target, 1);
@@ -3047,14 +3138,20 @@ void Bot::AI_Process()
 			bool find_target = true;
 
 			if (assist_mob) {
-
 				if (assist_mob->GetTarget()) {
-
 					if (assist_mob != this) {
+						if (GetTarget() != assist_mob->GetTarget()) {
+							SetTarget(assist_mob->GetTarget());
+						}
 
-						SetTarget(assist_mob->GetTarget());
-						if (HasPet() && (GetClass() != ENCHANTER || GetPet()->GetPetType() != petAnimation || GetAA(aaAnimationEmpathy) >= 2)) {
-
+						if (
+							HasPet() &&
+							(
+								GetClass() != ENCHANTER ||
+								GetPet()->GetPetType() != petAnimation ||
+								GetAA(aaAnimationEmpathy) >= 2
+							)
+						) {
 							// This artificially inflates pet's target aggro..but, less expensive than checking hate each AI process
 							GetPet()->AddToHateList(assist_mob->GetTarget(), 1);
 							GetPet()->SetTarget(assist_mob->GetTarget());
@@ -3062,12 +3159,19 @@ void Bot::AI_Process()
 					}
 
 					find_target = false;
-				}
-				else if (assist_mob != this) {
+				} else if (assist_mob != this) {
+					if (GetTarget()) {
+						SetTarget(nullptr);
+					}
 
-					SetTarget(nullptr);
-					if (HasPet() && (GetClass() != ENCHANTER || GetPet()->GetPetType() != petAnimation || GetAA(aaAnimationEmpathy) >= 1)) {
-
+					if (
+						HasPet() &&
+						(
+							GetClass() != ENCHANTER ||
+							GetPet()->GetPetType() != petAnimation ||
+							GetAA(aaAnimationEmpathy) >= 1
+						)
+					) {
 						GetPet()->WipeHateList();
 						GetPet()->SetTarget(nullptr);
 					}
@@ -3077,16 +3181,23 @@ void Bot::AI_Process()
 			}
 
 			if (find_target) {
-
 				if (IsRooted()) {
-					SetTarget(hate_list.GetClosestEntOnHateList(this, true));
-				}
-				else {
-
+					auto closest = hate_list.GetClosestEntOnHateList(this, true);
+					if (closest) {
+						SetTarget(closest);
+					}
+				} else {
 					// This will keep bots on target for now..but, future updates will allow for rooting/stunning
-					SetTarget(hate_list.GetEscapingEntOnHateList(leash_owner, leash_distance));
+					auto escaping = hate_list.GetEscapingEntOnHateList(leash_owner, leash_distance);
+					if (escaping) {
+						SetTarget(escaping);
+					}
+
 					if (!GetTarget()) {
-						SetTarget(hate_list.GetEntWithMostHateOnList(this, nullptr, true));
+						auto most_hate = hate_list.GetEntWithMostHateOnList(this, nullptr, true);
+						if (most_hate) {
+							SetTarget(most_hate);
+						}
 					}
 				}
 			}
@@ -3109,8 +3220,10 @@ void Bot::AI_Process()
 
 		Mob* tar = GetTarget(); // We should have a target..if not, we're awaiting new orders
 		if (!tar || PASSIVE) {
+			if (GetTarget()) {
+				SetTarget(nullptr);
+			}
 
-			SetTarget(nullptr);
 			WipeHateList();
 			SetAttackFlag(false);
 			SetAttackingFlag(false);
@@ -3368,12 +3481,12 @@ void Bot::AI_Process()
 
 			if (atArcheryRange && !IsBotArcher()) {
 
-				SetBotArcher(true);
+				SetBotArcherySetting(true);
 				changeWeapons = true;
 			}
 			else if (!atArcheryRange && IsBotArcher()) {
 
-				SetBotArcher(false);
+				SetBotArcherySetting(false);
 				changeWeapons = true;
 			}
 
@@ -3676,8 +3789,8 @@ void Bot::AI_Process()
 
 					TEST_COMBATANTS();
 					auto ExtraAttackChanceBonus =
-					    (spellbonuses.ExtraAttackChance[0] + itembonuses.ExtraAttackChance[0] +
-					     aabonuses.ExtraAttackChance[0]);
+						(spellbonuses.ExtraAttackChance[0] + itembonuses.ExtraAttackChance[0] +
+						aabonuses.ExtraAttackChance[0]);
 					if (ExtraAttackChanceBonus) {
 
 						if (p_item && p_item->GetItem()->IsType2HWeapon()) {
@@ -4254,17 +4367,31 @@ bool Bot::Spawn(Client* botCharacterOwner) {
 
 		m_targetable = true;
 		entity_list.AddBot(this, true, true);
+
+		GetBotOwnerDataBuckets();
+		GetBotDataBuckets();
+		LoadBotSpellSettings();
+		if (!AI_AddBotSpells(GetBotSpellID())) {
+			GetBotOwner()->CastToClient()->Message(
+				Chat::White,
+				fmt::format(
+					"Failed to load spells for '{}' (ID {}).",
+					GetCleanName(),
+					GetBotID()
+				).c_str()
+			);
+		}
+
 		// Load pet
 		LoadPet();
 		SentPositionPacket(0.0f, 0.0f, 0.0f, 0.0f, 0);
 		ping_timer.Start(8000);
 		// there is something askew with spawn struct appearance fields...
 		// I re-enabled this until I can sort it out
-		uint32 item_id = 0;
+		const auto& m = GetBotItemSlots();
 		uint8 material_from_slot = 0xFF;
 		for (int slot_id = EQ::invslot::EQUIPMENT_BEGIN; slot_id <= EQ::invslot::EQUIPMENT_END; ++slot_id) {
-			item_id = GetBotItemBySlot(slot_id);
-			if (item_id != 0) {
+			if (m.find(slot_id) != m.end()) {
 				material_from_slot = EQ::InventoryProfile::CalcMaterialFromSlot(slot_id);
 				if (material_from_slot != 0xFF) {
 					SendWearChange(material_from_slot);
@@ -4288,14 +4415,14 @@ bool Bot::Spawn(Client* botCharacterOwner) {
 void Bot::RemoveBotItemBySlot(uint16 slot_id, std::string *error_message)
 {
 	if (!GetBotID()) {
-        return;
+		return;
 	}
 
-    if (!database.botdb.DeleteItemBySlot(GetBotID(), slot_id)) {
-        *error_message = BotDatabase::fail::DeleteItemBySlot();
+	if (!database.botdb.DeleteItemBySlot(GetBotID(), slot_id)) {
+		*error_message = BotDatabase::fail::DeleteItemBySlot();
 	}
 
-    m_inv.DeleteItem(slot_id);
+	m_inv.DeleteItem(slot_id);
 	UpdateEquipmentLight();
 }
 
@@ -4314,12 +4441,32 @@ void Bot::GetBotItems(EQ::InventoryProfile &inv, std::string* error_message)
 	UpdateEquipmentLight();
 }
 
+std::map<uint16, uint32> Bot::GetBotItemSlots()
+{
+	std::map<uint16, uint32> m;
+	if (!GetBotID()) {
+		return m;
+	}
+
+	if (!database.botdb.LoadItemSlots(GetBotID(), m)) {
+		GetBotOwner()->CastToClient()->Message(
+			Chat::White,
+			fmt::format(
+				"Failed to load inventory slots for {}.",
+				GetCleanName()
+			).c_str()
+		);
+	}
+
+	return m;
+}
+
 // Returns the inventory record for this bot from the database for the specified equipment slot.
 uint32 Bot::GetBotItemBySlot(uint16 slot_id)
 {
 	uint32 item_id = 0;
 	if (!GetBotID()) {
-        return item_id;
+		return item_id;
 	}
 
 	if (!database.botdb.LoadItemBySlot(GetBotID(), slot_id, item_id)) {
@@ -4327,8 +4474,9 @@ uint32 Bot::GetBotItemBySlot(uint16 slot_id)
 			GetBotOwner()->CastToClient()->Message(
 				Chat::White,
 				fmt::format(
-					"{}",
-					BotDatabase::fail::LoadItemBySlot()
+					"Failed to load slot ID {} for {}.",
+					slot_id,
+					GetCleanName()
 				).c_str()
 			);
 		}
@@ -4507,13 +4655,15 @@ bool Bot::GroupHasBot(Group* group) {
 	return Result;
 }
 
-uint32 Bot::SpawnedBotCount(uint32 botOwnerCharacterID) {
-	uint32 Result = 0;
-	if(botOwnerCharacterID > 0) {
-		std::list<Bot*> SpawnedBots = entity_list.GetBotsByBotOwnerCharacterID(botOwnerCharacterID);
-		Result = SpawnedBots.size();
+uint32 Bot::SpawnedBotCount(const uint32 owner_id, uint8 class_id) {
+	uint32 spawned_bot_count = 0;
+
+	if (owner_id) {
+		const auto& sbl = entity_list.GetBotListByCharacterID(owner_id, class_id);
+		spawned_bot_count = sbl.size();
 	}
-	return Result;
+
+	return spawned_bot_count;
 }
 
 void Bot::LevelBotWithClient(Client* client, uint8 level, bool sendlvlapp) {
@@ -4846,11 +4996,11 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 	using namespace EQ;
 
 	struct ClientTrade {
-		const ItemInstance* trade_item_instance;
+		ItemInstance* trade_item_instance;
 		int16 from_client_slot;
 		int16 to_bot_slot;
 
-		ClientTrade(const ItemInstance* item, int16 from) : trade_item_instance(item), from_client_slot(from), to_bot_slot(invslot::SLOT_INVALID) { }
+		ClientTrade(ItemInstance* item, int16 from) : trade_item_instance(item), from_client_slot(from), to_bot_slot(invslot::SLOT_INVALID) { }
 	};
 
 	struct ClientReturn {
@@ -4914,11 +5064,19 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 	}
 
 	std::list<ClientTrade> client_trade;
+	std::list<ClientTrade> event_trade;
 	std::list<ClientReturn> client_return;
 
+	bool trade_event_exists = false;
+	if (parse->BotHasQuestSub(EVENT_TRADE)) {
+		// There is a EVENT_TRADE, we will let the Event handle returning of items.
+		trade_event_exists = true;
+	}
+
 	// pre-checks for incoming illegal transfers
+	EQ::InventoryProfile& user_inv = client->GetInv();
 	for (int16 trade_index = begin_slot_id; trade_index <= end_slot_id; ++trade_index) {
-		auto trade_instance = client->GetInv()[trade_index];
+		auto trade_instance = user_inv.GetItem(trade_index);
 		if (!trade_instance) {
 			continue;
 		}
@@ -4952,60 +5110,86 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 		// if (trade_instance->IsStackable() && trade_instance->GetCharges() < trade_instance->GetItem()->StackSize) { // temp until partial stacks are implemented
 		if (RuleI(Bots, StackSizeMin) != -1) {
 			if (trade_instance->IsStackable() && trade_instance->GetCharges() < RuleI(Bots, StackSizeMin)) { // temp until partial stacks are implemented
+				if (trade_event_exists) {
+					event_trade.push_back(ClientTrade(trade_instance, trade_index));
+					continue;
+				}
+				else {
+					client->Message(
+						Chat::Yellow,
+						fmt::format(
+							"{} is too small of a stack, you need atleast {}. The trade has been cancelled!",
+							item_link,
+							RuleI(Bots, StackSizeMin)
+						).c_str()
+					);
+					client->ResetTrade();
+					return;
+				}
+			}
+		}
+		else { 
+			if (trade_instance->IsStackable() && trade_instance->GetCharges() < trade_instance->GetItem()->StackSize) {
+				if (trade_event_exists) {
+					event_trade.push_back(ClientTrade(trade_instance, trade_index));
+					continue;
+				}
+				else {
+					client->Message(
+						Chat::Yellow,
+						fmt::format(
+							"{} is only a partially stacked item, the trade has been cancelled!",
+							item_link
+						).c_str()
+					);
+					client->ResetTrade();
+					return;
+				}
+			}
+		}
+
+		if (CheckLoreConflict(trade_instance->GetItem())) {
+			if (trade_event_exists) {
+				event_trade.push_back(ClientTrade(trade_instance, trade_index));
+				continue;
+			}
+			else {
 				client->Message(
 					Chat::Yellow,
 					fmt::format(
-						"{} is too small of a stack, you need atleast {}. The trade has been cancelled!",
-						item_link,
-						RuleI(Bots, StackSizeMin)
+						"This bot already has {}, the trade has been cancelled!",
+						item_link
 					).c_str()
 				);
 				client->ResetTrade();
 				return;
 			}
 		}
-		else { 
-			if (trade_instance->IsStackable() && trade_instance->GetCharges() < trade_instance->GetItem()->StackSize) {
-				client->Message(
-				Chat::Yellow,
-				fmt::format(
-					"{} is only a partially stacked item, the trade has been cancelled!",
-					item_link
-				).c_str()
-				);
+
+		if (!trade_instance->IsType(item::ItemClassCommon)) {
+			if (trade_event_exists) {
+				event_trade.push_back(ClientTrade(trade_instance, trade_index));
+				continue;
+			}
+			else {
 				client->ResetTrade();
 				return;
 			}
 		}
 
-		if (CheckLoreConflict(trade_instance->GetItem())) {
-			client->Message(
-				Chat::Yellow,
-				fmt::format(
-					"This bot already has {}, the trade has been cancelled!",
-					item_link
-				).c_str()
-			);
-			client->ResetTrade();
-			return;
-		}
-
-		if (!trade_instance->IsType(item::ItemClassCommon)) {
-			client_return.push_back(ClientReturn(trade_instance, trade_index));
-			continue;
-		}
-
-		if (!trade_instance->IsEquipable(GetBaseRace(), GetClass()) || (GetLevel() < trade_instance->GetItem()->ReqLevel)) { // deity checks will be handled within IsEquipable()
-			client_return.push_back(ClientReturn(trade_instance, trade_index));
-			client->Message(
-				Chat::Tell,
-				fmt::format(
-					"{} tells you, I cannot use {}.",
-					GetCleanName(),
-					item_link
-				).c_str()
-			);
-			continue;
+		if (
+			!trade_instance->IsClassEquipable(GetClass()) ||
+			GetLevel() < trade_instance->GetItem()->ReqLevel ||
+			(!trade_instance->IsRaceEquipable(GetRace()) && !RuleB(Bots, AllowBotEquipAnyRaceGear))
+		) {
+			if (trade_event_exists) {
+				event_trade.push_back(ClientTrade(trade_instance, trade_index));
+				continue;
+			}
+			else {
+				client->ResetTrade();
+				return;
+			}
 		}
 
 		client_trade.push_back(ClientTrade(trade_instance, trade_index));
@@ -5013,7 +5197,9 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 
 	// check for incoming lore hacks
 	for (auto& trade_iterator : client_trade) {
-		if (!trade_iterator.trade_item_instance->GetItem()->LoreFlag) {
+		auto trade_instance = trade_iterator.trade_item_instance;
+		auto trade_index = trade_iterator.from_client_slot;
+		if (!trade_instance->GetItem()->LoreFlag) {
 			continue;
 		}
 
@@ -5026,14 +5212,14 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 				continue;
 			}
 
-			if (trade_iterator.trade_item_instance->GetItem()->LoreGroup == -1 && check_iterator.trade_item_instance->GetItem()->ID == trade_iterator.trade_item_instance->GetItem()->ID) {
+			if (trade_instance->GetItem()->LoreGroup == -1 && check_iterator.trade_item_instance->GetItem()->ID == trade_instance->GetItem()->ID) {
 				LogError("Bot::PerformTradeWithClient trade hack detected by {} with {}.", client->GetCleanName(), GetCleanName());
 				client->Message(Chat::White, "Trade hack detected, the trade has been cancelled.");
 				client->ResetTrade();
 				return;
 			}
 
-			if ((trade_iterator.trade_item_instance->GetItem()->LoreGroup > 0) && (check_iterator.trade_item_instance->GetItem()->LoreGroup == trade_iterator.trade_item_instance->GetItem()->LoreGroup)) {
+			if ((trade_instance->GetItem()->LoreGroup > 0) && (check_iterator.trade_item_instance->GetItem()->LoreGroup == trade_instance->GetItem()->LoreGroup)) {
 				LogError("Bot::PerformTradeWithClient trade hack detected by {} with {}.", client->GetCleanName(), GetCleanName());
 				client->Message(Chat::White, "Trade hack detected, the trade has been cancelled.");
 				client->ResetTrade();
@@ -5133,12 +5319,19 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 		}
 	}
 
-	// move unassignable items from trade list to return list
+	// move unassignable items from trade list to event list
 	for (std::list<ClientTrade>::iterator trade_iterator = client_trade.begin(); trade_iterator != client_trade.end();) {
 		if (trade_iterator->to_bot_slot == invslot::SLOT_INVALID) {
-			client_return.push_back(ClientReturn(trade_iterator->trade_item_instance, trade_iterator->from_client_slot));
-			trade_iterator = client_trade.erase(trade_iterator);
-			continue;
+			if (trade_event_exists) {
+				event_trade.push_back(ClientTrade(trade_iterator->trade_item_instance, trade_iterator->from_client_slot));
+				trade_iterator = client_trade.erase(trade_iterator);
+				continue;
+			}
+			else {
+				client_return.push_back(ClientReturn(trade_iterator->trade_item_instance, trade_iterator->from_client_slot));
+				trade_iterator = client_trade.erase(trade_iterator);
+				continue;
+			}
 		}
 		++trade_iterator;
 	}
@@ -5257,12 +5450,10 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 			//}
 
 			if (!database.botdb.DeleteItemBySlot(GetBotID(), return_iterator.from_bot_slot)) {
-				client->Message(
-					Chat::White,
+				OwnerMessage(
 					fmt::format(
-						"Failed to delete item by slot from slot {} for {}.",
-						return_iterator.from_bot_slot,
-						GetCleanName()
+						"Failed to delete item by slot from slot {}.",
+						return_iterator.from_bot_slot
 					).c_str()
 				);
 			}
@@ -5275,13 +5466,11 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 				linker.SetItemInst(return_instance);
 				auto item_link = linker.GenerateLink();
 
-				client->Message(
-					Chat::Tell,
+				OwnerMessage(
 					fmt::format(
-						"{} tells you, 'I have returned {}.'",
-						GetCleanName(),
+						"I have returned {}.",
 						item_link
-					).c_str()
+					)
 				);
 
 				client->PutItemInInventory(return_iterator.to_client_slot, *return_instance, true);
@@ -5297,12 +5486,10 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 		// TODO: code for stackables
 
 		if (!database.botdb.SaveItemBySlot(this, trade_iterator.to_bot_slot, trade_iterator.trade_item_instance)) {
-			client->Message(
-				Chat::White,
+			OwnerMessage(
 				fmt::format(
-					"Failed to save item by slot to slot {} for {}.",
-					trade_iterator.to_bot_slot,
-					GetCleanName()
+					"Failed to save item by slot to slot {}.",
+					trade_iterator.to_bot_slot
 				).c_str()
 			);
 		}
@@ -5312,13 +5499,11 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 		linker.SetItemInst(trade_iterator.trade_item_instance);
 		auto item_link = linker.GenerateLink();
 
-		client->Message(
-			Chat::Tell,
+		OwnerMessage(
 			fmt::format(
-				"{} tells you, 'I have accepted {}.'",
-				GetCleanName(),
+				"I have accepted {}.",
 				item_link
-			).c_str()
+			)
 		);
 
 		m_inv.PutItem(trade_iterator.to_bot_slot, *trade_iterator.trade_item_instance);
@@ -5342,6 +5527,24 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 
 	if (accepted_count) {
 		CalcBotStats(client->GetBotOption(Client::booStatsUpdate));
+	}
+
+	if (event_trade.size()) {
+		// Get Traded Items
+		EQ::ItemInstance* insts[8] = { 0 };
+		EQ::InventoryProfile& user_inv = client->GetInv();
+		for (int i = EQ::invslot::TRADE_BEGIN; i <= EQ::invslot::TRADE_END; ++i) {
+			insts[i - EQ::invslot::TRADE_BEGIN] = user_inv.GetItem(i);
+			client->DeleteItemInInventory(i);
+		}
+
+		// copy to be filtered by task updates, null trade slots preserved for quest event arg
+		std::vector<EQ::ItemInstance*> items(insts, insts + std::size(insts));
+
+		// Check if EVENT_TRADE accepts any items
+		std::vector<std::any> item_list(items.begin(), items.end());
+		parse->EventBot(EVENT_TRADE, this, client, "", 0, &item_list);
+		CalcBotStats(false);
 	}
 }
 
@@ -5429,6 +5632,16 @@ bool Bot::Death(Mob *killerMob, int64 damage, uint16 spell_id, EQ::skills::Skill
 		my_owner->CastToClient()->SetBotPulling(false);
 	}
 
+	const auto export_string = fmt::format(
+		"{} {} {} {}",
+		killerMob ? killerMob->GetID() : 0,
+		damage,
+		spell_id,
+		static_cast<int>(attack_skill)
+	);
+
+	parse->EventBot(EVENT_DEATH_COMPLETE, this, killerMob, export_string, 0);
+
 	Raid* raid = entity_list.GetRaidByBotName(this->GetName());
 	
 	if (raid) 
@@ -5457,7 +5670,7 @@ void Bot::Damage(Mob *from, int64 damage, uint16 spell_id, EQ::skills::SkillType
 	//handle EVENT_ATTACK. Resets after we have not been attacked for 12 seconds
 	if(attacked_timer.Check()) {
 		LogCombat("Triggering EVENT_ATTACK due to attack by [{}]", from->GetName());
-		parse->EventNPC(EVENT_ATTACK, this, from, "", 0);
+		parse->EventBot(EVENT_ATTACK, this, from, "", 0);
 	}
 
 	attacked_timer.Start(CombatEventTimer_expire);
@@ -5602,7 +5815,7 @@ bool Bot::Attack(Mob* other, int Hand, bool FromRiposte, bool IsStrikethrough, b
 #endif
 		//Live AA - Sinister Strikes *Adds weapon damage bonus to offhand weapon.
 		if (Hand == EQ::invslot::slotSecondary) {
-			if (aabonuses.SecondaryDmgInc || itembonuses.SecondaryDmgInc || spellbonuses.SecondaryDmgInc){
+			if (aabonuses.SecondaryDmgInc || itembonuses.SecondaryDmgInc || spellbonuses.SecondaryDmgInc) {
 				ucDamageBonus = GetWeaponDamageBonus(weapon ? weapon->GetItem() : (const EQ::ItemData*) nullptr);
 				my_hit.min_damage = ucDamageBonus;
 				hate += ucDamageBonus;
@@ -6873,9 +7086,9 @@ void Bot::DoClassAttacks(Mob *target, bool IsRiposte) {
 		return;
 	}
 
-	if(ka_time){
+	if (ka_time) {
 
-		switch(GetClass()){
+		switch (GetClass()) {
 			case SHADOWKNIGHT: {
 				CastSpell(SPELL_NPC_HARM_TOUCH, target->GetID());
 				knightattack_timer.Start(HarmTouchReuseTime * 1000);
@@ -6901,8 +7114,14 @@ void Bot::DoClassAttacks(Mob *target, bool IsRiposte) {
 
 	if(taunting && target && target->IsNPC() && taunt_time) {
 		//if(GetTarget() && GetTarget()->GetHateTop() && GetTarget()->GetHateTop() != this) {
-		if(GetTarget()) {
-			BotGroupSay(this, "Taunting %s", target->GetCleanName());
+		if (GetTarget()) {
+			BotGroupSay(
+				this,
+				fmt::format(
+					"Taunting {}.",
+					target->GetCleanName()
+				).c_str()
+			);
 			Taunt(target->CastToNPC(), false);
 			taunt_timer.Start(TauntReuseTime * 1000);
 		}
@@ -6998,9 +7217,9 @@ void Bot::DoClassAttacks(Mob *target, bool IsRiposte) {
 	int level = GetLevel();
 	int reuse = (TauntReuseTime * 1000);
 	bool did_attack = false;
-	switch(GetClass()) {
+	switch (GetClass()) {
 		case WARRIOR:
-			if(level >= RuleI(Combat, NPCBashKickLevel)){
+			if (level >= RuleI(Combat, NPCBashKickLevel)) {
 				bool canBash = false;
 				if ((GetRace() == OGRE || GetRace() == TROLL || GetRace() == BARBARIAN) || (m_inv.GetItem(EQ::invslot::slotSecondary) && m_inv.GetItem(EQ::invslot::slotSecondary)->GetItem()->ItemType == EQ::item::ItemTypeShield) || (m_inv.GetItem(EQ::invslot::slotPrimary) && m_inv.GetItem(EQ::invslot::slotPrimary)->GetItem()->IsType2HWeapon() && GetAA(aa2HandBash) >= 1))
 					canBash = true;
@@ -7020,7 +7239,7 @@ void Bot::DoClassAttacks(Mob *target, bool IsRiposte) {
 		case CLERIC:
 		case SHADOWKNIGHT:
 		case PALADIN:
-			if(level >= RuleI(Combat, NPCBashKickLevel)){
+			if (level >= RuleI(Combat, NPCBashKickLevel)) {
 				if ((GetRace() == OGRE || GetRace() == TROLL || GetRace() == BARBARIAN) || (m_inv.GetItem(EQ::invslot::slotSecondary) && m_inv.GetItem(EQ::invslot::slotSecondary)->GetItem()->ItemType == EQ::item::ItemTypeShield) || (m_inv.GetItem(EQ::invslot::slotPrimary) && m_inv.GetItem(EQ::invslot::slotPrimary)->GetItem()->IsType2HWeapon() && GetAA(aa2HandBash) >= 1))
 					skill_to_use = EQ::skills::SkillBash;
 			}
@@ -7653,7 +7872,7 @@ int32 Bot::GetActSpellCasttime(uint16 spell_id, int32 casttime) {
 	uint8 botlevel = GetLevel();
 	uint8 botclass = GetClass();
 	if (botlevel >= 51 && casttime >= 3000 && !spells[spell_id].good_effect &&
-	    (botclass == SHADOWKNIGHT || botclass == RANGER || botclass == PALADIN || botclass == BEASTLORD)) {
+		(botclass == SHADOWKNIGHT || botclass == RANGER || botclass == PALADIN || botclass == BEASTLORD)) {
 		int level_mod = std::min(15, botlevel - 50);
 		cast_reducer += level_mod * 3;
 	}
@@ -7884,47 +8103,70 @@ void Bot::DoBuffTic(const Buffs_Struct &buff, int slot, Mob* caster) {
 	Mob::DoBuffTic(buff, slot, caster);
 }
 
-bool Bot::CastSpell(uint16 spell_id, uint16 target_id, EQ::spells::CastingSlot slot, int32 cast_time, int32 mana_cost,
-					uint32* oSpellWillFinish, uint32 item_slot, int16 *resist_adjust, uint32 aa_id) {
+bool Bot::CastSpell(
+	uint16 spell_id,
+	uint16 target_id,
+	EQ::spells::CastingSlot slot,
+	int32 cast_time,
+	int32 mana_cost,
+	uint32* oSpellWillFinish,
+	uint32 item_slot,
+	int16 *resist_adjust,
+	uint32 aa_id
+) {
 	bool Result = false;
-	if(zone && !zone->IsSpellBlocked(spell_id, glm::vec3(GetPosition()))) {
+	if (zone && !zone->IsSpellBlocked(spell_id, glm::vec3(GetPosition()))) {
 		// LogSpells("CastSpell called for spell [{}] ([{}]) on entity [{}], slot [{}], time [{}], mana [{}], from item slot [{}]", spells[spell_id].name, spell_id, target_id, slot, cast_time, mana_cost, (item_slot==0xFFFFFFFF)?999:item_slot);
 
-		if(casting_spell_id == spell_id)
+		if (casting_spell_id == spell_id) {
 			ZeroCastingVars();
+		}
 
-		if(GetClass() != BARD) {
-			if(!IsValidSpell(spell_id) || casting_spell_id || delaytimer || spellend_timer.Enabled() || IsStunned() || IsFeared() || IsMezzed() || (IsSilenced() && !IsDiscipline(spell_id)) || (IsAmnesiad() && IsDiscipline(spell_id))) {
+		if (GetClass() != BARD) {
+			if (
+				!IsValidSpell(spell_id) ||
+				casting_spell_id ||
+				delaytimer ||
+				spellend_timer.Enabled() ||
+				IsStunned() ||
+				IsFeared() ||
+				IsMezzed() ||
+				(IsSilenced() && !IsDiscipline(spell_id)) ||
+				(IsAmnesiad() && IsDiscipline(spell_id))
+			) {
 				LogSpells("Spell casting canceled: not able to cast now. Valid? [{}], casting [{}], waiting? [{}], spellend? [{}], stunned? [{}], feared? [{}], mezed? [{}], silenced? [{}]", IsValidSpell(spell_id), casting_spell_id, delaytimer, spellend_timer.Enabled(), IsStunned(), IsFeared(), IsMezzed(), IsSilenced() );
-				if(IsSilenced() && !IsDiscipline(spell_id))
+				if (IsSilenced() && !IsDiscipline(spell_id)) {
 					MessageString(Chat::White, SILENCED_STRING);
+				}
 
-				if(IsAmnesiad() && IsDiscipline(spell_id))
-
+				if (IsAmnesiad() && IsDiscipline(spell_id)) {
 					MessageString(Chat::White, MELEE_SILENCE);
+				}
 
-				if(casting_spell_id)
-					AI_Event_SpellCastFinished(false, static_cast<uint16>(casting_spell_slot));
+				if (casting_spell_id) {
+					AI_Bot_Event_SpellCastFinished(false, static_cast<uint16>(casting_spell_slot));
+				}
 
 				return false;
 			}
 		}
 
-		if(IsDetrimentalSpell(spell_id) && !zone->CanDoCombat()){
+		if (IsDetrimentalSpell(spell_id) && !zone->CanDoCombat()) {
 			MessageString(Chat::White, SPELL_WOULDNT_HOLD);
-			if(casting_spell_id)
-				AI_Event_SpellCastFinished(false, static_cast<uint16>(casting_spell_slot));
+			if (casting_spell_id) {
+				AI_Bot_Event_SpellCastFinished(false, static_cast<uint16>(casting_spell_slot));
+			}
 
 			return false;
 		}
 
-		if(DivineAura()) {
+		if (DivineAura()) {
 			LogSpells("Spell casting canceled: cannot cast while Divine Aura is in effect");
 			InterruptSpell(173, 0x121, false);
 			return false;
 		}
 
-		if(slot < EQ::spells::CastingSlot::MaxGems && !CheckFizzle(spell_id)) {
+		if (slot < EQ::spells::CastingSlot::MaxGems && !CheckFizzle(spell_id)) {
 			int fizzle_msg = IsBardSong(spell_id) ? MISS_NOTE : SPELL_FIZZLE;
 			InterruptSpell(fizzle_msg, 0x121, spell_id);
 
@@ -7949,94 +8191,31 @@ bool Bot::CastSpell(uint16 spell_id, uint16 target_id, EQ::spells::CastingSlot s
 }
 
 bool Bot::SpellOnTarget(uint16 spell_id, Mob* spelltar) {
-	bool Result = false;
-	if(!IsValidSpell(spell_id))
+	if (!IsValidSpell(spell_id)) {
 		return false;
-
-	if(spelltar) {
-		if(spelltar->IsBot() && (spells[spell_id].target_type == ST_GroupTeleport)) {
-			switch(spell_id) {
-				// Paladin
-			case 3577: // Wave of Life
-			case 4065: // Blessing of Austerity
-			case 1455: // Wave of Healing
-			case 2589: // Healing Wave of Prexus
-			case 3427: // Wave of Marr
-			case 3683: // Ethereal Cleansing
-			case 1283: // Celestial Cleansing
-			case 3485: // Supernal Cleansing
-			case 5293: // Pious Cleansing
-			case 4893: // Wave of Trushar
-			case 5295: // Jeron's Mark
-			case 5296: // Wave of Piety
-				// Bard
-			case 4085: // Forpar's Aria of Affliction
-			case 4083: // Rizlona's Embers
-			case 4086: // Forpar's Psalm of Pain
-			case 4084: // Rizlona's Fire
-			case 6734: // Song of the Storm
-			case 3651: // Wind of Marr
-			case 4087: // Forpar's Verse of Venom
-			case 3362: // Rizlona's Call of Flame
-			case 4112: // Call of the Muse
-			case 4872: // Echo of the Trusik
-			case 4873: // Dark Echo
-			case 5377: // Cantata of Life
-			case 5380: // Yelhun's Mystic Call
-			case 5382: // Eriki's Psalm of Power
-			case 6666: // Storm Blade
-			case 5388: // Ancient Call of Power
-				// Cleric
-			case 134: // Word of Health
-			case 136: // Word of Healing
-			case 1520: // Word of Vigor
-			case 1521: // Word of Restoration
-			case 1523: // Word of Redemption
-			case 3471: // Word of Replenishment
-			case 5270: // Word of Vivification
-			case 2502: // Celestial Remedy
-			case 2175: // Celestial Health
-			case 1444: // Celestial Healing
-			case 1522: // Celestial Elixir
-			case 2180: // Etherial Elixir
-			case 3047: // Kazad's Mark
-			case 3475: // Supernal Elixir
-			case 4053: // Blessing of Temperance
-			case 4108: // Aura of Reverence
-			case 4882: // Holy Elixir
-			case 5259: // Pious Elixir
-			case 5272: // Aura of Devotion
-			case 5277: // Balikor's Mark
-				// Enchanter
-			case 5517: // Circle of Alendar
-			case 6671: // Rune of Rikkukin
-			case 6739: // Rune of the Scale
-				// Shaman
-			case 2521: // Talisman of the Beast
-			case 4055: // Pack Shrew
-			case 3842: // Blood of Nadox
-			case 5417: // Champion
-				// Druid
-			case 4058: // Feral Pack
-			case 2520: // Natures Recovery
-				break;
-			default:
-				return false;
-			}
-		}
-
-		if(((IsDetrimentalSpell(spell_id) && spelltar->IsBot()) || (IsDetrimentalSpell(spell_id) && spelltar->IsClient())) && !IsResurrectionEffects(spell_id))
-			return false;
-
-		if(spelltar->IsPet()) {
-			for(int  i= 0; i < EFFECT_COUNT; ++i) {
-				if(spells[spell_id].effect_id[i] == SE_Illusion)
-					return false;
-			}
-		}
-		Result = Mob::SpellOnTarget(spell_id, spelltar);
 	}
-	return Result;
+
+	if (spelltar) {
+		if (
+			IsDetrimentalSpell(spell_id) &&
+			(spelltar->IsBot() || spelltar->IsClient()) &&
+			!IsResurrectionEffects(spell_id)
+		) {
+			return false;
+		}
+
+		if (spelltar->IsPet()) {
+			for (int i = 0; i < EFFECT_COUNT; ++i) {
+				if (spells[spell_id].effect_id[i] == SE_Illusion) {
+					return false;
+				}
+			}
+		}
+
+		return Mob::SpellOnTarget(spell_id, spelltar);
+	}
+
+	return false;
 }
 
 bool Bot::IsImmuneToSpell(uint16 spell_id, Mob *caster) {
@@ -8201,7 +8380,7 @@ bool Bot::DoFinishedSpellSingleTarget(uint16 spell_id, Mob* spellTarget, EQ::spe
 		if(IsGrouped() && (spellTarget->IsBot() || spellTarget->IsClient()) && RuleB(Bots, GroupBuffing)) {
 			bool noGroupSpell = false;
 			uint16 thespell = spell_id;
-			for(int i = 0; i < AIspells.size(); i++) {
+			for (int i = 0; i < AIBot_spells.size(); i++) {
 				int j = BotGetSpells(i);
 				int spelltype = BotGetSpellType(i);
 				bool spellequal = (j == thespell);
@@ -8255,7 +8434,13 @@ bool Bot::DoFinishedSpellGroupTarget(uint16 spell_id, Mob* spellTarget, EQ::spel
 	Raid* raid = entity_list.GetRaidByBotName(this->GetName());
 
 	if(isMainGroupMGB && (GetClass() != BARD)) {
-		BotGroupSay(this, "MGB %s", spells[spell_id].name);
+		BotGroupSay(
+			this,
+			fmt::format(
+				"Casting {} as a Mass Group Buff.",
+				spells[spell_id].name
+			).c_str()
+		);
 		SpellOnTarget(spell_id, this);
 		entity_list.AESpell(this, this, spell_id, true);
 	}
@@ -8328,7 +8513,7 @@ void Bot::CalcBonuses() {
 	end_regen = CalcEnduranceRegen();
 }
 
-int64 Bot::CalcHPRegenCap(){
+int64 Bot::CalcHPRegenCap() {
 	int level = GetLevel();
 	int64 hpregen_cap = 0;
 	hpregen_cap = (RuleI(Character, ItemHealthRegenCap) + itembonuses.HeroicSTA / 25);
@@ -8336,7 +8521,7 @@ int64 Bot::CalcHPRegenCap(){
 	return (hpregen_cap * RuleI(Character, HPRegenMultiplier) / 100);
 }
 
-int64 Bot::CalcManaRegenCap(){
+int64 Bot::CalcManaRegenCap() {
 	int64 cap = RuleI(Character, ItemManaRegenCap) + aabonuses.ItemManaRegenCap;
 	switch(GetCasterClass()) {
 		case 'I':
@@ -8773,7 +8958,7 @@ int64 Bot::CalcManaRegen() {
 
 uint64 Bot::GetClassHPFactor() {
 	uint32 factor;
-	switch(GetClass()) {
+	switch (GetClass()) {
 		case BEASTLORD:
 		case BERSERKER:
 		case MONK:
@@ -9615,7 +9800,7 @@ void Bot::AddItemBonuses(const EQ::ItemInstance *inst, StatBonuses* newbon, bool
 		}
 	}
 
-	if (item->SkillModValue != 0 && item->SkillModType <= EQ::skills::HIGHEST_SKILL){
+	if (item->SkillModValue != 0 && item->SkillModType <= EQ::skills::HIGHEST_SKILL) {
 		if ((item->SkillModValue > 0 && newbon->skillmod[item->SkillModType] < item->SkillModValue) ||
 			(item->SkillModValue < 0 && newbon->skillmod[item->SkillModType] > item->SkillModValue))
 		{
@@ -9707,8 +9892,6 @@ void Bot::CalcBotStats(bool showtext) {
 	//	GetBotOwner()->CastToClient()->Message(Chat::White, "%s save failed!", GetCleanName());
 
 	CalcBonuses();
-
-	AI_AddNPCSpells(GetBotSpellID());
 
 	if(showtext) {
 		GetBotOwner()->Message(Chat::Yellow, "%s has been updated.", GetCleanName());
@@ -10184,28 +10367,30 @@ Client* EntityList::GetBotOwnerByBotEntityID(uint16 entityID) {
 	return Result;
 }
 
-void EntityList::AddBot(Bot *newBot, bool SendSpawnPacket, bool dontqueue) {
-	if(newBot) {
-		newBot->SetID(GetFreeID());
-		newBot->SetSpawned();
-		if(SendSpawnPacket) {
-			if(dontqueue) {
+void EntityList::AddBot(Bot *new_bot, bool send_spawn_packet, bool dont_queue) {
+	if (new_bot) {
+		new_bot->SetID(GetFreeID());
+		new_bot->SetSpawned();
+		if (send_spawn_packet) {
+			if (dont_queue) {
 				EQApplicationPacket* outapp = new EQApplicationPacket();
-				newBot->CreateSpawnPacket(outapp);
+				new_bot->CreateSpawnPacket(outapp);
 				outapp->priority = 6;
-				QueueClients(newBot, outapp, true);
+				QueueClients(new_bot, outapp, true);
 				safe_delete(outapp);
 			} else {
 				NewSpawn_Struct* ns = new NewSpawn_Struct;
 				memset(ns, 0, sizeof(NewSpawn_Struct));
-				newBot->FillSpawnStruct(ns, newBot);
-				AddToSpawnQueue(newBot->GetID(), &ns);
+				new_bot->FillSpawnStruct(ns, new_bot);
+				AddToSpawnQueue(new_bot->GetID(), &ns);
 				safe_delete(ns);
 			}
-			parse->EventNPC(EVENT_SPAWN, newBot, nullptr, "", 0);
+
+			parse->EventBot(EVENT_SPAWN, new_bot, nullptr, "", 0);
 		}
-		bot_list.push_back(newBot);
-		mob_list.insert(std::pair<uint16, Mob*>(newBot->GetID(), newBot));
+
+		bot_list.push_back(new_bot);
+		mob_list.insert(std::pair<uint16, Mob*>(new_bot->GetID(), new_bot));
 	}
 }
 
@@ -10376,7 +10561,7 @@ void EntityList::ScanCloseClientMobs(std::unordered_map<uint16, Mob*>& close_mob
 		}
 	}
 
-	LogAIScanClose("Close Client Mob List Size [{}] for mob [{}]", close_mobs.size(), scanning_mob->GetCleanName());
+	LogAIScanCloseModerate("Close Client Mob List Size [{}] for mob [{}]", close_mobs.size(), scanning_mob->GetCleanName());
 }
 
 uint8 Bot::GetNumberNeedingHealedInGroup(uint8 hpr, bool includePets) {
@@ -11040,6 +11225,434 @@ void Bot::SpawnBotGroupByName(Client* c, std::string botgroup_name, uint32 leade
 			botgroup_name
 		).c_str()
 	);
+}
+
+void Bot::Signal(int signal_id)
+{
+	const auto export_string = fmt::format("{}", signal_id);
+	parse->EventBot(EVENT_SIGNAL, this, nullptr, export_string, 0);
+}
+
+void Bot::SendPayload(int payload_id, std::string payload_value)
+{
+	const auto export_string = fmt::format("{} {}", payload_id, payload_value);
+	parse->EventBot(EVENT_PAYLOAD, this, nullptr, export_string, 0);
+}
+
+void Bot::OwnerMessage(std::string message)
+{
+	if (!GetBotOwner() || !GetBotOwner()->IsClient()) {
+		return;
+	}
+
+	GetBotOwner()->Message(
+		Chat::Tell,
+		fmt::format(
+			"{} tells you, '{}'",
+			GetCleanName(),
+			message
+		).c_str()
+	);
+}
+
+bool Bot::GetBotOwnerDataBuckets()
+{
+	auto bot_owner = GetBotOwner();
+	if (!bot_owner) {
+		return false;
+	}
+
+	const auto query = fmt::format(
+		"SELECT `key`, `value` FROM data_buckets WHERE `key` LIKE '{}-%'",
+		Strings::Escape(bot_owner->GetBucketKey())
+	);
+
+	auto results = database.QueryDatabase(query);
+	if (!results.Success()) {
+		return false;
+	}
+
+	bot_owner_data_buckets.clear();
+
+	if (!results.RowCount()) {
+		return true;
+	}
+
+	for (auto row : results) {
+		bot_owner_data_buckets.insert(std::pair<std::string,std::string>(row[0], row[1]));
+	}
+
+	return true;
+}
+
+bool Bot::GetBotDataBuckets()
+{
+	const auto query = fmt::format(
+		"SELECT `key`, `value` FROM data_buckets WHERE `key` LIKE '{}-%'",
+		Strings::Escape(GetBucketKey())
+	);
+
+	auto results = database.QueryDatabase(query);
+	if (!results.Success()) {
+		return false;
+	}
+
+	bot_data_buckets.clear();
+
+	if (!results.RowCount()) {
+		return true;
+	}
+
+	for (auto row : results) {
+		bot_data_buckets.insert(std::pair<std::string,std::string>(row[0], row[1]));
+	}
+
+	return true;
+}
+
+bool Bot::CheckDataBucket(std::string bucket_name, std::string bucket_value, uint8 bucket_comparison)
+{
+	if (!bucket_name.empty() && !bucket_value.empty()) {
+		auto full_name = fmt::format(
+			"{}-{}",
+			GetBucketKey(),
+			bucket_name
+		);
+
+		auto player_value = bot_data_buckets[full_name];
+		if (player_value.empty() && GetBotOwner()) {
+			full_name = fmt::format(
+				"{}-{}",
+				GetBotOwner()->GetBucketKey(),
+				bucket_name
+			);
+
+			player_value = bot_owner_data_buckets[full_name];
+			if (player_value.empty()) {
+				return false;
+			}
+		}
+
+		if (zone->CheckDataBucket(bucket_comparison, bucket_value, player_value)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+int Bot::GetExpansionBitmask()
+{
+	if (m_expansion_bitmask >= 0) {
+		return m_expansion_bitmask;
+	}
+
+	return RuleI(Bots, BotExpansionSettings);
+}
+
+void Bot::SetExpansionBitmask(int expansion_bitmask, bool save)
+{
+	m_expansion_bitmask = expansion_bitmask;
+
+	if (save) {
+		if (!database.botdb.SaveExpansionBitmask(GetBotID(), expansion_bitmask)) {
+			if (GetBotOwner() && GetBotOwner()->IsClient()) {
+				GetBotOwner()->CastToClient()->Message(
+					Chat::White,
+					fmt::format(
+						"Failed to save expansion bitmask for {}.",
+						GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+
+	LoadAAs();
+}
+
+void Bot::SetBotEnforceSpellSetting(bool enforce_spell_settings, bool save)
+{
+	m_enforce_spell_settings = enforce_spell_settings;
+
+	if (save) {
+		if (!database.botdb.SaveEnforceSpellSetting(GetBotID(), enforce_spell_settings)) {
+			if (GetBotOwner() && GetBotOwner()->IsClient()) {
+				GetBotOwner()->CastToClient()->Message(
+					Chat::White,
+					fmt::format(
+						"Failed to save enforce spell settings for {}.",
+						GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	LoadBotSpellSettings();
+	AI_AddBotSpells(GetBotSpellID());
+}
+
+bool Bot::AddBotSpellSetting(uint16 spell_id, BotSpellSetting* bs)
+{
+	if (!IsValidSpell(spell_id) || !bs) {
+		return false;
+	}
+
+	auto obs = GetBotSpellSetting(spell_id);
+	if (obs) {
+		return false;
+	}
+
+	auto s = BotSpellSettingsRepository::NewEntity();
+
+	s.spell_id = spell_id;
+	s.bot_id = GetBotID();
+
+	s.priority = bs->priority;
+	s.min_hp = bs->min_hp;
+	s.max_hp = bs->max_hp;
+	s.is_enabled = bs->is_enabled;
+
+	const auto& nbs = BotSpellSettingsRepository::InsertOne(content_db, s);
+	if (!nbs.id) {
+		return false;
+	}
+
+	LoadBotSpellSettings();
+	return true;
+}
+
+bool Bot::DeleteBotSpellSetting(uint16 spell_id)
+{
+	if (!IsValidSpell(spell_id)) {
+		return false;
+	}
+
+	auto bs = GetBotSpellSetting(spell_id);
+	if (!bs) {
+		return false;
+	}
+
+	BotSpellSettingsRepository::DeleteWhere(
+		content_db,
+		fmt::format(
+			"bot_id = {} AND spell_id = {}",
+			GetBotID(),
+			spell_id
+		)
+	);
+	LoadBotSpellSettings();
+	return true;
+}
+
+BotSpellSetting* Bot::GetBotSpellSetting(uint16 spell_id)
+{
+	if (!IsValidSpell(spell_id) || !bot_spell_settings.count(spell_id)) {
+		return nullptr;
+	}
+
+	auto b = bot_spell_settings.find(spell_id);
+	if (b != bot_spell_settings.end()) {
+		return &b->second;
+	}
+
+	return nullptr;
+}
+
+void Bot::ListBotSpells(uint8 min_level)
+{
+	auto bot_owner = GetBotOwner();
+	if (!bot_owner) {
+		return;
+	}
+
+	if (AIBot_spells.empty() && AIBot_spells_enforced.empty()) {
+		bot_owner->Message(
+			Chat::White,
+			fmt::format(
+				"{} has no AI Spells.",
+				GetCleanName()
+			).c_str()
+		);
+		return;
+	}
+
+	auto spell_count = 0;
+	auto spell_number = 1;
+
+	for (const auto& s : (AIBot_spells.size() > AIBot_spells_enforced.size()) ? AIBot_spells : AIBot_spells_enforced) {
+		auto b = bot_spell_settings.find(s.spellid);
+		if (b == bot_spell_settings.end() && s.minlevel >= min_level) {
+			bot_owner->Message(
+				Chat::White,
+				fmt::format(
+					"Spell {} | Spell: {} | Add Spell: {}",
+					spell_number,
+					Saylink::Silent(
+						fmt::format("^spellinfo {}", s.spellid),
+						spells[s.spellid].name
+					),
+					Saylink::Silent(
+						fmt::format("^spellsettingsadd {} {} {} {}", s.spellid, s.priority, s.min_hp, s.max_hp), "Add")
+				).c_str()
+			);
+
+			spell_count++;
+			spell_number++;
+		}
+	}
+
+	bot_owner->Message(
+		Chat::White,
+		fmt::format(
+			"{} has {} AI Spell{}.",
+			GetCleanName(),
+			spell_count,
+			spell_count != 1 ? "s" :""
+		).c_str()
+	);
+}
+
+void Bot::ListBotSpellSettings()
+{
+	auto bot_owner = GetBotOwner();
+	if (!bot_owner) {
+		return;
+	}
+
+	if (!bot_spell_settings.size()) {
+		bot_owner->Message(
+			Chat::White,
+			fmt::format(
+				"{} does not have any spell settings.",
+				GetCleanName()
+			).c_str()
+		);
+		return;
+	}
+
+	auto setting_count = 0;
+	auto setting_number = 1;
+
+	for (const auto& bs : bot_spell_settings) {
+		bot_owner->Message(
+			Chat::White,
+			fmt::format(
+				"Setting {} | Spell: {} | State: {} | {}",
+				setting_number,
+				Saylink::Silent(fmt::format("^spellinfo {}", bs.first), spells[bs.first].name),
+				Saylink::Silent(
+					fmt::format("^spellsettingstoggle {} {}",
+					bs.first, bs.second.is_enabled ? "False" : "True"),
+					bs.second.is_enabled ? "Enabled" : "Disabled"
+				),
+				Saylink::Silent(fmt::format("^spellsettingsdelete {}", bs.first), "Remove")
+			).c_str()
+		);
+
+		setting_count++;
+		setting_number++;
+	}
+
+	bot_owner->Message(
+		Chat::White,
+		fmt::format(
+			"{} has {} spell setting{}.",
+			GetCleanName(),
+			setting_count,
+			setting_count != 1 ? "s" : ""
+		).c_str()
+	);
+}
+
+void Bot::LoadBotSpellSettings()
+{
+	bot_spell_settings.clear();
+
+	auto s = BotSpellSettingsRepository::GetWhere(content_db, fmt::format("bot_id = {}", GetBotID()));
+	if (s.empty()) {
+		return;
+	}
+
+	for (const auto& e : s) {
+		BotSpellSetting b;
+
+		b.priority = e.priority;
+		b.min_hp = e.min_hp;
+		b.max_hp = e.max_hp;
+		b.is_enabled = e.is_enabled;
+		bot_spell_settings[e.spell_id] = b;
+	}
+}
+
+bool Bot::UpdateBotSpellSetting(uint16 spell_id, BotSpellSetting* bs)
+{
+	if (!IsValidSpell(spell_id) || !bs) {
+		return false;
+	}
+
+	auto s = BotSpellSettingsRepository::NewEntity();
+
+	s.spell_id = spell_id;
+	s.bot_id = GetBotID();
+	s.priority = bs->priority;
+	s.min_hp = bs->min_hp;
+	s.max_hp = bs->max_hp;
+	s.is_enabled = bs->is_enabled;
+
+	auto obs = GetBotSpellSetting(spell_id);
+	if (!obs) {
+		return false;
+	}
+
+	if (!BotSpellSettingsRepository::UpdateSpellSetting(content_db, s)) {
+		return false;
+	}
+
+	LoadBotSpellSettings();
+	return true;
+}
+
+std::string Bot::GetHPString(int8 min_hp, int8 max_hp)
+{
+	std::string hp_string = "Any";
+	if (min_hp && max_hp) {
+		hp_string = fmt::format(
+			"{}%% to {}%%",
+			min_hp,
+			max_hp
+		);
+	} else if (min_hp && !max_hp) {
+		hp_string = fmt::format(
+			"{}%% to 100%%",
+			min_hp
+		);
+	} else if (!min_hp && max_hp) {
+		hp_string = fmt::format(
+			"1%% to {}%%",
+			max_hp
+		);
+	}
+
+	return hp_string;
+}
+
+void Bot::SetBotArcherySetting(bool bot_archer_setting, bool save) 
+{ 
+	m_bot_archery_setting = bot_archer_setting;
+	if (save) {
+		if (!database.botdb.SaveBotArcherSetting(GetBotID(), bot_archer_setting)) {
+			if (GetBotOwner() && GetBotOwner()->IsClient()) {
+				GetBotOwner()->CastToClient()->Message(
+					Chat::White,
+					fmt::format(
+						"Failed to save archery settings for {}.",
+						GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
 }
 
 uint8 Bot::spell_casting_chances[SPELL_TYPE_COUNT][PLAYER_CLASS_COUNT][EQ::constants::STANCE_TYPE_COUNT][cntHSND] = { 0 };

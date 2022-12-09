@@ -94,10 +94,15 @@ void QuestManager::Process() {
 					parse->EventNPC(EVENT_TIMER, cur->mob->CastToNPC(), nullptr, cur->name, 0);
 				} else if (cur->mob->IsEncounter()) {
 					parse->EventEncounter(EVENT_TIMER, cur->mob->CastToEncounter()->GetEncounterName(), cur->name, 0, nullptr);
-				} else {
+				} else if (cur->mob->IsClient()) {
 					//this is inheriently unsafe if we ever make it so more than npc/client start timers
 					parse->EventPlayer(EVENT_TIMER, cur->mob->CastToClient(), cur->name, 0);
 				}
+#ifdef BOTS
+				else if (cur->mob->IsBot()) {
+					parse->EventBot(EVENT_TIMER, cur->mob->CastToBot(), nullptr, cur->name, 0);
+				}
+#endif
 
 				//we MUST reset our iterator since the quest could have removed/added any
 				//number of timers... worst case we have to check a bunch of timers twice
@@ -199,17 +204,18 @@ void QuestManager::write(const char *file, const char *str) {
 	fclose (pFile);
 }
 
-Mob* QuestManager::spawn2(int npc_type, int grid, int unused, const glm::vec4& position) {
-	const NPCType* tmp = 0;
-	if (tmp = content_db.LoadNPCTypesData(npc_type))
-	{
-		auto npc = new NPC(tmp, nullptr, position, GravityBehavior::Water);
+Mob* QuestManager::spawn2(int npc_id, int grid, int unused, const glm::vec4& position) {
+	const NPCType* t = 0;
+	if (t = content_db.LoadNPCTypesData(npc_id)) {
+		auto npc = new NPC(t, nullptr, position, GravityBehavior::Water);
 		npc->AddLootTable();
-		if (npc->DropsGlobalLoot())
+		if (npc->DropsGlobalLoot()) {
 			npc->CheckGlobalLootTables();
-		entity_list.AddNPC(npc,true,true);
-		if(grid > 0)
-		{
+		}
+
+		entity_list.AddNPC(npc, true, true);
+
+		if (grid) {
 			npc->AssignWaypoints(grid);
 		}
 
@@ -863,12 +869,10 @@ void QuestManager::depop_withtimer(int npc_type) {
 }
 
 void QuestManager::depopall(int npc_type) {
-	QuestManagerCurrentQuestVars();
-	if(owner && owner->IsNPC() && (npc_type > 0)) {
+	if (npc_type) {
 		entity_list.DepopAll(npc_type);
-	}
-	else {
-		LogQuests("QuestManager::depopall called with nullptr owner, non-NPC owner, or invalid NPC Type ID. Probably syntax error in quest file");
+	} else {
+		LogQuests("QuestManager::depopall called with nullptr owner, non-NPC owner, or invalid NPC Type ID. Probably syntax error in quest file.");
 	}
 }
 
@@ -1815,23 +1819,46 @@ void QuestManager::respawn(int npcTypeID, int grid) {
 	}
 }
 
-void QuestManager::set_proximity(float minx, float maxx, float miny, float maxy, float minz, float maxz, bool bSay)
+void QuestManager::set_proximity_range(float x_range, float y_range, float z_range, bool enable_say)
 {
 	QuestManagerCurrentQuestVars();
 	if (!owner || !owner->IsNPC()) {
 		return;
 	}
 
-	entity_list.AddProximity(owner->CastToNPC());
+	auto n = owner->CastToNPC();
 
-	owner->CastToNPC()->proximity->min_x         = minx;
-	owner->CastToNPC()->proximity->max_x         = maxx;
-	owner->CastToNPC()->proximity->min_y         = miny;
-	owner->CastToNPC()->proximity->max_y         = maxy;
-	owner->CastToNPC()->proximity->min_z         = minz;
-	owner->CastToNPC()->proximity->max_z         = maxz;
-	owner->CastToNPC()->proximity->say           = bSay;
-	owner->CastToNPC()->proximity->proximity_set = true;
+	entity_list.AddProximity(n);
+
+	n->proximity->min_x         = n->GetX() - x_range;
+	n->proximity->max_x         = n->GetX() + x_range;
+	n->proximity->min_y         = n->GetY() - y_range;
+	n->proximity->max_y         = n->GetY() + y_range;
+	n->proximity->min_z         = n->GetZ() - z_range;
+	n->proximity->max_z         = n->GetZ() + z_range;
+	n->proximity->say           = enable_say;
+	n->proximity->proximity_set = true;
+}
+
+void QuestManager::set_proximity(float min_x, float max_x, float min_y, float max_y, float min_z, float max_z, bool enable_say)
+{
+	QuestManagerCurrentQuestVars();
+	if (!owner || !owner->IsNPC()) {
+		return;
+	}
+
+	auto n = owner->CastToNPC();
+
+	entity_list.AddProximity(n);
+
+	n->proximity->min_x         = min_x;
+	n->proximity->max_x         = max_x;
+	n->proximity->min_y         = min_y;
+	n->proximity->max_y         = max_y;
+	n->proximity->min_z         = min_z;
+	n->proximity->max_z         = max_z;
+	n->proximity->say           = enable_say;
+	n->proximity->proximity_set = true;
 }
 
 void QuestManager::clear_proximity() {
@@ -2212,11 +2239,21 @@ void QuestManager::popup(const char *title, const char *text, uint32 popupid, ui
 
 #ifdef BOTS
 
-int QuestManager::createbotcount() {
+int QuestManager::createbotcount(uint8 class_id) {
+	QuestManagerCurrentQuestVars();
+	if (initiator) {
+		return initiator->GetBotCreationLimit(class_id);
+	}
+
 	return RuleI(Bots, CreationLimit);
 }
 
-int QuestManager::spawnbotcount() {
+int QuestManager::spawnbotcount(uint8 class_id) {
+	QuestManagerCurrentQuestVars();
+	if (initiator) {
+		return initiator->GetBotSpawnLimit(class_id);
+	}
+
 	return RuleI(Bots, SpawnLimit);
 }
 
@@ -2228,49 +2265,167 @@ bool QuestManager::botquest()
 bool QuestManager::createBot(const char *name, const char *lastname, uint8 level, uint16 race, uint8 botclass, uint8 gender)
 {
 	QuestManagerCurrentQuestVars();
-	uint32 MaxBotCreate = RuleI(Bots, CreationLimit);
 
-	if (initiator)
-	{
-		if(Bot::SpawnedBotCount(initiator->CharacterID()) >= MaxBotCreate)
-		{
-			initiator->Message(Chat::Yellow,"You have the maximum number of bots allowed.");
+	if (initiator) {
+		auto bot_creation_limit = initiator->GetBotCreationLimit();
+		auto bot_creation_limit_class = initiator->GetBotCreationLimit(botclass);
+		auto bot_spawn_limit = initiator->GetBotSpawnLimit();
+		auto bot_spawn_limit_class = initiator->GetBotSpawnLimit(botclass);
+
+		uint32 bot_count = 0;
+		uint32 bot_class_count = 0;
+		if (!database.botdb.QueryBotCount(initiator->CharacterID(), botclass, bot_count, bot_class_count)) {
+			initiator->Message(Chat::White, "Failed to query bot count.");
+			return false;
+		}
+
+		if (bot_creation_limit >= 0 && bot_count >= bot_creation_limit) {
+			std::string message;
+
+			if (bot_creation_limit) {
+				message = fmt::format(
+					"You cannot create anymore than {} bot{}.",
+					bot_creation_limit,
+					bot_creation_limit != 1 ? "s" : ""
+				);
+			} else {
+				message = "You cannot create any bots.";
+			}
+
+			initiator->Message(Chat::White, message.c_str());
+			return false;
+		}
+
+		if (bot_creation_limit_class >= 0 && bot_class_count >= bot_creation_limit_class) {
+			std::string message;
+
+			if (bot_creation_limit_class) {
+				message = fmt::format(
+					"You cannot create anymore than {} {} bot{}.",
+					bot_creation_limit_class,
+					GetClassIDName(botclass),
+					bot_creation_limit_class != 1 ? "s" : ""
+				);
+			} else {
+				message = fmt::format(
+					"You cannot create any {} bots.",
+					GetClassIDName(botclass)
+				);
+			}
+
+			initiator->Message(Chat::White, message.c_str());
+			return false;
+		}
+
+		auto spawned_bot_count = Bot::SpawnedBotCount(initiator->CharacterID());
+
+		if (
+			bot_spawn_limit >= 0 &&
+			spawned_bot_count >= bot_spawn_limit &&
+			!initiator->GetGM()
+		) {
+			std::string message;
+			if (bot_spawn_limit) {
+				message = fmt::format(
+					"You cannot have more than {} spawned bot{}.",
+					bot_spawn_limit,
+					bot_spawn_limit != 1 ? "s" : ""
+				);
+			} else {
+				message = "You are not currently allowed to spawn any bots.";
+			}
+
+			initiator->Message(Chat::White, message.c_str());
+			return false;
+		}
+
+		auto spawned_bot_count_class = Bot::SpawnedBotCount(initiator->CharacterID(), botclass);
+
+		if (
+			bot_spawn_limit_class >= 0 &&
+			spawned_bot_count_class >= bot_spawn_limit_class &&
+			!initiator->GetGM()
+		) {
+			std::string message;
+			if (bot_spawn_limit_class) {
+				message = fmt::format(
+					"You cannot have more than {} spawned {} bot{}.",
+					bot_spawn_limit_class,
+					GetClassIDName(botclass),
+					bot_spawn_limit_class != 1 ? "s" : ""
+				);
+			} else {
+				message = fmt::format(
+					"You are not currently allowed to spawn any {} bots.",
+					GetClassIDName(botclass)
+				);
+			}
+
+			initiator->Message(Chat::White, message.c_str());
 			return false;
 		}
 
 		std::string test_name = name;
 		bool available_flag = false;
-		if(!database.botdb.QueryNameAvailablity(test_name, available_flag)) {
-			initiator->Message(Chat::White, "%s for '%s'", BotDatabase::fail::QueryNameAvailablity(), (char*)name);
+		if (!database.botdb.QueryNameAvailablity(test_name, available_flag)) {
+			initiator->Message(
+				Chat::White,
+				fmt::format(
+					"Failed to query name availability for '{}'.",
+					test_name
+				).c_str()
+			);
 			return false;
 		}
+
 		if (!available_flag) {
-			initiator->Message(Chat::White, "The name %s is already being used or is invalid. Please choose a different name.", (char*)name);
+			initiator->Message(
+				Chat::White,
+				fmt::format(
+					"The name {} is already being used or is invalid. Please choose a different name.",
+					test_name
+				).c_str()
+			);
 			return false;
 		}
 
-		Bot* NewBot = new Bot(Bot::CreateDefaultNPCTypeStructForBot(name, lastname, level, race, botclass, gender), initiator);
+		Bot* new_bot = new Bot(Bot::CreateDefaultNPCTypeStructForBot(name, lastname, level, race, botclass, gender), initiator);
 
-		if(NewBot)
-		{
-			if(!NewBot->IsValidRaceClassCombo()) {
+		if (new_bot) {
+			if (!new_bot->IsValidRaceClassCombo()) {
 				initiator->Message(Chat::White, "That Race/Class combination cannot be created.");
 				return false;
 			}
 
-			if(!NewBot->IsValidName()) {
-				initiator->Message(Chat::White, "%s has invalid characters. You can use only the A-Z, a-z and _ characters in a bot name.", NewBot->GetCleanName());
+			if (!new_bot->IsValidName()) {
+				initiator->Message(
+					Chat::White,
+					fmt::format(
+						"{} has invalid characters. You can use only the A-Z, a-z and _ characters in a bot name.",
+						new_bot->GetCleanName()
+					).c_str()
+				);
 				return false;
 			}
 
 			// Now that all validation is complete, we can save our newly created bot
-			if(!NewBot->Save())
-			{
-				initiator->Message(Chat::White, "Unable to save %s as a bot.", NewBot->GetCleanName());
-			}
-			else
-			{
-				initiator->Message(Chat::White, "%s saved as bot %u.", NewBot->GetCleanName(), NewBot->GetBotID());
+			if (!new_bot->Save()) {
+				initiator->Message(
+					Chat::White,
+					fmt::format(
+						"Unable to save {} as a bot.",
+						new_bot->GetCleanName()
+					).c_str()
+				);
+			} else {
+				initiator->Message(
+					Chat::White,
+					fmt::format(
+						"{} saved as bot ID {}.",
+						new_bot->GetCleanName(),
+						new_bot->GetBotID()
+					).c_str()
+				);
 				return true;
 			}
 		}
@@ -2480,6 +2635,24 @@ std::string QuestManager::gettaskname(uint32 task_id) {
 	return std::string();
 }
 
+int QuestManager::GetCurrentDzTaskID() {
+	QuestManagerCurrentQuestVars();
+
+	if (RuleB(TaskSystem, EnableTaskSystem) && zone && task_manager) {
+		return task_manager->GetCurrentDzTaskID();
+	}
+
+	return 0;
+}
+
+void QuestManager::EndCurrentDzTask(bool send_fail) {
+	QuestManagerCurrentQuestVars();
+
+	if (RuleB(TaskSystem, EnableTaskSystem) && zone && task_manager) {
+		task_manager->EndCurrentDzTask(send_fail);
+	}
+}
+
 void QuestManager::clearspawntimers() {
 	if (!zone) {
         return;
@@ -2501,22 +2674,29 @@ void QuestManager::we(int type, const char *str) {
 	);
 }
 
-void QuestManager::message(int color, const char *message) {
+void QuestManager::message(uint32 type, const char *message) {
 	QuestManagerCurrentQuestVars();
-	if (!initiator)
+	if (!initiator) {
 		return;
+	}
 
-	initiator->Message(color, message);
+	initiator->Message(type, message);
 }
 
 void QuestManager::whisper(const char *message) {
 	QuestManagerCurrentQuestVars();
-	if (!initiator || !owner)
+	if (!initiator || !owner) {
 		return;
+	}
 
-	std::string mob_name = owner->GetCleanName();
-	std::string new_message = fmt::format("{} whispers, '{}'", mob_name, message);
-	initiator->Message(Chat::EchoChat1, new_message.c_str());
+	initiator->Message(
+		Chat::EchoChat1,
+		fmt::format(
+			"{} whispers, '{}'",
+			owner->GetCleanName(),
+			message
+		).c_str()
+	);
 }
 
 int QuestManager::getlevel(uint8 type)
@@ -2579,14 +2759,11 @@ uint16 QuestManager::CreateGroundObjectFromModel(const char *model, const glm::v
 	return entid;
 }
 
-void QuestManager::ModifyNPCStat(const char *identifier, const char *newValue)
+void QuestManager::ModifyNPCStat(std::string stat, std::string value)
 {
 	QuestManagerCurrentQuestVars();
-	if(owner){
-		if(owner->IsNPC())
-		{
-			owner->CastToNPC()->ModifyNPCStat(identifier, newValue);
-		}
+	if (owner && owner->IsNPC()) {
+		owner->CastToNPC()->ModifyNPCStat(stat, value);
 	}
 }
 
@@ -2851,6 +3028,20 @@ uint16 QuestManager::GetInstanceID(const char *zone, int16 version)
 	return 0;
 }
 
+std::vector<uint16> QuestManager::GetInstanceIDs(std::string zone_name, uint32 character_id)
+{
+	if (!character_id) {
+		QuestManagerCurrentQuestVars();
+		if (initiator) {
+			return database.GetInstanceIDs(ZoneID(zone_name), initiator->CharacterID());
+		}
+
+		return { };
+	}
+
+	return database.GetInstanceIDs(ZoneID(zone_name), character_id);
+}
+
 uint16 QuestManager::GetInstanceIDByCharID(const char *zone, int16 version, uint32 char_id) {
 	return database.GetInstanceID(ZoneID(zone), char_id, version);
 }
@@ -2913,7 +3104,7 @@ void QuestManager::RemoveFromInstanceByCharID(uint16 instance_id, uint32 char_id
 }
 
 bool QuestManager::CheckInstanceByCharID(uint16 instance_id, uint32 char_id) {
-	return database.CharacterInInstanceGroup(instance_id, char_id);
+	return database.CheckInstanceByCharID(instance_id, char_id);
 }
 
 void QuestManager::RemoveAllFromInstance(uint16 instance_id)
@@ -2921,14 +3112,14 @@ void QuestManager::RemoveAllFromInstance(uint16 instance_id)
 	QuestManagerCurrentQuestVars();
 	if (initiator)
 	{
-		std::list<uint32> charid_list;
+		std::list<uint32> character_ids;
 
 		if (database.RemoveClientsFromInstance(instance_id))
 			initiator->Message(Chat::Say, "Removed all players from instance.");
 		else
 		{
-			database.GetCharactersInInstance(instance_id, charid_list);
-			initiator->Message(Chat::Say, "Failed to remove %i player(s) from instance.", charid_list.size()); // once the expedition system is in, this message it not relevant
+			database.GetCharactersInInstance(instance_id, character_ids);
+			initiator->Message(Chat::Say, "Failed to remove %i player(s) from instance.", character_ids.size()); // once the expedition system is in, this message it not relevant
 		}
 	}
 }
@@ -3245,6 +3436,17 @@ NPC *QuestManager::GetNPC() const {
 	return nullptr;
 }
 
+#ifdef BOTS
+Bot *QuestManager::GetBot() const {
+	if (!quests_running_.empty()) {
+		running_quest e = quests_running_.top();
+		return (e.owner && e.owner->IsBot()) ? e.owner->CastToBot() : nullptr;
+	}
+
+	return nullptr;
+}
+#endif
+
 Mob *QuestManager::GetOwner() const {
 	if(!quests_running_.empty()) {
 		running_quest e = quests_running_.top();
@@ -3370,10 +3572,6 @@ EQ::ItemInstance *QuestManager::CreateItem(uint32 item_id, int16 charges, uint32
 		return database.CreateItem(item_id, charges, augment_one, augment_two, augment_three, augment_four, augment_five, augment_six, attuned);
 	}
 	return nullptr;
-}
-
-std::string QuestManager::secondstotime(int duration) {
-	return Strings::SecondsToTime(duration);
 }
 
 std::string QuestManager::gethexcolorcode(std::string color_name) {
@@ -3503,12 +3701,12 @@ void QuestManager::CrossZoneSetEntityVariable(uint8 update_type, int update_iden
 	safe_delete(pack);
 }
 
-void QuestManager::CrossZoneSignal(uint8 update_type, int update_identifier, uint32 signal, const char* client_name) {
+void QuestManager::CrossZoneSignal(uint8 update_type, int update_identifier, int signal_id, const char* client_name) {
 	auto pack = new ServerPacket(ServerOP_CZSignal, sizeof(CZSignal_Struct));
 	CZSignal_Struct* CZS = (CZSignal_Struct*)pack->pBuffer;
 	CZS->update_type = update_type;
 	CZS->update_identifier = update_identifier;
-	CZS->signal = signal;
+	CZS->signal_id = signal_id;
 	strn0cpy(CZS->client_name, client_name, 64);
 	worldserver.SendPacket(pack);
 	safe_delete(pack);
@@ -3613,11 +3811,11 @@ void QuestManager::WorldWideSetEntityVariable(uint8 update_type, const char* var
 	safe_delete(pack);
 }
 
-void QuestManager::WorldWideSignal(uint8 update_type, uint32 signal, uint8 min_status, uint8 max_status) {
+void QuestManager::WorldWideSignal(uint8 update_type, int signal_id, uint8 min_status, uint8 max_status) {
 	auto pack = new ServerPacket(ServerOP_WWSignal, sizeof(WWSignal_Struct));
 	WWSignal_Struct* WWS = (WWSignal_Struct*)pack->pBuffer;
 	WWS->update_type = update_type;
-	WWS->signal = signal;
+	WWS->signal_id = signal_id;
 	WWS->min_status = min_status;
 	WWS->max_status = max_status;
 	worldserver.SendPacket(pack);
@@ -3708,4 +3906,24 @@ void QuestManager::LearnRecipe(uint32 recipe_id) {
 	}
 
 	initiator->LearnRecipe(recipe_id);
+}
+
+void QuestManager::marquee(uint32 type, std::string message, uint32 duration)
+{
+	QuestManagerCurrentQuestVars();
+	if (!initiator) {
+		return;
+	}
+
+	initiator->SendMarqueeMessage(type, message, duration);
+}
+
+void QuestManager::marquee(uint32 type, uint32 priority, uint32 fade_in, uint32 fade_out, uint32 duration, std::string message)
+{
+	QuestManagerCurrentQuestVars();
+	if (!initiator) {
+		return;
+	}
+
+	initiator->SendMarqueeMessage(type, priority, fade_in, fade_out, duration, message);
 }

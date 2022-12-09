@@ -217,6 +217,25 @@ namespace EQ
 			stanceBurnAE
 		};
 
+		enum BotSpellIDs : int {
+			Warrior = 3001,
+			Cleric,
+			Paladin,
+			Ranger,
+			Shadowknight,
+			Druid,
+			Monk,
+			Bard,
+			Rogue,
+			Shaman,
+			Necromancer,
+			Wizard,
+			Magician,
+			Enchanter,
+			Beastlord,
+			Berserker
+		};
+
 		enum GravityBehavior : int8 {
 			Ground,
 			Flying,
@@ -315,7 +334,25 @@ namespace EQ
 		enum WeatherTypes : uint8 {
 			None,
 			Raining,
-			Snowing	
+			Snowing
+		};
+
+		enum EmoteEventTypes : uint8 {
+			LeaveCombat,
+			EnterCombat,
+			OnDeath,
+			AfterDeath,
+			Hailed,
+			KilledPC,
+			KilledNPC,
+			OnSpawn,
+			OnDespawn
+		};
+
+		enum EmoteTypes : uint8 {
+			Emote,
+			Shout,
+			Proximity
 		};
 
 		const char *GetStanceName(StanceType stance_type);
@@ -353,6 +390,12 @@ namespace EQ
 
 		extern const std::map<uint8, std::string>& GetWeatherTypeMap();
 		std::string GetWeatherTypeName(uint8 weather_type);
+
+		extern const std::map<uint8, std::string>& GetEmoteEventTypeMap();
+		std::string GetEmoteEventTypeName(uint8 emote_event_type);
+
+		extern const std::map<uint8, std::string>& GetEmoteTypeMap();
+		std::string GetEmoteTypeName(uint8 emote_type);
 
 		const int STANCE_TYPE_FIRST = stancePassive;
 		const int STANCE_TYPE_LAST = stanceBurnAE;
@@ -524,7 +567,7 @@ enum ReloadWorld : uint8 {
 	ForceRepop
 };
 
-enum MerchantBucketComparison : uint8 {
+enum BucketComparison : uint8 {
 	BucketEqualTo = 0,
 	BucketNotEqualTo,
 	BucketGreaterThanOrEqualTo,
@@ -535,6 +578,19 @@ enum MerchantBucketComparison : uint8 {
 	BucketIsNotAny,
 	BucketIsBetween,
 	BucketIsNotBetween
+};
+
+enum class EntityFilterType {
+	All,
+	Bots,
+	Clients,
+	NPCs
+};
+
+enum class ApplySpellType {
+	Solo,
+	Group,
+	Raid
 };
 
 #endif /*COMMON_EMU_CONSTANTS_H*/

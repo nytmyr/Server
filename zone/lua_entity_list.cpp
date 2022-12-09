@@ -281,9 +281,9 @@ std::string Lua_EntityList::RemoveNumbers(const char *name) {
 	return self->RemoveNumbers(t_name);
 }
 
-void Lua_EntityList::SignalMobsByNPCID(uint32 npc_id, int signal) {
+void Lua_EntityList::SignalMobsByNPCID(uint32 npc_id, int signal_id) {
 	Lua_Safe_Call_Void();
-	self->SignalMobsByNPCID(npc_id, signal);
+	self->SignalMobsByNPCID(npc_id, signal_id);
 }
 
 uint32 Lua_EntityList::DeleteNPCCorpses() {
@@ -329,6 +329,11 @@ void Lua_EntityList::RemoveFromHateLists(Lua_Mob who, bool set_to_one) {
 void Lua_EntityList::MessageGroup(Lua_Mob who, bool skip_close, uint32 type, const char *message) {
 	Lua_Safe_Call_Void();
 	self->MessageGroup(who, skip_close, type, message);
+}
+
+Lua_Client Lua_EntityList::GetRandomClient() {
+	Lua_Safe_Call_Class(Lua_Client);
+	return self->GetRandomClient();
 }
 
 Lua_Client Lua_EntityList::GetRandomClient(float x, float y, float z, float distance) {
@@ -408,6 +413,20 @@ Lua_Bot_List Lua_EntityList::GetBotListByCharacterID(uint32 character_id) {
 	return ret;
 }
 
+Lua_Bot_List Lua_EntityList::GetBotListByCharacterID(uint32 character_id, uint8 class_id) {
+	Lua_Safe_Call_Class(Lua_Bot_List);
+	Lua_Bot_List ret;
+	auto bot_list = self->GetBotListByCharacterID(character_id, class_id);
+
+	if (bot_list.size()) {
+		for (auto bot : bot_list) {
+			ret.entries.push_back(Lua_Bot(bot));
+		}
+	}
+
+	return ret;
+}
+
 Lua_Bot_List Lua_EntityList::GetBotListByClientName(std::string client_name) {
 	Lua_Safe_Call_Class(Lua_Bot_List);
 	Lua_Bot_List ret;
@@ -420,6 +439,35 @@ Lua_Bot_List Lua_EntityList::GetBotListByClientName(std::string client_name) {
 	}
 
 	return ret;
+}
+
+Lua_Bot_List Lua_EntityList::GetBotListByClientName(std::string client_name, uint8 class_id) {
+	Lua_Safe_Call_Class(Lua_Bot_List);
+	Lua_Bot_List ret;
+	auto bot_list = self->GetBotListByClientName(client_name, class_id);
+
+	if (bot_list.size()) {
+		for (auto bot : bot_list) {
+			ret.entries.push_back(Lua_Bot(bot));
+		}
+	}
+
+	return ret;
+}
+
+void Lua_EntityList::SignalAllBotsByOwnerCharacterID(uint32 character_id, int signal_id) {
+	Lua_Safe_Call_Void();
+	self->SignalAllBotsByOwnerCharacterID(character_id, signal_id);
+}
+
+void Lua_EntityList::SignalBotByBotID(uint32 bot_id, int signal_id) {
+	Lua_Safe_Call_Void();
+	self->SignalBotByBotID(bot_id, signal_id);
+}
+
+void Lua_EntityList::SignalBotByBotName(std::string bot_name, int signal_id) {
+	Lua_Safe_Call_Void();
+	self->SignalBotByBotName(bot_name, signal_id);
 }
 #endif
 
@@ -510,14 +558,19 @@ Lua_Spawn_List Lua_EntityList::GetSpawnList() {
 	return ret;
 }
 
-void Lua_EntityList::SignalAllClients(int signal) {
+void Lua_EntityList::SignalAllClients(int signal_id) {
 	Lua_Safe_Call_Void();
-	self->SignalAllClients(signal);
+	self->SignalAllClients(signal_id);
 }
 
 void Lua_EntityList::ChannelMessage(Lua_Mob from, int channel_num, int language, const char *message) {
 	Lua_Safe_Call_Void();
 	self->ChannelMessage(from, channel_num, language, message);
+}
+
+Lua_Mob Lua_EntityList::GetRandomMob() {
+	Lua_Safe_Call_Class(Lua_Mob);
+	return self->GetRandomMob();
 }
 
 Lua_Mob Lua_EntityList::GetRandomMob(float x, float y, float z, float distance) {
@@ -530,6 +583,11 @@ Lua_Mob Lua_EntityList::GetRandomMob(float x, float y, float z, float distance, 
 	return self->GetRandomMob(glm::vec3(x, y, z), distance, exclude_mob);
 }
 
+Lua_NPC Lua_EntityList::GetRandomNPC() {
+	Lua_Safe_Call_Class(Lua_NPC);
+	return self->GetRandomNPC();
+}
+
 Lua_NPC Lua_EntityList::GetRandomNPC(float x, float y, float z, float distance) {
 	Lua_Safe_Call_Class(Lua_NPC);
 	return self->GetRandomNPC(glm::vec3(x, y, z), distance);
@@ -539,6 +597,38 @@ Lua_NPC Lua_EntityList::GetRandomNPC(float x, float y, float z, float distance, 
 	Lua_Safe_Call_Class(Lua_NPC);
 	return self->GetRandomNPC(glm::vec3(x, y, z), distance, exclude_npc);
 }
+
+void Lua_EntityList::Marquee(uint32 type, std::string message) {
+	Lua_Safe_Call_Void();
+	self->Marquee(type, message);
+}
+
+void Lua_EntityList::Marquee(uint32 type, std::string message, uint32 duration) {
+	Lua_Safe_Call_Void();
+	self->Marquee(type, message, duration);
+}
+
+void Lua_EntityList::Marquee(uint32 type, uint32 priority, uint32 fade_in, uint32 fade_out, uint32 duration, std::string message) {
+	Lua_Safe_Call_Void();
+	self->Marquee(type, priority, fade_in, fade_out, duration, message);
+}
+
+#ifdef BOTS
+Lua_Bot Lua_EntityList::GetRandomBot() {
+	Lua_Safe_Call_Class(Lua_Bot);
+	return self->GetRandomBot();
+}
+
+Lua_Bot Lua_EntityList::GetRandomBot(float x, float y, float z, float distance) {
+	Lua_Safe_Call_Class(Lua_Bot);
+	return self->GetRandomBot(glm::vec3(x, y, z), distance);
+}
+
+Lua_Bot Lua_EntityList::GetRandomBot(float x, float y, float z, float distance, Lua_Bot exclude_bot) {
+	Lua_Safe_Call_Class(Lua_Bot);
+	return self->GetRandomBot(glm::vec3(x, y, z), distance, exclude_bot);
+}
+#endif
 
 luabind::scope lua_register_entity_list() {
 	return luabind::class_<Lua_EntityList>("EntityList")
@@ -560,7 +650,9 @@ luabind::scope lua_register_entity_list() {
 	.def("GetBotByName", (Lua_Bot(Lua_EntityList::*)(std::string))&Lua_EntityList::GetBotByName)
 	.def("GetBotList", (Lua_Bot_List(Lua_EntityList::*)(void))&Lua_EntityList::GetBotList)
 	.def("GetBotListByCharacterID", (Lua_Bot_List(Lua_EntityList::*)(uint32))&Lua_EntityList::GetBotListByCharacterID)
+	.def("GetBotListByCharacterID", (Lua_Bot_List(Lua_EntityList::*)(uint32,uint8))&Lua_EntityList::GetBotListByCharacterID)
 	.def("GetBotListByClientName", (Lua_Bot_List(Lua_EntityList::*)(std::string))&Lua_EntityList::GetBotListByClientName)
+	.def("GetBotListByClientName", (Lua_Bot_List(Lua_EntityList::*)(std::string,uint8))&Lua_EntityList::GetBotListByClientName)
 #endif
 	.def("GetClientByAccID", (Lua_Client(Lua_EntityList::*)(uint32))&Lua_EntityList::GetClientByAccID)
 	.def("GetClientByCharID", (Lua_Client(Lua_EntityList::*)(uint32))&Lua_EntityList::GetClientByCharID)
@@ -594,10 +686,18 @@ luabind::scope lua_register_entity_list() {
 	.def("GetObjectList", (Lua_Object_List(Lua_EntityList::*)(void))&Lua_EntityList::GetObjectList)
 	.def("GetRaidByClient", (Lua_Raid(Lua_EntityList::*)(Lua_Client))&Lua_EntityList::GetRaidByClient)
 	.def("GetRaidByID", (Lua_Raid(Lua_EntityList::*)(int))&Lua_EntityList::GetRaidByID)
-	.def("GetRandomClient", (Lua_Client(Lua_EntityList::*)(float, float, float, float))&Lua_EntityList::GetRandomClient)
-	.def("GetRandomClient", (Lua_Client(Lua_EntityList::*)(float, float, float, float, Lua_Client))&Lua_EntityList::GetRandomClient)
+#ifdef BOTS
+	.def("GetRandomBot", (Lua_Bot(Lua_EntityList::*)(void))&Lua_EntityList::GetRandomBot)
+	.def("GetRandomBot", (Lua_Bot(Lua_EntityList::*)(float,float,float,float))&Lua_EntityList::GetRandomBot)
+	.def("GetRandomBot", (Lua_Bot(Lua_EntityList::*)(float,float,float,float,Lua_Bot))&Lua_EntityList::GetRandomBot)
+#endif
+	.def("GetRandomClient", (Lua_Client(Lua_EntityList::*)(void))&Lua_EntityList::GetRandomClient)
+	.def("GetRandomClient", (Lua_Client(Lua_EntityList::*)(float,float,float,float))&Lua_EntityList::GetRandomClient)
+	.def("GetRandomClient", (Lua_Client(Lua_EntityList::*)(float,float,float,float,Lua_Client))&Lua_EntityList::GetRandomClient)
+	.def("GetRandomMob", (Lua_Mob(Lua_EntityList::*)(void))&Lua_EntityList::GetRandomMob)
 	.def("GetRandomMob", (Lua_Mob(Lua_EntityList::*)(float,float,float,float))&Lua_EntityList::GetRandomMob)
 	.def("GetRandomMob", (Lua_Mob(Lua_EntityList::*)(float,float,float,float,Lua_Mob))&Lua_EntityList::GetRandomMob)
+	.def("GetRandomNPC", (Lua_NPC(Lua_EntityList::*)(void))&Lua_EntityList::GetRandomNPC)
 	.def("GetRandomNPC", (Lua_NPC(Lua_EntityList::*)(float,float,float,float))&Lua_EntityList::GetRandomNPC)
 	.def("GetRandomNPC", (Lua_NPC(Lua_EntityList::*)(float,float,float,float,Lua_NPC))&Lua_EntityList::GetRandomNPC)
 	.def("GetShuffledClientList", (Lua_Client_List(Lua_EntityList::*)(void))&Lua_EntityList::GetShuffledClientList)
@@ -606,6 +706,9 @@ luabind::scope lua_register_entity_list() {
 	.def("HalveAggro", (void(Lua_EntityList::*)(Lua_Mob))&Lua_EntityList::HalveAggro)
 	.def("IsMobSpawnedByNpcTypeID", (bool(Lua_EntityList::*)(int))&Lua_EntityList::IsMobSpawnedByNpcTypeID)
 	.def("MakeNameUnique", (std::string(Lua_EntityList::*)(const char*))&Lua_EntityList::MakeNameUnique)
+	.def("Marquee", (void(Lua_EntityList::*)(uint32, std::string))&Lua_EntityList::Marquee)
+	.def("Marquee", (void(Lua_EntityList::*)(uint32, std::string, uint32))&Lua_EntityList::Marquee)
+	.def("Marquee", (void(Lua_EntityList::*)(uint32, uint32, uint32, uint32, uint32, std::string))&Lua_EntityList::Marquee)
 	.def("Message", (void(Lua_EntityList::*)(uint32, uint32, const char*))&Lua_EntityList::Message)
 	.def("MessageClose", (void(Lua_EntityList::*)(Lua_Mob, bool, float, uint32, const char*))&Lua_EntityList::MessageClose)
 	.def("MessageGroup", (void(Lua_EntityList::*)(Lua_Mob, bool, uint32, const char*))&Lua_EntityList::MessageGroup)
@@ -617,7 +720,14 @@ luabind::scope lua_register_entity_list() {
 	.def("RemoveFromTargets", (void(Lua_EntityList::*)(Lua_Mob, bool))&Lua_EntityList::RemoveFromTargets)
 	.def("RemoveNumbers", (std::string(Lua_EntityList::*)(const char*))&Lua_EntityList::RemoveNumbers)
 	.def("ReplaceWithTarget", (void(Lua_EntityList::*)(Lua_Mob, Lua_Mob))&Lua_EntityList::ReplaceWithTarget)
+#ifdef BOTS
+	.def("SignalAllBotsByOwnerCharacterID", (void(Lua_EntityList::*)(uint32, int))&Lua_EntityList::SignalAllBotsByOwnerCharacterID)
+#endif
 	.def("SignalAllClients", (void(Lua_EntityList::*)(int))&Lua_EntityList::SignalAllClients)
+#ifdef BOTS
+	.def("SignalBotByBotID", (void(Lua_EntityList::*)(uint32, int))&Lua_EntityList::SignalBotByBotID)
+	.def("SignalBotByBotName", (void(Lua_EntityList::*)(std::string, int))&Lua_EntityList::SignalBotByBotName)
+#endif
 	.def("SignalMobsByNPCID", (void(Lua_EntityList::*)(uint32, int))&Lua_EntityList::SignalMobsByNPCID);
 }
 

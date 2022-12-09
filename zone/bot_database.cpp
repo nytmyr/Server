@@ -18,10 +18,14 @@
 
 #ifdef BOTS
 
+#include "../common/data_verification.h"
 #include "../common/global_define.h"
 #include "../common/rulesys.h"
 #include "../common/strings.h"
 #include "../common/eqemu_logsys.h"
+
+#include "../common/repositories/bot_data_repository.h"
+#include "../common/repositories/bot_inventories_repository.h"
 
 #include "zonedb.h"
 #include "../common/zone_store.h"
@@ -188,38 +192,46 @@ bool BotDatabase::QueryNameAvailablity(const std::string& bot_name, bool& availa
 	return true;
 }
 
-bool BotDatabase::QueryBotCount(const uint32 owner_id, uint32& bot_count)
+bool BotDatabase::QueryBotCount(const uint32 owner_id, int class_id, uint32& bot_count, uint32& bot_class_count)
 {
-	if (!owner_id)
+	if (!owner_id) {
 		return false;
+	}
 
-	query = StringFormat("SELECT COUNT(`bot_id`) FROM `bot_data` WHERE `owner_id` = '%i'", owner_id);
+	query = fmt::format(
+		"SELECT COUNT(`bot_id`) FROM `bot_data` WHERE `owner_id` = {}",
+		owner_id
+	);
 	auto results = database.QueryDatabase(query);
-	if (!results.Success())
+	if (!results.Success()) {
 		return false;
-	if (!results.RowCount())
+	}
+
+	if (!results.RowCount()) {
 		return true;
+	}
 
 	auto row = results.begin();
-	bot_count = atoi(row[0]);
+	bot_count = std::stoul(row[0]);
 
-	return true;
-}
+	if (EQ::ValueWithin(class_id, WARRIOR, BERSERKER)) {
+		query = fmt::format(
+			"SELECT COUNT(`bot_id`) FROM `bot_data` WHERE `owner_id` = {} AND `class` = {}",
+			owner_id,
+			class_id
+		);
+		auto results = database.QueryDatabase(query);
+		if (!results.Success()) {
+			return false;
+		}
 
-bool BotDatabase::LoadQuestableSpawnCount(const uint32 owner_id, int& spawn_count)
-{
-	if (!owner_id)
-		return false;
+		if (!results.RowCount()) {
+			return true;
+		}
 
-	query = StringFormat("SELECT `value` FROM `quest_globals` WHERE `name` = 'bot_spawn_limit' AND `charid` = '%i' LIMIT 1", owner_id);
-	auto results = database.QueryDatabase(query); // use 'database' for non-bot table calls
-	if (!results.Success())
-		return false;
-	if (!results.RowCount())
-		return true;
-
-	auto row = results.begin();
-	spawn_count = atoi(row[0]);
+		auto row = results.begin();
+		bot_class_count = std::stoul(row[0]);
+	}
 
 	return true;
 }
@@ -309,372 +321,216 @@ bool BotDatabase::LoadOwnerID(const uint32 bot_id, uint32& owner_id)
 
 bool BotDatabase::LoadBotID(const uint32 owner_id, const std::string& bot_name, uint32& bot_id)
 {
-	if (!owner_id || bot_name.empty())
+	if (!owner_id || bot_name.empty()) {
 		return false;
+	}
 
-	query = StringFormat(
-		"SELECT `bot_id` FROM `bot_data` WHERE `owner_id` = '%u' AND `name` = '%s' LIMIT 1",
-		owner_id, bot_name.c_str()
+	query = fmt::format(
+		"SELECT `bot_id` FROM `bot_data` WHERE `owner_id` = {} AND `name` = '{}' LIMIT 1",
+		owner_id,
+		bot_name
 	);
+
 	auto results = database.QueryDatabase(query);
-	if (!results.Success())
+	if (!results.Success()) {
 		return false;
-	if (!results.RowCount())
+	}
+
+	if (!results.RowCount()) {
 		return true;
+	}
 
 	auto row = results.begin();
-	bot_id = atoi(row[0]);
+	bot_id = std::stoul(row[0]);
+
+	return true;
+}
+
+bool BotDatabase::LoadBotID(const uint32 owner_id, const std::string& bot_name, uint32& bot_id, uint8& bot_class_id)
+{
+	if (!owner_id || bot_name.empty()) {
+		return false;
+	}
+
+	query = fmt::format(
+		"SELECT `bot_id`, `class` FROM `bot_data` WHERE `owner_id` = {} AND `name` = '{}' LIMIT 1",
+		owner_id,
+		bot_name
+	);
+
+	auto results = database.QueryDatabase(query);
+	if (!results.Success()) {
+		return false;
+	}
+
+	if (!results.RowCount()) {
+		return true;
+	}
+
+	auto row = results.begin();
+	bot_id = std::stoul(row[0]);
+	bot_class_id = static_cast<uint8>(std::stoul(row[1]));
 
 	return true;
 }
 
 bool BotDatabase::LoadBot(const uint32 bot_id, Bot*& loaded_bot)
 {
-	if (!bot_id || loaded_bot)
+	if (!bot_id || loaded_bot) {
 		return false;
+	}
 
-	query = StringFormat(
-		"SELECT"
-		" `owner_id`,"
-		" `spells_id`,"
-		" `name`,"
-		" `last_name`,"
-		" `title`,"
-		" `suffix`,"
-		" `zone_id`,"
-		" `gender`,"
-		" `race`,"
-		" `class`,"
-		" `level`,"
-		" `deity`,"						/* planned use[11] */
-		" `creation_day`,"				/* not in-use[12] */
-		" `last_spawn`,"				/* not in-use[13] */
-		" `time_spawned`,"
-		" `size`,"
-		" `face`,"
-		" `hair_color`,"
-		" `hair_style`,"
-		" `beard`,"
-		" `beard_color`,"
-		" `eye_color_1`,"
-		" `eye_color_2`,"
-		" `drakkin_heritage`,"
-		" `drakkin_tattoo`,"
-		" `drakkin_details`,"
-		" `ac`,"						/* not in-use[26] */
-		" `atk`,"						/* not in-use[27] */
-		" `hp`,"
-		" `mana`,"
-		" `str`,"						/* not in-use[30] */
-		" `sta`,"						/* not in-use[31] */
-		" `cha`,"						/* not in-use[32] */
-		" `dex`,"						/* not in-use[33] */
-		" `int`,"						/* not in-use[34] */
-		" `agi`,"						/* not in-use[35] */
-		" `wis`,"						/* not in-use[36] */
-		" `fire`,"						/* not in-use[37] */
-		" `cold`,"						/* not in-use[38] */
-		" `magic`,"						/* not in-use[39] */
-		" `poison`,"					/* not in-use[40] */
-		" `disease`,"					/* not in-use[41] */
-		" `corruption`,"				/* not in-use[42] */
-		" `show_helm`,"					// 43
-		" `follow_distance`,"			// 44
-		" `stop_melee_level`,"			// 45
-		" `hold_buffs`,"				// 46
-		" `hold_cures`,"				// 47
-		" `hold_dots`,"					// 48
-		" `hold_debuffs`,"				// 49
-		" `hold_dispels`,"				// 50
-		" `hold_escapes`,"				// 51
-		" `hold_hateredux`,"			// 52
-		" `hold_heals`,"				// 53
-		" `hold_incombatbuffs`,"		// 54
-		" `hold_incombatbuffsongs`,"	// 55
-		" `hold_lifetaps`,"				// 56
-		" `hold_mez`,"					// 57
-		" `hold_nukes`,"				// 58
-		" `hold_outofcombatbuffsongs`," // 59
-		" `hold_pet_heals`,"			// 60
-		" `hold_pets`,"					// 61
-		" `hold_precombatbuffs`,"		// 62
-		" `hold_precombatbuffsongs`,"	// 63
-		" `hold_roots`,"				// 64
-		" `hold_slows`,"				// 65
-		" `hold_snares`,"				// 66
-		" `auto_ds`,"					// 67
-		" `auto_resist`,"				// 68
-		" `behind_mob`,"				// 69
-		" `caster_range`,"				// 70
-		" `buff_delay`,"				// 71
-		" `complete_heal_delay`,"		// 72
-		" `cure_delay`,"				// 73
-		" `debuff_delay`,"				// 74
-		" `dispel_delay`,"				// 75
-		" `dot_delay`,"					// 76
-		" `escape_delay`,"				// 77
-		" `fast_heal_delay`,"			// 78
-		" `hate_redux_delay`,"			// 79
-		" `heal_delay`,"				// 80
-		" `hot_heal_delay`,"			// 81
-		" `incombatbuff_delay`,"		// 82
-		" `lifetap_delay`,"				// 83
-		" `mez_delay`,"					// 84
-		" `nuke_delay`,"				// 85
-		" `root_delay`,"				// 86
-		" `slow_delay`,"				// 87
-		" `snare_delay`,"				// 88
-		" `buff_threshold`,"			// 89
-		" `complete_heal_threshold`,"	// 90
-		" `cure_threshold`,"			// 91
-		" `debuff_threshold`,"			// 92
-		" `dispel_threshold`,"			// 93
-		" `dot_threshold`,"				// 94
-		" `escape_threshold`,"			// 95
-		" `fast_heal_threshold`,"		// 96
-		" `hate_redux_threshold`,"		// 97
-		" `heal_threshold`,"			// 98
-		" `hot_heal_threshold`,"		// 99
-		" `incombatbuff_threshold`,"	// 100
-		" `lifetap_threshold`,"			// 101
-		" `mez_threshold`,"				// 102
-		" `nuke_threshold`,"			// 103
-		" `root_threshold`,"			// 104
-		" `slow_threshold`,"			// 105
-		" `snare_threshold`,"			// 106
-		" `buff_min_threshold`,"		// 107
-		" `cure_min_threshold`,"		// 108
-		" `debuff_min_threshold`,"		// 109
-		" `dispel_min_threshold`,"		// 110
-		" `dot_min_threshold`,"			// 111
-		" `escape_min_threshold`,"		// 112
-		" `hate_redux_min_threshold`,"	// 113
-		" `incombatbuff_min_threshold`,"// 114
-		" `lifetap_min_threshold`,"		// 115
-		" `mez_min_threshold`,"			// 116
-		" `nuke_min_threshold`,"		// 117
-		" `root_min_threshold`,"		// 118
-		" `slow_min_threshold`,"		// 119
-		" `snare_min_threshold`"		// 120
-		" FROM `bot_data`"
-		" WHERE `bot_id` = '%u'"
-		" LIMIT 1",
-		bot_id
+	const auto& l = BotDataRepository::FindOne(database, bot_id);
+	if (!l.bot_id) {
+		return false;
+	}
+
+	auto d = Bot::CreateDefaultNPCTypeStructForBot(
+		l.name,
+		l.last_name,
+		l.level,
+		l.race,
+		l.class_,
+		l.gender
 	);
 
-	auto results = database.QueryDatabase(query);
-	if (!results.Success())
-		return false;
-	if (!results.RowCount())
-		return true;
-
-	// TODO: Consider removing resists and basic attributes from the load query above since we're using defaultNPCType values instead
-	auto row = results.begin();
-	auto defaultNPCTypeStruct = Bot::CreateDefaultNPCTypeStructForBot(std::string(row[2]), std::string(row[3]), atoi(row[10]), atoi(row[8]), atoi(row[9]), atoi(row[7]));
-	auto tempNPCStruct = Bot::FillNPCTypeStruct(
-		atoi(row[1]),
-		std::string(row[2]),
-		std::string(row[3]),
-		atoi(row[10]),
-		atoi(row[8]),
-		atoi(row[9]),
-		atoi(row[7]),
-		atof(row[15]),
-		atoi(row[16]),
-		atoi(row[18]),
-		atoi(row[17]),
-		atoi(row[21]),
-		atoi(row[22]),
-		atoi(row[20]),
-		atoi(row[19]),
-		atoi(row[23]),
-		atoi(row[24]),
-		atoi(row[25]),
-		atoi(row[28]),
-		atoi(row[29]),
-		defaultNPCTypeStruct->MR,
-		defaultNPCTypeStruct->CR,
-		defaultNPCTypeStruct->DR,
-		defaultNPCTypeStruct->FR,
-		defaultNPCTypeStruct->PR,
-		defaultNPCTypeStruct->Corrup,
-		defaultNPCTypeStruct->AC,
-		defaultNPCTypeStruct->STR,
-		defaultNPCTypeStruct->STA,
-		defaultNPCTypeStruct->DEX,
-		defaultNPCTypeStruct->AGI,
-		defaultNPCTypeStruct->INT,
-		defaultNPCTypeStruct->WIS,
-		defaultNPCTypeStruct->CHA,
-		defaultNPCTypeStruct->ATK
+	auto t = Bot::FillNPCTypeStruct(
+		l.spells_id,
+		l.name,
+		l.last_name,
+		l.level,
+		l.race,
+		l.class_,
+		l.gender,
+		l.size,
+		l.face,
+		l.hair_style,
+		l.hair_color,
+		l.eye_color_1,
+		l.eye_color_2,
+		l.beard,
+		l.beard_color,
+		l.drakkin_heritage,
+		l.drakkin_tattoo,
+		l.drakkin_details,
+		l.hp,
+		l.mana,
+		d->MR,
+		d->CR,
+		d->DR,
+		d->FR,
+		d->PR,
+		d->Corrup,
+		d->AC,
+		d->STR,
+		d->STA,
+		d->DEX,
+		d->AGI,
+		d->INT,
+		d->WIS,
+		d->CHA,
+		d->ATK
 	);
 
-	safe_delete(defaultNPCTypeStruct);
+	safe_delete(d);
 
-	loaded_bot = new Bot(bot_id, atoi(row[0]), atoi(row[1]), atof(row[14]), atoi(row[6]), tempNPCStruct);
+	loaded_bot = new Bot(
+		bot_id,
+		l.owner_id,
+		l.spells_id,
+		l.time_spawned,
+		l.zone_id,
+		t
+	);
+
 	if (loaded_bot) {
-		loaded_bot->SetShowHelm((atoi(row[43]) > 0 ? true : false));
-		loaded_bot->SetSurname(row[3]);//maintaining outside mob::lastname to cater to spaces
-		loaded_bot->SetTitle(row[4]);
-		loaded_bot->SetSuffix(row[5]);
-		uint32 bfd = atoi(row[44]);
-		if (bfd < 1)
-			bfd = 1;
-		if (bfd > BOT_FOLLOW_DISTANCE_DEFAULT_MAX)
-			bfd = BOT_FOLLOW_DISTANCE_DEFAULT_MAX;
-		loaded_bot->SetFollowDistance(bfd);
+		loaded_bot->SetSurname(l.last_name);
+		loaded_bot->SetTitle(l.title);
+		loaded_bot->SetSuffix(l.suffix);
 
-		uint8 sml = atoi(row[45]);
+		loaded_bot->SetShowHelm((l.show_helm ? true : false));
+
+		auto bfd = EQ::Clamp(l.follow_distance, static_cast<uint32>(1), BOT_FOLLOW_DISTANCE_DEFAULT_MAX);
+		loaded_bot->SetFollowDistance(bfd);
+		loaded_bot->SetStopMeleeLevel(l.stop_melee_level);
+		loaded_bot->SetExpansionBitmask(l.expansion_bitmask, false);
+		loaded_bot->SetBotEnforceSpellSetting((l.enforce_spell_settings ? true : false));
+		loaded_bot->SetBotArcherySetting((l.archery_setting ? true : false));
 		loaded_bot->SetStopMeleeLevel(sml);
-		uint8 hbuffs = atoi(row[46]);
 		loaded_bot->SetHoldBuffs(hbuffs);
-		uint8 hcures = atoi(row[47]);
 		loaded_bot->SetHoldCures(hcures);
-		uint8 hdots = atoi(row[48]);
 		loaded_bot->SetHoldDoTs(hdots);
-		uint8 hdebuffs = atoi(row[49]);
 		loaded_bot->SetHoldDebuffs(hdebuffs);
-		uint8 hdispels = atoi(row[50]);
 		loaded_bot->SetHoldDispels(hdispels);
-		uint8 hescapes = atoi(row[51]);
 		loaded_bot->SetHoldEscapes(hescapes);
-		uint8 hhateredux = atoi(row[52]);
 		loaded_bot->SetHoldHateRedux(hhateredux);
-		uint8 hheals = atoi(row[53]);
 		loaded_bot->SetHoldHeals(hheals);
-		uint8 hicb = atoi(row[54]);
 		loaded_bot->SetHoldInCombatBuffs(hicb);
-		uint8 hicbs = atoi(row[55]);
 		loaded_bot->SetHoldInCombatBuffSongs(hicbs);
-		uint8 hlifetaps = atoi(row[56]);
 		loaded_bot->SetHoldLifetaps(hlifetaps);
-		uint8 hmez = atoi(row[57]);
 		loaded_bot->SetHoldMez(hmez);
-		uint8 hn = atoi(row[58]);
 		loaded_bot->SetHoldNukes(hn);
-		uint8 oocbs = atoi(row[59]);
 		loaded_bot->SetHoldOutOfCombatBuffSongs(oocbs);
-		uint8 hpetheals = atoi(row[60]);
 		loaded_bot->SetHoldPets(hpetheals);
-		uint8 hpet = atoi(row[61]);
 		loaded_bot->SetHoldPets(hpet);
-		uint8 hpcb = atoi(row[62]);
 		loaded_bot->SetHoldPreCombatBuffs(hpcb);
-		uint8 hpcbs = atoi(row[63]);
 		loaded_bot->SetHoldPreCombatBuffSongs(hpcbs);
-		uint8 hroots = atoi(row[64]);
 		loaded_bot->SetHoldRoots(hroots);
-		uint8 hslows = atoi(row[65]);
 		loaded_bot->SetHoldSlows(hslows);
-		uint8 hsnares = atoi(row[66]);
 		loaded_bot->SetHoldSnares(hsnares);
-		uint8 ad = atoi(row[67]);
 		loaded_bot->SetAutoDS(ad);
-		uint8 ar = atoi(row[68]);
 		loaded_bot->SetAutoResist(ar);
-		uint8 behindmob = atoi(row[69]);
 		loaded_bot->SetBehindMob(behindmob);
-		uint32 botcasterrange = atoi(row[70]);
 		loaded_bot->SetBotCasterRange(botcasterrange);
-		uint32 buffdelay = atoi(row[71]);
 		loaded_bot->SetBuffDelay(buffdelay);
-		uint32 chealdelay = atoi(row[72]);
 		loaded_bot->SetCompleteHealDelay(chealdelay);
-		uint32 curedelay = atoi(row[73]);
 		loaded_bot->SetCureDelay(curedelay);
-		uint32 debuffdelay = atoi(row[74]);
 		loaded_bot->SetDebuffDelay(debuffdelay);
-		uint32 dispeldelay = atoi(row[75]);
 		loaded_bot->SetDispelDelay(dispeldelay);
-		uint32 dotdelay = atoi(row[76]);
 		loaded_bot->SetDotDelay(dotdelay);
-		uint32 escapedelay = atoi(row[77]);
 		loaded_bot->SetEscapeDelay(escapedelay);
-		uint32 fhealdelay = atoi(row[78]);
 		loaded_bot->SetFastHealDelay(fhealdelay);
-		uint32 hatereduxdelay = atoi(row[79]);
 		loaded_bot->SetHateReduxDelay(hatereduxdelay);
-		uint32 healdelay = atoi(row[80]);
 		loaded_bot->SetHealDelay(healdelay);
-		uint32 hothealdelay = atoi(row[81]);
 		loaded_bot->SetHotHealDelay(hothealdelay);
-		uint32 incombatbuffdelay = atoi(row[82]);
 		loaded_bot->SetInCombatBuffDelay(incombatbuffdelay);
-		uint32 lifetapdelay = atoi(row[83]);
 		loaded_bot->SetLifetapDelay(lifetapdelay);
-		uint32 mezdelay = atoi(row[84]);
 		loaded_bot->SetMezDelay(mezdelay);
-		uint32 nukedelay = atoi(row[85]);
 		loaded_bot->SetNukeDelay(nukedelay);
-		uint32 rootdelay = atoi(row[86]);
 		loaded_bot->SetRootDelay(rootdelay);
-		uint32 slowdelay = atoi(row[87]);
 		loaded_bot->SetSlowDelay(slowdelay);
-		uint32 snaredelay = atoi(row[88]);
 		loaded_bot->SetSnareDelay(snaredelay);
-		uint8 buffthreshold = atoi(row[89]);
 		loaded_bot->SetBuffThreshold(buffthreshold);
-		uint8 chealthreshold = atoi(row[90]);
 		loaded_bot->SetCompleteHealThreshold(chealthreshold);
-		uint8 curethreshold = atoi(row[91]);
 		loaded_bot->SetCureThreshold(curethreshold);
-		uint8 debuffthreshold = atoi(row[92]);
 		loaded_bot->SetDebuffThreshold(debuffthreshold);
-		uint8 dispelthreshold = atoi(row[93]);
 		loaded_bot->SetDispelThreshold(dispelthreshold);
-		uint8 dotthreshold = atoi(row[94]);
 		loaded_bot->SetDotThreshold(dotthreshold);
-		uint8 escapethreshold = atoi(row[95]);
 		loaded_bot->SetEscapeThreshold(escapethreshold);
-		uint8 fhealthreshold = atoi(row[96]);
 		loaded_bot->SetFastHealThreshold(fhealthreshold);
-		uint8 hatereduxthreshold = atoi(row[97]);
 		loaded_bot->SetHateReduxThreshold(hatereduxthreshold);
-		uint8 healthreshold = atoi(row[98]);
 		loaded_bot->SetHealThreshold(healthreshold);
-		uint8 hothealthreshold = atoi(row[99]);
 		loaded_bot->SetHotHealThreshold(hothealthreshold);
-		uint8 incombatbuffthreshold = atoi(row[100]);
 		loaded_bot->SetInCombatBuffThreshold(incombatbuffthreshold);
-		uint8 lifetapthreshold = atoi(row[101]);
 		loaded_bot->SetLifetapThreshold(lifetapthreshold);
-		uint8 mezthreshold = atoi(row[102]);
 		loaded_bot->SetMezThreshold(mezthreshold);
-		uint8 nukethreshold = atoi(row[103]);
 		loaded_bot->SetNukeThreshold(nukethreshold);
-		uint8 rootthreshold = atoi(row[104]);
 		loaded_bot->SetRootThreshold(rootthreshold);
-		uint8 slowthreshold = atoi(row[105]);
 		loaded_bot->SetSlowThreshold(slowthreshold);
-		uint8 snarethreshold = atoi(row[106]);
 		loaded_bot->SetSnareThreshold(snarethreshold);
-		uint8 buffminthreshold = atoi(row[107]);
 		loaded_bot->SetBuffMinThreshold(buffminthreshold);
-		uint8 cureminthreshold = atoi(row[108]);
 		loaded_bot->SetCureMinThreshold(cureminthreshold);
-		uint8 debuffminthreshold = atoi(row[109]);
 		loaded_bot->SetDebuffMinThreshold(debuffminthreshold);
-		uint8 dispelminthreshold = atoi(row[110]);
 		loaded_bot->SetDispelMinThreshold(dispelminthreshold);
-		uint8 dotminthreshold = atoi(row[111]);
 		loaded_bot->SetDotMinThreshold(dotminthreshold);
-		uint8 escapeminthreshold = atoi(row[112]);
 		loaded_bot->SetEscapeMinThreshold(escapeminthreshold);
-		uint8 hatereduxminthreshold = atoi(row[113]);
 		loaded_bot->SetHateReduxMinThreshold(hatereduxminthreshold);
-		uint8 incombatbuffminthreshold = atoi(row[114]);
 		loaded_bot->SetInCombatBuffMinThreshold(incombatbuffminthreshold);
-		uint8 lifetapminthreshold = atoi(row[115]);
 		loaded_bot->SetLifetapMinThreshold(lifetapminthreshold);
-		uint8 mezminthreshold = atoi(row[116]);
 		loaded_bot->SetMezMinThreshold(mezminthreshold);
-		uint8 nukeminthreshold = atoi(row[117]);
 		loaded_bot->SetNukeMinThreshold(nukeminthreshold);
-		uint8 rootminthreshold = atoi(row[118]);
 		loaded_bot->SetRootMinThreshold(rootminthreshold);
-		uint8 slowminthreshold = atoi(row[119]);
 		loaded_bot->SetSlowMinThreshold(slowminthreshold);
-		uint8 snareminthreshold = atoi(row[120]);
 		loaded_bot->SetSnareMinThreshold(snareminthreshold);
 	}
 
@@ -683,638 +539,296 @@ bool BotDatabase::LoadBot(const uint32 bot_id, Bot*& loaded_bot)
 
 bool BotDatabase::SaveNewBot(Bot* bot_inst, uint32& bot_id)
 {
-	if (!bot_inst)
+	if (!bot_inst) {
 		return false;
+	}
 
-	query = StringFormat(
-		"INSERT INTO `bot_data` ("
-		" `owner_id`,"
-		" `spells_id`,"
-		" `name`,"
-		" `last_name`,"
-		" `zone_id`,"
-		" `gender`,"
-		" `race`,"
-		" `class`,"
-		" `level`,"
-		" `creation_day`,"
-		" `last_spawn`,"
-		" `time_spawned`,"
-		" `size`,"
-		" `face`,"
-		" `hair_color`,"
-		" `hair_style`,"
-		" `beard`,"
-		" `beard_color`,"
-		" `eye_color_1`,"
-		" `eye_color_2`,"
-		" `drakkin_heritage`,"
-		" `drakkin_tattoo`,"
-		" `drakkin_details`,"
-		" `ac`,"
-		" `atk`,"
-		" `hp`,"
-		" `mana`,"
-		" `str`,"
-		" `sta`,"
-		" `cha`,"
-		" `dex`,"
-		" `int`,"
-		" `agi`,"
-		" `wis`,"
-		" `fire`,"
-		" `cold`,"
-		" `magic`,"
-		" `poison`,"
-		" `disease`,"
-		" `corruption`,"
-		" `show_helm`,"
-		" `follow_distance`,"
-		" `stop_melee_level`,"
-		" `hold_buffs`,"
-		" `hold_cures`,"
-		" `hold_dots`,"
-		" `hold_debuffs`,"
-		" `hold_dispels`,"
-		" `hold_escapes`,"
-		" `hold_hateredux`,"
-		" `hold_heals`,"
-		" `hold_incombatbuffs`,"
-		" `hold_incombatbuffsongs`,"
-		" `hold_lifetaps`,"
-		" `hold_mez`,"
-		" `hold_nukes`,"
-		" `hold_outofcombatbuffsongs`,"
-		" `hold_pet_heals`,"
-		" `hold_pets`,"
-		" `hold_precombatbuffs`,"
-		" `hold_precombatbuffsongs`,"
-		" `hold_roots`,"
-		" `hold_slows`,"
-		" `hold_snares`,"
-		" `auto_ds`,"
-		" `auto_resist`,"
-		" `behind_mob`,"
-		" `caster_range`,"
-		" `buff_delay`,"
-		" `complete_heal_delay`,"
-		" `cure_delay`,"
-		" `debuff_delay`,"
-		" `dispel_delay`,"
-		" `dot_delay`,"
-		" `escape_delay`,"
-		" `fast_heal_delay`,"
-		" `hate_redux_delay`,"
-		" `heal_delay`,"
-		" `hot_heal_delay`,"
-		" `incombatbuff_delay`,"
-		" `lifetap_delay`,"
-		" `mez_delay`,"
-		" `nuke_delay`,"
-		" `root_delay`,"
-		" `slow_delay`,"
-		" `snare_delay`,"
-		" `buff_threshold`,"
-		" `complete_heal_threshold`,"
-		" `cure_threshold`,"
-		" `debuff_threshold`,"
-		" `dispel_threshold`,"
-		" `dot_threshold`,"
-		" `escape_threshold`,"
-		" `fast_heal_threshold`,"
-		" `hate_redux_threshold`,"
-		" `heal_threshold`,"
-		" `hot_heal_threshold`,"
-		" `incombatbuff_threshold`,"
-		" `lifetap_threshold`,"
-		" `mez_threshold`,"
-		" `nuke_threshold`,"
-		" `root_threshold`,"
-		" `slow_threshold`,"
-		" `snare_threshold`,"
-		" `buff_min_threshold`,"
-		" `cure_min_threshold`,"
-		" `debuff_min_threshold`,"
-		" `dispel_min_threshold`,"
-		" `dot_min_threshold`,"
-		" `escape_min_threshold`,"
-		" `hate_redux_min_threshold`,"
-		" `incombatbuff_min_threshold`,"
-		" `lifetap_min_threshold`,"
-		" `mez_min_threshold`,"
-		" `nuke_min_threshold`,"
-		" `root_min_threshold`,"
-		" `slow_min_threshold`,"
-		" `snare_min_threshold`"
-		")"
-		" VALUES ("
-		"'%u',"					/* owner_id */
-		" '%u',"				/* spells_id */
-		" '%s',"				/* name */
-		" '%s',"				/* last_name */
-		" '%i',"				/* zone_id */
-		" '%i',"				/* gender */
-		" '%i',"				/* race */
-		" '%i',"				/* class */
-		" '%u',"				/* level */
-		" UNIX_TIMESTAMP(),"	/* creation_day */
-		" UNIX_TIMESTAMP(),"	/* last_spawn */
-		" 0,"					/* time_spawned */
-		" '%f',"				/* size */
-		" '%i',"				/* face */
-		" '%i',"				/* hair_color */
-		" '%i',"				/* hair_style */
-		" '%i',"				/* beard */
-		" '%i',"				/* beard_color */
-		" '%i',"				/* eye_color_1 */
-		" '%i',"				/* eye_color_2 */
-		" '%i',"				/* drakkin_heritage */
-		" '%i',"				/* drakkin_tattoo */
-		" '%i',"				/* drakkin_details */
-		" '%i',"				/* ac */
-		" '%i',"				/* atk */
-		" '%i',"				/* hp */
-		" '%i',"				/* mana */
-		" '%i',"				/* str */
-		" '%i',"				/* sta */
-		" '%i',"				/* cha */
-		" '%i',"				/* dex */
-		" '%i',"				/* int */
-		" '%i',"				/* agi */
-		" '%i',"				/* wis */
-		" '%i',"				/* fire */
-		" '%i',"				/* cold */
-		" '%i',"				/* magic */
-		" '%i',"				/* poison */
-		" '%i',"				/* disease */
-		" '%i',"				/* corruption */
-		" '1',"					/* show_helm */
-		" '%i',"				/* follow_distance */
-		" '%u',"				/* stop_melee_level */
-		" '%u',"				/* hold_buffs*/
-		" '%u',"				/* hold_cures*/
-		" '%u',"				/* hold_dots*/
-		" '%u',"				/* hold_debuffs*/
-		" '%u',"				/* hold_dispels*/
-		" '%u',"				/* hold_escapes*/
-		" '%u',"				/* hold_hateredux*/
-		" '%u',"				/* hold_heals*/
-		" '%u',"				/* hold_incombatbuff*/
-		" '%u',"				/* hold_incombatbuffsongs*/
-		" '%u',"				/* hold_lifetaps*/
-		" '%u',"				/* hold_mez*/
-		" '%u',"				/* hold_nukes*/
-		" '%u',"				/* hold_outofcombatbuffsongs*/
-		" '%u',"				/* hold_pet_heals*/
-		" '%u',"				/* hold_pets*/
-		" '%u',"				/* hold_precombatbuffs*/
-		" '%u',"				/* hold_precombatbuffsongs*/
-		" '%u',"				/* hold_roots*/
-		" '%u',"				/* hold_slows*/
-		" '%u',"				/* hold_snares*/
-		" '%u',"				/* auto ds */
-		" '%u',"				/* auto resist */
-		" '%u',"				/* behind mob */
-		" '%u',"				/* caster range */
-		" '%u',"				/* buff_delay, " */
-		" '%u',"				/* complete_heal_delay, " */
-		" '%u',"				/* cure_delay, " */
-		" '%u',"				/* debuff_delay, " */
-		" '%u',"				/* dispel_delay, " */
-		" '%u',"				/* dot_delay, " */
-		" '%u',"				/* escape_delay, " */
-		" '%u',"				/* fast_heal_delay, " */
-		" '%u',"				/* hate_redux_delay, " */
-		" '%u',"				/* heal_delay, " */
-		" '%u',"				/* hot_heal_delay, " */
-		" '%u',"				/* incombatbuff_delay, " */
-		" '%u',"				/* lifetap_delay, " */
-		" '%u',"				/* mez_delay, " */
-		" '%u',"				/* nuke_delay, " */
-		" '%u',"				/* root_delay, " */
-		" '%u',"				/* slow_delay, " */
-		" '%u',"				/* snare_delay, " */
-		" '%u',"				/* buff_threshold, " */
-		" '%u',"				/* complete_heal_threshold, " */
-		" '%u',"				/* cure_threshold, " */
-		" '%u',"				/* debuff_threshold, " */
-		" '%u',"				/* dispel_threshold, " */
-		" '%u',"				/* dot_threshold, " */
-		" '%u',"				/* escape_threshold, " */
-		" '%u',"				/* fast_heal_threshold, " */
-		" '%u',"				/* hate_redux_threshold, " */
-		" '%u',"				/* heal_threshold, " */
-		" '%u',"				/* hot_heal_threshold, " */
-		" '%u',"				/* incombatbuff_threshold, " */
-		" '%u',"				/* lifetap_threshold, " */
-		" '%u',"				/* mez_threshold, " */
-		" '%u',"				/* nuke_threshold, " */
-		" '%u',"				/* root_threshold, " */
-		" '%u',"				/* slow_threshold, " */
-		" '%u',"				/* snare_threshold" */
-		" '%u',"				/* buff_min_threshold, " */
-		" '%u',"				/* cure_min_threshold, " */
-		" '%u',"				/* debuff_min_threshold, " */
-		" '%u',"				/* dispel_min_threshold, " */
-		" '%u',"				/* dot_min_threshold, " */
-		" '%u',"				/* escape_min_threshold, " */
-		" '%u',"				/* hate_redux_min_threshold, " */
-		" '%u',"				/* incombatbuff_min_threshold, " /*/
-		" '%u',"				/* lifetap_min_threshold, " /*/
-		" '%u',"				/* mez_min_threshold, " */
-		" '%u',"				/* nuke_min_threshold, " */
-		" '%u',"				/* root_min_threshold, " */
-		" '%u',"				/* slow_min_threshold, " */
-		" '%u'"					/* snare_min_threshold" */
-		")",
-		bot_inst->GetBotOwnerCharacterID(),
-		bot_inst->GetBotSpellID(),
-		bot_inst->GetCleanName(),
-		bot_inst->GetLastName(),
-		bot_inst->GetLastZoneID(),
-		bot_inst->GetGender(),
-		bot_inst->GetRace(),
-		bot_inst->GetClass(),
-		bot_inst->GetLevel(),
-		bot_inst->GetSize(),
-		bot_inst->GetLuclinFace(),
-		bot_inst->GetHairColor(),
-		bot_inst->GetHairStyle(),
-		bot_inst->GetBeard(),
-		bot_inst->GetBeardColor(),
-		bot_inst->GetEyeColor1(),
-		bot_inst->GetEyeColor2(),
-		bot_inst->GetDrakkinHeritage(),
-		bot_inst->GetDrakkinTattoo(),
-		bot_inst->GetDrakkinDetails(),
-		bot_inst->GetAC(),
-		bot_inst->GetATK(),
-		bot_inst->GetHP(),
-		bot_inst->GetMana(),
-		bot_inst->GetSTR(),
-		bot_inst->GetSTA(),
-		bot_inst->GetCHA(),
-		bot_inst->GetDEX(),
-		bot_inst->GetINT(),
-		bot_inst->GetAGI(),
-		bot_inst->GetWIS(),
-		bot_inst->GetFR(),
-		bot_inst->GetCR(),
-		bot_inst->GetMR(),
-		bot_inst->GetPR(),
-		bot_inst->GetDR(),
-		bot_inst->GetCorrup(),
-		(uint32)BOT_FOLLOW_DISTANCE_DEFAULT,
-		(IsCasterClass(bot_inst->GetClass()) ? (uint8)RuleI(Bots, CasterStopMeleeLevel) : 255),
-		0,			/* hold_buffs*/
-		0,			/* hold_cures*/
-		0,			/* hold_dots*/
-		0,			/* hold_debuffs*/
-		1,			/* hold_dispels*/
-		0,			/* hold_escapes*/
-		0,			/* hold_hateredux*/
-		0,			/* hold_heals*/
-		0,			/* hold_incombatbuff*/
-		0,			/* hold_incombatbuffsongs*/
-		0,			/* hold_lifetaps*/
-		0,			/* hold_mez*/
-		0,			/* hold_nukes*/
-		0,			/* hold_outofcombatbuffsongs*/
-		0,			/* hold_pet_heals*/
-		0,			/* hold_pets*/
-		0,			/* hold_precombatbuffs*/
-		0,			/* hold_precombatbuffsongs*/
-		1,			/* hold_roots*/
-		0,			/* hold_slows*/
-		0,			/* hold_snares*/
-		1,			/* auto ds */
-		1,			/* auto resist */
-		0,			/* behind mob */
-		90,			/* caster range */
-		1,			/* buff_delay */
-		8000,		/* complete_heal_delay */
-		1,			/* cure_delay */
-		12000,		/* debuff_delay */
-		1,			/* dispel_delay */
-		12000,		/* dot_delay */
-		1,			/* escape_delay */
-		2500,		/* fast_heal_delay */
-		1,			/* hate_redux_delay */
-		4500,		/* heal_delay */
-		22000,		/* hot_heal_delay */
-		1,			/* incombatbuff_delay */
-		1,			/* lifetap_delay */
-		1,			/* mez_delay */
-		8000,		/* nuke_delay */
-		12000,		/* root_delay */
-		12000,		/* slow_delay */
-		12000,		/* snare_delay */
-		150,		/* buff_threshold */
-		70,			/* complete_heal_threshold */
-		150,		/* cure_threshold */
-		95,			/* debuff_threshold */
-		99,			/* dispel_threshold */
-		95,			/* dot_threshold */
-		35,			/* escape_threshold */
-		35,			/* fast_heal_threshold */
-		80,			/* hate_redux_threshold */
-		55,			/* heal_threshold */
-		85,			/* hot_heal_threshold */
-		150,		/* incombatbuff_threshold */
-		60,			/* lifetap_threshold */
-		150,		/* mez_threshold */
-		95,			/* nuke_threshold */
-		95,			/* root_threshold */
-		95,			/* slow_threshold */
-		95,			/* snare_threshold */
-		0,			/* buff_min_threshold */
-		0,			/* cure_min_threshold */
-		25,			/* debuff_min_threshold */
-		25,			/* dispel_min_threshold */
-		50,			/* dot_min_threshold */
-		0,			/* escape_min_threshold */
-		0,			/* hate_redux_min_threshold */
-		0,			/* incombatbuff_min_threshold */
-		0,			/* lifetap_min_threshold */
-		85,			/* mez_min_threshold */
-		20,			/* nuke_min_threshold */
-		15,			/* root_min_threshold */
-		25,			/* slow_min_threshold */
-		0			/* snare_min_threshold */
-	);
-	auto results = database.QueryDatabase(query);
-	if (!results.Success())
+	auto e = BotDataRepository::NewEntity();
+
+	e.owner_id               = bot_inst->GetBotOwnerCharacterID();
+	e.spells_id              = bot_inst->GetBotSpellID();
+	e.name                   = bot_inst->GetCleanName();
+	e.last_name              = bot_inst->GetLastName();
+	e.title                  = bot_inst->GetTitle();
+	e.suffix                 = bot_inst->GetSuffix();
+	e.zone_id                = bot_inst->GetLastZoneID();
+	e.gender                 = bot_inst->GetGender();
+	e.race                   = bot_inst->GetBaseRace();
+	e.class_                 = bot_inst->GetClass();
+	e.level                  = bot_inst->GetLevel();
+	e.creation_day           = std::time(nullptr);
+	e.last_spawn             = std::time(nullptr);
+	e.size                   = bot_inst->GetSize();
+	e.face                   = bot_inst->GetLuclinFace();
+	e.hair_color             = bot_inst->GetHairColor();
+	e.hair_style             = bot_inst->GetHairStyle();
+	e.beard                  = bot_inst->GetBeard();
+	e.beard_color            = bot_inst->GetBeardColor();
+	e.eye_color_1            = bot_inst->GetEyeColor1();
+	e.eye_color_2            = bot_inst->GetEyeColor2();
+	e.drakkin_heritage       = bot_inst->GetDrakkinHeritage();
+	e.drakkin_tattoo         = bot_inst->GetDrakkinTattoo();
+	e.drakkin_details        = bot_inst->GetDrakkinDetails();
+	e.ac                     = bot_inst->GetBaseAC();
+	e.atk                    = bot_inst->GetBaseATK();
+	e.hp                     = bot_inst->GetHP();
+	e.mana                   = bot_inst->GetMana();
+	e.str                    = bot_inst->GetBaseSTR();
+	e.sta                    = bot_inst->GetBaseSTA();
+	e.cha                    = bot_inst->GetBaseCHA();
+	e.dex                    = bot_inst->GetBaseDEX();
+	e.int_                   = bot_inst->GetBaseINT();
+	e.agi                    = bot_inst->GetBaseAGI();
+	e.wis                    = bot_inst->GetBaseWIS();
+	e.fire                   = bot_inst->GetBaseFR();
+	e.cold                   = bot_inst->GetBaseCR();
+	e.magic                  = bot_inst->GetBaseMR();
+	e.poison                 = bot_inst->GetBasePR();
+	e.disease                = bot_inst->GetBaseDR();
+	e.corruption             = bot_inst->GetBaseCorrup();
+	e.show_helm              = bot_inst->GetShowHelm() ? 1 : 0;
+	e.follow_distance        = bot_inst->GetFollowDistance();
+	e.stop_melee_level       = bot_inst->GetStopMeleeLevel();
+	e.expansion_bitmask      = bot_inst->GetExpansionBitmask();
+	e.enforce_spell_settings = bot_inst->GetBotEnforceSpellSetting();
+	e.archery_setting        = bot_inst->IsBotArcher() ? 1 : 0;
+	e.hold_buffs = 0;
+	e.hold_cures = 0;
+	e.hold_dots = 0;
+	e.hold_debuffs = 0;
+	e.hold_dispels = 1;
+	e.hold_escapes = 0;
+	e.hold_hate_redux = 0;
+	e.hold_heals = 0;
+	e.hold_incombatbuffs = 0;
+	e.hold_incombatbuffsongs = 0;
+	e.hold_lifetaps = 0;
+	e.hold_mez = 0;
+	e.hold_nukes = 0;
+	e.hold_outofcombatbuffssongs = 0;
+	e.hold_pet_heals = 0;
+	e.hold_pets = 0;
+	e.hold_precombatbuffs = 0;
+	e.hold_precombatbuffsongs = 0;
+	e.hold_roots = 1;
+	e.hold_slows = 0;
+	e.hold_snares = 0;
+	e.auto_ds = 1;
+	e.auto_resist = 1;
+	e.behind_mob = 0;
+	e.caster_range = 90;
+	e.buff_delay = 1;
+	e.complete_heal_delay = 8000;
+	e.cure_delay = 1;
+	e.debuff_delay = 12000;
+	e.dispel_delay = 1;
+	e.dot_delay = 12000;
+	e.escape_delay = 1;
+	e.fast_heal_delay = 2500;
+	e.hate_redux_delay = 1;
+	e.heal_delay = 4500;
+	e.hot_delay = 22000;
+	e.incombatbuff_delay = 1;
+	e.lifetap_delay = 1;
+	e.mez_delay = 1;
+	e.nuke_delay = 8000;
+	e.root_delay = 12000;
+	e.slow_delay = 12000;
+	e.snare_delay = 12000;
+	e.buff_threshold = 150;
+	e.complete_heal_threshold = 70;
+	e.cure_threshold = 150;
+	e.debuff_threshold = 95;
+	e.dispel_threshold = 99;
+	e.dot_threshold = 95;
+	e.escape_threshold = 35;
+	e.fast_heal_threshold = 35;
+	e.hate_redux_threshold = 80;
+	e.heal_threshold = 55;
+	e.hot_heal_threshold = 85;
+	e.incombatbuff_threshold = 150;
+	e.lifetap_threshold = 60;
+	e.mez_threshold = 150;
+	e.nuke_threshold = 95;
+	e.root_threshold = 95;
+	e.slow_threshold = 95;
+	e.snare_threshold = 95;
+	e.buff_min_threshold = 0;
+	e.cure_min_threshold = 0;
+	e.debuff_min_threshold = 25;
+	e.dispel_min_threshold = 25;
+	e.dot_min_threshold = 50;
+	e.escape_min_threshold = 0;
+	e.hate_redux_min_threshold = 0;
+	e.incombatbuff_min_threshold = 0;
+	e.lifetap_min_threshold = 0;
+	e.mez_min_threshold = 85;
+	e.nuke_min_threshold = 20;
+	e.root_min_threshold = 15;
+	e.slow_min_threshold = 25;
+	e.snare_min_threshold = 0;
+	auto b = BotDataRepository::InsertOne(database, e);
+	if (!b.bot_id) {
 		return false;
+	}
 
-	bot_id = results.LastInsertedID();
+	bot_id = b.bot_id;
 
 	return true;
 }
 
 bool BotDatabase::SaveBot(Bot* bot_inst)
 {
-	if (!bot_inst)
+	if (!bot_inst) {
 		return false;
+	}
 
-	query = StringFormat(
-		"UPDATE `bot_data`"
-		" SET"
-		" `owner_id` = '%u',"
-		" `spells_id` = '%u',"
-		" `name` = '%s',"
-		" `last_name` = '%s',"
-		" `zone_id` = '%i',"
-		" `gender` = '%i',"
-		" `race` = '%i',"
-		" `class` = '%i',"
-		" `level` = '%u',"
-		" `last_spawn` = UNIX_TIMESTAMP(),"
-		" `time_spawned` = '%u',"
-		" `size` = '%f',"
-		" `face` = '%i',"
-		" `hair_color` = '%i',"
-		" `hair_style` = '%i',"
-		" `beard` = '%i',"
-		" `beard_color` = '%i',"
-		" `eye_color_1` = '%i',"
-		" `eye_color_2` = '%i',"
-		" `drakkin_heritage` = '%i',"
-		" `drakkin_tattoo` = '%i',"
-		" `drakkin_details` = '%i',"
-		" `ac` = '%i',"
-		" `atk` = '%i',"
-		" `hp` = '%i',"
-		" `mana` = '%i',"
-		" `str` = '%i',"
-		" `sta` = '%i',"
-		" `cha` = '%i',"
-		" `dex` = '%i',"
-		" `int` = '%i',"
-		" `agi` = '%i',"
-		" `wis` = '%i',"
-		" `fire` = '%i',"
-		" `cold` = '%i',"
-		" `magic` = '%i',"
-		" `poison` = '%i',"
-		" `disease` = '%i',"
-		" `corruption` = '%i',"
-		" `show_helm` = '%i',"
-		" `follow_distance` = '%i',"
-		" `stop_melee_level` = '%u',"
-		" `hold_buffs` = '%u',"
-		" `hold_cures` = '%u',"
-		" `hold_dots` = '%u',"
-		" `hold_debuffs` = '%u',"
-		" `hold_dispels` = '%u',"
-		" `hold_escapes` = '%u',"
-		" `hold_hateredux` = '%u',"
-		" `hold_heals` = '%u',"
-		" `hold_incombatbuffs` = '%u',"
-		" `hold_incombatbuffsongs` = '%u',"
-		" `hold_lifetaps` = '%u',"
-		" `hold_mez` = '%u',"
-		" `hold_nukes` = '%u',"
-		" `hold_outofcombatbuffsongs` = '%u',"
-		" `hold_pet_heals` = '%u',"
-		" `hold_pets` = '%u',"
-		" `hold_precombatbuffs` = '%u',"
-		" `hold_precombatbuffsongs` = '%u',"
-		" `hold_roots` = '%u',"
-		" `hold_slows` = '%u',"
-		" `hold_snares` = '%u',"		
-		" `auto_ds` = '%u',"
-		" `auto_resist` = '%u',"
-		" `behind_mob` = '%u',"
-		" `caster_range` = '%u',"
-		" `buff_delay` = '%u',"
-		" `complete_heal_delay` = '%u',"
-		" `cure_delay` = '%u',"
-		" `debuff_delay` = '%u',"
-		" `dispel_delay` = '%u',"
-		" `dot_delay` = '%u',"
-		" `escape_delay` = '%u',"
-		" `fast_heal_delay` = '%u',"
-		" `hate_redux_delay` = '%u',"
-		" `heal_delay` = '%u',"
-		" `hot_heal_delay` = '%u',"
-		" `incombatbuff_delay` = '%u',"
-		" `lifetap_delay` = '%u',"
-		" `mez_delay` = '%u',"
-		" `nuke_delay` = '%u',"
-		" `root_delay` = '%u',"
-		" `slow_delay` = '%u',"
-		" `snare_delay` = '%u',"
-		" `buff_threshold` = '%u',"
-		" `complete_heal_threshold` = '%u',"
-		" `cure_threshold` = '%u',"
-		" `debuff_threshold` = '%u',"
-		" `dispel_threshold` = '%u',"
-		" `dot_threshold` = '%u',"
-		" `escape_threshold` = '%u',"
-		" `fast_heal_threshold` = '%u',"
-		" `hate_redux_threshold` = '%u',"
-		" `heal_threshold` = '%u',"
-		" `hot_heal_threshold` = '%u',"
-		" `incombatbuff_threshold` = '%u',"
-		" `lifetap_threshold` = '%u',"
-		" `mez_threshold` = '%u',"
-		" `nuke_threshold` = '%u',"
-		" `root_threshold` = '%u',"
-		" `slow_threshold` = '%u',"
-		" `snare_threshold` = '%u',"
-		" `buff_min_threshold` = '%u',"
-		" `cure_min_threshold` = '%u',"
-		" `debuff_min_threshold` = '%u',"
-		" `dispel_min_threshold` = '%u',"
-		" `dot_min_threshold` = '%u',"
-		" `escape_min_threshold` = '%u',"
-		" `hate_redux_min_threshold` = '%u',"
-		" `incombatbuff_min_threshold` = '%u',"
-		" `lifetap_min_threshold` = '%u',"
-		" `mez_min_threshold` = '%u',"
-		" `nuke_min_threshold` = '%u'," 
-		" `root_min_threshold` = '%u',"
-		" `slow_min_threshold` = '%u',"
-		" `snare_min_threshold` = '%u',"
-		" `title` = '%s',"
-		" `suffix` = '%s'"
-		" WHERE `bot_id` = '%u'",
-		bot_inst->GetBotOwnerCharacterID(),
-		bot_inst->GetBotSpellID(),
-		bot_inst->GetCleanName(),
-		bot_inst->GetSurname().c_str(),
-		bot_inst->GetLastZoneID(),
-		bot_inst->GetBaseGender(),
-		bot_inst->GetBaseRace(),
-		bot_inst->GetClass(),
-		bot_inst->GetLevel(),
-		bot_inst->GetTotalPlayTime(),
-		bot_inst->GetBaseSize(),
-		bot_inst->GetLuclinFace(),
-		bot_inst->GetHairColor(),
-		bot_inst->GetHairStyle(),
-		bot_inst->GetBeard(),
-		bot_inst->GetBeardColor(),
-		bot_inst->GetEyeColor1(),
-		bot_inst->GetEyeColor2(),
-		bot_inst->GetDrakkinHeritage(),
-		bot_inst->GetDrakkinTattoo(),
-		bot_inst->GetDrakkinDetails(),
-		bot_inst->GetBaseAC(),
-		bot_inst->GetBaseATK(),
-		bot_inst->GetHP(),
-		bot_inst->GetMana(),
-		bot_inst->GetBaseSTR(),
-		bot_inst->GetBaseSTA(),
-		bot_inst->GetBaseCHA(),
-		bot_inst->GetBaseDEX(),
-		bot_inst->GetBaseINT(),
-		bot_inst->GetBaseAGI(),
-		bot_inst->GetBaseWIS(),
-		bot_inst->GetBaseFR(),
-		bot_inst->GetBaseCR(),
-		bot_inst->GetBaseMR(),
-		bot_inst->GetBasePR(),
-		bot_inst->GetBaseDR(),
-		bot_inst->GetBaseCorrup(),
-		((bot_inst->GetShowHelm()) ? (1) : (0)),
-		bot_inst->GetFollowDistance(),
-		bot_inst->GetStopMeleeLevel(),
-		bot_inst->GetHoldBuffs(),
-		bot_inst->GetHoldCures(),
-		bot_inst->GetHoldDoTs(),
-		bot_inst->GetHoldDebuffs(),
-		bot_inst->GetHoldDispels(),
-		bot_inst->GetHoldEscapes(),
-		bot_inst->GetHoldHateRedux(),
-		bot_inst->GetHoldHeals(),
-		bot_inst->GetHoldInCombatBuffs(),
-		bot_inst->GetHoldInCombatBuffSongs(),
-		bot_inst->GetHoldLifetaps(),
-		bot_inst->GetHoldMez(),
-		bot_inst->GetHoldNukes(),
-		bot_inst->GetHoldOutOfCombatBuffSongs(),
-		bot_inst->GetHoldPetHeals(),
-		bot_inst->GetHoldPets(),
-		bot_inst->GetHoldPreCombatBuffs(),
-		bot_inst->GetHoldPreCombatBuffSongs(),
-		bot_inst->GetHoldRoots(),
-		bot_inst->GetHoldSlows(),
-		bot_inst->GetHoldSnares(),
-		bot_inst->GetAutoDS(),
-		bot_inst->GetAutoResist(),
-		bot_inst->GetBehindMob(),
-		bot_inst->GetBotCasterRange(),
-		bot_inst->GetBuffDelay(),
-		bot_inst->GetCompleteHealDelay(),
-		bot_inst->GetCureDelay(),
-		bot_inst->GetDebuffDelay(),
-		bot_inst->GetDispelDelay(),
-		bot_inst->GetDotDelay(),
-		bot_inst->GetEscapeDelay(),
-		bot_inst->GetFastHealDelay(),
-		bot_inst->GetHateReduxDelay(),
-		bot_inst->GetHealDelay(),
-		bot_inst->GetHotHealDelay(),
-		bot_inst->GetInCombatBuffDelay(),
-		bot_inst->GetLifetapDelay(),
-		bot_inst->GetMezDelay(),
-		bot_inst->GetNukeDelay(),
-		bot_inst->GetRootDelay(),
-		bot_inst->GetSlowDelay(),
-		bot_inst->GetSnareDelay(),
-		bot_inst->GetBuffThreshold(),
-		bot_inst->GetCompleteHealThreshold(),
-		bot_inst->GetCureThreshold(),
-		bot_inst->GetDebuffThreshold(),
-		bot_inst->GetDispelThreshold(),
-		bot_inst->GetDotThreshold(),
-		bot_inst->GetEscapeThreshold(),
-		bot_inst->GetFastHealThreshold(),
-		bot_inst->GetHateReduxThreshold(),
-		bot_inst->GetHealThreshold(),
-		bot_inst->GetHotHealThreshold(),
-		bot_inst->GetInCombatBuffThreshold(),
-		bot_inst->GetLifetapThreshold(),
-		bot_inst->GetMezThreshold(),
-		bot_inst->GetNukeThreshold(),
-		bot_inst->GetRootThreshold(),
-		bot_inst->GetSlowThreshold(),
-		bot_inst->GetSnareThreshold(),
-		bot_inst->GetBuffMinThreshold(),
-		bot_inst->GetCureMinThreshold(),
-		bot_inst->GetDebuffMinThreshold(),
-		bot_inst->GetDispelMinThreshold(),
-		bot_inst->GetDotMinThreshold(),
-		bot_inst->GetEscapeMinThreshold(),
-		bot_inst->GetHateReduxMinThreshold(),
-		bot_inst->GetInCombatBuffMinThreshold(),
-		bot_inst->GetLifetapMinThreshold(),
-		bot_inst->GetMezMinThreshold(),
-		bot_inst->GetNukeMinThreshold(),
-		bot_inst->GetRootMinThreshold(),
-		bot_inst->GetSlowMinThreshold(),
-		bot_inst->GetSnareMinThreshold(),
-		bot_inst->GetTitle().c_str(),
-		bot_inst->GetSuffix().c_str(),
-		bot_inst->GetBotID()
-	);
-	auto results = database.QueryDatabase(query);
-	if (!results.Success())
+	auto l = BotDataRepository::FindOne(database, bot_inst->GetBotID());
+	if (!l.bot_id) {
 		return false;
+	}
+
+	l.owner_id               = bot_inst->GetBotOwnerCharacterID();
+	l.spells_id              = bot_inst->GetBotSpellID();
+	l.name                   = bot_inst->GetCleanName();
+	l.last_name              = bot_inst->GetLastName();
+	l.title                  = bot_inst->GetTitle();
+	l.suffix                 = bot_inst->GetSuffix();
+	l.zone_id                = bot_inst->GetLastZoneID();
+	l.gender                 = bot_inst->GetGender();
+	l.race                   = bot_inst->GetBaseRace();
+	l.class_                 = bot_inst->GetClass();
+	l.level                  = bot_inst->GetLevel();
+	l.last_spawn             = std::time(nullptr);
+	l.time_spawned           = bot_inst->GetTotalPlayTime();
+	l.size                   = bot_inst->GetSize();
+	l.face                   = bot_inst->GetLuclinFace();
+	l.hair_color             = bot_inst->GetHairColor();
+	l.hair_style             = bot_inst->GetHairStyle();
+	l.beard                  = bot_inst->GetBeard();
+	l.beard_color            = bot_inst->GetBeardColor();
+	l.eye_color_1            = bot_inst->GetEyeColor1();
+	l.eye_color_2            = bot_inst->GetEyeColor2();
+	l.drakkin_heritage       = bot_inst->GetDrakkinHeritage();
+	l.drakkin_tattoo         = bot_inst->GetDrakkinTattoo();
+	l.drakkin_details        = bot_inst->GetDrakkinDetails();
+	l.ac                     = bot_inst->GetBaseAC();
+	l.atk                    = bot_inst->GetBaseATK();
+	l.hp                     = bot_inst->GetHP();
+	l.mana                   = bot_inst->GetMana();
+	l.str                    = bot_inst->GetBaseSTR();
+	l.sta                    = bot_inst->GetBaseSTA();
+	l.cha                    = bot_inst->GetBaseCHA();
+	l.dex                    = bot_inst->GetBaseDEX();
+	l.int_                   = bot_inst->GetBaseINT();
+	l.agi                    = bot_inst->GetBaseAGI();
+	l.wis                    = bot_inst->GetBaseWIS();
+	l.fire                   = bot_inst->GetBaseFR();
+	l.cold                   = bot_inst->GetBaseCR();
+	l.magic                  = bot_inst->GetBaseMR();
+	l.poison                 = bot_inst->GetBasePR();
+	l.disease                = bot_inst->GetBaseDR();
+	l.corruption             = bot_inst->GetBaseCorrup();
+	l.show_helm              = bot_inst->GetShowHelm() ? 1 : 0;
+	l.follow_distance        = bot_inst->GetFollowDistance();
+	l.stop_melee_level       = bot_inst->GetStopMeleeLevel();
+	l.expansion_bitmask      = bot_inst->GetExpansionBitmask();
+	l.enforce_spell_settings = bot_inst->GetBotEnforceSpellSetting();
+	l.archery_setting        = bot_inst->IsBotArcher() ? 1 : 0;
+	l.hold_buffs = bot_inst->GetHoldBuffs();
+	l.hold_cures = bot_inst->GetHoldCures();
+	l.hold_dots = bot_inst->GetHoldDoTs();
+	l.hold_debuffs = bot_inst->GetHoldDebuffs();
+	l.hold_dispels = bot_inst->GetHoldDispels();
+	l.hold_escapes = bot_inst->GetHoldEscapes();
+	l.hold_hate_redux = bot_inst->GetHoldHateRedux();
+	l.hold_heals = bot_inst->GetHoldHeals();
+	l.hold_incombatbuffs = bot_inst->GetHoldInCombatBuffs();
+	l.hold_incombatbuffsongs = bot_inst->GetHoldInCombatBuffSongs();
+	l.hold_lifetaps = bot_inst->GetHoldLifetaps();
+	l.hold_mez = bot_inst->GetHoldMez();
+	l.hold_nukes = bot_inst->GetHoldNukes();
+	l.hold_outofcombatbuffsongs = bot_inst->GetHoldOutOfCombatBuffSongs();
+	l.hold_pet_heals = bot_inst->GetHoldPetHeals();
+	l.hold_pets = bot_inst->GetHoldPets();
+	l.hold_precombatbuffs = bot_inst->GetHoldPreCombatBuffs();
+	l.hold_precombatbuffsongs = bot_inst->GetHoldPreCombatBuffSongs();
+	l.hold_roots = bot_inst->GetHoldRoots();
+	l.hold_slows = bot_inst->GetHoldSlows();
+	l.hold_snares = bot_inst->GetHoldSnares();
+	l.auto_ds = bot_inst->GetAutoDS();
+	l.auto_resist = bot_inst->GetAutoResist();
+	l.behind_mob = bot_inst->GetBehindMob();
+	l.caster_range = bot_inst->GetBotCasterRange();
+	l.buff_delay = bot_inst->GetBuffDelay();
+	l.complte_heal_delay = bot_inst->GetCompleteHealDelay();
+	l.cure_delay = bot_inst->GetCureDelay();
+	l.debuff_delay = bot_inst->GetDebuffDelay();
+	l.dispel_delay = bot_inst->GetDispelDelay();
+	l.dot_delay = bot_inst->GetDotDelay();
+	l.escape_delay = bot_inst->GetEscapeDelay();
+	l.fast_heal_delay = bot_inst->GetFastHealDelay();
+	l.hate_redux_delay = bot_inst->GetHateReduxDelay();
+	l.heal_delay = bot_inst->GetHealDelay();
+	l.hot_heal_delay = bot_inst->GetHotHealDelay();
+	l.incombatbuff_delay = bot_inst->GetInCombatBuffDelay();
+	l.lifetap_delay = bot_inst->GetLifetapDelay();
+	l.mez_delay = bot_inst->GetMezDelay();
+	l.nuke_delay = bot_inst->GetNukeDelay();
+	l.root__delay = bot_inst->GetRootDelay();
+	l.slow_delay = bot_inst->GetSlowDelay();
+	l.snare_delay = bot_inst->GetSnareDelay();
+	l.buff_threshold = bot_inst->GetBuffThreshold();
+	l.complete_heal_threshold = bot_inst->GetCompleteHealThreshold();
+	l.cure_threshold = bot_inst->GetCureThreshold();
+	l.debuff_threshold = bot_inst->GetDebuffThreshold();
+	l.dispel_threshold = bot_inst->GetDispelThreshold();
+	l.dot_threshold = bot_inst->GetDotThreshold();
+	l.escape_threshold = bot_inst->GetEscapeThreshold();
+	l.fast_heal_threshold = bot_inst->GetFastHealThreshold();
+	l.hate_redux_threshold = bot_inst->GetHateReduxThreshold();
+	l.heal_threshold = bot_inst->GetHealThreshold();
+	l.hot_heal_threshold = bot_inst->GetHotHealThreshold();
+	l.incombatbuff_threshold = bot_inst->GetInCombatBuffThreshold();
+	l.lifetap_threshold = bot_inst->GetLifetapThreshold();
+	l.mez_threshold = bot_inst->GetMezThreshold();
+	l.nuke_threshold = bot_inst->GetNukeThreshold();
+	l.root_threshold = bot_inst->GetRootThreshold();
+	l.slow_threshold = bot_inst->GetSlowThreshold();
+	l.snare_threshold = bot_inst->GetSnareThreshold();
+	l.buff_min_threshold = bot_inst->GetBuffMinThreshold();
+	l.cure_min_threshold = bot_inst->GetCureMinThreshold();
+	l.debuff_min_threshold = bot_inst->GetDebuffMinThreshold();
+	l.dispel_min_threshold = bot_inst->GetDispelMinThreshold();
+	l.dot_min_threshold = bot_inst->GetDotMinThreshold();
+	l.escape_min_threshold = bot_inst->GetEscapeMinThreshold();
+	l.hate_redux_min_threshold = bot_inst->GetHateReduxMinThreshold();
+	l.incombatbuff_min_threshold = bot_inst->GetInCombatBuffMinThreshold();
+	l.lifetap_min_threshold = bot_inst->GetLifetapMinThreshold();
+	l.mez_min_threshold = bot_inst->GetMezMinThreshold();
+	l.nuke_min_threshold = bot_inst->GetNukeMinThreshold();
+	l.root_min_threshold = bot_inst->GetRootMinThreshold();
+	l.slow_min_threshold = bot_inst->GetSlowMinThreshold();
+	l.snare_min_threshold = bot_inst->GetSnareMinThreshold();
+
+	const auto updated = BotDataRepository::UpdateOne(database, l);
+	if (!updated) {
+		return false;
+	}
 
 	return true;
 }
 
 bool BotDatabase::DeleteBot(const uint32 bot_id)
 {
-	if (!bot_id)
+	if (!bot_id) {
 		return false;
+	}
 
-	query = StringFormat("DELETE FROM `bot_data` WHERE `bot_id` = '%u'", bot_id);
-	auto results = database.QueryDatabase(query);
-	if (!results.Success())
+	const auto deleted = BotDataRepository::DeleteOne(database, bot_id);
+	if (!deleted) {
 		return false;
+	}
 
 	return true;
 }
@@ -1404,8 +918,9 @@ bool BotDatabase::SaveBuffs(Bot* bot_inst)
 		return false;
 
 	for (int buff_index = 0; buff_index < BUFF_COUNT; ++buff_index) {
-		if (bot_buffs[buff_index].spellid <= 0 || bot_buffs[buff_index].spellid == SPELL_UNKNOWN)
+		if (!IsValidSpell(bot_buffs[buff_index].spellid)) {
 			continue;
+		}
 
 		query = StringFormat(
 			"INSERT INTO `bot_buffs` ("
@@ -1900,6 +1415,30 @@ bool BotDatabase::LoadItemBySlot(const uint32 bot_id, const uint32 slot_id, uint
 
 	auto row = results.begin();
 	item_id = atoi(row[0]);
+
+	return true;
+}
+
+bool BotDatabase::LoadItemSlots(const uint32 bot_id, std::map<uint16, uint32>& m)
+{
+	if (!bot_id) {
+		return false;
+	}
+
+	const auto& l = BotInventoriesRepository::GetWhere(
+		database,
+		fmt::format(
+			"bot_id = {}",
+			bot_id
+		)
+	);
+	if (l.empty()) {
+		return false;
+	}
+
+	for (const auto& e : l) {
+		m.insert(std::pair<uint16, uint32>(e.slot_id, e.item_id));
+	}
 
 	return true;
 }
@@ -5503,9 +5042,69 @@ uint16 BotDatabase::GetRaceClassBitmask(uint16 bot_race)
 	return classes;
 }
 
+bool BotDatabase::SaveExpansionBitmask(const uint32 bot_id, const int expansion_bitmask)
+{
+	if (!bot_id) {
+		return false;
+	}
+
+	query = fmt::format(
+		"UPDATE `bot_data` "
+		"SET `expansion_bitmask` = {} "
+		"WHERE `bot_id` = {}",
+		expansion_bitmask,
+		bot_id
+	);
+
+	auto results = database.QueryDatabase(query);
+	if (!results.Success()) {
+		return false;
+	}
+
+	return true;
+}
+
+bool BotDatabase::SaveEnforceSpellSetting(const uint32 bot_id, const bool enforce_spell_setting)
+{
+	if (!bot_id) {
+		return false;
+	}
+
+	query = fmt::format(
+		"UPDATE `bot_data`"
+		"SET `enforce_spell_settings` = {} "
+		"WHERE `bot_id` = {}",
+		(enforce_spell_setting ? 1 : 0),
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success()) {
+		return false;
+	}
+
+	return true;
+}
+
+bool BotDatabase::SaveBotArcherSetting(const uint32 bot_id, const bool bot_archer_setting)
+{
+	if (!bot_id) {
+		return false;
+	}
+	query = fmt::format(
+		"UPDATE `bot_data`"
+		"SET `archery_setting` = {} "
+		"WHERE `bot_id` = {}",
+		(bot_archer_setting ? 1 : 0),
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success()) {
+		return false;
+	}
+	return true;
+}
+
 /* fail::Bot functions   */
-const char* BotDatabase::fail::QueryNameAvailablity() { return "Failed to query name availability"; }
-const char* BotDatabase::fail::QueryBotCount() { return "Failed to query bot count"; }
 const char* BotDatabase::fail::LoadBotsList() { return "Failed to bots list"; }
 const char* BotDatabase::fail::LoadOwnerID() { return "Failed to load owner ID"; }
 const char* BotDatabase::fail::LoadBotID() { return "Failed to load bot ID"; }
@@ -5516,8 +5115,6 @@ const char* BotDatabase::fail::DeleteBot() { return "Failed to delete bot"; }
 const char* BotDatabase::fail::LoadBuffs() { return "Failed to load buffs"; }
 const char* BotDatabase::fail::SaveBuffs() { return "Failed to save buffs"; }
 const char* BotDatabase::fail::DeleteBuffs() { return "Failed to delete buffs"; }
-const char* BotDatabase::fail::LoadStance() { return "Failed to load stance"; }
-const char* BotDatabase::fail::SaveStance() { return "Failed to save stance"; }
 const char* BotDatabase::fail::DeleteStance() { return "Failed to delete stance"; }
 const char* BotDatabase::fail::LoadTimers() { return "Failed to load timers"; }
 const char* BotDatabase::fail::SaveTimers() { return "Failed to save timers"; }
@@ -5531,7 +5128,6 @@ const char* BotDatabase::fail::QueryInventoryCount() { return "Failed to query i
 const char* BotDatabase::fail::LoadItems() { return "Failed to load items"; }
 const char* BotDatabase::fail::SaveItems() { return "Failed to save items"; }
 const char* BotDatabase::fail::DeleteItems() { return "Failed to delete items"; }
-const char* BotDatabase::fail::LoadItemBySlot() { return "Failed to load item by slot"; }
 const char* BotDatabase::fail::SaveItemBySlot() { return "Failed to save item by slot"; }
 const char* BotDatabase::fail::DeleteItemBySlot() { return "Failed to delete item by slot"; }
 const char* BotDatabase::fail::LoadEquipmentColor() { return "Failed to load equipment color"; }
@@ -5564,8 +5160,6 @@ const char* BotDatabase::fail::ToggleHelmAppearance() { return "Failed to save t
 const char* BotDatabase::fail::ToggleAllHelmAppearances() { return "Failed to save toggle all helm appearance"; }
 const char* BotDatabase::fail::SaveFollowDistance() { return "Failed to save follow distance"; }
 const char* BotDatabase::fail::SaveAllFollowDistances() { return "Failed to save all follow distances"; }
-const char* BotDatabase::fail::CreateCloneBot() { return "Failed to create clone bot"; }
-const char* BotDatabase::fail::CreateCloneBotInventory() { return "Failed to create clone bot inventory"; }
 const char* BotDatabase::fail::SaveStopMeleeLevel() { return "Failed to save stop melee level"; }
 
 //Custom spell commands

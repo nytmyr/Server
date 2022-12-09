@@ -297,10 +297,10 @@ public:
 	virtual void SendTextureWC(uint8 slot, uint16 texture, uint32 hero_forge_model = 0, uint32 elite_material = 0, uint32 unknown06 = 0, uint32 unknown18 = 0);
 	virtual void SendWearChange(uint8 material_slot, Client *one_client = nullptr);
 	virtual void SetSlotTint(uint8 material_slot, uint8 red_tint, uint8 green_tint, uint8 blue_tint);
-	virtual void WearChange(uint8 material_slot, uint16 texture, uint32 color, uint32 hero_forge_model = 0);
+	virtual void WearChange(uint8 material_slot, uint16 texture, uint32 color = 0, uint32 hero_forge_model = 0);
 
 	void ChangeSize(float in_size, bool bNoRestriction = false);
-	void DoAnim(const int animnum, int type=0, bool ackreq = true, eqFilterType filter = FilterNone);
+	void DoAnim(const int animation_id, int animation_speed = 0, bool ackreq = true, eqFilterType filter = FilterNone);
 	void ProjectileAnimation(Mob* to, int item_id, bool IsArrow = false, float speed = 0, float angle = 0, float tilt = 0, float arc = 0, const char *IDFile = nullptr, EQ::skills::SkillType skillInUse = EQ::skills::SkillArchery);
 	void SendAppearanceEffect(uint32 parm1, uint32 parm2, uint32 parm3, uint32 parm4, uint32 parm5, Client *specific_target=nullptr, uint32 value1slot = 1, uint32 value1ground = 1, uint32 value2slot = 1, uint32 value2ground = 1,
 		uint32 value3slot = 1, uint32 value3ground = 1, uint32 value4slot = 1, uint32 value4ground = 1, uint32 value5slot = 1, uint32 value5ground = 1);
@@ -352,9 +352,18 @@ public:
 	bool SpellFinished(uint16 spell_id, Mob *target, EQ::spells::CastingSlot slot = EQ::spells::CastingSlot::Item, int mana_used = 0,
 		uint32 inventory_slot = 0xFFFFFFFF, int16 resist_adjust = 0, bool isproc = false, int level_override = -1, uint32 timer = 0xFFFFFFFF, uint32 timer_duration = 0, bool from_casted_spell = false, uint32 aa_id = 0);
 	void SendBeginCast(uint16 spell_id, uint32 casttime);
-	virtual bool SpellOnTarget(uint16 spell_id, Mob* spelltar, int reflect_effectiveness = 0,
-		bool use_resist_adjust = false, int16 resist_adjust = 0, bool isproc = false, int level_override = -1, int32 duration_override = 0, bool disable_buff_overrwrite = false);
-	virtual bool SpellEffect(Mob* caster, uint16 spell_id, float partial = 100, int level_override = -1, int reflect_effectiveness = 0, int32 duration_override = 0, bool disable_buff_overrwrite = false);
+	virtual bool SpellOnTarget(
+		uint16 spell_id,
+		Mob* spelltar,
+		int reflect_effectiveness = 0,
+		bool use_resist_adjust = false,
+		int16 resist_adjust = 0,
+		bool isproc = false,
+		int level_override = -1,
+		int duration_override = 0,
+		bool disable_buff_overwrite = false
+	);
+	virtual bool SpellEffect(Mob* caster, uint16 spell_id, float partial = 100, int level_override = -1, int reflect_effectiveness = 0, int32 duration_override = 0, bool disable_buff_overwrite = false);
 	virtual bool DetermineSpellTargets(uint16 spell_id, Mob *&spell_target, Mob *&ae_center,
 		CastAction_type &CastAction, EQ::spells::CastingSlot slot, bool isproc = false);
 	bool DoCastingChecksOnCaster(int32 spell_id, EQ::spells::CastingSlot slot);
@@ -410,7 +419,7 @@ public:
 	bool IsAffectedByBuff(uint16 spell_id);
 	bool IsAffectedByBuffByGlobalGroup(GlobalGroup group);
 	void BuffModifyDurationBySpellID(uint16 spell_id, int32 newDuration);
-	int AddBuff(Mob *caster, const uint16 spell_id, int duration = 0, int32 level_override = -1, bool disable_buff_overrwrite = false);
+	int AddBuff(Mob *caster, const uint16 spell_id, int duration = 0, int32 level_override = -1, bool disable_buff_overwrite = false);
 	int CanBuffStack(uint16 spellid, uint8 caster_level, bool iFailIfOverwrite = false);
 	int CalcBuffDuration(Mob *caster, Mob *target, uint16 spell_id, int32 caster_level_override = -1);
 	void SendPetBuffsToClient();
@@ -465,8 +474,8 @@ public:
 	void GetAppearenceEffects();
 	void ClearAppearenceEffects();
 	void SendSavedAppearenceEffects(Client *receiver);
-	void SetBuffDuration(int32 spell_id, int32 duration = 0);
-	void ApplySpellBuff(int32 spell_id, int32 duration = 0);
+	void SetBuffDuration(int spell_id, int duration = 0);
+	void ApplySpellBuff(int spell_id, int duration = 0);
 	int GetBuffStatValueBySpell(int32 spell_id, const char* stat_identifier);
 	int GetBuffStatValueBySlot(uint8 slot, const char* stat_identifier);
 
@@ -490,9 +499,11 @@ public:
 	inline void SetDuelWeaponsEquiped(bool val) { has_duelweaponsequiped = val; }
 	bool CanFacestab() { return can_facestab; }
 	void SetFacestab(bool val) { can_facestab = val; }
+	virtual uint8 ConvertItemTypeToSkillID(uint8 item_type);
 	virtual uint16 GetSkill(EQ::skills::SkillType skill_num) const { return 0; }
 	virtual uint32 GetEquippedItemFromTextureSlot(uint8 material_slot) const { return(0); }
 	virtual int32 GetEquipmentMaterial(uint8 material_slot) const;
+	virtual uint8 GetEquipmentType(uint8 material_slot) const;
 	virtual int32 GetHerosForgeModel(uint8 material_slot) const;
 	virtual uint32 GetEquipmentColor(uint8 material_slot) const;
 	virtual uint32 IsEliteMaterialItem(uint8 material_slot) const;
@@ -659,6 +670,8 @@ public:
 	inline const bool AlwaysAggro() const { return always_aggro; }
 	inline int32 GetHeroicStrikethrough() const  { return heroic_strikethrough; }
 
+	void CopyHateList(Mob* to);
+
 	//Group
 	virtual bool HasRaid() = 0;
 	virtual bool HasGroup() = 0;
@@ -741,13 +754,37 @@ public:
 	bool IsOnFeignMemory(Mob *attacker) const;
 	void PrintHateListToClient(Client *who) { hate_list.PrintHateListToClient(who); }
 	std::list<struct_HateList*>& GetHateList() { return hate_list.GetHateList(); }
-	std::list<struct_HateList*> GetHateListByDistance(int distance = 0) { return hate_list.GetHateListByDistance(distance); }
 	bool CheckLosFN(Mob* other);
 	bool CheckLosFN(float posX, float posY, float posZ, float mobSize);
 	static bool CheckLosFN(glm::vec3 posWatcher, float sizeWatcher, glm::vec3 posTarget, float sizeTarget);
 	inline void SetLastLosState(bool value) { last_los_check = value; }
 	inline bool CheckLastLosState() const { return last_los_check; }
 	std::string GetMobDescription();
+
+	std::list<struct_HateList*> GetFilteredHateList(
+		EntityFilterType filter_type = EntityFilterType::All,
+		uint32 distance = 0
+	) {
+		return hate_list.GetFilteredHateList(filter_type, distance);
+	}
+
+	void DamageHateList(
+		int64 damage,
+		uint32 distance = 0,
+		EntityFilterType filter_type = EntityFilterType::All,
+		bool is_percentage = false
+	) {
+		hate_list.DamageHateList(damage, distance, filter_type, is_percentage);
+	}
+
+	void DamageArea(
+		int64 damage,
+		uint32 distance = 0,
+		EntityFilterType filter_type = EntityFilterType::All,
+		bool is_percentage = false
+	) {
+		entity_list.DamageArea(this, damage, distance, filter_type, is_percentage);
+	}
 
 	//Quest
 	void CameraEffect(uint32 duration, float intensity, Client *c = nullptr, bool global = false);
@@ -856,11 +893,26 @@ public:
 
 	int64 CalcFocusEffect(focusType type, uint16 focus_id, uint16 spell_id, bool best_focus=false, uint16 casterid = 0, Mob *caster = nullptr);
 	uint8 IsFocusEffect(uint16 spellid, int effect_index, bool AA=false,uint32 aa_effect=0);
-	void SendIllusionPacket(uint16 in_race, uint8 in_gender = 0xFF, uint8 in_texture = 0xFF, uint8 in_helmtexture = 0xFF,
-		uint8 in_haircolor = 0xFF, uint8 in_beardcolor = 0xFF, uint8 in_eyecolor1 = 0xFF, uint8 in_eyecolor2 = 0xFF,
-		uint8 in_hairstyle = 0xFF, uint8 in_luclinface = 0xFF, uint8 in_beard = 0xFF, uint8 in_aa_title = 0xFF,
-		uint32 in_drakkin_heritage = 0xFFFFFFFF, uint32 in_drakkin_tattoo = 0xFFFFFFFF,
-		uint32 in_drakkin_details = 0xFFFFFFFF, float in_size = -1.0f, bool send_appearance_effects = true);
+	void SendIllusionPacket(
+		uint16 in_race,
+		uint8 in_gender = 0xFF,
+		uint8 in_texture = 0xFF,
+		uint8 in_helmtexture = 0xFF,
+		uint8 in_haircolor = 0xFF,
+		uint8 in_beardcolor = 0xFF,
+		uint8 in_eyecolor1 = 0xFF,
+		uint8 in_eyecolor2 = 0xFF,
+		uint8 in_hairstyle = 0xFF,
+		uint8 in_luclinface = 0xFF,
+		uint8 in_beard = 0xFF,
+		uint8 in_aa_title = 0xFF,
+		uint32 in_drakkin_heritage = 0xFFFFFFFF,
+		uint32 in_drakkin_tattoo = 0xFFFFFFFF,
+		uint32 in_drakkin_details = 0xFFFFFFFF,
+		float in_size = -1.0f,
+		bool send_appearance_effects = true
+	);
+	void CloneAppearance(Mob* other, bool clone_name = false);
 	void SetFaceAppearance(const FaceChange_Struct& face, bool skip_sender = false);
 	bool RandomizeFeatures(bool send_illusion = true, bool set_variables = true);
 	virtual void Stun(int duration);
@@ -1096,9 +1148,12 @@ public:
 	virtual void AI_ShutDown();
 	virtual void AI_Process();
 
-	const char* GetEntityVariable(const char *id);
-	void SetEntityVariable(const char *id, const char *m_var);
-	bool EntityVariableExists(const char *id);
+	bool ClearEntityVariables();
+	bool DeleteEntityVariable(std::string variable_name);
+	std::string GetEntityVariable(std::string variable_name);
+	std::vector<std::string> GetEntityVariables();
+	void SetEntityVariable(std::string variable_name, std::string variable_value);
+	bool EntityVariableExists(std::string variable_name);
 
 	void AI_Event_Engaged(Mob* attacker, bool yell_for_help = true);
 	void AI_Event_NoLongerEngaged();
@@ -1500,7 +1555,7 @@ protected:
 	bool no_target_hotkey;
 	bool rare_spawn;
 	int32 heroic_strikethrough;
-	
+
 	uint32 m_PlayerState;
 	uint32 GetPlayerState() { return m_PlayerState; }
 	void AddPlayerState(uint32 new_state) { m_PlayerState |= new_state; }

@@ -11,8 +11,8 @@
 #include <algorithm>
 
 class Client;
-
 class Mob;
+class SharedTaskRequest;
 
 class TaskManager {
 
@@ -51,6 +51,10 @@ public:
 	int NextTaskInSet(int task_set, int task_id);
 	bool IsTaskRepeatable(int task_id);
 	bool IsActiveTaskComplete(ClientTaskInformation& client_task);
+	int GetCurrentDzTaskID();
+	void EndCurrentDzTask(bool send_fail);
+	void EndSharedTask(Client& client, int task_id, bool send_fail);
+	void EndSharedTask(uint32_t dz_id, bool send_fail);
 
 	friend class ClientTaskState;
 
@@ -81,6 +85,7 @@ private:
 	void SendActiveTaskToClient(ClientTaskInformation *task, Client *client, int task_index, bool task_complete);
 
 	// shared tasks
+	bool CanOfferSharedTask(int task_id, const SharedTaskRequest& request);
 	void SyncClientSharedTaskWithPersistedState(Client *c, ClientTaskState *cts);
 	void SyncClientSharedTaskRemoveLocalIfNotExists(Client *c, ClientTaskState *cts);
 	void SendSharedTaskSelector(Client* client, Mob* mob, const std::vector<int>& tasks);
