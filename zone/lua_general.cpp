@@ -3628,6 +3628,26 @@ void lua_set_proximity_range(float x_range, float y_range, float z_range, bool e
 	quest_manager.set_proximity_range(x_range, y_range, z_range, enable_say);
 }
 
+void lua_do_anim(int animation_id)
+{
+	quest_manager.doanim(animation_id);
+}
+
+void lua_do_anim(int animation_id, int animation_speed)
+{
+	quest_manager.doanim(animation_id, animation_speed);
+}
+
+void lua_do_anim(int animation_id, int animation_speed, bool ackreq)
+{
+	quest_manager.doanim(animation_id, animation_speed, ackreq);
+}
+
+void lua_do_anim(int animation_id, int animation_speed, bool ackreq, int filter)
+{
+	quest_manager.doanim(animation_id, animation_speed, ackreq, static_cast<eqFilterType>(filter));
+}
+
 #define LuaCreateNPCParse(name, c_type, default_value) do { \
 	cur = table[#name]; \
 	if(luabind::type(cur) != LUA_TNIL) { \
@@ -4129,7 +4149,10 @@ luabind::scope lua_register_general() {
 		luabind::def("zone_marquee", (void(*)(uint32,uint32,uint32,uint32,uint32,std::string))&lua_zone_marquee),
 		luabind::def("is_hotzone", (bool(*)(void))&lua_is_hotzone),
 		luabind::def("set_hotzone", (void(*)(bool))&lua_set_hotzone),
-
+		luabind::def("do_anim", (void(*)(int))&lua_do_anim),
+		luabind::def("do_anim", (void(*)(int,int))&lua_do_anim),
+		luabind::def("do_anim", (void(*)(int,int,bool))&lua_do_anim),
+		luabind::def("do_anim", (void(*)(int,int,bool,int))&lua_do_anim),
 		/*
 			Cross Zone
 		*/
@@ -4530,8 +4553,9 @@ luabind::scope lua_register_events() {
 			luabind::value("task_before_update", static_cast<int>(EVENT_TASK_BEFORE_UPDATE)),
 			luabind::value("aa_buy", static_cast<int>(EVENT_AA_BUY)),
 			luabind::value("aa_gain", static_cast<int>(EVENT_AA_GAIN)),
-			luabind::value("payload", static_cast<int>(EVENT_PAYLOAD)),
 			luabind::value("summon_pc", static_cast<int>(EVENT_SUMMON_PC))
+			luabind::value("payload", static_cast<int>(EVENT_PAYLOAD)),
+			luabind::value("level_down", static_cast<int>(EVENT_LEVEL_DOWN))
 		];
 }
 
