@@ -9527,7 +9527,7 @@ void bot_subcommand_bot_camp(Client *c, const Seperator *sep)
 		bot_iter->Camp();
 }
 
-void bot_subcommand_bot_clone(Client *c, const Seperator *sep)
+void bot_subcommand_bot_clone(Client* c, const Seperator* sep)
 {
 	if (helper_command_alias_fail(c, "bot_subcommand_bot_clone", sep->arg[0], "botclone")) {
 		return;
@@ -9614,9 +9614,6 @@ void bot_subcommand_bot_clone(Client *c, const Seperator *sep)
 		return;
 	}
 
-	uint32 max_bot_count = RuleI(Bots, CreationLimit);
-	uint32 max_bot_bypass = RuleI(Bots, CreationLimitStatusBypass);
-	
 	auto bot_creation_limit = c->GetBotCreationLimit();
 	auto bot_creation_limit_class = c->GetBotCreationLimit(my_bot->GetClass());
 
@@ -9627,16 +9624,17 @@ void bot_subcommand_bot_clone(Client *c, const Seperator *sep)
 		return;
 	}
 
-	if (bot_creation_limit >= 0 && bot_count >= bot_creation_limit) {
+	if (bot_creation_limit >= 0 && bot_count >= bot_creation_limit && !c->GetGM()) {
 		std::string message;
 
 		if (bot_creation_limit) {
-			message =  fmt::format(
+			message = fmt::format(
 				"You have reached the maximum limit of {} bot{}.",
 				bot_creation_limit,
 				bot_creation_limit != 1 ? "s" : ""
 			);
-		} else {
+		}
+		else {
 			message = "You cannot create any bots.";
 		}
 
@@ -9644,7 +9642,7 @@ void bot_subcommand_bot_clone(Client *c, const Seperator *sep)
 		return;
 	}
 
-	if (bot_creation_limit_class >= 0 && bot_class_count >= bot_creation_limit_class) {
+	if (bot_creation_limit_class >= 0 && bot_class_count >= bot_creation_limit_class && !c->GetGM()) {
 		std::string message;
 
 		if (bot_creation_limit_class) {
@@ -9654,7 +9652,8 @@ void bot_subcommand_bot_clone(Client *c, const Seperator *sep)
 				GetClassIDName(my_bot->GetClass()),
 				bot_creation_limit_class != 1 ? "s" : ""
 			);
-		} else {
+		}
+		else {
 			message = fmt::format(
 				"You cannot create any {} bots.",
 				GetClassIDName(my_bot->GetClass())
@@ -10845,7 +10844,7 @@ void bot_subcommand_bot_report(Client *c, const Seperator *sep)
 	}
 }
 
-void bot_subcommand_bot_spawn(Client *c, const Seperator *sep)
+void bot_subcommand_bot_spawn(Client* c, const Seperator* sep)
 {
 	if (helper_command_alias_fail(c, "bot_subcommand_bot_spawn", sep->arg[0], "botspawn")) {
 		return;
@@ -10867,7 +10866,7 @@ void bot_subcommand_bot_spawn(Client *c, const Seperator *sep)
 		bot_character_level >= 0 &&
 		c->GetLevel() < bot_character_level &&
 		!c->GetGM()
-	) {
+		) {
 		c->Message(
 			Chat::White,
 			fmt::format(
@@ -10883,57 +10882,17 @@ void bot_subcommand_bot_spawn(Client *c, const Seperator *sep)
 		return;
 	}
 
-	auto bot_spawn_limit = c->GetBotSpawnLimit();
 	auto spawned_bot_count = Bot::SpawnedBotCount(c->CharacterID());
+	auto bot_spawn_limit = c->GetBotSpawnLimit(0, spawned_bot_count);
 
-	int rule_limit;
-	int level_requirement;
-	if (!RuleB(Bots, TieredSpawnLimitUnlocks)) {
-		rule_limit = RuleI(Bots, SpawnLimit);
-	}
-	else {
-		if (c->GetLevel() < RuleI(Bots, TierOneBotSpawnLimitUnlockLevelRequirement)) {
-			rule_limit = 0;
-			c->Message(Chat::White, "You must reach level %i to unlock the ability to spawn %i bot(s).", RuleI(Bots, TierOneBotSpawnLimitUnlockLevelRequirement), RuleI(Bots, TierOneBotSpawnLimitUnlock));
-			return;
-		}
-		else if (c->GetLevel() >= RuleI(Bots, TierOneBotSpawnLimitUnlockLevelRequirement) && c->GetLevel() < RuleI(Bots, TierTwoBotSpawnLimitUnlockLevelRequirement)) {
-			rule_limit = RuleI(Bots, TierOneBotSpawnLimitUnlock);
-			level_requirement = RuleI(Bots, TierTwoBotSpawnLimitUnlockLevelRequirement);
-		}
-		else if (c->GetLevel() >= RuleI(Bots, TierTwoBotSpawnLimitUnlockLevelRequirement) && c->GetLevel() < RuleI(Bots, TierThreeBotSpawnLimitUnlockLevelRequirement)) {
-			rule_limit = RuleI(Bots, TierTwoBotSpawnLimitUnlock);
-			level_requirement = RuleI(Bots, TierThreeBotSpawnLimitUnlockLevelRequirement);
-		}
-		else if (c->GetLevel() >= RuleI(Bots, TierThreeBotSpawnLimitUnlockLevelRequirement) && c->GetLevel() < RuleI(Bots, TierFourBotSpawnLimitUnlockLevelRequirement)) {
-			rule_limit = RuleI(Bots, TierThreeBotSpawnLimitUnlock);
-			level_requirement = RuleI(Bots, TierFourBotSpawnLimitUnlockLevelRequirement);
-		}
-		else if (c->GetLevel() >= RuleI(Bots, TierFourBotSpawnLimitUnlockLevelRequirement) && c->GetLevel() < RuleI(Bots, TierFiveBotSpawnLimitUnlockLevelRequirement)) {
-			rule_limit = RuleI(Bots, TierFourBotSpawnLimitUnlock);
-			level_requirement = RuleI(Bots, TierFiveBotSpawnLimitUnlockLevelRequirement);
-		}
-		else if (c->GetLevel() >= RuleI(Bots, TierFiveBotSpawnLimitUnlockLevelRequirement)) {
-			rule_limit = RuleI(Bots, TierFiveBotSpawnLimitUnlock);
-			level_requirement = 0;
-		}
-	}
-	int status_limit = RuleI(Bots,StatusSpawnLimit);
-	if (spawned_bot_count >= rule_limit && !c->GetGM() && c->Admin() < status_limit) {
-		if (!RuleB(Bots, TieredSpawnLimitUnlocks) || level_requirement == 0) {
-			c->Message(Chat::White, "You can not spawn more than %i spawned bot(s).", rule_limit);
-			return;
-		}
-		else {
-			c->Message(Chat::White, "You can not spawn more than %i spawned bot(s) until you reach level %i.", rule_limit, level_requirement);
-			return;
-		}
-	}
+	if (bot_spawn_limit == 999)
+		return;
+
 	if (
 		bot_spawn_limit >= 0 &&
 		spawned_bot_count >= bot_spawn_limit &&
 		!c->GetGM()
-	) {
+		) {
 		std::string message;
 		if (bot_spawn_limit) {
 			message = fmt::format(
@@ -10941,7 +10900,8 @@ void bot_subcommand_bot_spawn(Client *c, const Seperator *sep)
 				bot_spawn_limit,
 				bot_spawn_limit != 1 ? "s" : ""
 			);
-		} else {
+		}
+		else {
 			message = "You are not currently allowed to spawn any bots.";
 		}
 
@@ -10976,7 +10936,7 @@ void bot_subcommand_bot_spawn(Client *c, const Seperator *sep)
 		bot_spawn_limit_class >= 0 &&
 		spawned_bot_count_class >= bot_spawn_limit_class &&
 		!c->GetGM()
-	) {
+		) {
 		std::string message;
 
 		if (bot_spawn_limit_class) {
@@ -10986,7 +10946,8 @@ void bot_subcommand_bot_spawn(Client *c, const Seperator *sep)
 				GetClassIDName(bot_class),
 				bot_spawn_limit_class != 1 ? "s" : ""
 			);
-		} else {
+		}
+		else {
 			message = fmt::format(
 				"You are not currently allowed to spawn any {} bots.",
 				GetClassIDName(bot_class)
@@ -11002,7 +10963,7 @@ void bot_subcommand_bot_spawn(Client *c, const Seperator *sep)
 		bot_character_level_class >= 0 &&
 		c->GetLevel() < bot_character_level_class &&
 		!c->GetGM()
-	) {
+		) {
 		c->Message(
 			Chat::White,
 			fmt::format(
@@ -11036,67 +10997,39 @@ void bot_subcommand_bot_spawn(Client *c, const Seperator *sep)
 		return;
 	}
 
-	//auto* owner_raid = c->GetRaid();
-	auto* owner_group = c->GetGroup();
-	//if (c->IsRaidGrouped()) {
-	//	Raid* raid = entity_list.GetRaidByClient(c);
-	//	uint32 g = raid->GetGroup(c->GetName());
-	//	if (g < 12) {
-	//		std::vector<RaidMember> raid_group_members = raid->GetMembers();
-	//		for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
-	//			for (int i = 0; i < MAX_RAID_MEMBERS; i++) {
-	//				if (iter->member && entity_list.IsMobInZone(iter->member) && iter->member->IsEngaged() || iter->member && entity_list.IsMobInZone(iter->member) && iter->member->GetAggroCount() > 0) {
-	//					c->Message(Chat::White, "You can't spawn bots while your raid is engaged.");
-	//					return;
-	//				}
-	//			}
-	//		}
-	//	}
-	//}
-	//else if (owner_group) {
-	if (owner_group) {
-		std::list<Client*> member_list;
-		owner_group->GetClientList(member_list);
-		member_list.remove(nullptr);
+	// this probably needs work...
+	if (c->GetGroup()) {
+		std::list<Mob*> group_list;
+		c->GetGroup()->GetMemberList(group_list);
+		for (auto member_iter : group_list) {
+			if (!member_iter) {
+				continue;
+			}
 
-		for (auto member_iter : member_list) {
-			if (member_iter->IsEngaged() || member_iter->GetAggroCount() > 0) {
-				c->Message(Chat::White, "You can't spawn bots while your group is engaged.");
+			if (member_iter->qglobal) { // what is this?? really should have had a message to describe failure... (can't spawn bots if you are assigned to a task/instance?)
+				return;
+			}
+
+			if (
+				!member_iter->qglobal &&
+				member_iter->GetAppearance() != eaDead &&
+				(
+					member_iter->IsEngaged() ||
+					(
+						member_iter->IsClient() &&
+						member_iter->CastToClient()->GetAggroCount()
+						)
+					)
+				) {
+				c->Message(Chat::White, "You cannot summon bots while you are engaged.");
 				return;
 			}
 		}
 	}
-	else {
-		if (c->GetAggroCount() > 0) {
-			c->Message(Chat::White, "You can't spawn bots while you are engaged.");
-			return;
-		}
+	else if (c->GetAggroCount()) {
+		c->Message(Chat::White, "You cannot spawn bots while you are engaged.");
+		return;
 	}
-
-	// this probably needs work...
-	//if (c->GetGroup()) {
-	//	std::list<Mob*> group_list;
-	//	c->GetGroup()->GetMemberList(group_list);
-	//	for (auto member_iter : group_list) {
-	//		if (!member_iter)
-	//			continue;
-	//		if (member_iter->qglobal) // what is this?? really should have had a message to describe failure... (can't spawn bots if you are assigned to a task/instance?)
-	//			return;
-	//		if (!member_iter->qglobal && (member_iter->GetAppearance() != eaDead) && (member_iter->IsEngaged() || (member_iter->IsClient() && member_iter->CastToClient()->GetAggroCount()))) {
-	//			c->Message(Chat::White, "You can't summon bots while your group is engaged.");
-	//			return;
-	//		}
-	//	}
-	//}
-	//else if (c->GetAggroCount() > 0) {
-	//	c->Message(Chat::White, "You can't spawn bots while you are engaged.");
-	//	return;
-	//}
-
-	//if (c->IsEngaged()) {
-	//	c->Message(Chat::White, "You can't spawn bots while you are engaged.");
-	//	return;
-	//}
 
 	auto my_bot = Bot::LoadBot(bot_id);
 	if (!my_bot) {
@@ -11151,7 +11084,8 @@ void bot_subcommand_bot_spawn(Client *c, const Seperator *sep)
 
 	if (c->GetBotOption(Client::booSpawnMessageSay)) {
 		Bot::BotGroupSay(my_bot, bot_spawn_message[message_index].c_str());
-	} else if (c->GetBotOption(Client::booSpawnMessageTell)) {
+	}
+	else if (c->GetBotOption(Client::booSpawnMessageTell)) {
 		my_bot->OwnerMessage(bot_spawn_message[message_index]);
 	}
 }
@@ -14262,7 +14196,7 @@ void helper_bot_appearance_form_update(Bot *my_bot)
 	);
 }
 
-uint32 helper_bot_create(Client *bot_owner, std::string bot_name, uint8 bot_class, uint16 bot_race, uint8 bot_gender)
+uint32 helper_bot_create(Client* bot_owner, std::string bot_name, uint8 bot_class, uint16 bot_race, uint8 bot_gender)
 {
 	uint32 bot_id = 0;
 	if (!bot_owner) {
@@ -14339,8 +14273,6 @@ uint32 helper_bot_create(Client *bot_owner, std::string bot_name, uint8 bot_clas
 		return bot_id;
 	}
 
-	uint32 max_bot_count = RuleI(Bots, CreationLimit);
-	uint32 max_bot_bypass = RuleI(Bots, CreationLimitStatusBypass);
 	auto bot_creation_limit = bot_owner->GetBotCreationLimit();
 	auto bot_creation_limit_class = bot_owner->GetBotCreationLimit(bot_class);
 
@@ -14351,7 +14283,7 @@ uint32 helper_bot_create(Client *bot_owner, std::string bot_name, uint8 bot_clas
 		return bot_id;
 	}
 
-	if (bot_creation_limit >= 0 && bot_count >= bot_creation_limit) {
+	if (bot_creation_limit >= 0 && bot_count >= bot_creation_limit && !bot_owner->GetGM()) {
 		std::string message;
 
 		if (bot_creation_limit) {
@@ -14360,7 +14292,8 @@ uint32 helper_bot_create(Client *bot_owner, std::string bot_name, uint8 bot_clas
 				bot_creation_limit,
 				bot_creation_limit != 1 ? "s" : ""
 			);
-		} else {
+		}
+		else {
 			message = "You cannot create any bots.";
 		}
 
@@ -14368,7 +14301,7 @@ uint32 helper_bot_create(Client *bot_owner, std::string bot_name, uint8 bot_clas
 		return bot_id;
 	}
 
-	if (bot_creation_limit_class >= 0 && bot_class_count >= bot_creation_limit_class) {
+	if (bot_creation_limit_class >= 0 && bot_class_count >= bot_creation_limit_class && !bot_owner->GetGM()) {
 		std::string message;
 
 		if (bot_creation_limit_class) {
@@ -14378,7 +14311,8 @@ uint32 helper_bot_create(Client *bot_owner, std::string bot_name, uint8 bot_clas
 				GetClassIDName(bot_class),
 				bot_creation_limit_class != 1 ? "s" : ""
 			);
-		} else {
+		}
+		else {
 			message = fmt::format(
 				"You cannot create any {} bots.",
 				GetClassIDName(bot_class)
@@ -14394,7 +14328,8 @@ uint32 helper_bot_create(Client *bot_owner, std::string bot_name, uint8 bot_clas
 	if (
 		bot_character_level >= 0 &&
 		bot_owner->GetLevel() < bot_character_level
-	) {
+		&& !bot_owner->GetGM()
+		) {
 		bot_owner->Message(
 			Chat::White,
 			fmt::format(
@@ -14404,15 +14339,14 @@ uint32 helper_bot_create(Client *bot_owner, std::string bot_name, uint8 bot_clas
 		);
 		return bot_id;
 	}
-	if (bot_count >= max_bot_count && bot_owner->Admin() < max_bot_bypass) {
-		bot_owner->Message(Chat::White, "You have reached the maximum limit of %i bots.", max_bot_count);
 
 	auto bot_character_level_class = bot_owner->GetBotRequiredLevel(bot_class);
 
 	if (
 		bot_character_level_class >= 0 &&
 		bot_owner->GetLevel() < bot_character_level_class
-	) {
+		&& !bot_owner->GetGM()
+		) {
 		bot_owner->Message(
 			Chat::White,
 			fmt::format(

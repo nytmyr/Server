@@ -69,6 +69,81 @@ public:
 		int32_t     expansion_bitmask;
 		uint8_t     enforce_spell_settings;
 		uint8_t     archery_setting;
+		uint8_t		hold_buffs;
+		uint8_t		hold_cures;
+		uint8_t		hold_dots;
+		uint8_t		hold_debuffs;
+		uint8_t		hold_dispels;
+		uint8_t		hold_escapes;
+		uint8_t		hold_hateredux;
+		uint8_t		hold_heals;
+		uint8_t		hold_incombatbuffs;
+		uint8_t		hold_incombatbuffsongs;
+		uint8_t		hold_lifetaps;
+		uint8_t		hold_mez;
+		uint8_t		hold_nukes;
+		uint8_t		hold_outofcombatbuffsongs;
+		uint8_t		hold_pet_heals;
+		uint8_t		hold_pets;
+		uint8_t		hold_precombatbuffs;
+		uint8_t		hold_precombatbuffsongs;
+		uint8_t		hold_roots;
+		uint8_t		hold_slows;
+		uint8_t		hold_snares;
+		uint8_t		auto_ds;
+		uint8_t		auto_resist;
+		uint8_t		behind_mob;
+		uint32_t	caster_range;
+		uint32_t	buff_delay;
+		uint32_t	complete_heal_delay;
+		uint32_t	cure_delay;
+		uint32_t	debuff_delay;
+		uint32_t	dispel_delay;
+		uint32_t	dot_delay;
+		uint32_t	escape_delay;
+		uint32_t	fast_heal_delay;
+		uint32_t	hate_redux_delay;
+		uint32_t	heal_delay;
+		uint32_t	hot_heal_delay;
+		uint32_t	incombatbuff_delay;
+		uint32_t	lifetap_delay;
+		uint32_t	mez_delay;
+		uint32_t	nuke_delay;
+		uint32_t	root_delay;
+		uint32_t	slow_delay;
+		uint32_t	snare_delay;
+		uint8_t		buff_threshold;
+		uint8_t		complete_heal_threshold;
+		uint8_t		cure_threshold;
+		uint8_t		debuff_threshold;
+		uint8_t		dispel_threshold;
+		uint8_t		dot_threshold;
+		uint8_t		escape_threshold;
+		uint8_t		fast_heal_threshold;
+		uint8_t		hate_redux_threshold;
+		uint8_t		heal_threshold;
+		uint8_t		hot_heal_threshold;
+		uint8_t		incombatbuff_threshold;
+		uint8_t		lifetap_threshold;
+		uint8_t		mez_threshold;
+		uint8_t		nuke_threshold;
+		uint8_t		root_threshold;
+		uint8_t		slow_threshold;
+		uint8_t		snare_threshold;
+		uint8_t		buff_min_threshold;
+		uint8_t		cure_min_threshold;
+		uint8_t		debuff_min_threshold;
+		uint8_t		dispel_min_threshold;
+		uint8_t		dot_min_threshold;
+		uint8_t		escape_min_threshold;
+		uint8_t		hate_redux_min_threshold;
+		uint8_t		incombatbuff_min_threshold;
+		uint8_t		lifetap_min_threshold;
+		uint8_t		mez_min_threshold;
+		uint8_t		nuke_min_threshold;
+		uint8_t		root_min_threshold;
+		uint8_t		slow_min_threshold;
+		uint8_t		snare_min_threshold;
 	};
 
 	static std::string PrimaryKey()
@@ -129,6 +204,81 @@ public:
 			"expansion_bitmask",
 			"enforce_spell_settings",
 			"archery_setting",
+			"hold_buffs",
+			"hold_cures",
+			"hold_dots",
+			"hold_debuffs",
+			"hold_dispels",
+			"hold_escapes",
+			"hold_hateredux",
+			"hold_heals",
+			"hold_incombatbuffs",
+			"hold_incombatbuffsongs",
+			"hold_lifetaps",
+			"hold_mez",
+			"hold_nukes",
+			"hold_outofcombatbuffsongs",
+			"hold_pet_heals",
+			"hold_pets",
+			"hold_precombatbuffs",
+			"hold_precombatbuffsongs",
+			"hold_roots",
+			"hold_slows",
+			"hold_snares",
+			"auto_ds",
+			"auto_resist",
+			"behind_mob",
+			"caster_range",
+			"buff_delay",
+			"complete_heal_delay",
+			"cure_delay",
+			"debuff_delay",
+			"dispel_delay",
+			"dot_delay",
+			"escape_delay",
+			"fast_heal_delay",
+			"hate_redux_delay",
+			"heal_delay",
+			"hot_heal_delay",
+			"incombatbuff_delay",
+			"lifetap_delay",
+			"mez_delay",
+			"nuke_delay",
+			"root_delay",
+			"slow_delay",
+			"snare_delay",
+			"buff_threshold",
+			"complete_heal_threshold",
+			"cure_threshold",
+			"debuff_threshold",
+			"dispel_threshold",
+			"dot_threshold",
+			"escape_threshold",
+			"fast_heal_threshold",
+			"hate_redux_threshold",
+			"heal_threshold",
+			"hot_heal_threshold",
+			"incombatbuff_threshold",
+			"lifetap_threshold",
+			"mez_threshold",
+			"nuke_threshold",
+			"root_threshold",
+			"slow_threshold",
+			"snare_threshold",
+			"buff_min_threshold",
+			"cure_min_threshold",
+			"debuff_min_threshold",
+			"dispel_min_threshold",
+			"dot_min_threshold",
+			"escape_min_threshold",
+			"hate_redux_min_threshold",
+			"incombatbuff_min_threshold",
+			"lifetap_min_threshold",
+			"mez_min_threshold",
+			"nuke_min_threshold",
+			"root_min_threshold",
+			"slow_min_threshold",
+			"snare_min_threshold",
 		};
 	}
 
@@ -185,6 +335,81 @@ public:
 			"expansion_bitmask",
 			"enforce_spell_settings",
 			"archery_setting",
+			"hold_buffs",
+			"hold_cures",
+			"hold_dots",
+			"hold_debuffs",
+			"hold_dispels",
+			"hold_escapes",
+			"hold_hateredux",
+			"hold_heals",
+			"hold_incombatbuffs",
+			"hold_incombatbuffsongs",
+			"hold_lifetaps",
+			"hold_mez",
+			"hold_nukes",
+			"hold_outofcombatbuffsongs",
+			"hold_pet_heals",
+			"hold_pets",
+			"hold_precombatbuffs",
+			"hold_precombatbuffsongs",
+			"hold_roots",
+			"hold_slows",
+			"hold_snares",
+			"auto_ds",
+			"auto_resist",
+			"behind_mob",
+			"caster_range",
+			"buff_delay",
+			"complete_heal_delay",
+			"cure_delay",
+			"debuff_delay",
+			"dispel_delay",
+			"dot_delay",
+			"escape_delay",
+			"fast_heal_delay",
+			"hate_redux_delay",
+			"heal_delay",
+			"hot_heal_delay",
+			"incombatbuff_delay",
+			"lifetap_delay",
+			"mez_delay",
+			"nuke_delay",
+			"root_delay",
+			"slow_delay",
+			"snare_delay",
+			"buff_threshold",
+			"complete_heal_threshold",
+			"cure_threshold",
+			"debuff_threshold",
+			"dispel_threshold",
+			"dot_threshold",
+			"escape_threshold",
+			"fast_heal_threshold",
+			"hate_redux_threshold",
+			"heal_threshold",
+			"hot_heal_threshold",
+			"incombatbuff_threshold",
+			"lifetap_threshold",
+			"mez_threshold",
+			"nuke_threshold",
+			"root_threshold",
+			"slow_threshold",
+			"snare_threshold",
+			"buff_min_threshold",
+			"cure_min_threshold",
+			"debuff_min_threshold",
+			"dispel_min_threshold",
+			"dot_min_threshold",
+			"escape_min_threshold",
+			"hate_redux_min_threshold",
+			"incombatbuff_min_threshold",
+			"lifetap_min_threshold",
+			"mez_min_threshold",
+			"nuke_min_threshold",
+			"root_min_threshold",
+			"slow_min_threshold",
+			"snare_min_threshold",
 		};
 	}
 
@@ -275,6 +500,81 @@ public:
 		e.expansion_bitmask      = -1;
 		e.enforce_spell_settings = 0;
 		e.archery_setting        = 0;
+		e.hold_buffs = 0;
+		e.hold_cures = 0;
+		e.hold_dots = 0;
+		e.hold_debuffs = 0;
+		e.hold_dispels = 1;
+		e.hold_escapes = 0;
+		e.hold_hateredux = 0;
+		e.hold_heals = 0;
+		e.hold_incombatbuffs = 0;
+		e.hold_incombatbuffsongs = 0;
+		e.hold_lifetaps = 0;
+		e.hold_mez = 0;
+		e.hold_nukes = 0;
+		e.hold_outofcombatbuffsongs = 0;
+		e.hold_pet_heals = 0;
+		e.hold_pets = 0;
+		e.hold_precombatbuffs = 0;
+		e.hold_precombatbuffsongs = 0;
+		e.hold_roots = 1;
+		e.hold_slows = 0;
+		e.hold_snares = 0;
+		e.auto_ds = 1;
+		e.auto_resist = 1;
+		e.behind_mob = 0;
+		e.caster_range = 90;
+		e.buff_delay = 1;
+		e.complete_heal_delay = 8000;
+		e.cure_delay = 1;
+		e.debuff_delay = 12000;
+		e.dispel_delay = 1;
+		e.dot_delay = 12000;
+		e.escape_delay = 1;
+		e.fast_heal_delay = 2500;
+		e.hate_redux_delay = 1;
+		e.heal_delay = 4500;
+		e.hot_heal_delay = 22000;
+		e.incombatbuff_delay = 1;
+		e.lifetap_delay = 1;
+		e.mez_delay = 1;
+		e.nuke_delay = 8000;
+		e.root_delay = 12000;
+		e.slow_delay = 12000;
+		e.snare_delay = 12000;
+		e.buff_threshold = 150;
+		e.complete_heal_threshold = 70;
+		e.cure_threshold = 150;
+		e.debuff_threshold = 95;
+		e.dispel_threshold = 99;
+		e.dot_threshold = 95;
+		e.escape_threshold = 35;
+		e.fast_heal_threshold = 35;
+		e.hate_redux_threshold = 80;
+		e.heal_threshold = 55;
+		e.hot_heal_threshold = 85;
+		e.incombatbuff_threshold = 150;
+		e.lifetap_threshold = 60;
+		e.mez_threshold = 150;
+		e.nuke_threshold = 95;
+		e.root_threshold = 95;
+		e.slow_threshold = 95;
+		e.snare_threshold = 95;
+		e.buff_min_threshold = 0;
+		e.cure_min_threshold = 0;
+		e.debuff_min_threshold = 25;
+		e.dispel_min_threshold = 25;
+		e.dot_min_threshold = 50;
+		e.escape_min_threshold = 0;
+		e.hate_redux_min_threshold = 0;
+		e.incombatbuff_min_threshold = 0;
+		e.lifetap_min_threshold = 0;
+		e.mez_min_threshold = 85;
+		e.nuke_min_threshold = 20;
+		e.root_min_threshold = 15;
+		e.slow_min_threshold = 25;
+		e.snare_min_threshold = 0;
 
 		return e;
 	}
@@ -311,56 +611,131 @@ public:
 		if (results.RowCount() == 1) {
 			BotData e{};
 
-			e.bot_id                 = static_cast<uint32_t>(strtoul(row[0], nullptr, 10));
-			e.owner_id               = static_cast<uint32_t>(strtoul(row[1], nullptr, 10));
-			e.spells_id              = static_cast<uint32_t>(strtoul(row[2], nullptr, 10));
-			e.name                   = row[3] ? row[3] : "";
-			e.last_name              = row[4] ? row[4] : "";
-			e.title                  = row[5] ? row[5] : "";
-			e.suffix                 = row[6] ? row[6] : "";
-			e.zone_id                = static_cast<int16_t>(atoi(row[7]));
-			e.gender                 = static_cast<int8_t>(atoi(row[8]));
-			e.race                   = static_cast<int16_t>(atoi(row[9]));
-			e.class_                 = static_cast<int8_t>(atoi(row[10]));
-			e.level                  = static_cast<uint8_t>(strtoul(row[11], nullptr, 10));
-			e.deity                  = static_cast<uint32_t>(strtoul(row[12], nullptr, 10));
-			e.creation_day           = static_cast<uint32_t>(strtoul(row[13], nullptr, 10));
-			e.last_spawn             = static_cast<uint32_t>(strtoul(row[14], nullptr, 10));
-			e.time_spawned           = static_cast<uint32_t>(strtoul(row[15], nullptr, 10));
-			e.size                   = strtof(row[16], nullptr);
-			e.face                   = static_cast<int32_t>(atoi(row[17]));
-			e.hair_color             = static_cast<int32_t>(atoi(row[18]));
-			e.hair_style             = static_cast<int32_t>(atoi(row[19]));
-			e.beard                  = static_cast<int32_t>(atoi(row[20]));
-			e.beard_color            = static_cast<int32_t>(atoi(row[21]));
-			e.eye_color_1            = static_cast<int32_t>(atoi(row[22]));
-			e.eye_color_2            = static_cast<int32_t>(atoi(row[23]));
-			e.drakkin_heritage       = static_cast<int32_t>(atoi(row[24]));
-			e.drakkin_tattoo         = static_cast<int32_t>(atoi(row[25]));
-			e.drakkin_details        = static_cast<int32_t>(atoi(row[26]));
-			e.ac                     = static_cast<int16_t>(atoi(row[27]));
-			e.atk                    = static_cast<int32_t>(atoi(row[28]));
-			e.hp                     = static_cast<int32_t>(atoi(row[29]));
-			e.mana                   = static_cast<int32_t>(atoi(row[30]));
-			e.str                    = static_cast<int32_t>(atoi(row[31]));
-			e.sta                    = static_cast<int32_t>(atoi(row[32]));
-			e.cha                    = static_cast<int32_t>(atoi(row[33]));
-			e.dex                    = static_cast<int32_t>(atoi(row[34]));
-			e.int_                   = static_cast<int32_t>(atoi(row[35]));
-			e.agi                    = static_cast<int32_t>(atoi(row[36]));
-			e.wis                    = static_cast<int32_t>(atoi(row[37]));
-			e.fire                   = static_cast<int16_t>(atoi(row[38]));
-			e.cold                   = static_cast<int16_t>(atoi(row[39]));
-			e.magic                  = static_cast<int16_t>(atoi(row[40]));
-			e.poison                 = static_cast<int16_t>(atoi(row[41]));
-			e.disease                = static_cast<int16_t>(atoi(row[42]));
-			e.corruption             = static_cast<int16_t>(atoi(row[43]));
-			e.show_helm              = static_cast<uint32_t>(strtoul(row[44], nullptr, 10));
-			e.follow_distance        = static_cast<uint32_t>(strtoul(row[45], nullptr, 10));
-			e.stop_melee_level       = static_cast<uint8_t>(strtoul(row[46], nullptr, 10));
-			e.expansion_bitmask      = static_cast<int32_t>(atoi(row[47]));
-			e.enforce_spell_settings = static_cast<uint8_t>(strtoul(row[48], nullptr, 10));
-			e.archery_setting        = static_cast<uint8_t>(strtoul(row[49], nullptr, 10));
+			e.bot_id						= static_cast<uint32_t>(strtoul(row[0], nullptr, 10));
+			e.owner_id						= static_cast<uint32_t>(strtoul(row[1], nullptr, 10));
+			e.spells_id						= static_cast<uint32_t>(strtoul(row[2], nullptr, 10));
+			e.name							= row[3] ? row[3] : "";
+			e.last_name						= row[4] ? row[4] : "";
+			e.title							= row[5] ? row[5] : "";
+			e.suffix						= row[6] ? row[6] : "";
+			e.zone_id						= static_cast<int16_t>(atoi(row[7]));
+			e.gender						= static_cast<int8_t>(atoi(row[8]));
+			e.race							= static_cast<int16_t>(atoi(row[9]));
+			e.class_						= static_cast<int8_t>(atoi(row[10]));
+			e.level							= static_cast<uint8_t>(strtoul(row[11], nullptr, 10));
+			e.deity							= static_cast<uint32_t>(strtoul(row[12], nullptr, 10));
+			e.creation_day					= static_cast<uint32_t>(strtoul(row[13], nullptr, 10));
+			e.last_spawn					= static_cast<uint32_t>(strtoul(row[14], nullptr, 10));
+			e.time_spawned					= static_cast<uint32_t>(strtoul(row[15], nullptr, 10));
+			e.size							= strtof(row[16], nullptr);
+			e.face							= static_cast<int32_t>(atoi(row[17]));
+			e.hair_color					= static_cast<int32_t>(atoi(row[18]));
+			e.hair_style					= static_cast<int32_t>(atoi(row[19]));
+			e.beard							= static_cast<int32_t>(atoi(row[20]));
+			e.beard_color					= static_cast<int32_t>(atoi(row[21]));
+			e.eye_color_1					= static_cast<int32_t>(atoi(row[22]));
+			e.eye_color_2					= static_cast<int32_t>(atoi(row[23]));
+			e.drakkin_heritage				= static_cast<int32_t>(atoi(row[24]));
+			e.drakkin_tattoo				= static_cast<int32_t>(atoi(row[25]));
+			e.drakkin_details				= static_cast<int32_t>(atoi(row[26]));
+			e.ac							= static_cast<int16_t>(atoi(row[27]));
+			e.atk							= static_cast<int32_t>(atoi(row[28]));
+			e.hp							= static_cast<int32_t>(atoi(row[29]));
+			e.mana							= static_cast<int32_t>(atoi(row[30]));
+			e.str							= static_cast<int32_t>(atoi(row[31]));
+			e.sta							= static_cast<int32_t>(atoi(row[32]));
+			e.cha							= static_cast<int32_t>(atoi(row[33]));
+			e.dex							= static_cast<int32_t>(atoi(row[34]));
+			e.int_							= static_cast<int32_t>(atoi(row[35]));
+			e.agi							= static_cast<int32_t>(atoi(row[36]));
+			e.wis							= static_cast<int32_t>(atoi(row[37]));
+			e.fire							= static_cast<int16_t>(atoi(row[38]));
+			e.cold							= static_cast<int16_t>(atoi(row[39]));
+			e.magic							= static_cast<int16_t>(atoi(row[40]));
+			e.poison						= static_cast<int16_t>(atoi(row[41]));
+			e.disease						= static_cast<int16_t>(atoi(row[42]));
+			e.corruption					= static_cast<int16_t>(atoi(row[43]));
+			e.show_helm						= static_cast<uint32_t>(strtoul(row[44], nullptr, 10));
+			e.follow_distance				= static_cast<uint32_t>(strtoul(row[45], nullptr, 10));
+			e.stop_melee_level				= static_cast<uint8_t>(strtoul(row[46], nullptr, 10));
+			e.expansion_bitmask				= static_cast<int32_t>(atoi(row[47]));
+			e.enforce_spell_settings		= static_cast<uint8_t>(strtoul(row[48], nullptr, 10));
+			e.archery_setting				= static_cast<uint8_t>(strtoul(row[49], nullptr, 10));
+			e.hold_buffs					= static_cast<uint8_t>(strtoul(row[50], nullptr, 10));
+			e.hold_cures					= static_cast<uint8_t>(strtoul(row[51], nullptr, 10));
+			e.hold_dots						= static_cast<uint8_t>(strtoul(row[52], nullptr, 10));
+			e.hold_debuffs					= static_cast<uint8_t>(strtoul(row[53], nullptr, 10));
+			e.hold_dispels					= static_cast<uint8_t>(strtoul(row[54], nullptr, 10));
+			e.hold_escapes					= static_cast<uint8_t>(strtoul(row[55], nullptr, 10));
+			e.hold_hateredux				= static_cast<uint8_t>(strtoul(row[56], nullptr, 10));
+			e.hold_heals					= static_cast<uint8_t>(strtoul(row[57], nullptr, 10));
+			e.hold_incombatbuffs			= static_cast<uint8_t>(strtoul(row[58], nullptr, 10));
+			e.hold_incombatbuffsongs		= static_cast<uint8_t>(strtoul(row[59], nullptr, 10));
+			e.hold_lifetaps					= static_cast<uint8_t>(strtoul(row[60], nullptr, 10));
+			e.hold_mez						= static_cast<uint8_t>(strtoul(row[61], nullptr, 10));
+			e.hold_nukes					= static_cast<uint8_t>(strtoul(row[62], nullptr, 10));
+			e.hold_outofcombatbuffsongs		= static_cast<uint8_t>(strtoul(row[63], nullptr, 10));
+			e.hold_pet_heals				= static_cast<uint8_t>(strtoul(row[64], nullptr, 10));
+			e.hold_pets						= static_cast<uint8_t>(strtoul(row[65], nullptr, 10));
+			e.hold_precombatbuffs			= static_cast<uint8_t>(strtoul(row[66], nullptr, 10));
+			e.hold_precombatbuffsongs		= static_cast<uint8_t>(strtoul(row[67], nullptr, 10));
+			e.hold_roots					= static_cast<uint8_t>(strtoul(row[68], nullptr, 10));
+			e.hold_slows					= static_cast<uint8_t>(strtoul(row[69], nullptr, 10));
+			e.hold_snares					= static_cast<uint8_t>(strtoul(row[70], nullptr, 10));
+			e.auto_ds						= static_cast<uint8_t>(strtoul(row[71], nullptr, 10));
+			e.auto_resist					= static_cast<uint8_t>(strtoul(row[72], nullptr, 10));
+			e.behind_mob					= static_cast<uint8_t>(strtoul(row[73], nullptr, 10));
+			e.caster_range					= static_cast<uint32_t>(strtoul(row[74], nullptr, 10));
+			e.buff_delay					= static_cast<uint32_t>(strtoul(row[75], nullptr, 10));
+			e.complete_heal_delay			= static_cast<uint32_t>(strtoul(row[76], nullptr, 10));
+			e.cure_delay					= static_cast<uint32_t>(strtoul(row[77], nullptr, 10));
+			e.debuff_delay					= static_cast<uint32_t>(strtoul(row[78], nullptr, 10));
+			e.dispel_delay					= static_cast<uint32_t>(strtoul(row[79], nullptr, 10));
+			e.dot_delay						= static_cast<uint32_t>(strtoul(row[80], nullptr, 10));
+			e.escape_delay					= static_cast<uint32_t>(strtoul(row[81], nullptr, 10));
+			e.fast_heal_delay				= static_cast<uint32_t>(strtoul(row[82], nullptr, 10));
+			e.hate_redux_delay				= static_cast<uint32_t>(strtoul(row[83], nullptr, 10));
+			e.heal_delay					= static_cast<uint32_t>(strtoul(row[84], nullptr, 10));
+			e.hot_heal_delay				= static_cast<uint32_t>(strtoul(row[85], nullptr, 10));
+			e.incombatbuff_delay			= static_cast<uint32_t>(strtoul(row[86], nullptr, 10));
+			e.lifetap_delay					= static_cast<uint32_t>(strtoul(row[87], nullptr, 10));
+			e.mez_delay						= static_cast<uint32_t>(strtoul(row[88], nullptr, 10));
+			e.nuke_delay					= static_cast<uint32_t>(strtoul(row[89], nullptr, 10));
+			e.root_delay					= static_cast<uint32_t>(strtoul(row[90], nullptr, 10));
+			e.slow_delay					= static_cast<uint32_t>(strtoul(row[91], nullptr, 10));
+			e.snare_delay					= static_cast<uint32_t>(strtoul(row[92], nullptr, 10));
+			e.buff_threshold				= static_cast<uint8_t>(strtoul(row[93], nullptr, 10));
+			e.complete_heal_threshold		= static_cast<uint8_t>(strtoul(row[94], nullptr, 10));
+			e.cure_threshold				= static_cast<uint8_t>(strtoul(row[95], nullptr, 10));
+			e.debuff_threshold				= static_cast<uint8_t>(strtoul(row[96], nullptr, 10));
+			e.dispel_threshold				= static_cast<uint8_t>(strtoul(row[97], nullptr, 10));
+			e.dot_threshold					= static_cast<uint8_t>(strtoul(row[98], nullptr, 10));
+			e.escape_threshold				= static_cast<uint8_t>(strtoul(row[99], nullptr, 10));
+			e.fast_heal_threshold			= static_cast<uint8_t>(strtoul(row[100], nullptr, 10));
+			e.hate_redux_threshold			= static_cast<uint8_t>(strtoul(row[101], nullptr, 10));
+			e.heal_threshold				= static_cast<uint8_t>(strtoul(row[102], nullptr, 10));
+			e.hot_heal_threshold			= static_cast<uint8_t>(strtoul(row[103], nullptr, 10));
+			e.incombatbuff_threshold		= static_cast<uint8_t>(strtoul(row[104], nullptr, 10));
+			e.lifetap_threshold				= static_cast<uint8_t>(strtoul(row[105], nullptr, 10));
+			e.mez_threshold					= static_cast<uint8_t>(strtoul(row[106], nullptr, 10));
+			e.nuke_threshold				= static_cast<uint8_t>(strtoul(row[107], nullptr, 10));
+			e.root_threshold				= static_cast<uint8_t>(strtoul(row[108], nullptr, 10));
+			e.slow_threshold				= static_cast<uint8_t>(strtoul(row[109], nullptr, 10));
+			e.snare_threshold				= static_cast<uint8_t>(strtoul(row[110], nullptr, 10));
+			e.buff_min_threshold			= static_cast<uint8_t>(strtoul(row[111], nullptr, 10));
+			e.cure_min_threshold			= static_cast<uint8_t>(strtoul(row[112], nullptr, 10));
+			e.debuff_min_threshold			= static_cast<uint8_t>(strtoul(row[113], nullptr, 10));
+			e.dispel_min_threshold			= static_cast<uint8_t>(strtoul(row[114], nullptr, 10));
+			e.dot_min_threshold				= static_cast<uint8_t>(strtoul(row[115], nullptr, 10));
+			e.escape_min_threshold			= static_cast<uint8_t>(strtoul(row[116], nullptr, 10));
+			e.hate_redux_min_threshold		= static_cast<uint8_t>(strtoul(row[117], nullptr, 10));
+			e.incombatbuff_min_threshold	= static_cast<uint8_t>(strtoul(row[118], nullptr, 10));
+			e.lifetap_min_threshold			= static_cast<uint8_t>(strtoul(row[119], nullptr, 10));
+			e.mez_min_threshold				= static_cast<uint8_t>(strtoul(row[120], nullptr, 10));
+			e.nuke_min_threshold			= static_cast<uint8_t>(strtoul(row[121], nullptr, 10));
+			e.root_min_threshold			= static_cast<uint8_t>(strtoul(row[122], nullptr, 10));
+			e.slow_min_threshold			= static_cast<uint8_t>(strtoul(row[123], nullptr, 10));
+			e.snare_min_threshold			= static_cast<uint8_t>(strtoul(row[124], nullptr, 10));
 
 			return e;
 		}
@@ -443,6 +818,81 @@ public:
 		v.push_back(columns[47] + " = " + std::to_string(e.expansion_bitmask));
 		v.push_back(columns[48] + " = " + std::to_string(e.enforce_spell_settings));
 		v.push_back(columns[49] + " = " + std::to_string(e.archery_setting));
+		v.push_back(columns[50] + " = " + std::to_string(e.hold_buffs));
+		v.push_back(columns[51] + " = " + std::to_string(e.hold_cures));
+		v.push_back(columns[52] + " = " + std::to_string(e.hold_dots));
+		v.push_back(columns[53] + " = " + std::to_string(e.hold_debuffs));
+		v.push_back(columns[54] + " = " + std::to_string(e.hold_dispels));
+		v.push_back(columns[55] + " = " + std::to_string(e.hold_escapes));
+		v.push_back(columns[56] + " = " + std::to_string(e.hold_hateredux));
+		v.push_back(columns[57] + " = " + std::to_string(e.hold_heals));
+		v.push_back(columns[58] + " = " + std::to_string(e.hold_incombatbuffs));
+		v.push_back(columns[59] + " = " + std::to_string(e.hold_incombatbuffsongs));
+		v.push_back(columns[60] + " = " + std::to_string(e.hold_lifetaps));
+		v.push_back(columns[61] + " = " + std::to_string(e.hold_mez));
+		v.push_back(columns[62] + " = " + std::to_string(e.hold_nukes));
+		v.push_back(columns[63] + " = " + std::to_string(e.hold_outofcombatbuffsongs));
+		v.push_back(columns[64] + " = " + std::to_string(e.hold_pet_heals));
+		v.push_back(columns[65] + " = " + std::to_string(e.hold_pets));
+		v.push_back(columns[66] + " = " + std::to_string(e.hold_precombatbuffs));
+		v.push_back(columns[67] + " = " + std::to_string(e.hold_precombatbuffsongs));
+		v.push_back(columns[68] + " = " + std::to_string(e.hold_roots));
+		v.push_back(columns[69] + " = " + std::to_string(e.hold_slows));
+		v.push_back(columns[70] + " = " + std::to_string(e.hold_snares));
+		v.push_back(columns[71] + " = " + std::to_string(e.auto_ds));
+		v.push_back(columns[72] + " = " + std::to_string(e.auto_resist));
+		v.push_back(columns[73] + " = " + std::to_string(e.behind_mob));
+		v.push_back(columns[74] + " = " + std::to_string(e.caster_range));
+		v.push_back(columns[75] + " = " + std::to_string(e.buff_delay));
+		v.push_back(columns[76] + " = " + std::to_string(e.complete_heal_delay));
+		v.push_back(columns[77] + " = " + std::to_string(e.cure_delay));
+		v.push_back(columns[78] + " = " + std::to_string(e.debuff_delay));
+		v.push_back(columns[79] + " = " + std::to_string(e.dispel_delay));
+		v.push_back(columns[80] + " = " + std::to_string(e.dot_delay));
+		v.push_back(columns[81] + " = " + std::to_string(e.escape_delay));
+		v.push_back(columns[82] + " = " + std::to_string(e.fast_heal_delay));
+		v.push_back(columns[83] + " = " + std::to_string(e.hate_redux_delay));
+		v.push_back(columns[84] + " = " + std::to_string(e.heal_delay));
+		v.push_back(columns[85] + " = " + std::to_string(e.hot_heal_delay));
+		v.push_back(columns[86] + " = " + std::to_string(e.incombatbuff_delay));
+		v.push_back(columns[87] + " = " + std::to_string(e.lifetap_delay));
+		v.push_back(columns[88] + " = " + std::to_string(e.mez_delay));
+		v.push_back(columns[89] + " = " + std::to_string(e.nuke_delay));
+		v.push_back(columns[90] + " = " + std::to_string(e.root_delay));
+		v.push_back(columns[91] + " = " + std::to_string(e.slow_delay));
+		v.push_back(columns[92] + " = " + std::to_string(e.snare_delay));
+		v.push_back(columns[93] + " = " + std::to_string(e.buff_threshold));
+		v.push_back(columns[94] + " = " + std::to_string(e.complete_heal_threshold));
+		v.push_back(columns[95] + " = " + std::to_string(e.cure_threshold));
+		v.push_back(columns[96] + " = " + std::to_string(e.debuff_threshold));
+		v.push_back(columns[97] + " = " + std::to_string(e.dispel_threshold));
+		v.push_back(columns[98] + " = " + std::to_string(e.dot_threshold));
+		v.push_back(columns[99] + " = " + std::to_string(e.escape_threshold));
+		v.push_back(columns[100] + " = " + std::to_string(e.fast_heal_threshold));
+		v.push_back(columns[101] + " = " + std::to_string(e.hate_redux_threshold));
+		v.push_back(columns[102] + " = " + std::to_string(e.heal_threshold));
+		v.push_back(columns[103] + " = " + std::to_string(e.hot_heal_threshold));
+		v.push_back(columns[104] + " = " + std::to_string(e.incombatbuff_threshold));
+		v.push_back(columns[105] + " = " + std::to_string(e.lifetap_threshold));
+		v.push_back(columns[106] + " = " + std::to_string(e.mez_threshold));
+		v.push_back(columns[107] + " = " + std::to_string(e.nuke_threshold));
+		v.push_back(columns[108] + " = " + std::to_string(e.root_threshold));
+		v.push_back(columns[109] + " = " + std::to_string(e.slow_threshold));
+		v.push_back(columns[110] + " = " + std::to_string(e.snare_threshold));
+		v.push_back(columns[111] + " = " + std::to_string(e.buff_min_threshold));
+		v.push_back(columns[112] + " = " + std::to_string(e.cure_min_threshold));
+		v.push_back(columns[113] + " = " + std::to_string(e.debuff_min_threshold));
+		v.push_back(columns[114] + " = " + std::to_string(e.dispel_min_threshold));
+		v.push_back(columns[115] + " = " + std::to_string(e.dot_min_threshold));
+		v.push_back(columns[116] + " = " + std::to_string(e.escape_min_threshold));
+		v.push_back(columns[117] + " = " + std::to_string(e.hate_redux_min_threshold));
+		v.push_back(columns[118] + " = " + std::to_string(e.incombatbuff_min_threshold));
+		v.push_back(columns[119] + " = " + std::to_string(e.lifetap_min_threshold));
+		v.push_back(columns[120] + " = " + std::to_string(e.mez_min_threshold));
+		v.push_back(columns[121] + " = " + std::to_string(e.nuke_min_threshold));
+		v.push_back(columns[122] + " = " + std::to_string(e.root_min_threshold));
+		v.push_back(columns[123] + " = " + std::to_string(e.slow_min_threshold));
+		v.push_back(columns[124] + " = " + std::to_string(e.snare_min_threshold));
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -514,6 +964,81 @@ public:
 		v.push_back(std::to_string(e.expansion_bitmask));
 		v.push_back(std::to_string(e.enforce_spell_settings));
 		v.push_back(std::to_string(e.archery_setting));
+		v.push_back(std::to_string(e.hold_buffs));
+		v.push_back(std::to_string(e.hold_cures));
+		v.push_back(std::to_string(e.hold_dots));
+		v.push_back(std::to_string(e.hold_debuffs));
+		v.push_back(std::to_string(e.hold_dispels));
+		v.push_back(std::to_string(e.hold_escapes));
+		v.push_back(std::to_string(e.hold_hateredux));
+		v.push_back(std::to_string(e.hold_heals));
+		v.push_back(std::to_string(e.hold_incombatbuffs));
+		v.push_back(std::to_string(e.hold_incombatbuffsongs));
+		v.push_back(std::to_string(e.hold_lifetaps));
+		v.push_back(std::to_string(e.hold_mez));
+		v.push_back(std::to_string(e.hold_nukes));
+		v.push_back(std::to_string(e.hold_outofcombatbuffsongs));
+		v.push_back(std::to_string(e.hold_pet_heals));
+		v.push_back(std::to_string(e.hold_pets));
+		v.push_back(std::to_string(e.hold_precombatbuffs));
+		v.push_back(std::to_string(e.hold_precombatbuffsongs));
+		v.push_back(std::to_string(e.hold_roots));
+		v.push_back(std::to_string(e.hold_slows));
+		v.push_back(std::to_string(e.hold_snares));
+		v.push_back(std::to_string(e.auto_ds));
+		v.push_back(std::to_string(e.auto_resist));
+		v.push_back(std::to_string(e.behind_mob));
+		v.push_back(std::to_string(e.caster_range));
+		v.push_back(std::to_string(e.buff_delay));
+		v.push_back(std::to_string(e.complete_heal_delay));
+		v.push_back(std::to_string(e.cure_delay));
+		v.push_back(std::to_string(e.debuff_delay));
+		v.push_back(std::to_string(e.dispel_delay));
+		v.push_back(std::to_string(e.dot_delay));
+		v.push_back(std::to_string(e.escape_delay));
+		v.push_back(std::to_string(e.fast_heal_delay));
+		v.push_back(std::to_string(e.hate_redux_delay));
+		v.push_back(std::to_string(e.heal_delay));
+		v.push_back(std::to_string(e.hot_heal_delay));
+		v.push_back(std::to_string(e.incombatbuff_delay));
+		v.push_back(std::to_string(e.lifetap_delay));
+		v.push_back(std::to_string(e.mez_delay));
+		v.push_back(std::to_string(e.nuke_delay));
+		v.push_back(std::to_string(e.root_delay));
+		v.push_back(std::to_string(e.slow_delay));
+		v.push_back(std::to_string(e.snare_delay));
+		v.push_back(std::to_string(e.buff_threshold));
+		v.push_back(std::to_string(e.complete_heal_threshold));
+		v.push_back(std::to_string(e.cure_threshold));
+		v.push_back(std::to_string(e.debuff_threshold));
+		v.push_back(std::to_string(e.dispel_threshold));
+		v.push_back(std::to_string(e.dot_threshold));
+		v.push_back(std::to_string(e.escape_threshold));
+		v.push_back(std::to_string(e.fast_heal_threshold));
+		v.push_back(std::to_string(e.hate_redux_threshold));
+		v.push_back(std::to_string(e.heal_threshold));
+		v.push_back(std::to_string(e.hot_heal_threshold));
+		v.push_back(std::to_string(e.incombatbuff_threshold));
+		v.push_back(std::to_string(e.lifetap_threshold));
+		v.push_back(std::to_string(e.mez_threshold));
+		v.push_back(std::to_string(e.nuke_threshold));
+		v.push_back(std::to_string(e.root_threshold));
+		v.push_back(std::to_string(e.slow_threshold));
+		v.push_back(std::to_string(e.snare_threshold));
+		v.push_back(std::to_string(e.buff_min_threshold));
+		v.push_back(std::to_string(e.cure_min_threshold));
+		v.push_back(std::to_string(e.debuff_min_threshold));
+		v.push_back(std::to_string(e.dispel_min_threshold));
+		v.push_back(std::to_string(e.dot_min_threshold));
+		v.push_back(std::to_string(e.escape_min_threshold));
+		v.push_back(std::to_string(e.hate_redux_min_threshold));
+		v.push_back(std::to_string(e.incombatbuff_min_threshold));
+		v.push_back(std::to_string(e.lifetap_min_threshold));
+		v.push_back(std::to_string(e.mez_min_threshold));
+		v.push_back(std::to_string(e.nuke_min_threshold));
+		v.push_back(std::to_string(e.root_min_threshold));
+		v.push_back(std::to_string(e.slow_min_threshold));
+		v.push_back(std::to_string(e.snare_min_threshold));
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -593,6 +1118,81 @@ public:
 			v.push_back(std::to_string(e.expansion_bitmask));
 			v.push_back(std::to_string(e.enforce_spell_settings));
 			v.push_back(std::to_string(e.archery_setting));
+			v.push_back(std::to_string(e.hold_buffs));
+			v.push_back(std::to_string(e.hold_cures));
+			v.push_back(std::to_string(e.hold_dots));
+			v.push_back(std::to_string(e.hold_debuffs));
+			v.push_back(std::to_string(e.hold_dispels));
+			v.push_back(std::to_string(e.hold_escapes));
+			v.push_back(std::to_string(e.hold_hateredux));
+			v.push_back(std::to_string(e.hold_heals));
+			v.push_back(std::to_string(e.hold_incombatbuffs));
+			v.push_back(std::to_string(e.hold_incombatbuffsongs));
+			v.push_back(std::to_string(e.hold_lifetaps));
+			v.push_back(std::to_string(e.hold_mez));
+			v.push_back(std::to_string(e.hold_nukes));
+			v.push_back(std::to_string(e.hold_outofcombatbuffsongs));
+			v.push_back(std::to_string(e.hold_pet_heals));
+			v.push_back(std::to_string(e.hold_pets));
+			v.push_back(std::to_string(e.hold_precombatbuffs));
+			v.push_back(std::to_string(e.hold_precombatbuffsongs));
+			v.push_back(std::to_string(e.hold_roots));
+			v.push_back(std::to_string(e.hold_slows));
+			v.push_back(std::to_string(e.hold_snares));
+			v.push_back(std::to_string(e.auto_ds));
+			v.push_back(std::to_string(e.auto_resist));
+			v.push_back(std::to_string(e.behind_mob));
+			v.push_back(std::to_string(e.caster_range));
+			v.push_back(std::to_string(e.buff_delay));
+			v.push_back(std::to_string(e.complete_heal_delay));
+			v.push_back(std::to_string(e.cure_delay));
+			v.push_back(std::to_string(e.debuff_delay));
+			v.push_back(std::to_string(e.dispel_delay));
+			v.push_back(std::to_string(e.dot_delay));
+			v.push_back(std::to_string(e.escape_delay));
+			v.push_back(std::to_string(e.fast_heal_delay));
+			v.push_back(std::to_string(e.hate_redux_delay));
+			v.push_back(std::to_string(e.heal_delay));
+			v.push_back(std::to_string(e.hot_heal_delay));
+			v.push_back(std::to_string(e.incombatbuff_delay));
+			v.push_back(std::to_string(e.lifetap_delay));
+			v.push_back(std::to_string(e.mez_delay));
+			v.push_back(std::to_string(e.nuke_delay));
+			v.push_back(std::to_string(e.root_delay));
+			v.push_back(std::to_string(e.slow_delay));
+			v.push_back(std::to_string(e.snare_delay));
+			v.push_back(std::to_string(e.buff_threshold));
+			v.push_back(std::to_string(e.complete_heal_threshold));
+			v.push_back(std::to_string(e.cure_threshold));
+			v.push_back(std::to_string(e.debuff_threshold));
+			v.push_back(std::to_string(e.dispel_threshold));
+			v.push_back(std::to_string(e.dot_threshold));
+			v.push_back(std::to_string(e.escape_threshold));
+			v.push_back(std::to_string(e.fast_heal_threshold));
+			v.push_back(std::to_string(e.hate_redux_threshold));
+			v.push_back(std::to_string(e.heal_threshold));
+			v.push_back(std::to_string(e.hot_heal_threshold));
+			v.push_back(std::to_string(e.incombatbuff_threshold));
+			v.push_back(std::to_string(e.lifetap_threshold));
+			v.push_back(std::to_string(e.mez_threshold));
+			v.push_back(std::to_string(e.nuke_threshold));
+			v.push_back(std::to_string(e.root_threshold));
+			v.push_back(std::to_string(e.slow_threshold));
+			v.push_back(std::to_string(e.snare_threshold));
+			v.push_back(std::to_string(e.buff_min_threshold));
+			v.push_back(std::to_string(e.cure_min_threshold));
+			v.push_back(std::to_string(e.debuff_min_threshold));
+			v.push_back(std::to_string(e.dispel_min_threshold));
+			v.push_back(std::to_string(e.dot_min_threshold));
+			v.push_back(std::to_string(e.escape_min_threshold));
+			v.push_back(std::to_string(e.hate_redux_min_threshold));
+			v.push_back(std::to_string(e.incombatbuff_min_threshold));
+			v.push_back(std::to_string(e.lifetap_min_threshold));
+			v.push_back(std::to_string(e.mez_min_threshold));
+			v.push_back(std::to_string(e.nuke_min_threshold));
+			v.push_back(std::to_string(e.root_min_threshold));
+			v.push_back(std::to_string(e.slow_min_threshold));
+			v.push_back(std::to_string(e.snare_min_threshold));
 
 			insert_chunks.push_back("(" + Strings::Implode(",", v) + ")");
 		}
@@ -626,56 +1226,131 @@ public:
 		for (auto row = results.begin(); row != results.end(); ++row) {
 			BotData e{};
 
-			e.bot_id                 = static_cast<uint32_t>(strtoul(row[0], nullptr, 10));
-			e.owner_id               = static_cast<uint32_t>(strtoul(row[1], nullptr, 10));
-			e.spells_id              = static_cast<uint32_t>(strtoul(row[2], nullptr, 10));
-			e.name                   = row[3] ? row[3] : "";
-			e.last_name              = row[4] ? row[4] : "";
-			e.title                  = row[5] ? row[5] : "";
-			e.suffix                 = row[6] ? row[6] : "";
-			e.zone_id                = static_cast<int16_t>(atoi(row[7]));
-			e.gender                 = static_cast<int8_t>(atoi(row[8]));
-			e.race                   = static_cast<int16_t>(atoi(row[9]));
-			e.class_                 = static_cast<int8_t>(atoi(row[10]));
-			e.level                  = static_cast<uint8_t>(strtoul(row[11], nullptr, 10));
-			e.deity                  = static_cast<uint32_t>(strtoul(row[12], nullptr, 10));
-			e.creation_day           = static_cast<uint32_t>(strtoul(row[13], nullptr, 10));
-			e.last_spawn             = static_cast<uint32_t>(strtoul(row[14], nullptr, 10));
-			e.time_spawned           = static_cast<uint32_t>(strtoul(row[15], nullptr, 10));
-			e.size                   = strtof(row[16], nullptr);
-			e.face                   = static_cast<int32_t>(atoi(row[17]));
-			e.hair_color             = static_cast<int32_t>(atoi(row[18]));
-			e.hair_style             = static_cast<int32_t>(atoi(row[19]));
-			e.beard                  = static_cast<int32_t>(atoi(row[20]));
-			e.beard_color            = static_cast<int32_t>(atoi(row[21]));
-			e.eye_color_1            = static_cast<int32_t>(atoi(row[22]));
-			e.eye_color_2            = static_cast<int32_t>(atoi(row[23]));
-			e.drakkin_heritage       = static_cast<int32_t>(atoi(row[24]));
-			e.drakkin_tattoo         = static_cast<int32_t>(atoi(row[25]));
-			e.drakkin_details        = static_cast<int32_t>(atoi(row[26]));
-			e.ac                     = static_cast<int16_t>(atoi(row[27]));
-			e.atk                    = static_cast<int32_t>(atoi(row[28]));
-			e.hp                     = static_cast<int32_t>(atoi(row[29]));
-			e.mana                   = static_cast<int32_t>(atoi(row[30]));
-			e.str                    = static_cast<int32_t>(atoi(row[31]));
-			e.sta                    = static_cast<int32_t>(atoi(row[32]));
-			e.cha                    = static_cast<int32_t>(atoi(row[33]));
-			e.dex                    = static_cast<int32_t>(atoi(row[34]));
-			e.int_                   = static_cast<int32_t>(atoi(row[35]));
-			e.agi                    = static_cast<int32_t>(atoi(row[36]));
-			e.wis                    = static_cast<int32_t>(atoi(row[37]));
-			e.fire                   = static_cast<int16_t>(atoi(row[38]));
-			e.cold                   = static_cast<int16_t>(atoi(row[39]));
-			e.magic                  = static_cast<int16_t>(atoi(row[40]));
-			e.poison                 = static_cast<int16_t>(atoi(row[41]));
-			e.disease                = static_cast<int16_t>(atoi(row[42]));
-			e.corruption             = static_cast<int16_t>(atoi(row[43]));
-			e.show_helm              = static_cast<uint32_t>(strtoul(row[44], nullptr, 10));
-			e.follow_distance        = static_cast<uint32_t>(strtoul(row[45], nullptr, 10));
-			e.stop_melee_level       = static_cast<uint8_t>(strtoul(row[46], nullptr, 10));
-			e.expansion_bitmask      = static_cast<int32_t>(atoi(row[47]));
-			e.enforce_spell_settings = static_cast<uint8_t>(strtoul(row[48], nullptr, 10));
-			e.archery_setting        = static_cast<uint8_t>(strtoul(row[49], nullptr, 10));
+			e.bot_id						= static_cast<uint32_t>(strtoul(row[0], nullptr, 10));
+			e.owner_id						= static_cast<uint32_t>(strtoul(row[1], nullptr, 10));
+			e.spells_id						= static_cast<uint32_t>(strtoul(row[2], nullptr, 10));
+			e.name							= row[3] ? row[3] : "";
+			e.last_name						= row[4] ? row[4] : "";
+			e.title							= row[5] ? row[5] : "";
+			e.suffix						= row[6] ? row[6] : "";
+			e.zone_id						= static_cast<int16_t>(atoi(row[7]));
+			e.gender						= static_cast<int8_t>(atoi(row[8]));
+			e.race							= static_cast<int16_t>(atoi(row[9]));
+			e.class_						= static_cast<int8_t>(atoi(row[10]));
+			e.level							= static_cast<uint8_t>(strtoul(row[11], nullptr, 10));
+			e.deity							= static_cast<uint32_t>(strtoul(row[12], nullptr, 10));
+			e.creation_day					= static_cast<uint32_t>(strtoul(row[13], nullptr, 10));
+			e.last_spawn					= static_cast<uint32_t>(strtoul(row[14], nullptr, 10));
+			e.time_spawned					= static_cast<uint32_t>(strtoul(row[15], nullptr, 10));
+			e.size							= strtof(row[16], nullptr);
+			e.face							= static_cast<int32_t>(atoi(row[17]));
+			e.hair_color					= static_cast<int32_t>(atoi(row[18]));
+			e.hair_style					= static_cast<int32_t>(atoi(row[19]));
+			e.beard							= static_cast<int32_t>(atoi(row[20]));
+			e.beard_color					= static_cast<int32_t>(atoi(row[21]));
+			e.eye_color_1					= static_cast<int32_t>(atoi(row[22]));
+			e.eye_color_2					= static_cast<int32_t>(atoi(row[23]));
+			e.drakkin_heritage				= static_cast<int32_t>(atoi(row[24]));
+			e.drakkin_tattoo				= static_cast<int32_t>(atoi(row[25]));
+			e.drakkin_details				= static_cast<int32_t>(atoi(row[26]));
+			e.ac							= static_cast<int16_t>(atoi(row[27]));
+			e.atk							= static_cast<int32_t>(atoi(row[28]));
+			e.hp							= static_cast<int32_t>(atoi(row[29]));
+			e.mana							= static_cast<int32_t>(atoi(row[30]));
+			e.str							= static_cast<int32_t>(atoi(row[31]));
+			e.sta							= static_cast<int32_t>(atoi(row[32]));
+			e.cha							= static_cast<int32_t>(atoi(row[33]));
+			e.dex							= static_cast<int32_t>(atoi(row[34]));
+			e.int_							= static_cast<int32_t>(atoi(row[35]));
+			e.agi							= static_cast<int32_t>(atoi(row[36]));
+			e.wis							= static_cast<int32_t>(atoi(row[37]));
+			e.fire							= static_cast<int16_t>(atoi(row[38]));
+			e.cold							= static_cast<int16_t>(atoi(row[39]));
+			e.magic							= static_cast<int16_t>(atoi(row[40]));
+			e.poison						= static_cast<int16_t>(atoi(row[41]));
+			e.disease						= static_cast<int16_t>(atoi(row[42]));
+			e.corruption					= static_cast<int16_t>(atoi(row[43]));
+			e.show_helm						= static_cast<uint32_t>(strtoul(row[44], nullptr, 10));
+			e.follow_distance				= static_cast<uint32_t>(strtoul(row[45], nullptr, 10));
+			e.stop_melee_level				= static_cast<uint8_t>(strtoul(row[46], nullptr, 10));
+			e.expansion_bitmask				= static_cast<int32_t>(atoi(row[47]));
+			e.enforce_spell_settings		= static_cast<uint8_t>(strtoul(row[48], nullptr, 10));
+			e.archery_setting				= static_cast<uint8_t>(strtoul(row[49], nullptr, 10));
+			e.hold_buffs					= static_cast<uint8_t>(strtoul(row[50], nullptr, 10));
+			e.hold_cures					= static_cast<uint8_t>(strtoul(row[51], nullptr, 10));
+			e.hold_dots						= static_cast<uint8_t>(strtoul(row[52], nullptr, 10));
+			e.hold_debuffs					= static_cast<uint8_t>(strtoul(row[53], nullptr, 10));
+			e.hold_dispels					= static_cast<uint8_t>(strtoul(row[54], nullptr, 10));
+			e.hold_escapes					= static_cast<uint8_t>(strtoul(row[55], nullptr, 10));
+			e.hold_hateredux				= static_cast<uint8_t>(strtoul(row[56], nullptr, 10));
+			e.hold_heals					= static_cast<uint8_t>(strtoul(row[57], nullptr, 10));
+			e.hold_incombatbuffs			= static_cast<uint8_t>(strtoul(row[58], nullptr, 10));
+			e.hold_incombatbuffsongs		= static_cast<uint8_t>(strtoul(row[59], nullptr, 10));
+			e.hold_lifetaps					= static_cast<uint8_t>(strtoul(row[60], nullptr, 10));
+			e.hold_mez						= static_cast<uint8_t>(strtoul(row[61], nullptr, 10));
+			e.hold_nukes					= static_cast<uint8_t>(strtoul(row[62], nullptr, 10));
+			e.hold_outofcombatbuffsongs		= static_cast<uint8_t>(strtoul(row[63], nullptr, 10));
+			e.hold_pet_heals				= static_cast<uint8_t>(strtoul(row[64], nullptr, 10));
+			e.hold_pets						= static_cast<uint8_t>(strtoul(row[65], nullptr, 10));
+			e.hold_precombatbuffs			= static_cast<uint8_t>(strtoul(row[66], nullptr, 10));
+			e.hold_precombatbuffsongs		= static_cast<uint8_t>(strtoul(row[67], nullptr, 10));
+			e.hold_roots					= static_cast<uint8_t>(strtoul(row[68], nullptr, 10));
+			e.hold_slows					= static_cast<uint8_t>(strtoul(row[69], nullptr, 10));
+			e.hold_snares					= static_cast<uint8_t>(strtoul(row[70], nullptr, 10));
+			e.auto_ds						= static_cast<uint8_t>(strtoul(row[71], nullptr, 10));
+			e.auto_resist					= static_cast<uint8_t>(strtoul(row[72], nullptr, 10));
+			e.behind_mob					= static_cast<uint8_t>(strtoul(row[73], nullptr, 10));
+			e.caster_range					= static_cast<uint32_t>(strtoul(row[74], nullptr, 10));
+			e.buff_delay					= static_cast<uint32_t>(strtoul(row[75], nullptr, 10));
+			e.complete_heal_delay			= static_cast<uint32_t>(strtoul(row[76], nullptr, 10));
+			e.cure_delay					= static_cast<uint32_t>(strtoul(row[77], nullptr, 10));
+			e.debuff_delay					= static_cast<uint32_t>(strtoul(row[78], nullptr, 10));
+			e.dispel_delay					= static_cast<uint32_t>(strtoul(row[79], nullptr, 10));
+			e.dot_delay						= static_cast<uint32_t>(strtoul(row[80], nullptr, 10));
+			e.escape_delay					= static_cast<uint32_t>(strtoul(row[81], nullptr, 10));
+			e.fast_heal_delay				= static_cast<uint32_t>(strtoul(row[82], nullptr, 10));
+			e.hate_redux_delay				= static_cast<uint32_t>(strtoul(row[83], nullptr, 10));
+			e.heal_delay					= static_cast<uint32_t>(strtoul(row[84], nullptr, 10));
+			e.hot_heal_delay				= static_cast<uint32_t>(strtoul(row[85], nullptr, 10));
+			e.incombatbuff_delay			= static_cast<uint32_t>(strtoul(row[86], nullptr, 10));
+			e.lifetap_delay					= static_cast<uint32_t>(strtoul(row[87], nullptr, 10));
+			e.mez_delay						= static_cast<uint32_t>(strtoul(row[88], nullptr, 10));
+			e.nuke_delay					= static_cast<uint32_t>(strtoul(row[89], nullptr, 10));
+			e.root_delay					= static_cast<uint32_t>(strtoul(row[90], nullptr, 10));
+			e.slow_delay					= static_cast<uint32_t>(strtoul(row[91], nullptr, 10));
+			e.snare_delay					= static_cast<uint32_t>(strtoul(row[92], nullptr, 10));
+			e.buff_threshold				= static_cast<uint8_t>(strtoul(row[93], nullptr, 10));
+			e.complete_heal_threshold		= static_cast<uint8_t>(strtoul(row[94], nullptr, 10));
+			e.cure_threshold				= static_cast<uint8_t>(strtoul(row[95], nullptr, 10));
+			e.debuff_threshold				= static_cast<uint8_t>(strtoul(row[96], nullptr, 10));
+			e.dispel_threshold				= static_cast<uint8_t>(strtoul(row[97], nullptr, 10));
+			e.dot_threshold					= static_cast<uint8_t>(strtoul(row[98], nullptr, 10));
+			e.escape_threshold				= static_cast<uint8_t>(strtoul(row[99], nullptr, 10));
+			e.fast_heal_threshold			= static_cast<uint8_t>(strtoul(row[100], nullptr, 10));
+			e.hate_redux_threshold			= static_cast<uint8_t>(strtoul(row[101], nullptr, 10));
+			e.heal_threshold				= static_cast<uint8_t>(strtoul(row[102], nullptr, 10));
+			e.hot_heal_threshold			= static_cast<uint8_t>(strtoul(row[103], nullptr, 10));
+			e.incombatbuff_threshold		= static_cast<uint8_t>(strtoul(row[104], nullptr, 10));
+			e.lifetap_threshold				= static_cast<uint8_t>(strtoul(row[105], nullptr, 10));
+			e.mez_threshold					= static_cast<uint8_t>(strtoul(row[106], nullptr, 10));
+			e.nuke_threshold				= static_cast<uint8_t>(strtoul(row[107], nullptr, 10));
+			e.root_threshold				= static_cast<uint8_t>(strtoul(row[108], nullptr, 10));
+			e.slow_threshold				= static_cast<uint8_t>(strtoul(row[109], nullptr, 10));
+			e.snare_threshold				= static_cast<uint8_t>(strtoul(row[110], nullptr, 10));
+			e.buff_min_threshold			= static_cast<uint8_t>(strtoul(row[111], nullptr, 10));
+			e.cure_min_threshold			= static_cast<uint8_t>(strtoul(row[112], nullptr, 10));
+			e.debuff_min_threshold			= static_cast<uint8_t>(strtoul(row[113], nullptr, 10));
+			e.dispel_min_threshold			= static_cast<uint8_t>(strtoul(row[114], nullptr, 10));
+			e.dot_min_threshold				= static_cast<uint8_t>(strtoul(row[115], nullptr, 10));
+			e.escape_min_threshold			= static_cast<uint8_t>(strtoul(row[116], nullptr, 10));
+			e.hate_redux_min_threshold		= static_cast<uint8_t>(strtoul(row[117], nullptr, 10));
+			e.incombatbuff_min_threshold	= static_cast<uint8_t>(strtoul(row[118], nullptr, 10));
+			e.lifetap_min_threshold			= static_cast<uint8_t>(strtoul(row[119], nullptr, 10));
+			e.mez_min_threshold				= static_cast<uint8_t>(strtoul(row[120], nullptr, 10));
+			e.nuke_min_threshold			= static_cast<uint8_t>(strtoul(row[121], nullptr, 10));
+			e.root_min_threshold			= static_cast<uint8_t>(strtoul(row[122], nullptr, 10));
+			e.slow_min_threshold			= static_cast<uint8_t>(strtoul(row[123], nullptr, 10));
+			e.snare_min_threshold			= static_cast<uint8_t>(strtoul(row[124], nullptr, 10));
 
 			all_entries.push_back(e);
 		}
@@ -700,56 +1375,131 @@ public:
 		for (auto row = results.begin(); row != results.end(); ++row) {
 			BotData e{};
 
-			e.bot_id                 = static_cast<uint32_t>(strtoul(row[0], nullptr, 10));
-			e.owner_id               = static_cast<uint32_t>(strtoul(row[1], nullptr, 10));
-			e.spells_id              = static_cast<uint32_t>(strtoul(row[2], nullptr, 10));
-			e.name                   = row[3] ? row[3] : "";
-			e.last_name              = row[4] ? row[4] : "";
-			e.title                  = row[5] ? row[5] : "";
-			e.suffix                 = row[6] ? row[6] : "";
-			e.zone_id                = static_cast<int16_t>(atoi(row[7]));
-			e.gender                 = static_cast<int8_t>(atoi(row[8]));
-			e.race                   = static_cast<int16_t>(atoi(row[9]));
-			e.class_                 = static_cast<int8_t>(atoi(row[10]));
-			e.level                  = static_cast<uint8_t>(strtoul(row[11], nullptr, 10));
-			e.deity                  = static_cast<uint32_t>(strtoul(row[12], nullptr, 10));
-			e.creation_day           = static_cast<uint32_t>(strtoul(row[13], nullptr, 10));
-			e.last_spawn             = static_cast<uint32_t>(strtoul(row[14], nullptr, 10));
-			e.time_spawned           = static_cast<uint32_t>(strtoul(row[15], nullptr, 10));
-			e.size                   = strtof(row[16], nullptr);
-			e.face                   = static_cast<int32_t>(atoi(row[17]));
-			e.hair_color             = static_cast<int32_t>(atoi(row[18]));
-			e.hair_style             = static_cast<int32_t>(atoi(row[19]));
-			e.beard                  = static_cast<int32_t>(atoi(row[20]));
-			e.beard_color            = static_cast<int32_t>(atoi(row[21]));
-			e.eye_color_1            = static_cast<int32_t>(atoi(row[22]));
-			e.eye_color_2            = static_cast<int32_t>(atoi(row[23]));
-			e.drakkin_heritage       = static_cast<int32_t>(atoi(row[24]));
-			e.drakkin_tattoo         = static_cast<int32_t>(atoi(row[25]));
-			e.drakkin_details        = static_cast<int32_t>(atoi(row[26]));
-			e.ac                     = static_cast<int16_t>(atoi(row[27]));
-			e.atk                    = static_cast<int32_t>(atoi(row[28]));
-			e.hp                     = static_cast<int32_t>(atoi(row[29]));
-			e.mana                   = static_cast<int32_t>(atoi(row[30]));
-			e.str                    = static_cast<int32_t>(atoi(row[31]));
-			e.sta                    = static_cast<int32_t>(atoi(row[32]));
-			e.cha                    = static_cast<int32_t>(atoi(row[33]));
-			e.dex                    = static_cast<int32_t>(atoi(row[34]));
-			e.int_                   = static_cast<int32_t>(atoi(row[35]));
-			e.agi                    = static_cast<int32_t>(atoi(row[36]));
-			e.wis                    = static_cast<int32_t>(atoi(row[37]));
-			e.fire                   = static_cast<int16_t>(atoi(row[38]));
-			e.cold                   = static_cast<int16_t>(atoi(row[39]));
-			e.magic                  = static_cast<int16_t>(atoi(row[40]));
-			e.poison                 = static_cast<int16_t>(atoi(row[41]));
-			e.disease                = static_cast<int16_t>(atoi(row[42]));
-			e.corruption             = static_cast<int16_t>(atoi(row[43]));
-			e.show_helm              = static_cast<uint32_t>(strtoul(row[44], nullptr, 10));
-			e.follow_distance        = static_cast<uint32_t>(strtoul(row[45], nullptr, 10));
-			e.stop_melee_level       = static_cast<uint8_t>(strtoul(row[46], nullptr, 10));
-			e.expansion_bitmask      = static_cast<int32_t>(atoi(row[47]));
-			e.enforce_spell_settings = static_cast<uint8_t>(strtoul(row[48], nullptr, 10));
-			e.archery_setting        = static_cast<uint8_t>(strtoul(row[49], nullptr, 10));
+			e.bot_id						= static_cast<uint32_t>(strtoul(row[0], nullptr, 10));
+			e.owner_id						= static_cast<uint32_t>(strtoul(row[1], nullptr, 10));
+			e.spells_id						= static_cast<uint32_t>(strtoul(row[2], nullptr, 10));
+			e.name							= row[3] ? row[3] : "";
+			e.last_name						= row[4] ? row[4] : "";
+			e.title							= row[5] ? row[5] : "";
+			e.suffix						= row[6] ? row[6] : "";
+			e.zone_id						= static_cast<int16_t>(atoi(row[7]));
+			e.gender						= static_cast<int8_t>(atoi(row[8]));
+			e.race							= static_cast<int16_t>(atoi(row[9]));
+			e.class_						= static_cast<int8_t>(atoi(row[10]));
+			e.level							= static_cast<uint8_t>(strtoul(row[11], nullptr, 10));
+			e.deity							= static_cast<uint32_t>(strtoul(row[12], nullptr, 10));
+			e.creation_day					= static_cast<uint32_t>(strtoul(row[13], nullptr, 10));
+			e.last_spawn					= static_cast<uint32_t>(strtoul(row[14], nullptr, 10));
+			e.time_spawned					= static_cast<uint32_t>(strtoul(row[15], nullptr, 10));
+			e.size							= strtof(row[16], nullptr);
+			e.face							= static_cast<int32_t>(atoi(row[17]));
+			e.hair_color					= static_cast<int32_t>(atoi(row[18]));
+			e.hair_style					= static_cast<int32_t>(atoi(row[19]));
+			e.beard							= static_cast<int32_t>(atoi(row[20]));
+			e.beard_color					= static_cast<int32_t>(atoi(row[21]));
+			e.eye_color_1					= static_cast<int32_t>(atoi(row[22]));
+			e.eye_color_2					= static_cast<int32_t>(atoi(row[23]));
+			e.drakkin_heritage				= static_cast<int32_t>(atoi(row[24]));
+			e.drakkin_tattoo				= static_cast<int32_t>(atoi(row[25]));
+			e.drakkin_details				= static_cast<int32_t>(atoi(row[26]));
+			e.ac							= static_cast<int16_t>(atoi(row[27]));
+			e.atk							= static_cast<int32_t>(atoi(row[28]));
+			e.hp							= static_cast<int32_t>(atoi(row[29]));
+			e.mana							= static_cast<int32_t>(atoi(row[30]));
+			e.str							= static_cast<int32_t>(atoi(row[31]));
+			e.sta							= static_cast<int32_t>(atoi(row[32]));
+			e.cha							= static_cast<int32_t>(atoi(row[33]));
+			e.dex							= static_cast<int32_t>(atoi(row[34]));
+			e.int_							= static_cast<int32_t>(atoi(row[35]));
+			e.agi							= static_cast<int32_t>(atoi(row[36]));
+			e.wis							= static_cast<int32_t>(atoi(row[37]));
+			e.fire							= static_cast<int16_t>(atoi(row[38]));
+			e.cold							= static_cast<int16_t>(atoi(row[39]));
+			e.magic							= static_cast<int16_t>(atoi(row[40]));
+			e.poison						= static_cast<int16_t>(atoi(row[41]));
+			e.disease						= static_cast<int16_t>(atoi(row[42]));
+			e.corruption					= static_cast<int16_t>(atoi(row[43]));
+			e.show_helm						= static_cast<uint32_t>(strtoul(row[44], nullptr, 10));
+			e.follow_distance				= static_cast<uint32_t>(strtoul(row[45], nullptr, 10));
+			e.stop_melee_level				= static_cast<uint8_t>(strtoul(row[46], nullptr, 10));
+			e.expansion_bitmask				= static_cast<int32_t>(atoi(row[47]));
+			e.enforce_spell_settings		= static_cast<uint8_t>(strtoul(row[48], nullptr, 10));
+			e.archery_setting				= static_cast<uint8_t>(strtoul(row[49], nullptr, 10));
+			e.hold_buffs					= static_cast<uint8_t>(strtoul(row[50], nullptr, 10));
+			e.hold_cures					= static_cast<uint8_t>(strtoul(row[51], nullptr, 10));
+			e.hold_dots						= static_cast<uint8_t>(strtoul(row[52], nullptr, 10));
+			e.hold_debuffs					= static_cast<uint8_t>(strtoul(row[53], nullptr, 10));
+			e.hold_dispels					= static_cast<uint8_t>(strtoul(row[54], nullptr, 10));
+			e.hold_escapes					= static_cast<uint8_t>(strtoul(row[55], nullptr, 10));
+			e.hold_hateredux				= static_cast<uint8_t>(strtoul(row[56], nullptr, 10));
+			e.hold_heals					= static_cast<uint8_t>(strtoul(row[57], nullptr, 10));
+			e.hold_incombatbuffs			= static_cast<uint8_t>(strtoul(row[58], nullptr, 10));
+			e.hold_incombatbuffsongs		= static_cast<uint8_t>(strtoul(row[59], nullptr, 10));
+			e.hold_lifetaps					= static_cast<uint8_t>(strtoul(row[60], nullptr, 10));
+			e.hold_mez						= static_cast<uint8_t>(strtoul(row[61], nullptr, 10));
+			e.hold_nukes					= static_cast<uint8_t>(strtoul(row[62], nullptr, 10));
+			e.hold_outofcombatbuffsongs		= static_cast<uint8_t>(strtoul(row[63], nullptr, 10));
+			e.hold_pet_heals				= static_cast<uint8_t>(strtoul(row[64], nullptr, 10));
+			e.hold_pets						= static_cast<uint8_t>(strtoul(row[65], nullptr, 10));
+			e.hold_precombatbuffs			= static_cast<uint8_t>(strtoul(row[66], nullptr, 10));
+			e.hold_precombatbuffsongs		= static_cast<uint8_t>(strtoul(row[67], nullptr, 10));
+			e.hold_roots					= static_cast<uint8_t>(strtoul(row[68], nullptr, 10));
+			e.hold_slows					= static_cast<uint8_t>(strtoul(row[69], nullptr, 10));
+			e.hold_snares					= static_cast<uint8_t>(strtoul(row[70], nullptr, 10));
+			e.auto_ds						= static_cast<uint8_t>(strtoul(row[71], nullptr, 10));
+			e.auto_resist					= static_cast<uint8_t>(strtoul(row[72], nullptr, 10));
+			e.behind_mob					= static_cast<uint8_t>(strtoul(row[73], nullptr, 10));
+			e.caster_range					= static_cast<uint32_t>(strtoul(row[74], nullptr, 10));
+			e.buff_delay					= static_cast<uint32_t>(strtoul(row[75], nullptr, 10));
+			e.complete_heal_delay			= static_cast<uint32_t>(strtoul(row[76], nullptr, 10));
+			e.cure_delay					= static_cast<uint32_t>(strtoul(row[77], nullptr, 10));
+			e.debuff_delay					= static_cast<uint32_t>(strtoul(row[78], nullptr, 10));
+			e.dispel_delay					= static_cast<uint32_t>(strtoul(row[79], nullptr, 10));
+			e.dot_delay						= static_cast<uint32_t>(strtoul(row[80], nullptr, 10));
+			e.escape_delay					= static_cast<uint32_t>(strtoul(row[81], nullptr, 10));
+			e.fast_heal_delay				= static_cast<uint32_t>(strtoul(row[82], nullptr, 10));
+			e.hate_redux_delay				= static_cast<uint32_t>(strtoul(row[83], nullptr, 10));
+			e.heal_delay					= static_cast<uint32_t>(strtoul(row[84], nullptr, 10));
+			e.hot_heal_delay				= static_cast<uint32_t>(strtoul(row[85], nullptr, 10));
+			e.incombatbuff_delay			= static_cast<uint32_t>(strtoul(row[86], nullptr, 10));
+			e.lifetap_delay					= static_cast<uint32_t>(strtoul(row[87], nullptr, 10));
+			e.mez_delay						= static_cast<uint32_t>(strtoul(row[88], nullptr, 10));
+			e.nuke_delay					= static_cast<uint32_t>(strtoul(row[89], nullptr, 10));
+			e.root_delay					= static_cast<uint32_t>(strtoul(row[90], nullptr, 10));
+			e.slow_delay					= static_cast<uint32_t>(strtoul(row[91], nullptr, 10));
+			e.snare_delay					= static_cast<uint32_t>(strtoul(row[92], nullptr, 10));
+			e.buff_threshold				= static_cast<uint8_t>(strtoul(row[93], nullptr, 10));
+			e.complete_heal_threshold		= static_cast<uint8_t>(strtoul(row[94], nullptr, 10));
+			e.cure_threshold				= static_cast<uint8_t>(strtoul(row[95], nullptr, 10));
+			e.debuff_threshold				= static_cast<uint8_t>(strtoul(row[96], nullptr, 10));
+			e.dispel_threshold				= static_cast<uint8_t>(strtoul(row[97], nullptr, 10));
+			e.dot_threshold					= static_cast<uint8_t>(strtoul(row[98], nullptr, 10));
+			e.escape_threshold				= static_cast<uint8_t>(strtoul(row[99], nullptr, 10));
+			e.fast_heal_threshold			= static_cast<uint8_t>(strtoul(row[100], nullptr, 10));
+			e.hate_redux_threshold			= static_cast<uint8_t>(strtoul(row[101], nullptr, 10));
+			e.heal_threshold				= static_cast<uint8_t>(strtoul(row[102], nullptr, 10));
+			e.hot_heal_threshold			= static_cast<uint8_t>(strtoul(row[103], nullptr, 10));
+			e.incombatbuff_threshold		= static_cast<uint8_t>(strtoul(row[104], nullptr, 10));
+			e.lifetap_threshold				= static_cast<uint8_t>(strtoul(row[105], nullptr, 10));
+			e.mez_threshold					= static_cast<uint8_t>(strtoul(row[106], nullptr, 10));
+			e.nuke_threshold				= static_cast<uint8_t>(strtoul(row[107], nullptr, 10));
+			e.root_threshold				= static_cast<uint8_t>(strtoul(row[108], nullptr, 10));
+			e.slow_threshold				= static_cast<uint8_t>(strtoul(row[109], nullptr, 10));
+			e.snare_threshold				= static_cast<uint8_t>(strtoul(row[110], nullptr, 10));
+			e.buff_min_threshold			= static_cast<uint8_t>(strtoul(row[111], nullptr, 10));
+			e.cure_min_threshold			= static_cast<uint8_t>(strtoul(row[112], nullptr, 10));
+			e.debuff_min_threshold			= static_cast<uint8_t>(strtoul(row[113], nullptr, 10));
+			e.dispel_min_threshold			= static_cast<uint8_t>(strtoul(row[114], nullptr, 10));
+			e.dot_min_threshold				= static_cast<uint8_t>(strtoul(row[115], nullptr, 10));
+			e.escape_min_threshold			= static_cast<uint8_t>(strtoul(row[116], nullptr, 10));
+			e.hate_redux_min_threshold		= static_cast<uint8_t>(strtoul(row[117], nullptr, 10));
+			e.incombatbuff_min_threshold	= static_cast<uint8_t>(strtoul(row[118], nullptr, 10));
+			e.lifetap_min_threshold			= static_cast<uint8_t>(strtoul(row[119], nullptr, 10));
+			e.mez_min_threshold				= static_cast<uint8_t>(strtoul(row[120], nullptr, 10));
+			e.nuke_min_threshold			= static_cast<uint8_t>(strtoul(row[121], nullptr, 10));
+			e.root_min_threshold			= static_cast<uint8_t>(strtoul(row[122], nullptr, 10));
+			e.slow_min_threshold			= static_cast<uint8_t>(strtoul(row[123], nullptr, 10));
+			e.snare_min_threshold			= static_cast<uint8_t>(strtoul(row[124], nullptr, 10));
 
 			all_entries.push_back(e);
 		}

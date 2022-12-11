@@ -226,7 +226,6 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 					if (!tar->CheckSpellLevelRestriction(botSpell.SpellId))
 						break;
-					}
 
 					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
 
@@ -676,7 +675,6 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				if (!checked_los) {
 					if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
 						break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
-					}
 					checked_los = true;
 				}
 

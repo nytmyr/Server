@@ -59,6 +59,25 @@ public:
 		};
 	}
 
+	static std::vector<std::string> SelectColumns()
+	{
+		return {
+			"raidid",
+			"charid",
+			"groupid",
+			"_class",
+			"level",
+			"name",
+			"isgroupleader",
+			"israidleader",
+			"islooter",
+#ifdef BOTS
+			"isbot",
+			"botownerid",
+#endif
+		};
+	}
+
 	static std::string ColumnsRaw()
 	{
 		return std::string(Strings::Implode(", ", Columns()));

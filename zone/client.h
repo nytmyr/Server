@@ -2088,7 +2088,7 @@ public:
 
 	int GetBotRequiredLevel(uint8 class_id = 0);
 	uint32 GetBotCreationLimit(uint8 class_id = 0);
-	int GetBotSpawnLimit(uint8 class_id = 0);
+	int GetBotSpawnLimit(uint8 class_id = 0, uint32 spawned_bot_count = 0);
 	void SetBotCreationLimit(uint32 new_creation_limit, uint8 class_id = 0);
 	void SetBotRequiredLevel(int new_required_level, uint8 class_id = 0);
 	void SetBotSpawnLimit(int new_spawn_limit, uint8 class_id = 0);

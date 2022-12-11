@@ -64,9 +64,50 @@ int Client::GetBotRequiredLevel(uint8 class_id)
 	return bot_character_level;
 }
 
-int Client::GetBotSpawnLimit(uint8 class_id)
+int Client::GetBotSpawnLimit(uint8 class_id, uint32 spawned_bot_count)
 {
 	int bot_spawn_limit = RuleI(Bots, SpawnLimit);
+
+	if (RuleB(Bots, TieredSpawnLimitUnlocks) && !GetGM()) {
+		auto current_level = GetLevel();
+
+		if (current_level < RuleI(Bots, TierOneBotSpawnLimitUnlockLevelRequirement)) {
+			bot_spawn_limit = 0;
+			Message(Chat::White, "You must reach level %i to unlock the ability to spawn %i bot(s).", RuleI(Bots, TierOneBotSpawnLimitUnlockLevelRequirement), RuleI(Bots, TierOneBotSpawnLimitUnlock));
+			return 999;
+		}
+		else if (current_level >= RuleI(Bots, TierOneBotSpawnLimitUnlockLevelRequirement) && current_level < RuleI(Bots, TierTwoBotSpawnLimitUnlockLevelRequirement)) {
+			bot_spawn_limit = RuleI(Bots, TierOneBotSpawnLimitUnlock);
+			if (spawned_bot_count == bot_spawn_limit && current_level < RuleI(Bots, TierTwoBotSpawnLimitUnlockLevelRequirement)) {
+				Message(Chat::White, "You can not spawn more than %i spawned bot(s) until you reach level %i.", bot_spawn_limit, RuleI(Bots, TierTwoBotSpawnLimitUnlockLevelRequirement));
+				return 999;
+			}
+		}
+		else if (current_level >= RuleI(Bots, TierTwoBotSpawnLimitUnlockLevelRequirement) && current_level < RuleI(Bots, TierThreeBotSpawnLimitUnlockLevelRequirement)) {
+			bot_spawn_limit = RuleI(Bots, TierTwoBotSpawnLimitUnlock);
+			if (spawned_bot_count == bot_spawn_limit && current_level < RuleI(Bots, TierThreeBotSpawnLimitUnlockLevelRequirement)) {
+				Message(Chat::White, "You can not spawn more than %i spawned bot(s) until you reach level %i.", bot_spawn_limit, RuleI(Bots, TierThreeBotSpawnLimitUnlockLevelRequirement));
+				return 999;
+			}
+		}
+		else if (current_level >= RuleI(Bots, TierThreeBotSpawnLimitUnlockLevelRequirement) && current_level < RuleI(Bots, TierFourBotSpawnLimitUnlockLevelRequirement)) {
+			bot_spawn_limit = RuleI(Bots, TierThreeBotSpawnLimitUnlock);
+			if (spawned_bot_count == bot_spawn_limit && current_level < RuleI(Bots, TierFourBotSpawnLimitUnlockLevelRequirement)) {
+				Message(Chat::White, "You can not spawn more than %i spawned bot(s) until you reach level %i.", bot_spawn_limit, RuleI(Bots, TierFourBotSpawnLimitUnlockLevelRequirement));
+				return 999;
+			}
+		}
+		else if (current_level >= RuleI(Bots, TierFourBotSpawnLimitUnlockLevelRequirement) && current_level < RuleI(Bots, TierFiveBotSpawnLimitUnlockLevelRequirement)) {
+			bot_spawn_limit = RuleI(Bots, TierFourBotSpawnLimitUnlock);
+			if (spawned_bot_count == bot_spawn_limit && current_level < RuleI(Bots, TierFiveBotSpawnLimitUnlockLevelRequirement)) {
+				Message(Chat::White, "You can not spawn more than %i spawned bot(s) until you reach level %i.", bot_spawn_limit, RuleI(Bots, TierFiveBotSpawnLimitUnlockLevelRequirement));
+				return 999;
+			}
+		}
+		else if (current_level >= RuleI(Bots, TierFiveBotSpawnLimitUnlockLevelRequirement)) {
+			bot_spawn_limit = RuleI(Bots, TierFiveBotSpawnLimitUnlock);
+		}
+	}
 
 	const auto bucket_name = fmt::format(
 		"bot_spawn_limit{}",

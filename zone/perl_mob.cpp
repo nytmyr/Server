@@ -1110,11 +1110,6 @@ uint16 Perl_Mob_GetOwnerID(Mob* self) // @categories Script Utility, Pet
 	return self->GetOwnerID();
 }
 
-Mob* Perl_Mob_GetUltimateOwner(Mob* self) // @categories Script Utility
-{
-	return self->GetUltimateOwner();
-}
-
 int Perl_Mob_GetPetType(Mob* self) // @categories Script Utility, Pet
 {
 	return self->GetPetType();
@@ -3112,7 +3107,6 @@ void perl_register_mob()
 	package.add("GetNimbusEffect3", &Perl_Mob_GetNimbusEffect3);
 	package.add("GetOwner", &Perl_Mob_GetOwner);
 	package.add("GetOwnerID", &Perl_Mob_GetOwnerID);
-	package.add("GetUltimateOwner", &Perl_Mob_GetUltimateOwner);
 	package.add("GetPR", &Perl_Mob_GetPR);
 	package.add("GetPetID", &Perl_Mob_GetPetID);
 	package.add("GetPetOrder", &Perl_Mob_GetPetOrder);
