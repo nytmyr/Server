@@ -868,6 +868,7 @@ public:
 	bool DeleteBot();
 	uint32* GetTimers() { return timers; }
 	uint32 GetLastZoneID() { return _lastZoneId; }
+	inline uint16 GetBaseRace() const { return _baseRace; }
 	int32 GetBaseAC() { return _baseAC; }
 	int32 GetBaseATK() { return _baseATK; }
 	int32 GetBaseSTR() { return _baseSTR; }
