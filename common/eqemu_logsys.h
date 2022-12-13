@@ -138,6 +138,7 @@ namespace Logs {
 		HealAI,
 		TestDebug,
 		Bugs,
+		QuestErrors,
 		MaxCategoryID /* Don't Remove this */
 	};
 
@@ -234,7 +235,8 @@ namespace Logs {
 		"HealAI",
 		"TestDebug"
 		"Packet-S->S",
-		"Bugs"
+		"Bugs",
+		"QuestErrors"
 	};
 }
 
