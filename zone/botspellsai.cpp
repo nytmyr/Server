@@ -1651,8 +1651,8 @@ bool Bot::AI_IdleCastCheck() {
 				if (!entity_list.Bot_AICheckCloseBeneficialSpells(this, 100, BotAISpellRange, SpellType_Cure)) {
 					if (!AICastSpell(this, 100, SpellType_Buff)) {
 						if (!AICastSpell(this, 100, SpellType_OutOfCombatBuffSong)) {
-							if (!AICastSpell(this, 100, SpellType_InCombatBuffSong)) {
-							}
+							//if (!AICastSpell(this, 100, SpellType_InCombatBuffSong)) {
+							//}
 						}
 					}
 				}
