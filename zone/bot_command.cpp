@@ -13951,7 +13951,7 @@ void bot_subcommand_pet_set_type(Client *c, const Seperator *sep)
 	if (helper_command_alias_fail(c, "bot_subcommand_pet_set_type", sep->arg[0], "petsettype"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s [type: water | fire | air | earth | monster | epic] ([actionable: target | byname] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [type: water | fire | air | earth | monster | epic | default] ([actionable: target | byname] ([actionable_name]))", sep->arg[0]);
 		c->Message(Chat::White, "requires one of the following bot classes:");
 		c->Message(Chat::White, "Magician(1)");
 		return;
@@ -13960,9 +13960,13 @@ void bot_subcommand_pet_set_type(Client *c, const Seperator *sep)
 
 	std::string pet_arg = sep->arg[1];
 
-	uint8 pet_type = 255;
+	uint8 pet_type = 999;
 	uint8 level_req = 255;
-	if (!pet_arg.compare("water")) {
+	if (!pet_arg.compare("default")) {
+		pet_type = 255;
+		level_req = 1;
+	}
+	else if (!pet_arg.compare("water")) {
 		pet_type = 0;
 		level_req = 1;
 	}
@@ -14041,8 +14045,8 @@ void bot_subcommand_pet_set_type(Client *c, const Seperator *sep)
 			}
 		}
 
-	if (pet_type == 255) {
-		c->Message(Chat::White, "You must specify a pet [type: water | fire | air | earth | monster | epic]");
+	if (pet_type == 999) {
+		c->Message(Chat::White, "You must specify a pet [type: water | fire | air | earth | monster | epic | default]");
 		return;
 	}
 
@@ -14068,8 +14072,9 @@ void bot_subcommand_pet_set_type(Client *c, const Seperator *sep)
 		if (!bot_iter)
 			continue;
 
-		bot_iter->SetPetChooser(true);
-		bot_iter->SetPetChooserID(pet_type);
+		//bot_iter->SetPetChooser(true);
+		//bot_iter->SetPetChooserID(pet_type);
+		bot_iter->SetBotPetSetTypeSetting(pet_type, true);
 		if (bot_iter->GetPet()) {
 			auto pet_id = bot_iter->GetPetID();
 			bot_iter->SetPetID(0);

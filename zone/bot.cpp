@@ -11675,6 +11675,24 @@ void Bot::SetBotArcherySetting(bool bot_archer_setting, bool save)
 	}
 }
 
+void Bot::SetBotPetSetTypeSetting(uint8 bot_petsettype_setting, bool save)
+{
+	m_bot_petsettype_setting = bot_petsettype_setting;
+	if (save) {
+		if (!database.botdb.SaveBotPetSetTypeSetting(GetBotID(), bot_petsettype_setting)) {
+			if (GetBotOwner() && GetBotOwner()->IsClient()) {
+				GetBotOwner()->CastToClient()->Message(
+					Chat::White,
+					fmt::format(
+						"Failed to save pet set type settings for {}.",
+						GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+}
+
 std::vector<Mob*> Bot::GetApplySpellList(
 	ApplySpellType apply_type,
 	bool allow_pets,

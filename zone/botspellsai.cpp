@@ -2595,8 +2595,8 @@ std::string Bot::GetBotMagicianPetType(Bot* botCaster) {
 	std::string result;
 
 	if (botCaster) {
-		if (botCaster->IsPetChooser()) {
-			switch(botCaster->GetPetChooserID()) {
+		if (botCaster->GetBotPetSetTypeSetting() != 255) {
+			switch(botCaster->GetBotPetSetTypeSetting()) {
 				case 0:
 					result = std::string("SumWater");
 					break;
@@ -2610,7 +2610,23 @@ std::string Bot::GetBotMagicianPetType(Bot* botCaster) {
 					result = std::string("SumEarth");
 					break;
 				case 5:
-					result = std::string("SumMageMultiElement");
+					if (RuleI(Bots, MageEpicPet) == 1 && botCaster->GetLevel() >= RuleI(Bots, MageEpicPetMinLvl)) {
+						auto inst = botCaster->GetBotItem(13);
+						if (inst && inst->GetItem()) {
+							auto botitem = inst->GetItem()->ID;
+							if (botitem == 550005)
+								result = std::string("SumMageMultiElement");
+						}
+						else {
+							result = std::string("MonsterSum");
+						}
+					}
+					else if (RuleI(Bots, MageEpicPet) == 2 && botCaster->GetLevel() >= RuleI(Bots, MageEpicPetMinLvl)) {
+						result = std::string("SumMageMultiElement");
+					}
+					else {
+						result = std::string("MonsterSum");
+					}
 					break;
 				default:
 					result = std::string("MonsterSum");
@@ -2632,20 +2648,39 @@ std::string Bot::GetBotMagicianPetType(Bot* botCaster) {
 
 				switch(counter) {
 					case 0:
-					result = std::string("SumWater");
-					break;
-				case 1:
-					result = std::string("SumFire");
-					break;
-				case 2:
-					result = std::string("SumAir");
-					break;
-				case 3:
-					result = std::string("SumEarth");
-					break;
-				default:
-					result = std::string("MonsterSum");
-					break;
+						result = std::string("SumWater");
+						break;
+					case 1:
+						result = std::string("SumFire");
+						break;
+					case 2:
+						result = std::string("SumAir");
+						break;
+					case 3:
+						result = std::string("SumEarth");
+						break;
+					case 5:
+						if (RuleI(Bots, MageEpicPet) == 1 && botCaster->GetLevel() >= RuleI(Bots, MageEpicPetMinLvl)) {
+							auto inst = botCaster->GetBotItem(13);
+							if (inst && inst->GetItem()) {
+								auto botitem = inst->GetItem()->ID;
+								if (botitem == 550005)
+									result = std::string("SumMageMultiElement");
+							}
+							else {
+								result = std::string("MonsterSum");
+							}
+						}
+						else if (RuleI(Bots, MageEpicPet) == 2 && botCaster->GetLevel() >= RuleI(Bots, MageEpicPetMinLvl)) {
+							result = std::string("SumMageMultiElement");
+						}
+						else {
+							result = std::string("MonsterSum");
+						}
+						break;
+					default:
+						result = std::string("MonsterSum");
+						break;
 				}
 			}
 			else {
@@ -2654,20 +2689,39 @@ std::string Bot::GetBotMagicianPetType(Bot* botCaster) {
 
 				switch(counter) {
 					case 0:
-					result = std::string("SumWater");
-					break;
-				case 1:
-					result = std::string("SumFire");
-					break;
-				case 2:
-					result = std::string("SumAir");
-					break;
-				case 3:
-					result = std::string("SumEarth");
-					break;
-				default:
-					result = std::string("MonsterSum");
-					break;
+						result = std::string("SumWater");
+						break;
+					case 1:
+						result = std::string("SumFire");
+						break;
+					case 2:
+						result = std::string("SumAir");
+						break;
+					case 3:
+						result = std::string("SumEarth");
+						break;
+					case 5:
+						if (RuleI(Bots, MageEpicPet) == 1 && botCaster->GetLevel() >= RuleI(Bots, MageEpicPetMinLvl)) {
+							auto inst = botCaster->GetBotItem(13);
+							if (inst && inst->GetItem()) {
+								auto botitem = inst->GetItem()->ID;
+								if (botitem == 550005)
+									result = std::string("SumMageMultiElement");
+							}
+							else {
+								result = std::string("MonsterSum");
+							}
+						}
+						else if (RuleI(Bots, MageEpicPet) == 2 && botCaster->GetLevel() >= RuleI(Bots, MageEpicPetMinLvl)) {
+							result = std::string("SumMageMultiElement");
+						}
+						else {
+							result = std::string("MonsterSum");
+						}
+						break;
+					default:
+						result = std::string("MonsterSum");
+						break;
 				}
 			}
 		}

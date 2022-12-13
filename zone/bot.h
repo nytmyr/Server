@@ -631,6 +631,7 @@ public:
 	EQ::ItemInstance* GetBotItem(uint16 slot_id);
 	virtual bool GetSpawnStatus() { return _spawnStatus; }
 	uint8 GetPetChooserID() { return _petChooserID; }
+	uint8 GetBotPetSetTypeSetting() { return m_bot_petsettype_setting; }
 	bool IsPetChooser() { return _petChooser; }
 	bool IsBotArcher() { return m_bot_archery_setting; }
 	bool IsBotCharmer() { return _botCharmer; }
@@ -761,6 +762,7 @@ public:
 	void SetBotSpellID(uint32 newSpellID);
 	virtual void SetSpawnStatus(bool spawnStatus) { _spawnStatus = spawnStatus; }
 	void SetPetChooserID(uint8 id) { _petChooserID = id; }
+	void SetBotPetSetTypeSetting(uint8 bot_petsettype_setting, bool save = false);
 	void SetBotArcherySetting(bool bot_archer_setting, bool save = false);
 	void SetBotCharmer(bool c) { _botCharmer = c; }
 	void SetPetChooser(bool p) { _petChooser = p; }
@@ -938,6 +940,7 @@ private:
 	bool _botCharmer;
 	bool _petChooser;
 	uint8 _petChooserID;
+	uint8 m_bot_petsettype_setting;
 	bool berserk;
 	EQ::InventoryProfile m_inv;
 	double _lastTotalPlayTime;
