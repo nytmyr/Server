@@ -12435,7 +12435,7 @@ bool Bot::CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType) {
 			return true;
 			break;
 		case SpellType_HateRedux:
-			if (GetHoldHateRedux() || botHP < GetHateReduxMinThreshold() || botHP > GetHateReduxThreshold() || (m_hateredux_delay_timer.Enabled() && !m_hateredux_delay_timer.Check()))
+			if (GetHoldHateRedux() || GetTarget()->GetHateTop() != botCaster || botHP < GetHateReduxMinThreshold() || botHP > GetHateReduxThreshold() || (m_hateredux_delay_timer.Enabled() && !m_hateredux_delay_timer.Check()))
 				return false;
 			return true;
 			break;
