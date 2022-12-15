@@ -13748,8 +13748,19 @@ void bot_subcommand_inventory_remove(Client *c, const Seperator *sep)
 
 	const auto* itm = inst->GetItem();
 
+	EQ::SayLinkEngine linker;
+	linker.SetLinkType(EQ::saylink::SayLinkItemInst);
+	linker.SetItemInst(inst);
+
 	if (inst && itm && c->CheckLoreConflict(itm)) {
-		c->MessageString(Chat::White, PICK_LORE);
+		// c->MessageString(Chat::White, PICK_LORE);
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"You cannot pick up {} because it is a lore item you already possess.",
+				linker.GenerateLink()
+			).c_str()
+		);
 		return;
 	}
 
@@ -13763,7 +13774,14 @@ void bot_subcommand_inventory_remove(Client *c, const Seperator *sep)
 			continue;
 		}
 
-		c->MessageString(Chat::White, PICK_LORE);
+		//c->MessageString(Chat::White, PICK_LORE);
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"You cannot pick up {} because it is a lore item you already possess.",
+				linker.GenerateLink()
+			).c_str()
+		);
 		return;
 	}
 
