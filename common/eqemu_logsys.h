@@ -233,8 +233,7 @@ namespace Logs {
 		"Packet-C->S",
 		"Packet-S->S",
 		"HealAI",
-		"TestDebug"
-		"Packet-S->S",
+		"TestDebug",
 		"Bugs",
 		"QuestErrors"
 	};

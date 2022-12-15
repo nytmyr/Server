@@ -163,14 +163,14 @@ const char *QuestEventSubroutines[_LargestEventID] = {
 	"EVENT_TASK_BEFORE_UPDATE",
 	"EVENT_AA_BUY",
 	"EVENT_AA_GAIN",
+	"EVENT_SUMMON_PC",
 	"EVENT_PAYLOAD",
 	"EVENT_LEVEL_DOWN",
 	"EVENT_GM_COMMAND",
 #ifdef BOTS
 	"EVENT_SPELL_EFFECT_BOT",
-	"EVENT_SPELL_EFFECT_BUFF_TIC_BOT",
+	"EVENT_SPELL_EFFECT_BUFF_TIC_BOT"
 #endif
-	"EVENT_SUMMON_PC"
 };
 
 PerlembParser::PerlembParser() : perl(nullptr)
