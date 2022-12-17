@@ -4563,8 +4563,8 @@ luabind::scope lua_register_events() {
 			luabind::value("task_before_update", static_cast<int>(EVENT_TASK_BEFORE_UPDATE)),
 			luabind::value("aa_buy", static_cast<int>(EVENT_AA_BUY)),
 			luabind::value("aa_gain", static_cast<int>(EVENT_AA_GAIN)),
-			luabind::value("summon_pc", static_cast<int>(EVENT_SUMMON_PC)),
 			luabind::value("payload", static_cast<int>(EVENT_PAYLOAD)),
+			luabind::value("summon_pc", static_cast<int>(EVENT_SUMMON_PC)),
 			luabind::value("level_down", static_cast<int>(EVENT_LEVEL_DOWN)),
 			luabind::value("gm_command", static_cast<int>(EVENT_GM_COMMAND))
 		];

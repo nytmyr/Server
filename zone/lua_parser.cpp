@@ -150,10 +150,14 @@ const char *LuaEvents[_LargestEventID] = {
 	"event_task_before_update",
 	"event_aa_buy",
 	"event_aa_gain",
-	"event_summon_pc"
+	"event_summon_pc",
 	"event_payload",
 	"event_level_down",
-	"event_gm_command"
+	"event_gm_command",
+#ifdef BOTS
+	"event_spell_effect_bot",
+	"event_spell_effect_buff_tic_bot"
+#endif
 };
 
 extern Zone *zone;
