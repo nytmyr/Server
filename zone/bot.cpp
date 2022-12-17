@@ -5191,6 +5191,29 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 			}
 			else {
 				client->ResetTrade();
+				if (
+					!trade_instance->IsClassEquipable(GetClass()) ||
+					(!trade_instance->IsRaceEquipable(GetBaseRace()) && !RuleB(Bots, AllowBotEquipAnyRaceGear))
+				) {
+					client->Message(
+						Chat::Red,
+						fmt::format(
+							"{}'s class, deity and/or race may not equip {}.",
+							GetCleanName(),
+							item_link
+						).c_str()
+					);
+				}
+				else if (GetLevel() < trade_instance->GetItem()->ReqLevel)  {
+					client->Message(
+						Chat::Red,
+						fmt::format(
+							"{} is not sufficient level to use {}.",
+							GetCleanName(),
+							item_link
+						).c_str()
+					);
+				}
 				return;
 			}
 		}
