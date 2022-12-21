@@ -30,11 +30,11 @@
 
 
 static const uint32 BUFF_COUNT = 42;
-static const uint32 PET_BUFF_COUNT = 30;
+static const uint32 PET_BUFF_COUNT = 42;
 static const uint32 MAX_MERC = 100;
 static const uint32 MAX_MERC_GRADES = 10;
 static const uint32 MAX_MERC_STANCES = 10;
-static const uint32 BLOCKED_BUFF_COUNT = 20;
+static const uint32 BLOCKED_BUFF_COUNT = 30;
 static const uint32 QUESTREWARD_COUNT = 8;
 static const uint32 ADVANCED_LORE_LENGTH = 8192;
 
