@@ -2968,8 +2968,8 @@ void bot_command_attack(Client *c, const Seperator *sep)
 	}
 
 	if (attacker_count == 1 && first_attacker) {
-		Bot::BotGroupSay(
-			first_attacker,
+		c->Message(
+			Chat::White,
 			fmt::format(
 				"Attacking {}.",
 				target_mob->GetCleanName()
@@ -4777,8 +4777,8 @@ void bot_command_follow(Client *c, const Seperator *sep)
 
 	if (sbl.size() == 1) {
 		Mob* follow_mob = entity_list.GetMob(sbl.front()->GetFollowID());
-		Bot::BotGroupSay(
-			sbl.front(),
+		c->Message(
+			Chat::White,
 			fmt::format(
 				"Following {}.",
 				follow_mob ? follow_mob->GetCleanName() : "no one"
@@ -4847,8 +4847,8 @@ void bot_command_guard(Client *c, const Seperator *sep)
 	}
 
 	if (sbl.size() == 1) {
-		Bot::BotGroupSay(
-			sbl.front(),
+		c->Message(
+			Chat::White,
 			fmt::format(
 				"{}uarding this position.",
 				clear ? "No longer g" : "G"
@@ -5222,8 +5222,8 @@ void bot_command_hold(Client *c, const Seperator *sep)
 	}
 
 	if (sbl.size() == 1) {
-		Bot::BotGroupSay(
-			sbl.front(),
+		c->Message(
+			Chat::White,
 			fmt::format(
 				"{}olding my attacks.",
 				clear ? "No longer h" : "H"
@@ -9028,8 +9028,8 @@ void bot_command_taunt(Client *c, const Seperator *sep)
 		}
 
 		if (sbl.size() == 1) {
-			Bot::BotGroupSay(
-				bot_iter,
+			c->Message(
+				Chat::White,
 				fmt::format(
 					"My Pet is {} taunting.",
 					bot_iter->GetPet()->CastToNPC()->IsTaunting() ? "now" : "no longer"
@@ -14601,8 +14601,7 @@ void helper_command_depart_list(Client* bot_owner, Bot* druid_bot, Bot* wizard_b
 			}
 
 			msg = fmt::format(
-				"{}circle {}{}",
-				std::to_string(BOT_COMMAND_CHAR),
+				"^circle {}{}",
 				spells[local_entry->spell_id].teleport_zone,
 				single_flag ? " single" : ""
 			);
@@ -14613,7 +14612,8 @@ void helper_command_depart_list(Client* bot_owner, Bot* druid_bot, Bot* wizard_b
 				"Goto"
 			);
 
-			druid_bot->OwnerMessage(
+			Bot::BotGroupSay(
+				druid_bot,
 				fmt::format(
 					"Destination {} | {} | {}",
 					destination_number,
@@ -14637,8 +14637,7 @@ void helper_command_depart_list(Client* bot_owner, Bot* druid_bot, Bot* wizard_b
 			}
 
 			msg = fmt::format(
-				"{}portal {}{}",
-				std::to_string(BOT_COMMAND_CHAR),
+				"^portal {}{}",
 				spells[local_entry->spell_id].teleport_zone,
 				single_flag ? " single" : ""
 			);
@@ -14649,7 +14648,8 @@ void helper_command_depart_list(Client* bot_owner, Bot* druid_bot, Bot* wizard_b
 				"Goto"
 			);
 
-			wizard_bot->OwnerMessage(
+			Bot::BotGroupSay(
+				wizard_bot,
 				fmt::format(
 					"Destination {} | {} | {}",
 					destination_number,
