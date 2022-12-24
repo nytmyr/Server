@@ -47,7 +47,7 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 					message.c_str(),
 					zone->GetShortName()
 				);
-				LogCheat(message);
+				LogCheat(fmt::runtime(message));
 				std::string export_string = fmt::format(
 					"{} {} {} {}",
 					position1.x,
@@ -82,7 +82,7 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 					message.c_str(),
 					zone->GetShortName()
 				);
-				LogCheat(message);
+				LogCheat(fmt::runtime(message));
 				std::string export_string = fmt::format(
 					"{} {} {} {}",
 					position1.x,
@@ -114,7 +114,7 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 					message.c_str(),
 					zone->GetShortName()
 				);
-				LogCheat(message);
+				LogCheat(fmt::runtime(message));
 				std::string export_string = fmt::format(
 					"{} {} {} {}",
 					position1.x,
@@ -145,6 +145,7 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 					message.c_str(),
 					zone->GetShortName()
 				);
+				LogCheat(fmt::runtime(message));
 				std::string export_string = fmt::format(
 					"{} {} {} {}",
 					position1.x,
@@ -153,7 +154,6 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 					4
 				);
 				parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
-				LogCheat(message);
 			}
 			break;
 
@@ -178,7 +178,7 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 						message.c_str(),
 						zone->GetShortName()
 					);
-					LogCheat(message);
+					LogCheat(fmt::runtime(message));
 					std::string export_string = fmt::format(
 						"{} {} {} {}",
 						position1.x,
@@ -211,7 +211,7 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 					message.c_str(),
 					zone->GetShortName()
 				);
-				LogCheat(message);
+				LogCheat(fmt::runtime(message));
 				std::string export_string = fmt::format(
 					"{} {} {} {}",
 					position1.x,
@@ -242,7 +242,7 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 					message.c_str(),
 					zone->GetShortName()
 				);
-				LogCheat(message);
+				LogCheat(fmt::runtime(message));
 				std::string export_string = fmt::format(
 					"{} {} {} {}",
 					position1.x,
@@ -273,7 +273,7 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 					message.c_str(),
 					zone->GetShortName()
 				);
-				LogCheat(message);
+				LogCheat(fmt::runtime(message));
 				std::string export_string = fmt::format(
 					"{} {} {} {}",
 					position1.x,
@@ -331,7 +331,7 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 					message.c_str(),
 					zone->GetShortName()
 				);
-				LogCheat(message);
+				LogCheat(fmt::runtime(message));
 				std::string export_string = fmt::format(
 					"{} {} {} {}",
 					position1.x,
@@ -360,7 +360,7 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 				message.c_str(),
 				zone->GetShortName()
 			);
-			LogCheat(message);
+			LogCheat(fmt::runtime(message));
 			std::string export_string = fmt::format(
 				"{} {} {} {}",
 				position1.x,
