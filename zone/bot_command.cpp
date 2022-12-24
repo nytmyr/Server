@@ -1555,6 +1555,7 @@ int bot_command_init(void)
 		bot_command_add("rootminthreshold", "Sets a threshold to stop casting roots", AccountStatus::Player, bot_command_root_min_threshold) ||
 		bot_command_add("slowminthreshold", "Sets a threshold to stop casting slows", AccountStatus::Player, bot_command_slow_min_threshold) ||
 		bot_command_add("snareminthreshold", "Sets a threshold to stop casting snares", AccountStatus::Player, bot_command_snare_min_threshold) ||
+		bot_command_add("maxmeleerange", "Toggles whether your bot is at max melee range or not. This will disable all special abilities, including taunt.", AccountStatus::Player, bot_command_max_melee_range) ||
 		bot_command_add("removefromraid", "This will remove a bot from a raid, can be used for stuck bots.", AccountStatus::Player, bot_command_remove_from_raid) ||
 		bot_command_add("useepic", "Orders your targeted bot to use their epic if it is equipped", AccountStatus::Player, bot_command_use_epic)
 	) {
@@ -7029,6 +7030,67 @@ void bot_command_lull(Client *c, const Seperator *sep)
 	}
 
 	helper_no_available_bots(c, my_bot);
+}
+
+void bot_command_max_melee_range(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_max_melee_range", sep->arg[0], "maxmeleerange")) {
+		return;
+	}
+	if (helper_is_help_or_usage(sep->arg[1])) {
+
+		c->Message(Chat::White, "usage: %s ([option: clear]) [actionable: target | byname | ownergroup | botgroup | namesgroup | healrotation | spawned] ([actionable_name])", sep->arg[0]);
+		return;
+	}
+	const int ab_mask = (ActionableBots::ABM_Target | ActionableBots::ABM_Type2);
+
+	bool clear = false;
+	int ab_arg = 1;
+	int name_arg = 2;
+
+	std::string clear_arg = sep->arg[1];
+	if (!clear_arg.compare("clear")) {
+
+		clear = true;
+		ab_arg = 2;
+		name_arg = 3;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, sep->arg[name_arg]) == ActionableBots::ABT_None) {
+		return;
+	}
+
+	sbl.remove(nullptr);
+	for (auto bot_iter : sbl) {
+
+		if (clear) {
+			bot_iter->SetMaxMeleeRange(false);
+		}
+		else {
+			bot_iter->SetMaxMeleeRange(true);
+		}
+	}
+
+	if (sbl.size() == 1) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"I am {} at max melee range.",
+				clear ? "no longer" : "now"
+			).c_str()
+		);
+	}
+	else {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"{} of your bots are {} at max melee range.",
+				sbl.size(),
+				clear ? "no longer" : "now"
+			).c_str()
+		);
+	}
 }
 
 void bot_command_mesmerize(Client *c, const Seperator *sep)

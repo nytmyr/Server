@@ -245,6 +245,8 @@ public:
 	void SetPullFlag(bool flag = true) { m_pull_flag = flag; }
 	bool GetPullingFlag() { return m_pulling_flag; }
 	bool GetReturningFlag() { return m_returning_flag; }
+	bool GetMaxMeleeRange() { return m_max_melee_range; }
+	void SetMaxMeleeRange(bool flag = true) { m_max_melee_range = flag; }
 	bool UseDiscipline(uint32 spell_id, uint32 target);
 	uint8 GetNumberNeedingHealedInGroup(uint8 hpr, bool includePets);
 	bool GetNeedsCured(Mob *tar);
@@ -999,6 +1001,7 @@ private:
 	bool m_pull_flag;
 	bool m_pulling_flag;
 	bool m_returning_flag;
+	bool m_max_melee_range;
 	eStandingPetOrder m_previous_pet_order;
 
 	BotCastingRoles m_CastingRoles;

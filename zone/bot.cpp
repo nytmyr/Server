@@ -3396,59 +3396,66 @@ void Bot::AI_Process()
 
 			melee_distance_max = size_mod;
 
-			//switch (GetClass()) {
-			//case WARRIOR:
-			//case PALADIN:
-			//case SHADOWKNIGHT:
-			//	if (p_item && p_item->GetItem()->IsType2HWeapon()) {
-			//		melee_distance = melee_distance_max * 0.45f;
-			//	}
-			//	else if ((s_item && s_item->GetItem()->IsTypeShield()) || (!p_item && !s_item)) {
-			//		melee_distance = melee_distance_max * 0.35f;
-			//	}
-			//	else {
-			//		melee_distance = melee_distance_max * 0.40f;
-			//	}
-			//
-			//	break;
-			//case NECROMANCER:
-			//case WIZARD:
-			//case MAGICIAN:
-			//case ENCHANTER:
-			//	if (p_item && p_item->GetItem()->IsType2HWeapon()) {
-			//		melee_distance = melee_distance_max * 0.95f;
-			//	}
-			//	else {
-			//		melee_distance = melee_distance_max * 0.75f;
-			//	}
-			//
-			//	break;
-			//case ROGUE:
-			//	if (behind_mob && backstab_weapon) {
-			//		if (p_item->GetItem()->IsType2HWeapon()) { // 'p_item' tested in 'backstab_weapon' check above
-			//			melee_distance = melee_distance_max * 0.30f;
-			//		}
-			//		else {
-			//			melee_distance = melee_distance_max * 0.25f;
-			//		}
-			//
-			//		break;
-			//	}
-			//	// Fall-through
-			//default:
-			//	if (p_item && p_item->GetItem()->IsType2HWeapon()) {
-			//		melee_distance = melee_distance_max * 0.70f;
-			//	}
-			//	else {
-			//		melee_distance = melee_distance_max * 0.50f;
-			//	}
-			//
-			//	break;
-			//}
-			melee_distance = melee_distance_max * 0.85f;
+			if (!RuleB(Bots, UseFlatNormalMeleeRange)) {
+				switch (GetClass()) {
+					case WARRIOR:
+					case PALADIN:
+					case SHADOWKNIGHT:
+						if (p_item && p_item->GetItem()->IsType2HWeapon()) {
+							melee_distance = melee_distance_max * 0.45f;
+						}
+						else if ((s_item && s_item->GetItem()->IsTypeShield()) || (!p_item && !s_item)) {
+							melee_distance = melee_distance_max * 0.35f;
+						}
+						else {
+							melee_distance = melee_distance_max * 0.40f;
+						}
+
+						break;
+					case NECROMANCER:
+					case WIZARD:
+					case MAGICIAN:
+					case ENCHANTER:
+						if (p_item && p_item->GetItem()->IsType2HWeapon()) {
+							melee_distance = melee_distance_max * 0.95f;
+						}
+						else {
+							melee_distance = melee_distance_max * 0.75f;
+						}
+
+						break;
+					case ROGUE:
+						if (behind_mob && backstab_weapon) {
+							if (p_item->GetItem()->IsType2HWeapon()) { // 'p_item' tested in 'backstab_weapon' check above
+								melee_distance = melee_distance_max * 0.30f;
+							}
+							else {
+								melee_distance = melee_distance_max * 0.25f;
+							}
+
+							break;
+						}
+						// Fall-through
+					default:
+						if (p_item && p_item->GetItem()->IsType2HWeapon()) {
+							melee_distance = melee_distance_max * 0.70f;
+						}
+						else {
+							melee_distance = melee_distance_max * 0.50f;
+						}
+
+						break;
+				}
+			} else {
+				melee_distance = melee_distance_max * float(RuleR(Bots, NormalMeleeRangeDistance));
+			}
 		}
 		float melee_distance_min = melee_distance / 2.0f;
-
+		if (GetMaxMeleeRange()) {
+			//melee_distance_max = melee_distance_max * float(RuleR(Bots, PercentMaxMeleeRangeDistance));
+			melee_distance = melee_distance_max * float(RuleR(Bots, PercentMaxMeleeRangeDistance));
+			//melee_distance_min = melee_distance_max * float(RuleR(Bots, PercentMaxMeleeRangeDistance));
+		}
 		// Calculate caster distances
 		float caster_distance_max = 0.0f;
 		float caster_distance_min = 0.0f;
@@ -3505,7 +3512,12 @@ void Bot::AI_Process()
 			atCombatRange = true;
 		}
 		else if (tar_distance <= melee_distance || (tar_distance <= melee_distance && stopMeleeLevelValid)) {
-			atCombatRange = true;
+			if (GetMaxMeleeRange() && tar_distance >= melee_distance * 0.85) {
+				atCombatRange = true;
+			}
+			else if (!GetMaxMeleeRange()) {
+				atCombatRange = true;
+			}
 		}
 
 //#pragma endregion
@@ -3637,12 +3649,12 @@ void Bot::AI_Process()
 					//			}
 					//		}
 					//	}
-					else if (!RuleB(Bots, MeleeBehindMob) && backstab_weapon && !behind_mob) { // Move the rogue to behind the mob
+					else if (!RuleB(Bots, MeleeBehindMob) && backstab_weapon && !behind_mob && !GetMaxMeleeRange()) { // Move the rogue to behind the mob
 						if (PlotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z)) {
 							//if (PlotPositionOnArcBehindTarget(tar, Goal.x, Goal.y, Goal.z, melee_distance)) {
 
 							float distance_squared = DistanceSquared(Goal, tar->GetPosition());
-							if (/*distance_squared >= melee_distance_min && */distance_squared <= melee_distance_max) {
+							if (/*distance_squared >= melee_distance_min && */distance_squared <= melee_distance) {
 
 								//Teleport(Goal);
 								RunTo(Goal.x, Goal.y, Goal.z);
@@ -3652,12 +3664,12 @@ void Bot::AI_Process()
 							}
 						}
 					}
-					else if (RuleB(Bots, MeleeBehindMob) && GetBehindMob() && !behind_mob && !taunting && GetTarget()->GetHateTop() != this) { // Move melee to behind the mob
+					else if (RuleB(Bots, MeleeBehindMob) && GetBehindMob() && !behind_mob && !taunting && GetTarget()->GetHateTop() != this && !GetMaxMeleeRange()) { // Move melee to behind the mob
 						if (PlotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z)) {
 							//if (PlotPositionOnArcBehindTarget(tar, Goal.x, Goal.y, Goal.z, melee_distance)) {
 
 							float distance_squared = DistanceSquared(Goal, tar->GetPosition());
-							if (/*distance_squared >= melee_distance_min && */distance_squared <= melee_distance_max) {
+							if (/*distance_squared >= melee_distance_min && */distance_squared <= melee_distance) {
 
 								//Teleport(Goal);
 								RunTo(Goal.x, Goal.y, Goal.z);
@@ -3739,8 +3751,10 @@ void Bot::AI_Process()
 				}
 
 				// First, special attack per class (kick, backstab etc..)
-				TEST_COMBATANTS();
-				DoClassAttacks(tar);
+				if (!GetMaxMeleeRange() || !RuleB(Bots, DisableSpecialAbilitiesAtMaxMelee)) {
+					TEST_COMBATANTS();
+					DoClassAttacks(tar);
+				}
 
 				TEST_COMBATANTS();
 				if (attack_timer.Check()) { // Process primary weapon attacks
@@ -3874,7 +3888,13 @@ void Bot::AI_Process()
 					LogAIDetail("[Bot::AI_Process] Pursuing [{}] while engaged", GetTarget()->GetCleanName());
 					Goal = GetTarget()->GetPosition();
 					if (DistanceSquared(m_Position, Goal) <= leash_distance) {
-						RunTo(Goal.x, Goal.y, Goal.z);
+						if (GetMaxMeleeRange() && DistanceSquared(m_Position, Goal) <= melee_distance * 0.85) {
+							Goal = GetOwner()->GetPosition();
+							RunTo(Goal.x, Goal.y, Goal.z);
+						}
+						else {
+							RunTo(Goal.x, Goal.y, Goal.z);
+						}
 					}
 					else {
 

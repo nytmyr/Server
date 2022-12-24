@@ -638,8 +638,6 @@ void bot_command_hold_precombatbuffsongs(Client* c, const Seperator* sep);
 void bot_command_hold_roots(Client* c, const Seperator* sep);
 void bot_command_hold_slows(Client* c, const Seperator* sep);
 void bot_command_hold_snares(Client* c, const Seperator* sep);
-void bot_command_remove_from_raid(Client* c, const Seperator* sep);
-void bot_command_use_epic(Client* c, const Seperator* sep);
 void bot_command_buff_delay(Client* c, const Seperator* sep);
 void bot_command_complete_heal_delay(Client* c, const Seperator* sep);
 void bot_command_cure_delay(Client* c, const Seperator* sep);
@@ -690,6 +688,9 @@ void bot_command_nuke_min_threshold(Client* c, const Seperator* sep);
 void bot_command_root_min_threshold(Client* c, const Seperator* sep);
 void bot_command_slow_min_threshold(Client* c, const Seperator* sep);
 void bot_command_snare_min_threshold(Client* c, const Seperator* sep);
+void bot_command_max_melee_range(Client* c, const Seperator* sep);
+void bot_command_remove_from_raid(Client* c, const Seperator* sep);
+void bot_command_use_epic(Client* c, const Seperator* sep);
 
 // bot subcommands
 void bot_subcommand_bot_appearance(Client *c, const Seperator *sep);

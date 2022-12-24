@@ -670,6 +670,10 @@ RULE_INT(Bots, RaidSingleTargetHealTimer, 3500, "ms between a bot will cast sing
 RULE_INT(Bots, RaidHoTHealTimer, 22000, "ms between a bot will cast HoT heals in raids.")
 RULE_INT(Bots, GroupHealTimer, 15000, "ms between a bot will cast HoT heals in raids.")
 RULE_INT(Bots, BardRecastDifference, 3500, "ms less than a song's duration for a Bard to start recasting to prevent songs dropping.")
+RULE_REAL(Bots, PercentMaxMeleeRangeDistance, 0.85, "Multiplier of the melee range at which a bot will stand in melee combat. 0.85 Recommended, max melee while disabling special attacks/taunt.")
+RULE_REAL(Bots, NormalMeleeRangeDistance, 0.50, "Multiplier of the melee range at which a bot will stand in melee combat. 0.50 Recommended, max melee for all abilities to land.")
+RULE_BOOL(Bots, UseFlatNormalMeleeRange, false, "False Default. If true, bots melee distance will be a flat distance set by Bots:NormalMeleeRangeDistance.")
+RULE_BOOL(Bots, DisableSpecialAbilitiesAtMaxMelee, false, "False Default. If true, when bots are at max melee distance, special abilities including taunt will be disabled.")
 
 RULE_CATEGORY_END()
 #endif
