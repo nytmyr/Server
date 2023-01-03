@@ -471,7 +471,7 @@ bool BotDatabase::LoadBot(const uint32 bot_id, Bot*& loaded_bot)
 		loaded_bot->SetHoldMez(l.hold_mez);
 		loaded_bot->SetHoldNukes(l.hold_nukes);
 		loaded_bot->SetHoldOutOfCombatBuffSongs(l.hold_outofcombatbuffsongs);
-		loaded_bot->SetHoldPets(l.hold_pet_heals);
+		loaded_bot->SetHoldPetHeals(l.hold_pet_heals);
 		loaded_bot->SetHoldPets(l.hold_pets);
 		loaded_bot->SetHoldPreCombatBuffs(l.hold_precombatbuffs);
 		loaded_bot->SetHoldPreCombatBuffSongs(l.hold_precombatbuffsongs);
