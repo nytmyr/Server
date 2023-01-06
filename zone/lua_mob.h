@@ -94,6 +94,8 @@ public:
 	bool FindBuff(int spell_id);
 	uint16 FindBuffBySlot(int slot);
 	uint32 BuffCount();
+	uint32 BuffCount(bool is_beneficial);
+	uint32 BuffCount(bool is_beneficial, bool is_detrimental);
 	bool FindType(int type);
 	bool FindType(int type, bool offensive);
 	bool FindType(int type, bool offensive, int threshold);
@@ -450,7 +452,7 @@ public:
 	bool IsAmnesiad();
 	int32 GetMeleeMitigation();
 	int GetWeaponDamageBonus(Lua_Item weapon, bool offhand);
-	int GetItemStat(uint32 itemid, const char* identifier);
+	const int GetItemStat(uint32 item_id, std::string identifier);
 	Lua_StatBonuses GetItemBonuses();
 	Lua_StatBonuses GetSpellBonuses();
 	Lua_StatBonuses GetAABonuses();

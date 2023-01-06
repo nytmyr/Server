@@ -338,11 +338,6 @@ int Perl_Mob_FindBuffBySlot(Mob* self, int slot) // @categories Spells and Disci
 	return self->FindBuffBySlot(slot);
 }
 
-int Perl_Mob_BuffCount(Mob* self) // @categories Script Utility, Spells and Disciplines
-{
-	return self->BuffCount();
-}
-
 bool Perl_Mob_FindType(Mob* self, uint16_t type) // @categories Script Utility
 {
 	return self->FindType(type);
@@ -1988,9 +1983,9 @@ void Perl_Mob_TempName(Mob* self, const char* name) // @categories Script Utilit
 	self->TempName(name);
 }
 
-int Perl_Mob_GetItemStat(Mob* self, uint32 item_id, const char* stat) // @categories Inventory and Items, Stats and Attributes
+const int Perl_Mob_GetItemStat(Mob* self, uint32 item_id, std::string identifier) // @categories Inventory and Items, Stats and Attributes
 {
-	return self->GetItemStat(item_id, stat);
+	return self->GetItemStat(item_id, identifier);
 }
 
 std::string Perl_Mob_GetGlobal(Mob* self, const char* varname)
@@ -2778,6 +2773,21 @@ bool Perl_Mob_IsAttackAllowed(Mob* self, Mob* target, bool is_spell_attack)
 	return self->IsAttackAllowed(target, is_spell_attack);
 }
 
+uint32 Perl_Mob_BuffCount(Mob* self) // @categories Script Utility, Spells and Disciplines
+{
+	return self->BuffCount();
+}
+
+uint32 Perl_Mob_BuffCount(Mob* self, bool is_beneficial) // @categories Script Utility, Spells and Disciplines
+{
+	return self->BuffCount(is_beneficial);
+}
+
+uint32 Perl_Mob_BuffCount(Mob* self, bool is_beneficial, bool is_detrimental) // @categories Script Utility, Spells and Disciplines
+{
+	return self->BuffCount(is_beneficial, is_detrimental);
+}
+
 #ifdef BOTS
 void Perl_Mob_DamageAreaBots(Mob* self, int64 damage) // @categories Hate and Aggro
 {
@@ -2876,7 +2886,9 @@ void perl_register_mob()
 	package.add("BehindMob", (bool(*)(Mob*, Mob*))&Perl_Mob_BehindMob);
 	package.add("BehindMob", (bool(*)(Mob*, Mob*, float))&Perl_Mob_BehindMob);
 	package.add("BehindMob", (bool(*)(Mob*, Mob*, float, float))&Perl_Mob_BehindMob);
-	package.add("BuffCount", &Perl_Mob_BuffCount);
+	package.add("BuffCount", (uint32(*)(Mob*))&Perl_Mob_BuffCount);
+	package.add("BuffCount", (uint32(*)(Mob*, bool))&Perl_Mob_BuffCount);
+	package.add("BuffCount", (uint32(*)(Mob*, bool, bool))&Perl_Mob_BuffCount);
 	package.add("BuffFadeAll", &Perl_Mob_BuffFadeAll);
 	package.add("BuffFadeByEffect", (void(*)(Mob*, int))&Perl_Mob_BuffFadeByEffect);
 	package.add("BuffFadeByEffect", (void(*)(Mob*, int, int))&Perl_Mob_BuffFadeByEffect);
