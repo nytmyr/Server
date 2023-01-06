@@ -1382,14 +1382,14 @@ bool ZoneDatabase::SaveCharacterData(
 		"{},"  // e_expended_aa_spent
 		"{},"  // e_last_invsnapshot
 		"'{}'" // mailkey					  mail_key
-		"%u,"  // fast_heal_threshold
-		"%u,"  // heal_threshold
-		"%u,"  // complete_heal_threshold
-		"%u,"  // hot_heal_threshold
-		"%u,"  // fast_heal_delay
-		"%u,"  // heal_delay
-		"%u,"  // complete_heal_delay
-		"%u"  // hot_heal_delay
+		"{},"  // fast_heal_threshold
+		"{},"  // heal_threshold
+		"{},"  // complete_heal_threshold
+		"{},"  // hot_heal_threshold
+		"{},"  // fast_heal_delay
+		"{},"  // heal_delay
+		"{},"  // complete_heal_delay
+		"{}"  // hot_heal_delay
 		")",
 		c->CharacterID(),				  // " id,                        "
 		c->AccountID(),					  // " account_id,                "
