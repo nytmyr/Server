@@ -4616,7 +4616,9 @@ luabind::scope lua_register_events() {
 			luabind::value("payload", static_cast<int>(EVENT_PAYLOAD)),
 			luabind::value("summon_pc", static_cast<int>(EVENT_SUMMON_PC)),
 			luabind::value("level_down", static_cast<int>(EVENT_LEVEL_DOWN)),
-			luabind::value("gm_command", static_cast<int>(EVENT_GM_COMMAND))
+			luabind::value("gm_command", static_cast<int>(EVENT_GM_COMMAND)),
+			luabind::value("despawn", static_cast<int>(EVENT_DESPAWN)),
+			luabind::value("despawn_zone", static_cast<int>(EVENT_DESPAWN_ZONE))
 		)];
 }
 

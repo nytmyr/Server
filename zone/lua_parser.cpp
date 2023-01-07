@@ -154,10 +154,8 @@ const char *LuaEvents[_LargestEventID] = {
 	"event_payload",
 	"event_level_down",
 	"event_gm_command",
-#ifdef BOTS
-	"event_spell_effect_bot",
-	"event_spell_effect_buff_tic_bot"
-#endif
+	"event_despawn",
+	"event_despawn_zone",
 };
 
 extern Zone *zone;
