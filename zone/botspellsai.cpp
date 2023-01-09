@@ -1454,13 +1454,27 @@ bool Bot::AIDoSpellCast(uint8 i, Mob* tar, int32 mana_cost, uint32* oDontDoAgain
 	} else
 		dist2 = DistanceSquared(m_Position, tar->GetPosition());
 
-	if (((((spells[AIBot_spells[i].spellid].target_type==ST_GroupTeleport && AIBot_spells[i].type==2)
-				|| spells[AIBot_spells[i].spellid].target_type==ST_AECaster
-				|| spells[AIBot_spells[i].spellid].target_type==ST_Group
-				|| spells[AIBot_spells[i].spellid].target_type==ST_AEBard)
-				&& dist2 <= spells[AIBot_spells[i].spellid].aoe_range*spells[AIBot_spells[i].spellid].aoe_range)
-				|| dist2 <= GetActSpellRange(AIBot_spells[i].spellid, spells[AIBot_spells[i].spellid].range)*GetActSpellRange(AIBot_spells[i].spellid, spells[AIBot_spells[i].spellid].range)) && (mana_cost <= GetMana() || GetMana() == GetMaxMana()))
-	{
+	if (
+		(
+			(
+				(
+					(spells[AIBot_spells[i].spellid].target_type==ST_GroupTeleport && AIBot_spells[i].type == SpellType_Heal) ||
+					spells[AIBot_spells[i].spellid].target_type ==ST_AECaster ||
+					spells[AIBot_spells[i].spellid].target_type ==ST_Group ||
+					spells[AIBot_spells[i].spellid].target_type ==ST_AEBard ||
+					(
+						tar == this && spells[AIBot_spells[i].spellid].target_type != ST_TargetsTarget
+					)
+				) &&
+				dist2 <= spells[AIBot_spells[i].spellid].aoe_range*spells[AIBot_spells[i].spellid].aoe_range
+			) ||
+			dist2 <= GetActSpellRange(AIBot_spells[i].spellid, spells[AIBot_spells[i].spellid].range)*GetActSpellRange(AIBot_spells[i].spellid, spells[AIBot_spells[i].spellid].range)
+		) &&
+		(
+			mana_cost <= GetMana() ||
+			GetMana() == GetMaxMana()
+		)
+	) {
 		casting_spell_AIindex = i;
 		LogAI("[Bot::AIDoSpellCast] spellid [{}] tar [{}] mana [{}] Name [{}]", AIBot_spells[i].spellid, tar->GetName(), mana_cost, spells[AIBot_spells[i].spellid].name);
 		result = Mob::CastSpell(AIBot_spells[i].spellid, tar->GetID(), EQ::spells::CastingSlot::Gem2, spells[AIBot_spells[i].spellid].cast_time, AIBot_spells[i].manacost == -2 ? 0 : mana_cost, oDontDoAgainBefore, -1, -1, 0, &(AIBot_spells[i].resist_adjust));
@@ -2043,7 +2057,7 @@ std::list<BotSpell> Bot::GetBotSpellsForSpellEffect(Bot* botCaster, int spellEff
 				continue;
 			}
 
-			if (IsEffectInSpell(botSpellList[i].spellid, spellEffect)) {
+			if (IsEffectInSpell(botSpellList[i].spellid, spellEffect) || GetTriggerSpellID(botSpellList[i].spellid, spellEffect)) {
 				BotSpell botSpell;
 				botSpell.SpellId = botSpellList[i].spellid;
 				botSpell.SpellIndex = i;
@@ -2075,7 +2089,7 @@ std::list<BotSpell> Bot::GetBotSpellsForSpellEffectAndTargetType(Bot* botCaster,
 				continue;
 			}
 
-			if (IsEffectInSpell(botSpellList[i].spellid, spellEffect)) {
+			if (IsEffectInSpell(botSpellList[i].spellid, spellEffect) || GetTriggerSpellID(botSpellList[i].spellid, spellEffect)) {
 				if (spells[botSpellList[i].spellid].target_type == targetType) {
 					BotSpell botSpell;
 					botSpell.SpellId = botSpellList[i].spellid;

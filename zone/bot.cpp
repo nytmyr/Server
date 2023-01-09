@@ -9278,9 +9278,9 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 		}
 	}
 
-	if( iSpellTypes == SpellType_Buff) {
+	if (iSpellTypes == SpellType_Buff) {
 		uint8 chanceToCast = caster->IsEngaged() ? caster->GetChanceToCastBySpellType(SpellType_Buff) : 100;
-		if(botCasterClass == BARD) {
+		if (botCasterClass == BARD) {
 			if(caster->AICastSpell(caster, chanceToCast, SpellType_Buff))
 				return true;
 			else
@@ -9438,6 +9438,30 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 		}
 	}
 
+	if (iSpellTypes == SpellType_InCombatBuff) {
+		if (botCasterClass == BARD) {
+			if (caster->AICastSpell(caster, iChance, SpellType_InCombatBuff)) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+
+		if (caster->HasGroup()) {
+			Group* g = caster->GetGroup();
+			if (g) {
+				for (int i = 0; i < MAX_GROUP_MEMBERS; i++) {
+					if (g->members[i]) {
+						if (caster->AICastSpell(g->members[i], iChance, SpellType_InCombatBuff) || caster->AICastSpell(g->members[i]->GetPet(), iChance, SpellType_InCombatBuff)) {
+							return true;
+						}
+					}
+				}
+			}
+		}
+	}
+
 	return false;
 }
 
@@ -9519,14 +9543,14 @@ void EntityList::AddBot(Bot *new_bot, bool send_spawn_packet, bool dont_queue) {
 				AddToSpawnQueue(new_bot->GetID(), &ns);
 				safe_delete(ns);
 			}
-
-			parse->EventBot(EVENT_SPAWN, new_bot, nullptr, "", 0);
-
-			new_bot->DispatchZoneControllerEvent(EVENT_SPAWN_ZONE, new_bot, "", 0, nullptr);
 		}
 
 		bot_list.push_back(new_bot);
 		mob_list.insert(std::pair<uint16, Mob*>(new_bot->GetID(), new_bot));
+
+		parse->EventBot(EVENT_SPAWN, new_bot, nullptr, "", 0);
+		
+		new_bot->DispatchZoneControllerEvent(EVENT_SPAWN_ZONE, new_bot, "", 0, nullptr);
 	}
 }
 
