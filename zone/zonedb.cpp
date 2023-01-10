@@ -1381,7 +1381,7 @@ bool ZoneDatabase::SaveCharacterData(
 		"{},"  // e_percent_to_aa
 		"{},"  // e_expended_aa_spent
 		"{},"  // e_last_invsnapshot
-		"'{}'" // mailkey					  mail_key
+		"'{}'," // mailkey					  mail_key
 		"{},"  // fast_heal_threshold
 		"{},"  // heal_threshold
 		"{},"  // complete_heal_threshold
