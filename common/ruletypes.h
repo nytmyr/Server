@@ -680,6 +680,11 @@ RULE_REAL(Bots, NormalMeleeRangeDistance, 0.50, "Multiplier of the melee range a
 RULE_BOOL(Bots, UseFlatNormalMeleeRange, false, "False Default. If true, bots melee distance will be a flat distance set by Bots:NormalMeleeRangeDistance.")
 RULE_BOOL(Bots, DisableSpecialAbilitiesAtMaxMelee, false, "False Default. If true, when bots are at max melee distance, special abilities including taunt will be disabled.")
 
+/*
+* CUSTOM BOT RULES
+*/
+RULE_BOOL(Bots, PreventBotCampOnFD, false, "False Default. If true, players will not be able to camp bots while feign death.")
+
 RULE_CATEGORY_END()
 #endif
 

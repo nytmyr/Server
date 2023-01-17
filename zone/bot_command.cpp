@@ -9561,6 +9561,11 @@ void bot_subcommand_bot_camp(Client *c, const Seperator *sep)
 	}
 	const int ab_mask = ActionableBots::ABM_NoFilter;
 
+	if (RuleB(Bots, PreventBotCampOnFD) && c->GetFeigned()) {
+		c->Message(Chat::White, "You cannot camp bots while feigned.");
+		return;
+	}
+
 	auto* owner_group = c->GetGroup();
 	if (owner_group) {
 		std::list<Client*> member_list;
