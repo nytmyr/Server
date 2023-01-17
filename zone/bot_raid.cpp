@@ -1764,11 +1764,11 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						if (botSpell.SpellId != 0 && (botClass != CLERIC))
 							spellType = "Regular Heal";
 					}
-					if (botSpell.SpellId == 0) {
-						botSpell = GetBestBotSpellForRegularSingleTargetHeal(this);
-						if (botSpell.SpellId != 0)
-							spellType = "Regular Heal";
-					}
+					//if (botSpell.SpellId == 0) {
+						//	botSpell = GetBestBotSpellForRegularSingleTargetHeal(this);
+						//	if (botSpell.SpellId != 0)
+						//		spellType = "Regular Heal";
+						//}
 				}
 				if (botSpell.SpellId == 0 && hpr <= hothealThreshold && hothealTime <= currentTime) {
 					if (botSpell.SpellId == 0 && botClass == BARD)
