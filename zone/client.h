@@ -560,9 +560,7 @@ public:
 
 	inline virtual int32 GetDelayDeath() const { return aabonuses.DelayDeath + spellbonuses.DelayDeath + itembonuses.DelayDeath + 11; }
 
-	int32 GetActSpellCost(uint16 spell_id, int32);
 	virtual bool CheckFizzle(uint16 spell_id);
-	virtual bool CheckSpellLevelRestriction(uint16 spell_id);
 	virtual int GetCurrentBuffSlots() const;
 	virtual int GetCurrentSongSlots() const;
 	virtual int GetCurrentDiscSlots() const { return 1; }
@@ -757,6 +755,8 @@ public:
 	uint64 GetAllMoney();
 	uint32 GetMoney(uint8 type, uint8 subtype);
 	int GetAccountAge();
+
+	void SendPath(Mob* target);
 
 	bool IsDiscovered(uint32 itemid);
 	void DiscoverItem(uint32 itemid);
@@ -1353,6 +1353,8 @@ public:
 	void ClearPendingAdventureDoorClick() { safe_delete(adventure_door_timer); }
 	void ClearPendingAdventureData();
 
+	bool CanEnterZone(std::string zone_short_name = "", int16 instance_version = -1);
+
 	int GetAggroCount();
 	void IncrementAggroCount(bool raid_target = false);
 	void DecrementAggroCount();
@@ -1881,7 +1883,6 @@ private:
 	void NPCSpawn(const Seperator* sep);
 	uint32 GetEXPForLevel(uint16 level);
 
-	bool CanBeInZone();
 	void SendLogoutPackets();
 	void SendZoneInPackets();
 	bool AddPacket(const EQApplicationPacket *, bool);
@@ -2088,12 +2089,14 @@ public:
 	bool GetBotPrecombat() { return m_bot_precombat; }
 	void SetBotPrecombat(bool flag = true) { m_bot_precombat = flag; }
 
-	int GetBotRequiredLevel(uint8 class_id = 0);
-	uint32 GetBotCreationLimit(uint8 class_id = 0);
-	int GetBotSpawnLimit(uint8 class_id = 0, uint32 spawned_bot_count = 0);
-	void SetBotCreationLimit(uint32 new_creation_limit, uint8 class_id = 0);
-	void SetBotRequiredLevel(int new_required_level, uint8 class_id = 0);
-	void SetBotSpawnLimit(int new_spawn_limit, uint8 class_id = 0);
+	int GetBotRequiredLevel(uint8 class_id = NO_CLASS);
+	uint32 GetBotCreationLimit(uint8 class_id = NO_CLASS);
+	int GetBotSpawnLimit(uint8 class_id = NO_CLASS);
+	void SetBotCreationLimit(uint32 new_creation_limit, uint8 class_id = NO_CLASS);
+	void SetBotRequiredLevel(int new_required_level, uint8 class_id = NO_CLASS);
+	void SetBotSpawnLimit(int new_spawn_limit, uint8 class_id = NO_CLASS);
+
+	void CampAllBots(uint8 class_id = NO_CLASS);
 
 private:
 	bool bot_owner_options[_booCount];

@@ -1580,6 +1580,10 @@ void lua_log_combat(std::string message) {
 	Log(Logs::General, Logs::Combat, message.c_str());
 }
 
+void lua_log_spells(std::string message) {
+	Log(Logs::General, Logs::Spells, message.c_str());
+}
+
 void lua_update_zone_header(std::string type, std::string value) {
 	quest_manager.UpdateZoneHeader(type, value);
 }
@@ -4142,6 +4146,7 @@ luabind::scope lua_register_general() {
 		luabind::def("debug", (void(*)(std::string))&lua_debug),
 		luabind::def("debug", (void(*)(std::string, int))&lua_debug),
 		luabind::def("log_combat", (void(*)(std::string))&lua_log_combat),
+		luabind::def("log_spells", (void(*)(std::string))&lua_log_spells),
 		luabind::def("seconds_to_time", &lua_seconds_to_time),
 		luabind::def("time_to_seconds", &lua_time_to_seconds),
 		luabind::def("get_hex_color_code", &lua_get_hex_color_code),
@@ -4619,7 +4624,9 @@ luabind::scope lua_register_events() {
 			luabind::value("gm_command", static_cast<int>(EVENT_GM_COMMAND)),
 			luabind::value("despawn", static_cast<int>(EVENT_DESPAWN)),
 			luabind::value("despawn_zone", static_cast<int>(EVENT_DESPAWN_ZONE)),
-			luabind::value("bot_create", static_cast<int>(EVENT_BOT_CREATE))
+			luabind::value("bot_create", static_cast<int>(EVENT_BOT_CREATE)),
+			luabind::value("augment_insert_client", static_cast<int>(EVENT_AUGMENT_INSERT_CLIENT)),
+			luabind::value("augment_remove_client", static_cast<int>(EVENT_AUGMENT_REMOVE_CLIENT))
 		)];
 }
 

@@ -935,9 +935,9 @@ void Client::CompleteConnect()
 	heroforge_wearchange_timer.Start(250);
 
 	// enforce some rules..
-	if (!CanBeInZone()) {
+	if (!CanEnterZone()) {
 		LogInfo("Kicking character [{}] from zone, not allowed here (missing requirements)", GetCleanName());
-		GoToSafeCoords(ZoneID("arena"), 0);
+		GoToBind();
 		return;
 	}
 }
@@ -3130,6 +3130,19 @@ void Client::Handle_OP_AugmentItem(const EQApplicationPacket *app)
 							args.assign(1, tobe_auged);
 							args.push_back(false);
 							parse->EventItem(EVENT_AUGMENT_REMOVE, this, old_aug, nullptr, "", in_augment->augment_index, &args);
+
+							const auto export_string = fmt::format(
+								"{} {} {} {} {}",
+								tobe_auged->GetID(),
+								item_slot,
+								aug->GetID(),
+								in_augment->augment_index,
+								false
+							);
+
+							args.push_back(aug);
+
+							parse->EventPlayer(EVENT_AUGMENT_REMOVE_CLIENT, this, export_string, 0, &args);
 						}
 
 						tobe_auged->PutAugment(in_augment->augment_index, *new_aug);
@@ -3143,6 +3156,18 @@ void Client::Handle_OP_AugmentItem(const EQApplicationPacket *app)
 
 							args.assign(1, tobe_auged);
 							parse->EventItem(EVENT_AUGMENT_INSERT, this, aug, nullptr, "", in_augment->augment_index, &args);
+
+							args.push_back(aug);
+
+							const auto export_string = fmt::format(
+								"{} {} {} {}",
+								tobe_auged->GetID(),
+								item_slot,
+								aug->GetID(),
+								in_augment->augment_index
+							);
+
+							parse->EventPlayer(EVENT_AUGMENT_INSERT_CLIENT, this, export_string, 0, &args);
 						} else {
 							Message(
 								Chat::Red,
@@ -3196,9 +3221,23 @@ void Client::Handle_OP_AugmentItem(const EQApplicationPacket *app)
 					std::vector<std::any> args;
 					args.push_back(aug);
 					parse->EventItem(EVENT_UNAUGMENT_ITEM, this, tobe_auged, nullptr, "", in_augment->augment_index, &args);
+
 					args.assign(1, tobe_auged);
 					args.push_back(false);
 					parse->EventItem(EVENT_AUGMENT_REMOVE, this, aug, nullptr, "", in_augment->augment_index, &args);
+
+					args.push_back(aug);
+
+					const auto export_string = fmt::format(
+						"{} {} {} {} {}",
+						tobe_auged->GetID(),
+						item_slot,
+						aug->GetID(),
+						in_augment->augment_index,
+						false
+					);
+
+					parse->EventPlayer(EVENT_AUGMENT_REMOVE_CLIENT, this, export_string, 0, &args);
 				} else {
 					Message(Chat::Red, "Error: Could not find augmentation to remove at index %i. Aborting.", in_augment->augment_index);
 					return;
@@ -3246,9 +3285,23 @@ void Client::Handle_OP_AugmentItem(const EQApplicationPacket *app)
 					std::vector<std::any> args;
 					args.push_back(aug);
 					parse->EventItem(EVENT_UNAUGMENT_ITEM, this, tobe_auged, nullptr, "", in_augment->augment_index, &args);
+
 					args.assign(1, tobe_auged);
 					args.push_back(true);
 					parse->EventItem(EVENT_AUGMENT_REMOVE, this, aug, nullptr, "", in_augment->augment_index, &args);
+
+					args.push_back(aug);
+
+					const auto export_string = fmt::format(
+						"{} {} {} {} {}",
+						tobe_auged->GetID(),
+						item_slot,
+						aug->GetID(),
+						in_augment->augment_index,
+						true
+					);
+
+					parse->EventPlayer(EVENT_AUGMENT_REMOVE_CLIENT, this, export_string, 0, &args);
 				} else {
 					Message(
 						Chat::Red,
@@ -6077,107 +6130,11 @@ void Client::Handle_OP_FindPersonRequest(const EQApplicationPacket *app)
 	if (app->size != sizeof(FindPersonRequest_Struct))
 		printf("Error in FindPersonRequest_Struct. Expected size of: %zu, but got: %i\n", sizeof(FindPersonRequest_Struct), app->size);
 	else {
-		FindPersonRequest_Struct* t = (FindPersonRequest_Struct*)app->pBuffer;
+		auto* t = (FindPersonRequest_Struct*)app->pBuffer;
 
-		std::vector<FindPerson_Point> points;
-		Mob* target = entity_list.GetMob(t->npc_id);
+		auto* m = entity_list.GetMob(t->npc_id);
 
-		if (target == nullptr) {
-			//empty length packet == not found.
-			EQApplicationPacket outapp(OP_FindPersonReply, 0);
-			QueuePacket(&outapp);
-			return;
-		}
-
-		if (!RuleB(Pathing, Find) && RuleB(Bazaar, EnableWarpToTrader) && target->IsClient() && (target->CastToClient()->Trader ||
-			target->CastToClient()->Buyer)) {
-			Message(Chat::Yellow, "Moving you to Trader %s", target->GetName());
-			MovePC(zone->GetZoneID(), zone->GetInstanceID(), target->GetX(), target->GetY(), target->GetZ(), 0.0f);
-		}
-
-		if (!RuleB(Pathing, Find) || !zone->pathing)
-		{
-			//fill in the path array...
-			//
-			points.clear();
-			FindPerson_Point a;
-			FindPerson_Point b;
-
-			a.x = GetX();
-			a.y = GetY();
-			a.z = GetZ();
-			b.x = target->GetX();
-			b.y = target->GetY();
-			b.z = target->GetZ();
-
-			points.push_back(a);
-			points.push_back(b);
-		}
-		else
-		{
-			glm::vec3 Start(GetX(), GetY(), GetZ() + (GetSize() < 6.0 ? 6 : GetSize()) * HEAD_POSITION);
-			glm::vec3 End(target->GetX(), target->GetY(), target->GetZ() + (target->GetSize() < 6.0 ? 6 : target->GetSize()) * HEAD_POSITION);
-
-			bool partial = false;
-			bool stuck = false;
-			auto pathlist = zone->pathing->FindRoute(Start, End, partial, stuck);
-
-			if (pathlist.empty() || partial)
-			{
-				EQApplicationPacket outapp(OP_FindPersonReply, 0);
-				QueuePacket(&outapp);
-				return;
-			}
-
-			// Live appears to send the points in this order:
-			// Final destination.
-			// Current Position.
-			// rest of the points.
-			FindPerson_Point p;
-
-			int PointNumber = 0;
-
-			bool LeadsToTeleporter = false;
-
-			auto v = pathlist.back();
-
-			p.x = v.pos.x;
-			p.y = v.pos.y;
-			p.z = v.pos.z;
-			points.push_back(p);
-
-			p.x = GetX();
-			p.y = GetY();
-			p.z = GetZ();
-			points.push_back(p);
-
-			for (auto Iterator = pathlist.begin(); Iterator != pathlist.end(); ++Iterator)
-			{
-				if ((*Iterator).teleport) // Teleporter
-				{
-					LeadsToTeleporter = true;
-					break;
-				}
-
-				glm::vec3 v = (*Iterator).pos;
-				p.x = v.x;
-				p.y = v.y;
-				p.z = v.z;
-				points.push_back(p);
-				++PointNumber;
-			}
-
-			if (!LeadsToTeleporter)
-			{
-				p.x = target->GetX();
-				p.y = target->GetY();
-				p.z = target->GetZ();
-
-				points.push_back(p);
-			}
-		}
-
-		SendPathPacket(points);
+		SendPath(m);
 	}
 }
 
@@ -9073,8 +9030,15 @@ void Client::Handle_OP_ItemVerifyRequest(const EQApplicationPacket *app)
 					return;
 				}
 			}
-			else if ((item->Click.Type == EQ::item::ItemEffectClick) || (item->Click.Type == EQ::item::ItemEffectExpendable) || (item->Click.Type == EQ::item::ItemEffectEquipClick) || (item->Click.Type == EQ::item::ItemEffectClick2))
-			{
+			else if (
+				item->Click.Effect > 0 &&
+				(
+					(item->Click.Type == EQ::item::ItemEffectClick) ||
+					(item->Click.Type == EQ::item::ItemEffectExpendable) ||
+					(item->Click.Type == EQ::item::ItemEffectEquipClick) ||
+					(item->Click.Type == EQ::item::ItemEffectClick2)
+				)
+			) {
 				if (inst->GetCharges() == 0)
 				{
 					//Message(Chat::White, "This item is out of charges.");
@@ -9610,7 +9574,7 @@ void Client::Handle_OP_LFPCommand(const EQApplicationPacket *app)
 
 	for (unsigned int i = 0; i<MAX_GROUP_MEMBERS; i++) {
 		LFPMembers[i].Name[0] = '\0';
-		LFPMembers[i].Class = 0;
+		LFPMembers[i].Class = NO_CLASS;
 		LFPMembers[i].Level = 0;
 		LFPMembers[i].Zone = 0;
 		LFPMembers[i].GuildID = 0xFFFF;

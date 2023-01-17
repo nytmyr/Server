@@ -170,7 +170,10 @@ const char *QuestEventSubroutines[_LargestEventID] = {
 	"EVENT_DESPAWN",
 	"EVENT_DESPAWN_ZONE",
 	"EVENT_BOT_CREATE",
-	"EVENT_SPELL_EFFECT_BOT", // Add new events before these or Lua crashes
+	"EVENT_AUGMENT_INSERT_CLIENT",
+	"EVENT_AUGMENT_REMOVE_CLIENT",
+	// Add new events before these or Lua crashes
+	"EVENT_SPELL_EFFECT_BOT",
 	"EVENT_SPELL_EFFECT_BUFF_TIC_BOT"
 };
 
@@ -1945,6 +1948,19 @@ void PerlembParser::ExportEventVariables(
 			break;
 		}
 
+		case EVENT_AUGMENT_INSERT_CLIENT:
+		case EVENT_AUGMENT_REMOVE_CLIENT: {
+			Seperator sep(data);
+			ExportVar(package_name.c_str(), "item_id", sep.arg[0]);
+			ExportVar(package_name.c_str(), "item_slot", sep.arg[1]);
+			ExportVar(package_name.c_str(), "augment_id", sep.arg[2]);
+			ExportVar(package_name.c_str(), "augment_slot", sep.arg[3]);
+			if (sep.argnum >= 4) {
+				ExportVar(package_name.c_str(), "destroyed", sep.arg[4]);
+			}
+			break;
+		}
+
 		case EVENT_SKILL_UP: {
 			Seperator sep(data);
 			ExportVar(package_name.c_str(), "skill_id", sep.arg[0]);
@@ -2039,6 +2055,21 @@ void PerlembParser::ExportEventVariables(
 			break;
 		}
 
+		case EVENT_DESPAWN: {
+			ExportVar(package_name.c_str(), "despawned_entity_id", npcmob->GetID());
+
+			if (npcmob->IsNPC()) {
+				ExportVar(package_name.c_str(), "despawned_bot_id", 0);
+				ExportVar(package_name.c_str(), "despawned_npc_id", npcmob->GetNPCTypeID());
+#ifdef BOTS
+			} else if (npcmob->IsBot()) {
+				ExportVar(package_name.c_str(), "despawned_bot_id", npcmob->CastToBot()->GetBotID());
+				ExportVar(package_name.c_str(), "despawned_npc_id", 0);
+#endif
+			}
+
+			break;
+		}
 		case EVENT_DESPAWN_ZONE: {
 			ExportVar(package_name.c_str(), "despawned_entity_id", mob->GetID());
 

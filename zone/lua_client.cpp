@@ -2926,6 +2926,22 @@ uint64 Lua_Client::CalcEXP(uint8 consider_level, bool ignore_modifiers) {
 	return self->CalcEXP(consider_level, ignore_modifiers);
 }
 
+bool Lua_Client::CanEnterZone(std::string zone_short_name) {
+	Lua_Safe_Call_Bool();
+	return self->CanEnterZone(zone_short_name);
+}
+
+bool Lua_Client::CanEnterZone(std::string zone_short_name, int16 instance_version) {
+	Lua_Safe_Call_Bool();
+	return self->CanEnterZone(zone_short_name, instance_version);
+}
+
+void Lua_Client::SendPath(Lua_Mob target)
+{
+	Lua_Safe_Call_Void();
+	self->SendPath(target);
+}
+
 #ifdef BOTS
 
 int Lua_Client::GetBotRequiredLevel()
@@ -3000,6 +3016,18 @@ void Lua_Client::SetBotSpawnLimit(int new_spawn_limit, uint8 class_id)
 	self->SetBotSpawnLimit(new_spawn_limit, class_id);
 }
 
+void Lua_Client::CampAllBots()
+{
+	Lua_Safe_Call_Void();
+	self->CampAllBots();
+}
+
+void Lua_Client::CampAllBots(uint8 class_id)
+{
+	Lua_Safe_Call_Void();
+	self->CampAllBots(class_id);
+}
+
 #endif
 
 luabind::scope lua_register_client() {
@@ -3060,6 +3088,12 @@ luabind::scope lua_register_client() {
 	.def("CalcEXP", (uint64(Lua_Client::*)(uint8))&Lua_Client::CalcEXP)
 	.def("CalcEXP", (uint64(Lua_Client::*)(uint8,bool))&Lua_Client::CalcEXP)
 	.def("CalcPriceMod", (float(Lua_Client::*)(Lua_Mob,bool))&Lua_Client::CalcPriceMod)
+#ifdef BOTS
+	.def("CampAllBots", (void(Lua_Client::*)(void))&Lua_Client::CampAllBots)
+	.def("CampAllBots", (void(Lua_Client::*)(uint8))&Lua_Client::CampAllBots)
+#endif
+	.def("CanEnterZone", (bool(Lua_Client::*)(std::string))&Lua_Client::CanEnterZone)
+	.def("CanEnterZone", (bool(Lua_Client::*)(std::string,int16))&Lua_Client::CanEnterZone)
 	.def("CanHaveSkill", (bool(Lua_Client::*)(int))&Lua_Client::CanHaveSkill)
 	.def("CashReward", &Lua_Client::CashReward)
 	.def("ChangeLastName", (void(Lua_Client::*)(std::string))&Lua_Client::ChangeLastName)
@@ -3385,6 +3419,7 @@ luabind::scope lua_register_client() {
 	.def("SendMarqueeMessage", (void(Lua_Client::*)(uint32, std::string, uint32))&Lua_Client::SendMarqueeMessage)
 	.def("SendMarqueeMessage", (void(Lua_Client::*)(uint32, uint32, uint32, uint32, uint32, std::string))&Lua_Client::SendMarqueeMessage)
 	.def("SendOPTranslocateConfirm", (void(Lua_Client::*)(Lua_Mob,int))&Lua_Client::SendOPTranslocateConfirm)
+	.def("SendPath", (void(Lua_Client::*)(Lua_Mob))&Lua_Client::SendPath)
 	.def("SendPEQZoneFlagInfo", (void(Lua_Client::*)(Lua_Client))&Lua_Client::SendPEQZoneFlagInfo)
 	.def("SendSound", (void(Lua_Client::*)(void))&Lua_Client::SendSound)
 	.def("SendToGuildHall", (void(Lua_Client::*)(void))&Lua_Client::SendToGuildHall)

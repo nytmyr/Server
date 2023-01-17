@@ -203,6 +203,16 @@ void handle_npc_payload(
 	std::vector<std::any> *extra_pointers
 );
 
+void handle_npc_despawn_zone(
+	QuestInterface *parse,
+	lua_State* L,
+	NPC* npc,
+	Mob *init,
+	std::string data,
+	uint32 extra_data,
+	std::vector<std::any> *extra_pointers
+);
+
 // Player
 void handle_player_say(
 	QuestInterface *parse,
@@ -628,6 +638,24 @@ void handle_player_gm_command(
 );
 
 void handle_player_bot_create(
+	QuestInterface *parse,
+	lua_State* L,
+	Client* client,
+	std::string data,
+	uint32 extra_data,
+	std::vector<std::any> *extra_pointers
+);
+
+void handle_player_augment_insert(
+	QuestInterface *parse,
+	lua_State* L,
+	Client* client,
+	std::string data,
+	uint32 extra_data,
+	std::vector<std::any> *extra_pointers
+);
+
+void handle_player_augment_remove(
 	QuestInterface *parse,
 	lua_State* L,
 	Client* client,

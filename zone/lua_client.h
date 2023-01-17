@@ -459,6 +459,9 @@ public:
 	void SetEXPEnabled(bool is_exp_enabled);
 	uint64 CalcEXP(uint8 consider_level);
 	uint64 CalcEXP(uint8 consider_level, bool ignore_modifiers);
+	bool CanEnterZone(std::string zone_short_name);
+	bool CanEnterZone(std::string zone_short_name, int16 instance_version);
+	void SendPath(Lua_Mob target);
 
 	void ApplySpell(int spell_id);
 	void ApplySpell(int spell_id, int duration);
@@ -535,6 +538,8 @@ public:
 	void SetBotCreationLimit(uint32 new_creation_limit, uint8 class_id);
 	void SetBotSpawnLimit(int new_spawn_limit);
 	void SetBotSpawnLimit(int new_spawn_limit, uint8 class_id);
+	void CampAllBots();
+	void CampAllBots(uint8 class_id);
 
 #endif
 

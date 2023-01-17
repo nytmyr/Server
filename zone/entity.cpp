@@ -697,7 +697,12 @@ void EntityList::AddNPC(NPC *npc, bool send_spawn_packet, bool dont_queue)
 			owner->SetPetID(npc->GetID());
 		}
 	}
-
+	
+	npc_list.insert(std::pair<uint16, NPC *>(npc->GetID(), npc));
+	mob_list.insert(std::pair<uint16, Mob *>(npc->GetID(), npc));
+	
+	parse->EventNPC(EVENT_SPAWN, npc, nullptr, "", 0);
+	
 	const auto emote_id = npc->GetEmoteID();
 	if (emote_id != 0) {
 		npc->DoNPCEmote(EQ::constants::EmoteEventTypes::OnSpawn, emote_id);
@@ -730,11 +735,6 @@ void EntityList::AddNPC(NPC *npc, bool send_spawn_packet, bool dont_queue)
 			UpdateFindableNPCState(npc, false);
 		}
 	}
-
-	npc_list.insert(std::pair<uint16, NPC *>(npc->GetID(), npc));
-	mob_list.insert(std::pair<uint16, Mob *>(npc->GetID(), npc));
-
-	parse->EventNPC(EVENT_SPAWN, npc, nullptr, "", 0);
 
 	entity_list.ScanCloseMobs(npc->close_mobs, npc, true);
 
@@ -5071,9 +5071,9 @@ void EntityList::ZoneWho(Client *c, Who_All_Struct *Who)
 				FormatMSGID = 5024; // 5024 %T1[ANONYMOUS] %2 %3
 			else if (ClientEntry->GetAnon() == 2)
 				FormatMSGID = 5023; // 5023 %T1[ANONYMOUS] %2 %3 %4
-			uint32 PlayerClass = 0;
+			uint32 PlayerClass = NO_CLASS;
 			uint32 PlayerLevel = 0;
-			uint32 PlayerRace = 0;
+			uint32 PlayerRace = RACE_DOUG_0;
 			uint32 ZoneMSGID = 0xFFFFFFFF;
 
 			if (ClientEntry->GetAnon()==0) {
@@ -5285,6 +5285,18 @@ std::vector<Bot *> EntityList::GetBotListByClientName(std::string client_name, u
 void EntityList::SignalAllBotsByOwnerCharacterID(uint32 character_id, int signal_id)
 {
 	auto client_bot_list = GetBotListByCharacterID(character_id);
+	if (client_bot_list.empty()) {
+		return;
+	}
+
+	for (const auto& b : client_bot_list) {
+		b->Signal(signal_id);
+	}
+}
+
+void EntityList::SignalAllBotsByOwnerName(std::string owner_name, int signal_id)
+{
+	auto client_bot_list = GetBotListByClientName(owner_name);
 	if (client_bot_list.empty()) {
 		return;
 	}

@@ -2804,6 +2804,21 @@ void Perl_Client_SetEXPEnabled(Client* self, bool is_exp_enabled)
 	self->SetEXPEnabled(is_exp_enabled);
 }
 
+bool Perl_Client_CanEnterZone(Client* self, std::string zone_short_name)
+{
+	return self->CanEnterZone(zone_short_name);
+}
+
+bool Perl_Client_CanEnterZone(Client* self, std::string zone_short_name, int16 instance_version)
+{
+	return self->CanEnterZone(zone_short_name, instance_version);
+}
+
+void Perl_Client_SendPath(Client* self, Mob* target)
+{
+	self->SendPath(target);
+}
+
 #ifdef BOTS
 
 int Perl_Client_GetBotRequiredLevel(Client* self)
@@ -2864,6 +2879,16 @@ void Perl_Client_SetBotSpawnLimit(Client* self, int new_spawn_limit)
 void Perl_Client_SetBotSpawnLimit(Client* self, int new_spawn_limit, uint8 class_id)
 {
 	self->SetBotSpawnLimit(new_spawn_limit, class_id);
+}
+
+void Perl_Client_CampAllBots(Client* self)
+{
+	self->CampAllBots();
+}
+
+void Perl_Client_CampAllBots(Client* self, uint8 class_id)
+{
+	self->CampAllBots(class_id);
 }
 
 #endif
@@ -2929,6 +2954,12 @@ void perl_register_client()
 	package.add("CalcPriceMod", (float(*)(Client*))&Perl_Client_CalcPriceMod);
 	package.add("CalcPriceMod", (float(*)(Client*, Mob*))&Perl_Client_CalcPriceMod);
 	package.add("CalcPriceMod", (float(*)(Client*, Mob*, bool))&Perl_Client_CalcPriceMod);
+#ifdef BOTS
+	package.add("CampAllBots", (void(*)(Client*))&Perl_Client_CampAllBots);
+	package.add("CampAllBots", (void(*)(Client*, uint8))&Perl_Client_CampAllBots);
+#endif
+	package.add("CanEnterZone", (bool(*)(Client*, std::string))&Perl_Client_CanEnterZone);
+	package.add("CanEnterZone", (bool(*)(Client*, std::string, int16))&Perl_Client_CanEnterZone);
 	package.add("CanHaveSkill", &Perl_Client_CanHaveSkill);
 	package.add("CashReward", &Perl_Client_CashReward);
 	package.add("ChangeLastName", &Perl_Client_ChangeLastName);
@@ -3251,6 +3282,7 @@ void perl_register_client()
 	package.add("SendOPTranslocateConfirm", &Perl_Client_SendOPTranslocateConfirm);
 	package.add("SendPayload", (void(*)(Client*, int))&Perl_Client_SendPayload);
 	package.add("SendPayload", (void(*)(Client*, int, std::string))&Perl_Client_SendPayload);
+	package.add("SendPath", &Perl_Client_SendPath);
 	package.add("SendPEQZoneFlagInfo", &Perl_Client_SendPEQZoneFlagInfo);
 	package.add("SendSound", &Perl_Client_SendSound);
 	package.add("SendSpellAnim", &Perl_Client_SendSpellAnim);
