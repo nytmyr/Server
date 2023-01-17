@@ -2312,36 +2312,39 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 	}
 	case SpellType_InCombatBuff: {
 		if (CanCastBySpellType(this, tar, SpellType_InCombatBuff)) {
+			if (!checked_los && (botClass == SHADOWKNIGHT)) {
+				if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
+					break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
 
-			if (botClass == SHAMAN) {
 				checked_los = true;
+			}
 
-				std::list<BotSpell> inCombatBuffList = GetBotSpellsBySpellType(this, SpellType_InCombatBuff);
+			if ((botClass != BARD)) {
+				if (((botClass == CLERIC) || (botClass == PALADIN) || (botClass == SHADOWKNIGHT)) && GetLevel() >= GetStopMeleeLevel())
+					break;
 
-				for (std::list<BotSpell>::iterator itr = inCombatBuffList.begin(); itr != inCombatBuffList.end(); ++itr) {
-					BotSpell selectedBotSpell = *itr;
-
-					if (selectedBotSpell.SpellId == 0)
+				std::list<BotSpell_wPriority> spellList = GetPrioritizedBotSpellsBySpellType(this, SpellType_InCombatBuff);
+				for (std::list<BotSpell_wPriority>::iterator itr = spellList.begin(); itr != spellList.end(); ++itr) {
+					BotSpell_wPriority botSpell = *itr;
+					if (botSpell.SpellId == 0)
 						continue;
-					if (!CheckSpellRecastTimers(this, selectedBotSpell.SpellIndex))
+					if (!CheckSpellRecastTimers(this, botSpell.SpellIndex))
 						continue;
 
-					if (!(!tar->IsImmuneToSpell(selectedBotSpell.SpellId, this) && (spells[selectedBotSpell.SpellId].buff_duration < 1 || tar->CanBuffStack(selectedBotSpell.SpellId, botLevel, true) >= 0)))
+					if (!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
+						continue;
+					if ((botClass == SHADOWKNIGHT) && !DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, InCombatBuffResistLimit)))
 						continue;
 
-					//short duration buffs or other buffs only to be cast during combat.
-					if (IsSelfConversionSpell(selectedBotSpell.SpellId)) {
-						if (GetManaRatio() > 90.0f || GetHPRatio() < 50.0f || GetHPRatio() < (GetManaRatio() + 10.0f))
-							break; //don't cast if low hp, lots of mana, or if mana is higher than hps
-					}
+					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
 
-					if (!tar->CheckSpellLevelRestriction(selectedBotSpell.SpellId))
-						break;
+					m_incombatbuff_delay_timer.Start(GetInCombatBuffDelay());
 
-					castedSpell = AIDoSpellCast(selectedBotSpell.SpellIndex, tar, selectedBotSpell.ManaCost);
+					if (castedSpell && (botClass == SHADOWKNIGHT))
+						BotGroupSay(this, "Using an In-Combat Buff on %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
 
-					if (castedSpell)
-						break;
+
+
 				}
 			}
 			else if (botClass == BARD) {
