@@ -81,7 +81,7 @@ Bot::Bot(NPCType *npcTypeData, Client* botOwner) : NPC(npcTypeData, nullptr, glm
 	SetBotCharmer(false);
 	SetPetChooser(false);
 	SetRangerAutoWeaponSelect(false);
-	SetTaunting(GetClass() == WARRIOR);
+	SetTaunting((GetClass() == WARRIOR || GetClass() == PALADIN || GetClass() == SHADOWKNIGHT) && (GetBotStance() == EQ::constants::stanceAggressive));
 	SetDefaultBotStance();
 
 	SetAltOutOfCombatBehavior(GetClass() == BARD); // will need to be updated if more classes make use of this flag
@@ -99,6 +99,7 @@ Bot::Bot(NPCType *npcTypeData, Client* botOwner) : NPC(npcTypeData, nullptr, glm
 	SetPullFlag(false);
 	SetPullingFlag(false);
 	SetReturningFlag(false);
+	SetMaxMeleeRange(false);
 	m_previous_pet_order = SPO_Guard;
 
 	rest_timer.Disable();
@@ -211,6 +212,7 @@ Bot::Bot(uint32 botID, uint32 botOwnerCharacterID, uint32 botSpellsID, double to
 	SetPullFlag(false);
 	SetPullingFlag(false);
 	SetReturningFlag(false);
+	SetMaxMeleeRange(false);
 	m_previous_pet_order = SPO_Guard;
 
 	rest_timer.Disable();
@@ -3895,7 +3897,7 @@ void Bot::AI_Process()
 					LogAIDetail("[Bot::AI_Process] Pursuing [{}] while engaged", GetTarget()->GetCleanName());
 					Goal = GetTarget()->GetPosition();
 					if (DistanceSquared(m_Position, Goal) <= leash_distance) {
-						if (GetMaxMeleeRange() && DistanceSquared(m_Position, Goal) <= melee_distance * 0.85) {
+						if (GetMaxMeleeRange() && (DistanceSquared(m_Position, Goal) <= melee_distance * 0.85)) {
 							Goal = GetOwner()->GetPosition();
 							RunTo(Goal.x, Goal.y, Goal.z);
 						}
