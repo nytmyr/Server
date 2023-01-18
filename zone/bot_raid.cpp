@@ -1791,8 +1791,8 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					&& !(tar->CanBuffStack(botSpell.SpellId, botLevel, true) >= 0))
 					break;
 
-				if (!tar->CheckSpellLevelRestriction(botSpell.SpellId))
-					break;
+				//if (!tar->CheckSpellLevelRestriction(botSpell.SpellId))
+				//	break;
 
 				castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
 
@@ -2023,8 +2023,8 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 				//uint32 TempDontBuffMeBefore = tar->DontBuffMeBefore();
 
-				if (!tar->CheckSpellLevelRestriction(selectedBotSpell.SpellId))
-					break;
+				//if (!tar->CheckSpellLevelRestriction(selectedBotSpell.SpellId))
+				//	break;
 
 				castedSpell = AIDoSpellCast(selectedBotSpell.SpellIndex, tar, selectedBotSpell.ManaCost);
 

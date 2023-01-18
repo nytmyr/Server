@@ -1110,7 +1110,7 @@ void Group::SplitExp(const uint64 exp, Mob* other) {
 	}
 
 	for (const auto& m : members) {
-		if (m && m->IsClient()) {
+		if (m && !m->IsBot() && m->IsClient()) {
 			const int32 diff = m->GetLevel() - highest_level;
 			int32 max_diff = -(m->GetLevel() * 15 / 10 - m->GetLevel());
 
@@ -1155,7 +1155,7 @@ void Raid::SplitExp(const uint64 exp, Mob* other) {
 	}
 
 	for (const auto& m : members) {
-		if (m.member) {
+		if (m.member && !m.IsBot) {
 			const int32 diff     = m.member->GetLevel() - highest_level;
 			int32 max_diff = -(m.member->GetLevel() * 15 / 10 - m.member->GetLevel());
 
