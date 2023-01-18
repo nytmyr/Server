@@ -1249,7 +1249,7 @@ bool Client::CanEnterZone(std::string zone_short_name, int16 instance_version) {
 	if (!z->flag_needed.empty()) {
 		if (
 			Admin() < minStatusToIgnoreZoneFlags &&
-			!HasZoneFlag(zone->GetZoneID())
+			!HasZoneFlag(z->zoneidnumber)
 		) {
 			LogInfo(
 				"Character [{}] does not have the flag to be in this zone [{}]!",
