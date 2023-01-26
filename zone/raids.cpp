@@ -418,7 +418,7 @@ void Raid::UpdateRaidAAs()
 {
 	Client *rl = GetLeader();
 
-	if (rl)
+	if (rl && !rl->IsBot())
 		rl->GetRaidAAs(&raid_aa);
 	else
 		memset(&raid_aa, 0, sizeof(RaidLeadershipAA_Struct));
