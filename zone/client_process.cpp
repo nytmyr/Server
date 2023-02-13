@@ -55,6 +55,7 @@
 #include "zone.h"
 #include "zonedb.h"
 #include "../common/zone_store.h"
+#include "../common/events/player_event_logs.h"
 
 #include "water_map.h"
 #include "bot.h"
@@ -186,7 +187,11 @@ bool Client::Process() {
 
 			SetDynamicZoneMemberStatus(DynamicZoneMemberStatus::Offline);
 
-			parse->EventPlayer(EVENT_DISCONNECT, this, "", 0);
+			RecordPlayerEventLog(PlayerEvent::WENT_OFFLINE, PlayerEvent::EmptyEvent{});
+
+			if (parse->PlayerHasQuestSub(EVENT_DISCONNECT)) {
+				parse->EventPlayer(EVENT_DISCONNECT, this, "", 0);
+			}
 
 			return false; //delete client
 		}
@@ -549,6 +554,8 @@ bool Client::Process() {
 	if (client_state == DISCONNECTED) {
 		OnDisconnect(true);
 		std::cout << "Client disconnected (cs=d): " << GetName() << std::endl;
+		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = "/MQInstantCamp: Possible instant camp disconnect"});
+		/* CHECK THSI EVENT_WARP ANTICHEAT
 		database.SetMQDetectionFlag(AccountName(), GetName(), "/MQInstantCamp: Possible instant camp disconnect.", zone->GetShortName());
 		std::string export_string = fmt::format(
 			"{} {} {} {}",
@@ -558,6 +565,7 @@ bool Client::Process() {
 			28
 		);
 		parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		*/
 		return false;
 	}
 
@@ -707,7 +715,11 @@ void Client::OnDisconnect(bool hard_disconnect) {
 		if (MyRaid)
 			MyRaid->MemberZoned(this);
 
-		parse->EventPlayer(EVENT_DISCONNECT, this, "", 0);
+		RecordPlayerEventLog(PlayerEvent::WENT_OFFLINE, PlayerEvent::EmptyEvent{});
+
+		if (parse->PlayerHasQuestSub(EVENT_DISCONNECT)) {
+			parse->EventPlayer(EVENT_DISCONNECT, this, "", 0);
+		}
 
 		/* QS: PlayerLogConnectDisconnect */
 		if (RuleB(QueryServ, PlayerLogConnectDisconnect)){
@@ -887,6 +899,9 @@ void Client::BulkSendMerchantInventory(int merchant_id, int npcid) {
 			continue;
 		}
 
+		if (!EQ::ValueWithin(Admin(), static_cast<int16>(ml.min_status), static_cast<int16>(ml.max_status))) {
+			continue;
+		}
 
 		int32 faction_id = npc ? npc->GetPrimaryFaction() : 0;
 		int32 faction_level = (
@@ -1021,7 +1036,7 @@ void Client::OPRezzAnswer(uint32 Action, uint32 SpellID, uint16 ZoneID, uint16 I
 {
 	if(PendingRezzXP < 0) {
 		// pendingrezexp is set to -1 if we are not expecting an OP_RezzAnswer
-		LogSpells("[Client::OPRezzAnswer] Unexpected OP_RezzAnswer. Ignoring it");
+		LogSpells("Unexpected OP_RezzAnswer. Ignoring it");
 		Message(Chat::Red, "You have already been resurrected.\n");
 		return;
 	}
@@ -1031,7 +1046,7 @@ void Client::OPRezzAnswer(uint32 Action, uint32 SpellID, uint16 ZoneID, uint16 I
 		// Mark the corpse as rezzed in the database, just in case the corpse has buried, or the zone the
 		// corpse is in has shutdown since the rez spell was cast.
 		database.MarkCorpseAsRezzed(PendingRezzDBID);
-		LogSpells("[Client::OPRezzAnswer] Player [{}] got a [{}] Rezz spellid [{}] in zone[{}] instance id [{}]",
+		LogSpells("Player [{}] got a [{}] Rezz spellid [{}] in zone[{}] instance id [{}]",
 				name, (uint16)spells[SpellID].base_value[0],
 				SpellID, ZoneID, InstanceID);
 
@@ -1100,7 +1115,7 @@ void Client::OPMemorizeSpell(const EQApplicationPacket* app)
 {
 	if (app->size != sizeof(MemorizeSpell_Struct)) {
 		LogError(
-			"[Client::OPMemorizeSpell] Wrong size on OP_MemorizeSpell. Got: [{}] Expected: [{}]",
+			"Wrong size on OP_MemorizeSpell. Got: [{}] Expected: [{}]",
 			app->size,
 			sizeof(MemorizeSpell_Struct)
 		);
@@ -1167,6 +1182,9 @@ void Client::OPMemorizeSpell(const EQApplicationPacket* app)
 			if (HasSpellScribed(m->spell_id)) {
 				MemSpell(m->spell_id, m->slot);
 			} else {
+				std::string message = fmt::format("OP_MemorizeSpell [{}] but we don't have this spell scribed", m->spell_id);
+				RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
+				/* CHECK THSI EVENT_WARP ANTICHEAT
 				database.SetMQDetectionFlag(
 					AccountName(),
 					GetName(),
@@ -1181,6 +1199,7 @@ void Client::OPMemorizeSpell(const EQApplicationPacket* app)
 					29
 				);
 				parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+				*/
 			}
 			break;
 		}
@@ -1319,6 +1338,13 @@ void Client::OPMoveCoin(const EQApplicationPacket* app)
 			NPC *banker = entity_list.GetClosestBanker(this, distance);
 			if(!banker || distance > USE_NPC_RANGE2)
 			{
+				auto message = fmt::format(
+					"Player tried to make use of a banker (coin move) but "
+					"banker [{}] is non-existent or too far away [{}] units",
+					banker ? banker->GetName() : "UNKNOWN NPC", distance
+				);
+				RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
+				/* CHECK THSI EVENT_WARP ANTICHEAT
 				auto hacked_string = fmt::format("Player tried to make use of a banker(coin move) but "
 								 "{} is non-existant or too far away ({} units).",
 								 banker ? banker->GetName() : "UNKNOWN NPC", distance);
@@ -1331,6 +1357,7 @@ void Client::OPMoveCoin(const EQApplicationPacket* app)
 					30
 				);
 				parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+				*/
 				return;
 			}
 
@@ -1358,6 +1385,13 @@ void Client::OPMoveCoin(const EQApplicationPacket* app)
 			NPC *banker = entity_list.GetClosestBanker(this, distance);
 			if(!banker || distance > USE_NPC_RANGE2)
 			{
+				auto message = fmt::format(
+					"Player tried to make use of a banker (shared coin move) but banker [{}] is "
+					"non-existent or too far away [{}] units",
+					banker ? banker->GetName() : "UNKNOWN NPC", distance
+				);
+				RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
+				/* CHECK THSI EVENT_WARP ANTICHEAT
 				auto hacked_string =
 				    fmt::format("Player tried to make use of a banker(shared coin move) but {} is "
 						"non-existant or too far away ({} units).",
@@ -1371,6 +1405,7 @@ void Client::OPMoveCoin(const EQApplicationPacket* app)
 					31
 				);
 				parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+				*/
 				return;
 			}
 			if(mc->cointype1 == COINTYPE_PP)	// there's only platinum here
@@ -1422,6 +1457,13 @@ void Client::OPMoveCoin(const EQApplicationPacket* app)
 			NPC *banker = entity_list.GetClosestBanker(this, distance);
 			if(!banker || distance > USE_NPC_RANGE2)
 			{
+				auto message = fmt::format(
+					"Player tried to make use of a banker(coin move) but "
+					"banker [{}] is non-existent or too far away [{}] units",
+					banker ? banker->GetName() : "UNKNOWN NPC", distance
+				);
+				RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
+				/* CHECK THSI EVENT_WARP ANTICHEAT
 				auto hacked_string = fmt::format("Player tried to make use of a banker(coin move) but "
 								 "{} is non-existant or too far away ({} units).",
 								 banker ? banker->GetName() : "UNKNOWN NPC", distance);
@@ -1434,6 +1476,7 @@ void Client::OPMoveCoin(const EQApplicationPacket* app)
 					32
 				);
 				parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+				*/
 				return;
 			}
 			switch(mc->cointype2)
@@ -1473,6 +1516,13 @@ void Client::OPMoveCoin(const EQApplicationPacket* app)
 			NPC *banker = entity_list.GetClosestBanker(this, distance);
 			if(!banker || distance > USE_NPC_RANGE2)
 			{
+				auto message = fmt::format(
+					"Player tried to make use of a banker (shared coin move) but banker [{}] is "
+					"non-existent or too far away [{}] units",
+					banker ? banker->GetName() : "UNKNOWN NPC", distance
+				);
+				RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
+				/* CHECK THSI EVENT_WARP ANTICHEAT
 				auto hacked_string =
 				    fmt::format("Player tried to make use of a banker(shared coin move) but {} is "
 						"non-existant or too far away ({} units).",
@@ -1486,6 +1536,7 @@ void Client::OPMoveCoin(const EQApplicationPacket* app)
 					33
 				);
 				parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+				*/
 				return;
 			}
 			if(mc->cointype2 == COINTYPE_PP)	// there's only platinum here
@@ -1906,7 +1957,7 @@ void Client::DoStaminaHungerUpdate()
 	auto outapp = new EQApplicationPacket(OP_Stamina, sizeof(Stamina_Struct));
 	Stamina_Struct *sta = (Stamina_Struct *)outapp->pBuffer;
 
-	LogFood("Client::DoStaminaHungerUpdate() hunger_level: [{}] thirst_level: [{}] before loss", m_pp.hunger_level, m_pp.thirst_level);
+	LogFood("hunger_level: [{}] thirst_level: [{}] before loss", m_pp.hunger_level, m_pp.thirst_level);
 
 	if (zone->GetZoneID() != 151 && !GetGM()) {
 		int loss = RuleI(Character, FoodLossPerUpdate);
@@ -1927,7 +1978,7 @@ void Client::DoStaminaHungerUpdate()
 		sta->water = 6000;
 	}
 
-	LogFood("Client::DoStaminaHungerUpdate() Current hunger_level: [{}] = ([{}] minutes left) thirst_level: [{}] = ([{}] minutes left) - after loss",
+	LogFood("Current hunger_level: [{}] = ([{}] minutes left) thirst_level: [{}] = ([{}] minutes left) - after loss",
 	    m_pp.hunger_level, m_pp.hunger_level, m_pp.thirst_level, m_pp.thirst_level);
 
 	FastQueuePacket(&outapp);
@@ -2121,7 +2172,7 @@ void Client::HandleRespawnFromHover(uint32 Option)
 		{
 			if (PendingRezzXP < 0 || PendingRezzSpellID == 0)
 			{
-				LogSpells("[Client::HandleRespawnFromHover] Unexpected Rezz from hover request");
+				LogSpells("Unexpected Rezz from hover request");
 				safe_delete(default_to_bind);
 				return;
 			}
@@ -2156,10 +2207,10 @@ void Client::HandleRespawnFromHover(uint32 Option)
 
 			if (corpse && corpse->IsCorpse())
 			{
-				LogSpells("[Client::HandleRespawnFromHover] Hover Rez in zone [{}] for corpse [{}]",
+				LogSpells("Hover Rez in zone [{}] for corpse [{}]",
 						zone->GetShortName(), PendingRezzCorpseName.c_str());
 
-				LogSpells("[Client::HandleRespawnFromHover] Found corpse. Marking corpse as rezzed");
+				LogSpells("Found corpse. Marking corpse as rezzed");
 
 				corpse->IsRezzed(true);
 				corpse->CompleteResurrection();
@@ -2199,8 +2250,9 @@ void Client::HandleRespawnFromHover(uint32 Option)
 		}
 
 		//After they've respawned into the same zone, trigger EVENT_RESPAWN
-		std::string export_string = fmt::format("{}", Option);
-		parse->EventPlayer(EVENT_RESPAWN, this, export_string, is_rez ? 1 : 0);
+		if (parse->PlayerHasQuestSub(EVENT_RESPAWN)) {
+			parse->EventPlayer(EVENT_RESPAWN, this, std::to_string(Option), is_rez ? 1 : 0);
+		}
 
 		//Pop Rez option from the respawn options list;
 		//easiest way to make sure it stays at the end and

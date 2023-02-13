@@ -7,10 +7,7 @@ typedef void(*PlayerArgumentHandler)(QuestInterface*, lua_State*, Client*, std::
 typedef void(*ItemArgumentHandler)(QuestInterface*, lua_State*, Client*, EQ::ItemInstance*, Mob*, std::string, uint32, std::vector<std::any>*);
 typedef void(*SpellArgumentHandler)(QuestInterface*, lua_State*, Mob*, Client*, uint32, std::string, uint32, std::vector<std::any>*);
 typedef void(*EncounterArgumentHandler)(QuestInterface*, lua_State*, Encounter* encounter, std::string, uint32, std::vector<std::any>*);
-
-#ifdef BOTS
 typedef void(*BotArgumentHandler)(QuestInterface*, lua_State*, Bot*, Mob*, std::string, uint32, std::vector<std::any>*);
-#endif
 
 // NPC
 void handle_npc_event_say(
@@ -213,6 +210,16 @@ void handle_npc_despawn_zone(
 	std::vector<std::any> *extra_pointers
 );
 
+void handle_npc_damage(
+	QuestInterface *parse,
+	lua_State* L,
+	NPC* npc,
+	Mob *init,
+	std::string data,
+	uint32 extra_data,
+	std::vector<std::any> *extra_pointers
+);
+
 // Player
 void handle_player_say(
 	QuestInterface *parse,
@@ -374,6 +381,15 @@ void handle_player_task_stage_complete(
 	std::string data,
 	uint32 extra_data,
 	std::vector<std::any> *extra_pointers
+);
+
+void handle_player_task_accepted(
+	QuestInterface* parse,
+	lua_State* L,
+	Client* client,
+	std::string data,
+	uint32 extra_data,
+	std::vector<std::any>* extra_pointers
 );
 
 void handle_player_task_update(
@@ -592,6 +608,24 @@ void handle_player_aa_gain(
 	std::vector<std::any> *extra_pointers
 );
 
+void handle_player_aa_exp_gain(
+	QuestInterface *parse,
+	lua_State* L,
+	Client* client,
+	std::string data,
+	uint32 extra_data,
+	std::vector<std::any> *extra_pointers
+);
+
+void handle_player_exp_gain(
+	QuestInterface *parse,
+	lua_State* L,
+	Client* client,
+	std::string data,
+	uint32 extra_data,
+	std::vector<std::any> *extra_pointers
+);
+
 void handle_player_payload(
 	QuestInterface *parse,
 	lua_State* L,
@@ -664,6 +698,50 @@ void handle_player_augment_remove(
 	std::vector<std::any> *extra_pointers
 );
 
+void handle_player_damage(
+	QuestInterface *parse,
+	lua_State* L,
+	Client* client,
+	std::string data,
+	uint32 extra_data,
+	std::vector<std::any> *extra_pointers
+);
+
+void handle_player_item_click(
+	QuestInterface *parse,
+	lua_State* L,
+	Client* client,
+	std::string data,
+	uint32 extra_data,
+	std::vector<std::any> *extra_pointers
+);
+
+void handle_player_destroy_item(
+	QuestInterface *parse,
+	lua_State* L,
+	Client* client,
+	std::string data,
+	uint32 extra_data,
+	std::vector<std::any> *extra_pointers
+);
+
+void handle_player_target_change(
+	QuestInterface *parse,
+	lua_State* L,
+	Client* client,
+	std::string data,
+	uint32 extra_data,
+	std::vector<std::any> *extra_pointers
+);
+
+void handle_player_drop_item(
+	QuestInterface *parse,
+	lua_State* L,
+	Client* client,
+	std::string data,
+	uint32 extra_data,
+	std::vector<std::any> *extra_pointers
+);
 
 // Item
 void handle_item_click(
@@ -837,7 +915,6 @@ void handle_encounter_null(
 );
 
 // Bot
-#ifdef BOTS
 void handle_bot_null(
 	QuestInterface *parse,
 	lua_State* L,
@@ -968,7 +1045,25 @@ void handle_bot_payload(
 	std::vector<std::any> *extra_pointers
 );
 
-#endif
+void handle_bot_equip_item(
+	QuestInterface *parse,
+	lua_State* L,
+	Bot* bot,
+	Mob* init,
+	std::string data,
+	uint32 extra_data,
+	std::vector<std::any> *extra_pointers
+);
+
+void handle_bot_damage(
+	QuestInterface *parse,
+	lua_State* L,
+	Bot* bot,
+	Mob* init,
+	std::string data,
+	uint32 extra_data,
+	std::vector<std::any> *extra_pointers
+);
 
 #endif
 #endif

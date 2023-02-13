@@ -484,6 +484,13 @@ bool Database::CheckDatabaseConversions() {
 	CheckDatabaseConvertPPDeblob();
 	CheckDatabaseConvertCorpseDeblob();
 
+	auto *r = RuleManager::Instance();
+	r->LoadRules(this, "default", false);
+	if (!RuleB(Bots, Enabled) && DoesTableExist("bot_data")) {
+		LogInfo("Bot tables found but rule not enabled, enabling");
+		r->SetRule("Bots:Enabled", "true", this, true, true);
+	}
+
 	/* Run EQEmu Server script (Checks for database updates) */
 
 	const std::string file = fmt::format("{}/eqemu_server.pl", path.GetServerPath());

@@ -96,9 +96,9 @@ void Client::SendTaskActivityComplete(
 
 void Client::SendTaskFailed(int task_id, int task_index, TaskType task_type)
 {
-	// 0x54eb
-	std::string export_string = fmt::format("{}", task_id);
-	parse->EventPlayer(EVENT_TASK_FAIL, this, export_string, 0);
+	if (parse->PlayerHasQuestSub(EVENT_TASK_FAIL)) {
+		parse->EventPlayer(EVENT_TASK_FAIL, this, std::to_string(task_id), 0);
+	}
 
 	TaskActivityComplete_Struct *task_activity_complete;
 
@@ -112,7 +112,7 @@ void Client::SendTaskFailed(int task_id, int task_index, TaskType task_type)
 	task_activity_complete->task_completed = 0; //Fail
 	task_activity_complete->stage_complete = 0; // 0 for task complete or failed.
 
-	LogTasks("[SendTaskFailed] Sending failure to client [{}]", GetCleanName());
+	LogTasks("Sending failure to client [{}]", GetCleanName());
 
 	QueuePacket(outapp);
 	safe_delete(outapp);

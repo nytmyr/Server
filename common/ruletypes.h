@@ -197,9 +197,13 @@ RULE_BOOL(Character, PetZoneWithOwner, true, "Should Pets Zone with Owner")
 RULE_BOOL(Character, FullManaOnDeath, true, "On death set mana to full")
 RULE_BOOL(Character, FullEndurOnDeath, true, "On death set endurance to full")
 RULE_INT(Character, ExperiencePercentCapPerKill, -1, "Caps the percentage of experience that can be gained per kill. -1 disables the cap; 0 blocks all (non-aa) xp.")
-RULE_BOOL(Character, EnableGroupEXPModifier, true, "Enable or disable the group experience modifier based on number of players in group, default is true")
+RULE_BOOL(Character, EnableGroupEXPModifier, true, "Enable or disable the group experience modifier in group, default is true")
+RULE_BOOL(Character, EnableGroupMemberEXPModifier, true, "Enable or disable the group member experience modifier based on number of players in group, default is true")
 RULE_REAL(Character, GroupMemberEXPModifier, 0.2, "Sets the group experience modifier per members between 2 and 5, default is 0.2")
 RULE_REAL(Character, FullGroupEXPModifier, 2.16, "Sets the group experience modifier for a full group, default is 2.16")
+RULE_BOOL(Character, IgnoreLevelBasedHasteCaps, false, "Ignores hard coded level based haste caps.")
+RULE_BOOL(Character, EnableRaidEXPModifier, true, "Enable or disable the raid experience modifier, default is true")
+RULE_BOOL(Character, EnableRaidMemberEXPModifier, true, "Enable or disable the raid experience modifier based on members in raid, default is true")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(Mercs)
@@ -317,6 +321,7 @@ RULE_BOOL(Map, FixPathingZOnSendTo, false, "Try to repair Z coordinates in the S
 RULE_BOOL(Map, FixZWhenPathing, true, "Automatically fix NPC Z coordinates when moving/pathing/engaged (Far less CPU intensive than its predecessor)")
 RULE_REAL(Map, DistanceCanTravelBeforeAdjustment, 10.0, "Distance a mob can path before FixZ is called, depends on FixZWhenPathing")
 RULE_BOOL(Map, MobZVisualDebug, false, "Displays spell effects determining whether or not NPC is hitting Best Z calcs (blue for hit, red for miss)")
+RULE_BOOL(Map, MobPathingVisualDebug, false, "Displays nodes in pathing points in realtime to help with visual debugging")
 RULE_REAL(Map, FixPathingZMaxDeltaSendTo, 20, "At runtime in SendTo: maximum change in Z to allow the BestZ code to apply")
 RULE_INT(Map, FindBestZHeightAdjust, 1, "Adds this to the current Z before seeking the best Z position")
 RULE_CATEGORY_END()
@@ -587,11 +592,11 @@ RULE_INT(Range, SongMessages, 75, "The packet range in which song messages are s
 RULE_INT(Range, ClientPositionUpdates, 300, "Distance in which the own changed position is communicated to other clients")
 RULE_INT(Range, CriticalDamage, 80, "The packet range in which critical hit messages are sent")
 RULE_INT(Range, MobCloseScanDistance, 600, "Close scan distance")
+RULE_INT(Range, MaxDistanceToClickDoors, 100, "Max distance that a client can click a door from (Client says 'You can't reach that' at roughly 25-50 for most doors)")
 RULE_CATEGORY_END()
 
-
-#ifdef BOTS
 RULE_CATEGORY(Bots)
+RULE_BOOL(Bots, Enabled, false, "Enable of disable bot functionality, default is false")
 RULE_INT(Bots, BotExpansionSettings, 16383, "Sets the expansion settings for bot use. Defaults to all expansions enabled up to TSS")
 RULE_BOOL(Bots, AllowCamelCaseNames, false, "Allows the use of 'MyBot' type names")
 RULE_BOOL(Bots, AllowBotEquipAnyRaceGear, false, "Allows Bots to wear Equipment even if their race is not valid")
@@ -690,7 +695,6 @@ RULE_BOOL(Bots, DisableSpecialAbilitiesAtMaxMelee, false, "False Default. If tru
 RULE_BOOL(Bots, PreventBotCampOnFD, false, "False Default. If true, players will not be able to camp bots while feign death.")
 
 RULE_CATEGORY_END()
-#endif
 
 RULE_CATEGORY(Chat)
 RULE_BOOL(Chat, ServerWideOOC, true, "Enable server wide ooc-chat")
@@ -699,6 +703,8 @@ RULE_BOOL(Chat, EnableVoiceMacros, true, "Enable voice macros")
 RULE_BOOL(Chat, EnableMailKeyIPVerification, true, "Setting whether the authenticity of the client should be verified via its IP address when accessing the InGame mailbox")
 RULE_BOOL(Chat, EnableAntiSpam, true, "Enable anti-spam system for chat")
 RULE_BOOL(Chat, SuppressCommandErrors, false, "Do not suppress command errors by default")
+RULE_BOOL(Chat, ChannelsIgnoreNameFilter, false, "Ignore name filtering when creating new chat channels")
+RULE_INT(Chat, MaxPermanentPlayerChannels, 0, "Maximum number of permanent chat channels a player can make. Default 0.")
 RULE_INT(Chat, MinStatusToBypassAntiSpam, 100, "Minimum status to bypass the anti-spam system")
 RULE_INT(Chat, MinimumMessagesPerInterval, 4, "Minimum number of chat messages allowed per interval. The karma value is added to this value")
 RULE_INT(Chat, MaximumMessagesPerInterval, 12, "Maximum value of chat messages allowed per interval")
@@ -820,6 +826,7 @@ RULE_BOOL(Inventory, DeleteTransformationMold, true, "False if you want mold to 
 RULE_BOOL(Inventory, AllowAnyWeaponTransformation, false, "Weapons can use any weapon transformation")
 RULE_BOOL(Inventory, TransformSummonedBags, false, "Transforms summoned bags into disenchanted ones instead of deleting")
 RULE_BOOL(Inventory, AllowMultipleOfSameAugment, false, "Allows multiple of the same augment to be placed in an item via #augmentitem or MQ2, set to true to allow")
+RULE_INT(Inventory, AlternateAugmentationSealer, 53, "Allows RoF+ clients to augment items from a special container type")
 RULE_INT(Inventory, CustomItemsLoreIDStart, 0, "Disabled: 0 | Start of custom item IDs to do Lore Checks on. IE, ID 601001 is a dupe of ID 1001, set to 600000 to check for lore IDs matching 600000+")
 RULE_INT(Inventory, SecondCustomItemsLoreIDStart, 0, "Disabled: 0 | Start of second set of custom item IDs to do Lore Checks on. IE, ID 801001 is a dupe of ID 1001, set to 800000 to check for lore IDs matching 800000+")
 RULE_CATEGORY_END()
@@ -844,9 +851,15 @@ RULE_INT(Faction, DubiouslyFactionMinimum, -500, "Minimum faction for dubiously"
 RULE_INT(Faction, ThreateninglyFactionMinimum, -750, "Minimum faction for threateningly")
 RULE_CATEGORY_END()
 
+RULE_CATEGORY(Analytics)
+RULE_BOOL(Analytics, CrashReporting, true, "Automatic crash reporting analytics for EQEmu Server developers")
+RULE_CATEGORY_END()
+
 RULE_CATEGORY(Logging)
 RULE_BOOL(Logging, PrintFileFunctionAndLine, false, "Ex: [World Server] [net.cpp::main:309] Loading variables...")
 RULE_BOOL(Logging, WorldGMSayLogging, true, "Relay worldserver logging to zone processes via GM say output")
+RULE_BOOL(Logging, PlayerEventsQSProcess, false, "Have query server process player events instead of world. Useful when wanting to use a dedicated server and database for processing player events on separate disk")
+RULE_INT(Logging, BatchPlayerEventProcessIntervalSeconds, 5, "This is the interval in which player events are processed in world or qs")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(HotReload)

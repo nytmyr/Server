@@ -45,9 +45,7 @@
 #include <stdlib.h>
 #include <boost/concept_check.hpp>
 
-#ifdef BOTS
 #include "bot.h"
-#endif
 
 extern QueryServ* QServ;
 extern WorldServer worldserver;
@@ -906,7 +904,6 @@ int64 Mob::TuneClientAttack(Mob* other, bool no_avoid, bool no_hit_chance, int h
 	// Now figure out damage
 	my_hit.damage_done = 1;
 	my_hit.min_damage = 0;
-	uint8 mylevel = GetLevel() ? GetLevel() : 1;
 	int64 hate = 0;
 	if (weapon)
 		hate = (weapon->GetItem()->Damage + weapon->GetItem()->ElemDmgAmt);
@@ -1043,16 +1040,16 @@ int64 Mob::TuneACSum(bool skip_caps, int ac_override, int add_ac)
 	}
 
 	int shield_ac = 0;
-	if (HasShieldEquiped() && IsClient()) {
-		auto client = CastToClient();
-		auto inst = client->GetInv().GetItem(EQ::invslot::slotSecondary);
+	if (HasShieldEquiped() && IsOfClientBot()) {
+		auto inst = (IsClient()) ? GetInv().GetItem(EQ::invslot::slotSecondary) : CastToBot()->GetBotItem(EQ::invslot::slotSecondary);
 		if (inst) {
-			if (inst->GetItemRecommendedLevel(true) <= GetLevel())
+			if (inst->GetItemRecommendedLevel(true) <= GetLevel()) {
 				shield_ac = inst->GetItemArmorClass(true);
-			else
-				shield_ac = client->CalcRecommendedLevelBonus(GetLevel(), inst->GetItemRecommendedLevel(true), inst->GetItemArmorClass(true));
+			} else {
+				shield_ac = CalcRecommendedLevelBonus(GetLevel(), inst->GetItemRecommendedLevel(true),inst->GetItemArmorClass(true));
+			}
 		}
-		shield_ac += client->GetHeroicSTR() / 10;
+		shield_ac += GetHeroicSTR() / 10;
 	}
 	// EQ math
 	ac = (ac * 4) / 3;
@@ -1351,12 +1348,12 @@ int64 Mob::Tunecompute_defense(int avoidance_override, int add_avoidance)
 {
 	int defense = GetSkill(EQ::skills::SkillDefense) * 400 / 225;
 	defense += (8000 * (GetAGI() - 40)) / 36000;
-	if (IsClient()) {
+	if (IsOfClientBot()) {
 		if (avoidance_override) {
 			defense = avoidance_override;
 		}
 		else {
-			defense += CastToClient()->GetHeroicAGI() / 10;
+			defense += GetHeroicAGI() / 10;
 		}
 		defense += add_avoidance; //1 pt = 10 heroic agi
 	}
@@ -1493,15 +1490,15 @@ void Mob::TuneCommonOutgoingHitSuccess(Mob* defender, DamageHitInfo &hit, ExtraA
 		hit.damage_done = min_mod;
 
 	hit.damage_done += hit.min_damage;
-	if (IsClient()) {
+	if (IsOfClientBot()) {
 		int extra = 0;
 		switch (hit.skill) {
 		case EQ::skills::SkillThrowing:
 		case EQ::skills::SkillArchery:
-			extra = CastToClient()->GetHeroicDEX() / 10;
+			extra = GetHeroicDEX() / 10;
 			break;
 		default:
-			extra = CastToClient()->GetHeroicSTR() / 10;
+			extra = GetHeroicSTR() / 10;
 			break;
 		}
 		hit.damage_done += extra;

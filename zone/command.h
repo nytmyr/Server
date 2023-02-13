@@ -26,7 +26,6 @@ void command_deinit(void);
 int command_add(std::string command_name, std::string description, uint8 admin, CmdFuncPtr function);
 int command_notavail(Client *c, std::string message, bool ignore_status);
 int command_realdispatch(Client *c, std::string message, bool ignore_status);
-void command_logcommand(Client *c, std::string message);
 uint8 GetCommandStatus(Client *c, std::string command_name);
 void ListModifyNPCStatMap(Client *c);
 std::map<std::string, std::string> GetModifyNPCStatMap();
@@ -122,9 +121,6 @@ void command_godmode(Client* c, const Seperator *sep);
 void command_goto(Client *c, const Seperator *sep);
 void command_grid(Client *c, const Seperator *sep);
 void command_guild(Client *c, const Seperator *sep);
-void command_guildapprove(Client *c, const Seperator *sep);
-void command_guildcreate(Client *c, const Seperator *sep);
-void command_guildlist(Client *c, const Seperator *sep);
 void command_haste(Client *c, const Seperator *sep);
 void command_hatelist(Client *c, const Seperator *sep);
 void command_heal(Client *c, const Seperator *sep);
@@ -285,7 +281,6 @@ void command_traindisc(Client *c, const Seperator *sep);
 void command_trapinfo(Client *c, const Seperator *sep);
 void command_tune(Client *c, const Seperator *sep);
 void command_undye(Client *c, const Seperator *sep);
-void command_undyeme(Client *c, const Seperator *sep);
 void command_unfreeze(Client *c, const Seperator *sep);
 void command_unlock(Client *c, const Seperator *sep);
 void command_unmemspell(Client *c, const Seperator *sep);
@@ -337,9 +332,7 @@ void command_healdelay(Client* c, const Seperator* sep);
 void command_completehealdelay(Client* c, const Seperator* sep);
 void command_hothealdelay(Client* c, const Seperator* sep);
 
-#ifdef BOTS
 #include "bot.h"
 void command_bot(Client*c, const Seperator *sep);
-#endif
 
 #endif

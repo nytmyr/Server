@@ -49,6 +49,8 @@
 #include "sof_char_create_data.h"
 #include "../common/zone_store.h"
 #include "../common/repositories/account_repository.h"
+#include "../common/repositories/player_event_logs_repository.h"
+#include "../common/events/player_event_logs.h"
 
 #include <iostream>
 #include <iomanip>
@@ -238,7 +240,7 @@ void Client::SendCharInfo() {
 		QueuePacket(outapp);
 	}
 	else {
-		LogInfo("[Error] Database did not return an OP_SendCharInfo packet for account [{}]", GetAccountID());
+		LogError("Database did not return an OP_SendCharInfo packet for account [{}]", GetAccountID());
 	}
 	safe_delete(outapp);
 }
@@ -457,10 +459,10 @@ bool Client::HandleSendLoginInfoPacket(const EQApplicationPacket *app)
 		return false;
 	}
 
-	LogClientLogin("[HandleSendLoginInfoPacket] Checking Auth id [{}]", id);
+	LogClientLogin("Checking authentication id [{}]", id);
 
 	if ((cle = client_list.CheckAuth(id, password))) {
-		LogClientLogin("[HandleSendLoginInfoPacket] Checking Auth id [{}] passed", id);
+		LogClientLogin("Checking authentication id [{}] passed", id);
 		if (!is_player_zoning) {
 			// Track who is in and who is out of the game
 			char *inout= (char *) "";
@@ -818,7 +820,8 @@ bool Client::HandleEnterWorldPacket(const EQApplicationPacket *app) {
 				zone_id = database.MoveCharacterToBind(charid, 4);
 			} else {
 				LogInfo("[{}] is trying to go home before they're able.", char_name);
-				database.SetHackerFlag(GetAccountName(), char_name, "MQGoHome: player tried to go home before they were able.");
+				RecordPossibleHack("[MQGoHome] player tried to go home before they were able");
+
 				eqs->Close();
 				return true;
 			}
@@ -844,7 +847,8 @@ bool Client::HandleEnterWorldPacket(const EQApplicationPacket *app) {
 				database.MoveCharacterToZone(charid, zone_id);
 			} else {
 				LogInfo("[{}] is trying to go to the Tutorial but they are not allowed.", char_name);
-				database.SetHackerFlag(GetAccountName(), char_name, "MQTutorial: player tried to enter the tutorial without having tutorial enabled for this character.");
+				RecordPossibleHack("[MQTutorial] player tried to enter the tutorial without having tutorial enabled for this character");
+
 				eqs->Close();
 				return true;
 			}
@@ -1010,10 +1014,11 @@ bool Client::HandlePacket(const EQApplicationPacket *app) {
 
 	EmuOpcode opcode = app->GetOpcode();
 
+	auto o = eqs->GetOpcodeManager();
 	LogPacketClientServer(
 		"[{}] [{:#06x}] Size [{}] {}",
 		OpcodeManager::EmuToName(app->GetOpcode()),
-		eqs->GetOpcodeManager()->EmuToEQ(app->GetOpcode()),
+		o->EmuToEQ(app->GetOpcode()) == 0 ? app->GetProtocolOpcode() : o->EmuToEQ(app->GetOpcode()),
 		app->Size(),
 		(LogSys.IsLogEnabled(Logs::Detail, Logs::PacketClientServer) ? DumpPacketToString(app) : "")
 	);
@@ -1256,7 +1261,7 @@ bool Client::ChecksumVerificationCRCEQGame(uint64 checksum)
 		checksumint = atoll(checksumvar.c_str());
 	}
 	else {
-		LogChecksumVerification("[checksum_crc1_eqgame] variable not set in variables table.");
+		LogChecksumVerification("variable not set in variables table.");
 		return true;
 	}
 
@@ -1302,7 +1307,7 @@ bool Client::ChecksumVerificationCRCBaseData(uint64 checksum)
 		checksumint = atoll(checksumvar.c_str());
 	}
 	else {
-		LogChecksumVerification("[checksum_crc3_basedata] variable not set in variables table.");
+		LogChecksumVerification("variable not set in variables table.");
 		return true;
 	}
 
@@ -1604,17 +1609,38 @@ bool Client::OPCharCreate(char *name, CharCreate_Struct *cc)
 
 	in.s_addr = GetIP();
 
-	LogInfo("Character creation request from [{}] LS#[{}] ([{}]:[{}]) : ", GetCLE()->LSName(), GetCLE()->LSID(), inet_ntoa(in), GetPort());
-	LogInfo("Name: [{}]", name);
-	Log(Logs::Detail, Logs::WorldServer, "Race: %d  Class: %d  Gender: %d  Deity: %d  Start zone: %d  Tutorial: %s",
-		cc->race, cc->class_, cc->gender, cc->deity, cc->start_zone, cc->tutorial ? "true" : "false");
-	LogInfo("STR  STA  AGI  DEX  WIS  INT  CHA    Total");
-	Log(Logs::Detail, Logs::WorldServer, "%3d  %3d  %3d  %3d  %3d  %3d  %3d     %3d",
-		cc->STR, cc->STA, cc->AGI, cc->DEX, cc->WIS, cc->INT, cc->CHA,
-		stats_sum);
-	LogInfo("Face: [{}]  Eye colors: [{}] [{}]", cc->face, cc->eyecolor1, cc->eyecolor2);
-	LogInfo("Hairstyle: [{}]  Haircolor: [{}]", cc->hairstyle, cc->haircolor);
-	LogInfo("Beard: [{}]  Beardcolor: [{}]", cc->beard, cc->beardcolor);
+	LogInfo(
+		"Character creation request from [{}] LS [{}] [{}] [{}]",
+		GetCLE()->LSName(),
+		GetCLE()->LSID(),
+		inet_ntoa(in),
+		GetPort()
+	);
+	LogInfo("Name [{}]", name);
+	LogInfo(
+		"Race [{}] Class [{}] Gender [{}] Deity [{}] Start zone [{}] Tutorial [{}]",
+		cc->race,
+		cc->class_,
+		cc->gender,
+		cc->deity,
+		cc->start_zone,
+		cc->tutorial ? "true" : "false"
+	);
+	LogInfo("STR STA AGI DEX WIS INT CHA Total");
+	LogInfo(
+		" [{}] [{}] [{}] [{}] [{}] [{}] [{}] [{}]",
+		cc->STR,
+		cc->STA,
+		cc->AGI,
+		cc->DEX,
+		cc->WIS,
+		cc->INT,
+		cc->CHA,
+		stats_sum
+	);
+	LogInfo("Face [{}] Eye colors [{}] [{}]", cc->face, cc->eyecolor1, cc->eyecolor2);
+	LogInfo("Hairstyle [{}] Haircolor [{}]", cc->hairstyle, cc->haircolor);
+	LogInfo("Beard [{}] Beardcolor [{}]", cc->beard, cc->beardcolor);
 
 	/* Validate the char creation struct */
 	if (m_ClientVersionBit & EQ::versions::maskSoFAndLater) {
@@ -1685,14 +1711,14 @@ bool Client::OPCharCreate(char *name, CharCreate_Struct *cc)
 
 	/* If it is an SoF Client and the SoF Start Zone rule is set, send new chars there */
 	if (m_ClientVersionBit & EQ::versions::maskSoFAndLater) {
-		LogInfo("Found 'SoFStartZoneID' rule setting: [{}]", RuleI(World, SoFStartZoneID));
+		LogInfo("Found [SoFStartZoneID] rule setting [{}]", RuleI(World, SoFStartZoneID));
 		if (RuleI(World, SoFStartZoneID) > 0) {
 			pp.zone_id = RuleI(World, SoFStartZoneID);
 			cc->start_zone = pp.zone_id;
 		}
 	}
 	else {
-		LogInfo("Found 'TitaniumStartZoneID' rule setting: [{}]", RuleI(World, TitaniumStartZoneID));
+		LogInfo("Found [TitaniumStartZoneID] rule setting [{}]", RuleI(World, TitaniumStartZoneID));
 		if (RuleI(World, TitaniumStartZoneID) > 0) { 	/* if there's a startzone variable put them in there */
 
 			pp.zone_id = RuleI(World, TitaniumStartZoneID);
@@ -1757,12 +1783,39 @@ bool Client::OPCharCreate(char *name, CharCreate_Struct *cc)
 		pp.binds[0].heading = pp.heading;
 	}
 
-	Log(Logs::Detail, Logs::WorldServer, "Current location: %s (%d)  %0.2f, %0.2f, %0.2f, %0.2f",
-		ZoneName(pp.zone_id), pp.zone_id, pp.x, pp.y, pp.z, pp.heading);
-	Log(Logs::Detail, Logs::WorldServer, "Bind location: %s (%d) %0.2f, %0.2f, %0.2f",
-		ZoneName(pp.binds[0].zone_id), pp.binds[0].zone_id, pp.binds[0].x, pp.binds[0].y, pp.binds[0].z);
-	Log(Logs::Detail, Logs::WorldServer, "Home location: %s (%d) %0.2f, %0.2f, %0.2f",
-		ZoneName(pp.binds[4].zone_id), pp.binds[4].zone_id, pp.binds[4].x, pp.binds[4].y, pp.binds[4].z);
+	if (GetZone(pp.zone_id)) {
+		LogInfo(
+			"Current location [{}] [{}] [{:.2f}] [{:.2f}] [{:.2f}] [{:.2f}]",
+			ZoneName(pp.zone_id),
+			pp.zone_id,
+			pp.x,
+			pp.y,
+			pp.z,
+			pp.heading
+		);
+	}
+
+	if (GetZone(pp.binds[0].zone_id)) {
+		LogInfo(
+			"Bind location [{}] [{}] [{:.2f}] [{:.2f}] [{:.2f}]",
+			ZoneName(pp.binds[0].zone_id),
+			pp.binds[0].zone_id,
+			pp.binds[0].x,
+			pp.binds[0].y,
+			pp.binds[0].z
+		);
+	}
+
+	if (GetZone(pp.binds[4].zone_id)) {
+		LogInfo(
+			"Home location [{}] [{}] [{:.2f}] [{:.2f}] [{:.2f}]",
+			ZoneName(pp.binds[4].zone_id),
+			pp.binds[4].zone_id,
+			pp.binds[4].x,
+			pp.binds[4].y,
+			pp.binds[4].z
+		);
+	}
 
 	/* Starting Items inventory */
 	content_db.SetStartingItems(&pp, &inv, pp.race, pp.class_, pp.deity, pp.zone_id, pp.name, GetAdmin());
@@ -1966,16 +2019,16 @@ bool CheckCharCreateInfoTitanium(CharCreate_Struct *cc)
 	// if out of range looking it up in the table would crash stuff
 	// so we return from these
 	if (classtemp >= PLAYER_CLASS_COUNT) {
-		LogInfo("  class is out of range");
+		LogInfo(" class is out of range");
 		return false;
 	}
 	if (racetemp >= _TABLE_RACES) {
-		LogInfo("  race is out of range");
+		LogInfo(" race is out of range");
 		return false;
 	}
 
 	if (!ClassRaceLookupTable[classtemp][racetemp]) { //Lookup table better than a bunch of ifs?
-		LogInfo("  invalid race/class combination");
+		LogInfo(" invalid race/class combination");
 		// we return from this one, since if it's an invalid combination our table
 		// doesn't have meaningful values for the stats
 		return false;
@@ -2003,36 +2056,36 @@ bool CheckCharCreateInfoTitanium(CharCreate_Struct *cc)
 	// that are messed up not just the first hit
 
 	if (bTOTAL + stat_points != cTOTAL) {
-		LogInfo("  stat points total doesn't match expected value: expecting [{}] got [{}]", bTOTAL + stat_points, cTOTAL);
+		LogInfo(" stat points total doesn't match expected value: expecting [{}] got [{}]", bTOTAL + stat_points, cTOTAL);
 		Charerrors++;
 	}
 
 	if (cc->STR > bSTR + stat_points || cc->STR < bSTR) {
-		LogInfo("  stat STR is out of range");
+		LogInfo(" stat STR is out of range");
 		Charerrors++;
 	}
 	if (cc->STA > bSTA + stat_points || cc->STA < bSTA) {
-		LogInfo("  stat STA is out of range");
+		LogInfo(" stat STA is out of range");
 		Charerrors++;
 	}
 	if (cc->AGI > bAGI + stat_points || cc->AGI < bAGI) {
-		LogInfo("  stat AGI is out of range");
+		LogInfo(" stat AGI is out of range");
 		Charerrors++;
 	}
 	if (cc->DEX > bDEX + stat_points || cc->DEX < bDEX) {
-		LogInfo("  stat DEX is out of range");
+		LogInfo(" stat DEX is out of range");
 		Charerrors++;
 	}
 	if (cc->WIS > bWIS + stat_points || cc->WIS < bWIS) {
-		LogInfo("  stat WIS is out of range");
+		LogInfo(" stat WIS is out of range");
 		Charerrors++;
 	}
 	if (cc->INT > bINT + stat_points || cc->INT < bINT) {
-		LogInfo("  stat INT is out of range");
+		LogInfo(" stat INT is out of range");
 		Charerrors++;
 	}
 	if (cc->CHA > bCHA + stat_points || cc->CHA < bCHA) {
-		LogInfo("  stat CHA is out of range");
+		LogInfo(" stat CHA is out of range");
 		Charerrors++;
 	}
 
@@ -2310,4 +2363,25 @@ bool Client::StoreCharacter(
 	}
 
 	return true;
+}
+
+void Client::RecordPossibleHack(const std::string& message)
+{
+	if (player_event_logs.IsEventEnabled(PlayerEvent::POSSIBLE_HACK)) {
+		auto event = PlayerEvent::PossibleHackEvent{.message = message};
+		std::stringstream ss;
+		{
+			cereal::JSONOutputArchiveSingleLine ar(ss);
+			event.serialize(ar);
+		}
+
+		auto e = PlayerEventLogsRepository::NewEntity();
+		e.character_id    = charid;
+		e.account_id      = GetCLE() ? GetAccountID() : 0;
+		e.event_type_id   = PlayerEvent::POSSIBLE_HACK;
+		e.event_type_name = PlayerEvent::EventName[PlayerEvent::POSSIBLE_HACK];
+		e.event_data      = ss.str();
+		e.created_at      = std::time(nullptr);
+		PlayerEventLogsRepository::InsertOne(database, e);
+	}
 }

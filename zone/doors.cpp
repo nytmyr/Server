@@ -122,6 +122,7 @@ Doors::~Doors()
 bool Doors::Process()
 {
 	if (m_close_timer.Enabled() && m_close_timer.Check() && IsDoorOpen()) {
+		LogDoorsDetail("door open and timer triggered door_id [{}] open_type [{}]", GetDoorID(), m_open_type);
 		if (m_open_type == 40 || GetTriggerType() == 1) {
 			auto            outapp = new EQApplicationPacket(OP_MoveDoor, sizeof(MoveDoor_Struct));
 			MoveDoor_Struct *md    = (MoveDoor_Struct *) outapp->pBuffer;
@@ -263,6 +264,19 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 		else {
 			safe_delete(outapp);
 			return;
+		}
+	}
+
+	// enforce flags before they hit zoning process
+	auto z = GetZone(m_destination_zone_name, 0);
+	if (z && !z->flag_needed.empty() && Strings::IsNumber(z->flag_needed) && std::stoi(z->flag_needed) == 1) {
+		if (sender->Admin() < minStatusToIgnoreZoneFlags && !sender->HasZoneFlag(z->zoneidnumber)) {
+			LogInfo(
+				"Character [{}] does not have the flag to be in this zone [{}]!",
+				sender->GetCleanName(),
+				z->flag_needed
+			);
+			sender->MessageString(Chat::LightBlue, DOORS_LOCKED);
 		}
 	}
 
@@ -655,11 +669,13 @@ void Doors::ForceOpen(Mob *sender, bool alt_mode)
 	if (!alt_mode) { // original function
 		if (!m_is_open) {
 			if (!m_disable_timer) {
+				LogDoorsDetail("door_id [{}] starting timer", md->doorid);
 				m_close_timer.Start();
 			}
 			m_is_open = true;
 		}
 		else {
+			LogDoorsDetail("door_id [{}] disable timer", md->doorid);
 			m_close_timer.Disable();
 			if (!m_disable_timer) {
 				m_is_open = false;
@@ -668,6 +684,7 @@ void Doors::ForceOpen(Mob *sender, bool alt_mode)
 	}
 	else { // alternative function
 		if (!m_disable_timer) {
+			LogDoorsDetail("door_id [{}] alt starting timer", md->doorid);
 			m_close_timer.Start();
 		}
 		m_is_open = true;
@@ -759,14 +776,12 @@ int ZoneDatabase::GetDoorsDBCountPlusOne(std::string zone_short_name, int16 vers
 
 std::vector<DoorsRepository::Doors> ZoneDatabase::LoadDoors(const std::string &zone_name, int16 version)
 {
-	LogInfo("Loading Doors from database");
-
 	auto door_entries = DoorsRepository::GetWhere(
 		*this, fmt::format(
 			"zone = '{}' AND (version = {} OR version = -1) {} ORDER BY doorid ASC",
 			zone_name, version, ContentFilterCriteria::apply()));
 
-	LogDoors("Loaded [{}] doors for [{}] version [{}]", door_entries.size(), zone_name, version);
+	LogDoors("Loaded [{}] doors for [{}] version [{}]", Strings::Commify(door_entries.size()), zone_name, version);
 
 	return door_entries;
 }
@@ -832,20 +847,75 @@ void Doors::CreateDatabaseEntry()
 		return;
 	}
 
-	content_db.InsertDoor(
-		GetDoorDBID(),
-		GetDoorID(),
-		GetDoorName(),
-		m_position,
-		GetOpenType(),
-		static_cast<uint16>(GetGuildID()),
-		GetLockpick(),
-		GetKeyItem(),
-		static_cast<uint8>(GetDoorParam()),
-		static_cast<uint8>(GetInvertState()),
-		GetIncline(),
-		GetSize()
+	const auto& l = DoorsRepository::GetWhere(
+		content_db,
+		fmt::format(
+			"zone = '{}' AND doorid = {}",
+			zone->GetShortName(),
+			GetDoorID()
+		)
 	);
+	if (!l.empty()) {
+		auto e = l[0];
+
+		e.name         = GetDoorName();
+		e.pos_x        = GetX();
+		e.pos_y        = GetY();
+		e.pos_z        = GetZ();
+		e.heading      = GetHeading();
+		e.opentype     = GetOpenType();
+		e.guild        = static_cast<uint16>(GetGuildID());
+		e.lockpick     = GetLockpick();
+		e.keyitem      = GetKeyItem();
+		e.door_param   = static_cast<uint8>(GetDoorParam());
+		e.invert_state = static_cast<uint8>(GetInvertState());
+		e.incline      = GetIncline();
+		e.size         = GetSize();
+
+		auto updated = DoorsRepository::UpdateOne(content_db, e);
+		if (!updated) {
+			LogError(
+				"Failed to update door in Zone [{}] Version [{}] Database ID [{}] ID [{}]",
+				zone->GetShortName(),
+				zone->GetInstanceVersion(),
+				GetDoorDBID(),
+				GetDoorID()
+			);
+		}
+
+		return;
+	}
+
+	auto e = DoorsRepository::NewEntity();
+
+	e.id           = GetDoorDBID();
+	e.doorid       = GetDoorID();
+	e.zone         = zone->GetShortName();
+	e.version      = zone->GetInstanceVersion();
+	e.name         = GetDoorName();
+	e.pos_x        = GetX();
+	e.pos_y        = GetY();
+	e.pos_z        = GetZ();
+	e.heading      = GetHeading();
+	e.opentype     = GetOpenType();
+	e.guild        = static_cast<uint16>(GetGuildID());
+	e.lockpick     = GetLockpick();
+	e.keyitem      = GetKeyItem();
+	e.door_param   = static_cast<uint8>(GetDoorParam());
+	e.invert_state = static_cast<uint8>(GetInvertState());
+	e.incline      = GetIncline();
+	e.size         = GetSize();
+
+	const auto& n = DoorsRepository::InsertOne(content_db, e);
+	if (!n.id) {
+		LogError(
+			"Failed to create door in Zone [{}] Version [{}] Database ID [{}] ID [{}]",
+			zone->GetShortName(),
+			zone->GetInstanceVersion(),
+			GetDoorDBID(),
+			GetDoorID()
+		);
+	}
 }
 
 float Doors::GetX()
@@ -861,4 +931,9 @@ float Doors::GetY()
 float Doors::GetZ()
 {
 	return m_position.z;
+}
+
+float Doors::GetHeading()
+{
+	return m_position.w;
 }

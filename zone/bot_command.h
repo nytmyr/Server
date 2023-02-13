@@ -20,8 +20,6 @@
 #ifndef BOT_COMMAND_H
 #define BOT_COMMAND_H
 
-#ifdef BOTS
-
 class Client;
 class Seperator;
 
@@ -554,7 +552,6 @@ void bot_command_deinit(void);
 int bot_command_add(std::string bot_command_name, const char *desc, int access, BotCmdFuncPtr function);
 int bot_command_not_avail(Client *c, const char *message);
 int bot_command_real_dispatch(Client *c, char const *message);
-void bot_command_log_command(Client *c, const char *message);
 
 // Bot Commands
 void bot_command_actionable(Client *c, const Seperator *sep);
@@ -782,5 +779,3 @@ void helper_send_usage_required_bots(Client *bot_owner, BCEnum::SpType spell_typ
 bool helper_spell_check_fail(STBaseEntry* local_entry);
 bool helper_spell_list_fail(Client *bot_owner, bcst_list* spell_list, BCEnum::SpType spell_type);
 #endif
-
-#endif // BOTS

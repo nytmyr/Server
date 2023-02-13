@@ -117,8 +117,8 @@ public:
 	//abstract virtual function implementations requird by base abstract class
 	virtual bool Death(Mob* killerMob, int64 damage, uint16 spell_id, EQ::skills::SkillType attack_skill);
 	virtual void Damage(Mob* from, int64 damage, uint16 spell_id, EQ::skills::SkillType attack_skill, bool avoidable = true, int8 buffslot = -1, bool iBuffTic = false, eSpecialAttacks special = eSpecialAttacks::None);
-	virtual bool Attack(Mob* other, int Hand = EQ::invslot::slotPrimary, bool FromRiposte = false, bool IsStrikethrough = false,
-		bool IsFromSpell = false, ExtraAttackOptions *opts = nullptr);
+	bool Attack(Mob* other, int Hand = EQ::invslot::slotPrimary, bool FromRiposte = false, bool IsStrikethrough = false,
+		bool IsFromSpell = false, ExtraAttackOptions *opts = nullptr) override;
 	virtual bool HasRaid() { return false; }
 	virtual bool HasGroup() { return false; }
 	virtual Raid* GetRaid() { return 0; }
@@ -413,22 +413,22 @@ public:
 	void	ModifyNPCStat(std::string stat, std::string value);
 	virtual void SetLevel(uint8 in_level, bool command = false);
 
-	bool IsLDoNTrapped() const { return (ldon_trapped); }
+	bool IsLDoNTrapped() const { return ldon_trapped; }
 	void SetLDoNTrapped(bool n) { ldon_trapped = n; }
 
-	uint8 GetLDoNTrapType() const { return (ldon_trap_type); }
+	uint8 GetLDoNTrapType() const { return ldon_trap_type; }
 	void SetLDoNTrapType(uint8 n) { ldon_trap_type = n; }
 
-	uint16 GetLDoNTrapSpellID() const { return (ldon_spell_id); }
+	uint16 GetLDoNTrapSpellID() const { return ldon_spell_id; }
 	void SetLDoNTrapSpellID(uint16 n) { ldon_spell_id = n; }
 
-	bool IsLDoNLocked() const { return (ldon_locked); }
+	bool IsLDoNLocked() const { return ldon_locked; }
 	void SetLDoNLocked(bool n) { ldon_locked = n; }
 
-	uint16 GetLDoNLockedSkill() const { return (ldon_locked_skill); }
+	uint16 GetLDoNLockedSkill() const { return ldon_locked_skill; }
 	void SetLDoNLockedSkill(uint16 n) { ldon_locked_skill = n; }
 
-	bool IsLDoNTrapDetected() const { return (ldon_trap_detected); }
+	bool IsLDoNTrapDetected() const { return ldon_trap_detected; }
 	void SetLDoNTrapDetected(bool n) { ldon_trap_detected = n; }
 
 	const bool GetCombatEvent() const { return combat_event; }
@@ -437,7 +437,7 @@ public:
 	/* Only allows players that killed corpse to loot */
 	const bool HasPrivateCorpse() const { return NPCTypedata_ours ? NPCTypedata_ours->private_corpse : NPCTypedata->private_corpse; }
 
-	virtual const bool IsUnderwaterOnly() const { return NPCTypedata_ours ? NPCTypedata_ours->underwater : NPCTypedata->underwater; }
+	virtual const bool IsUnderwaterOnly() const { return m_is_underwater_only; }
 	const char* GetRawNPCTypeName() const { return NPCTypedata_ours ? NPCTypedata_ours->name : NPCTypedata->name; }
 
 	virtual int GetKillExpMod() const { return NPCTypedata_ours ? NPCTypedata_ours->exp_mod : NPCTypedata->exp_mod; }
@@ -477,10 +477,6 @@ public:
 
 	uint32	GetSpawnKillCount();
 	int	GetScore();
-	void	mod_prespawn(Spawn2 *sp);
-	int	mod_npc_damage(int64 damage, EQ::skills::SkillType skillinuse, int hand, const EQ::ItemData* weapon, Mob* other);
-	void	mod_npc_killed_merit(Mob* c);
-	void	mod_npc_killed(Mob* oos);
 	void	AISpellsList(Client *c);
 	uint16 GetInnateProcSpellID() const { return innate_proc_spell_id; }
 
@@ -531,10 +527,12 @@ public:
 
 	inline bool IsSkipAutoScale() const { return skip_auto_scale; }
 
-	void ScaleNPC(uint8 npc_level);
+	void ScaleNPC(uint8 npc_level, bool always_scale = false, bool override_special_abilities = false);
 
 	void RecalculateSkills();
 	void ReloadSpells();
+
+	void SendPositionToClients();
 
 	static LootDropEntries_Struct NewLootDropEntry();
 
@@ -672,6 +670,8 @@ protected:
 	bool ldon_trap_detected;
 	QGlobalCache *qGlobals;
 	uint32 adventure_template_id;
+
+	bool m_is_underwater_only = false;
 
 	//mercenary stuff
 	std::list<MercType> mercTypeList;

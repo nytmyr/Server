@@ -86,7 +86,9 @@ class Strings {
 public:
 	static bool Contains(std::vector<std::string> container, std::string element);
 	static bool Contains(const std::string& subject, const std::string& search);
+	static int  ToInt(const std::string &s, int fallback = 0);
 	static bool IsNumber(const std::string &s);
+	static std::string RemoveNumbers(std::string s);
 	static bool IsFloat(const std::string &s);
 	static const std::string ToLower(std::string s);
 	static const std::string ToUpper(std::string s);
@@ -95,11 +97,18 @@ public:
 	static std::string &RTrim(std::string &str, const std::string &chars = "\t\n\v\f\r ");
 	static std::string &Trim(std::string &str, const std::string &chars = "\t\n\v\f\r ");
 	static std::string Commify(const std::string &number);
+	static std::string Commify(uint16 number) { return Strings::Commify(std::to_string(number)); };
+	static std::string Commify(uint32 number) { return Strings::Commify(std::to_string(number)); };
+	static std::string Commify(uint64 number) { return Strings::Commify(std::to_string(number)); };
+	static std::string Commify(int16 number) { return Strings::Commify(std::to_string(number)); };
+	static std::string Commify(int32 number) { return Strings::Commify(std::to_string(number)); };
+	static std::string Commify(int64 number) { return Strings::Commify(std::to_string(number)); };
 	static std::string ConvertToDigit(int n, std::string suffix);
 	static std::string Escape(const std::string &s);
 	static std::string GetBetween(const std::string &s, std::string start_delim, std::string stop_delim);
 	static std::string Implode(std::string glue, std::vector<std::string> src);
 	static std::string Join(const std::vector<std::string> &ar, const std::string &delim);
+	static std::string Join(const std::vector<uint32_t> &ar, const std::string &delim);
 	static std::string MillisecondsToTime(int duration);
 	static std::string Money(uint32 platinum, uint32 gold = 0, uint32 silver = 0, uint32 copper = 0);
 	static std::string NumberToWords(unsigned long long int n);

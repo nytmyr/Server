@@ -165,10 +165,12 @@ void NPC::ResumeWandering()
 
 		if (m_CurrentWayPoint.x == GetX() && m_CurrentWayPoint.y == GetY())
 		{	// are we we at a waypoint? if so, trigger event and start to next
-			std::string export_string = fmt::format("{}", cur_wp);
 			CalculateNewWaypoint();
 			SetAppearance(eaStanding, false);
-			parse->EventNPC(EVENT_WAYPOINT_DEPART, this, nullptr, export_string, 0);
+
+			if (parse->HasQuestSub(GetNPCTypeID(), EVENT_WAYPOINT_DEPART)) {
+				parse->EventNPC(EVENT_WAYPOINT_DEPART, this, nullptr, std::to_string(cur_wp), 0);
+			}
 		}	// if not currently at a waypoint, we continue on to the one we were headed to before the stop
 	}
 	else
@@ -239,7 +241,7 @@ void NPC::MoveTo(const glm::vec4 &position, bool saveguardspot)
 		if (m_GuardPoint.w == -1)
 			m_GuardPoint.w = CalculateHeadingToTarget(position.x, position.y);
 
-		LogAIModerate("Setting guard position to [{}]", to_string(static_cast<glm::vec3>(m_GuardPoint)).c_str());
+		LogAIDetail("Setting guard position to [{}]", to_string(static_cast<glm::vec3>(m_GuardPoint)).c_str());
 	}
 
 	cur_wp_pause        = 0;
@@ -261,7 +263,7 @@ void NPC::UpdateWaypoint(int wp_index)
 
 	m_CurrentWayPoint = glm::vec4(cur->x, cur->y, cur->z, cur->heading);
 	cur_wp_pause = cur->pause;
-	LogAIModerate("Next waypoint [{}]: ({}, {}, {}, {})", wp_index, m_CurrentWayPoint.x, m_CurrentWayPoint.y, m_CurrentWayPoint.z, m_CurrentWayPoint.w);
+	LogAIDetail("Next waypoint [{}]: ({}, {}, {}, {})", wp_index, m_CurrentWayPoint.x, m_CurrentWayPoint.y, m_CurrentWayPoint.z, m_CurrentWayPoint.w);
 
 }
 
@@ -559,7 +561,7 @@ void NPC::SetWaypointPause()
 
 void NPC::SaveGuardSpot(bool ClearGuardSpot) {
 	if (ClearGuardSpot) {
-		LogAIModerate("Clearing guard order.");
+		LogAIDetail("Clearing guard order.");
 		m_GuardPoint = glm::vec4();
 	} else {
 		m_GuardPoint = m_Position;
@@ -728,7 +730,7 @@ void Mob::SendTo(float new_x, float new_y, float new_z) {
 
 			float newz = zone->zonemap->FindBestZ(dest, nullptr);
 
-			LogAIModerate("BestZ returned {} at {}, {}, {}", newz, m_Position.x, m_Position.y, m_Position.z);
+			LogAIDetail("BestZ returned {} at {}, {}, {}", newz, m_Position.x, m_Position.y, m_Position.z);
 
 			if ((newz > -2000) && std::abs(newz - dest.z) < RuleR(Map, FixPathingZMaxDeltaSendTo)) // Sanity check.
 				m_Position.z = newz + 1;
@@ -771,17 +773,15 @@ float Mob::GetFixedZ(const glm::vec3 &destination, int32 z_find_offset) {
 	float new_z = destination.z;
 
 	if (zone->HasMap()) {
-
-		if (flymode == GravityBehavior::Flying)
+		if (flymode == GravityBehavior::Flying) {
 			return new_z;
+		}
 
-		if (zone->HasWaterMap() && zone->watermap->InLiquid(glm::vec3(m_Position)))
+		if (zone->HasWaterMap() && zone->watermap->InLiquid(glm::vec3(m_Position))) {
 			return new_z;
+		}
 
-		/*
-		 * Any more than 5 in the offset makes NPC's hop/snap to ceiling in small corridors
-		 */
-		new_z = FindDestGroundZ(destination, z_find_offset);
+		new_z = FindDestGroundZ(destination, (-GetZOffset() / 2));
 		if (new_z != BEST_Z_INVALID) {
 			new_z += GetZOffset();
 
@@ -790,9 +790,23 @@ float Mob::GetFixedZ(const glm::vec3 &destination, int32 z_find_offset) {
 			}
 		}
 
+		// prevent ceiling clipping
+		// if client is close in distance (not counting Z) and we clipped up into a ceiling
+		// this helps us snap back down (or up) if it were to happen
+		// other fixes were put in place to prevent clipping into the ceiling to begin with
+		if (std::abs(new_z - m_Position.z) > 15) {
+			LogFixZ("TRIGGER clipping detection");
+			auto t = GetTarget();
+			if (t && DistanceNoZ(GetPosition(), t->GetPosition()) < 20) {
+				new_z = FindDestGroundZ(t->GetPosition(), -t->GetZOffset());
+				new_z += GetZOffset();
+				GMMove(t->GetPosition().x, t->GetPosition().y, new_z, t->GetPosition().w);
+			}
+		}
+
 		auto duration = timer.elapsed();
 
-		LogFixZ("Mob::GetFixedZ() ([{}]) returned [{}] at [{}], [{}], [{}] - Took [{}]",
+		LogFixZ("[{}] returned [{}] at [{}] [{}] [{}] - Took [{}]",
 			GetCleanName(),
 			new_z,
 			destination.x,
@@ -833,6 +847,10 @@ void Mob::FixZ(int32 z_find_offset /*= 5*/, bool fix_client_z /*= false*/) {
 		}
 
 		m_Position.z = new_z;
+
+		if (RuleB(Map, MobPathingVisualDebug)) {
+			DrawDebugCoordinateNode(fmt::format("{} new fixed z node", GetCleanName()), GetPosition());
+		}
 	}
 	else {
 		if (RuleB(Map, MobZVisualDebug)) {
@@ -928,6 +946,7 @@ float Mob::GetZOffset() const {
 		case RACE_RABBIT_668:
 			offset = 5.0f;
 			break;
+		case RACE_WURM_158:
 		case RACE_BLIND_DREAMER_669:
 			offset = 7.0f;
 			break;
@@ -1330,7 +1349,6 @@ void NPC::RestoreGuardSpotCharm()
 /******************
 * Bot-specific overloads to make them play nice with the new movement system
 */
-#ifdef BOTS
 #include "bot.h"
 
 void Bot::WalkTo(float x, float y, float z)
@@ -1348,4 +1366,3 @@ void Bot::RunTo(float x, float y, float z)
 
 	Mob::RunTo(x, y, z);
 }
-#endif

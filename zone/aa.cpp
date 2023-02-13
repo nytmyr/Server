@@ -23,6 +23,7 @@ Copyright (C) 2001-2016 EQEMu Development Team (http://eqemulator.net)
 #include "../common/races.h"
 #include "../common/spdat.h"
 #include "../common/strings.h"
+#include "../common/events/player_event_logs.h"
 #include "aa.h"
 #include "client.h"
 #include "corpse.h"
@@ -35,11 +36,11 @@ Copyright (C) 2001-2016 EQEMu Development Team (http://eqemulator.net)
 #include "titles.h"
 #include "zonedb.h"
 #include "../common/zone_store.h"
+#include "worldserver.h"
 
-#ifdef BOTS
 #include "bot.h"
-#endif
 
+extern WorldServer worldserver;
 extern QueryServ* QServ;
 
 void Mob::TemporaryPets(uint16 spell_id, Mob *targ, const char *name_override, uint32 duration_override, bool followme, bool sticktarg, uint16 *eye_id) {
@@ -55,9 +56,11 @@ void Mob::TemporaryPets(uint16 spell_id, Mob *targ, const char *name_override, u
 	// yep, even these need pet power!
 	int act_power = 0;
 
-	if (IsClient()) {
-		act_power = CastToClient()->GetFocusEffect(focusPetPower, spell_id);
-		act_power = CastToClient()->mod_pet_power(act_power, spell_id);
+	if (IsOfClientBot()) {
+		act_power = GetFocusEffect(focusPetPower, spell_id);
+		if (IsClient()) {
+			act_power = CastToClient()->GetFocusEffect(focusPetPower, spell_id);
+		}
 	}
 
 	PetRecord record;
@@ -298,15 +301,6 @@ void Mob::WakeTheDead(uint16 spell_id, Corpse *corpse_to_use, Mob *target, uint3
 	if (!corpse_to_use) {
 		return;
 	}
-
-	/* TODO: Does WTD use pet focus?
-	int act_power = 0;
-
-	if (IsClient()) {
-		act_power = CastToClient()->GetFocusEffect(focusPetPower, spell_id);
-		act_power = CastToClient()->mod_pet_power(act_power, spell_id);
-	}
-	*/
 
 	SwarmPet_Struct pet;
 	pet.count = 1;
@@ -1180,6 +1174,17 @@ void Client::FinishAlternateAdvancementPurchase(AA::Rank *rank, bool ignore_cost
 	SendAlternateAdvancementPoints();
 	SendAlternateAdvancementStats();
 
+	if (player_event_logs.IsEventEnabled(PlayerEvent::AA_PURCHASE)) {
+		auto e = PlayerEvent::AAPurchasedEvent{
+			.aa_id = rank->id,
+			.aa_cost = cost,
+			.aa_previous_id = rank->prev_id,
+			.aa_next_id = rank->next_id
+		};
+
+		RecordPlayerEventLog(PlayerEvent::AA_PURCHASE, e);
+	}
+
 	if (rank->prev) {
 		MessageString(
 			Chat::Yellow,
@@ -1225,15 +1230,17 @@ void Client::FinishAlternateAdvancementPurchase(AA::Rank *rank, bool ignore_cost
 		}
 	}
 
-	const auto export_string = fmt::format(
-		"{} {} {} {}",
-		cost,
-		rank->id,
-		rank->prev_id,
-		rank->next_id
-	);
+	if (parse->PlayerHasQuestSub(EVENT_AA_BUY)) {
+		const auto& export_string = fmt::format(
+			"{} {} {} {}",
+			cost,
+			rank->id,
+			rank->prev_id,
+			rank->next_id
+		);
 
-	parse->EventPlayer(EVENT_AA_BUY, this, export_string, 0);
+		parse->EventPlayer(EVENT_AA_BUY, this, export_string, 0);
+	}
 
 	CalcBonuses();
 
@@ -1596,13 +1603,11 @@ bool Mob::CanUseAlternateAdvancementRank(AA::Rank *rank) {
 			return false;
 		}
 	}
-#ifdef BOTS
 	else if (IsBot()) {
 		if (rank->expansion && !(CastToBot()->GetExpansionBitmask() & (1 << (rank->expansion - 1)))) {
 			return false;
 		}
 	}
-#endif
 	else {
 		if (rank->expansion && !(RuleI(World, ExpansionSettings) & (1 << (rank->expansion - 1)))) {
 			return false;
@@ -1700,7 +1705,6 @@ bool Mob::CanPurchaseAlternateAdvancementRank(AA::Rank *rank, bool check_price, 
 }
 
 void Zone::LoadAlternateAdvancement() {
-	LogInfo("Loading Alternate Advancement Data");
 	if(!content_db.LoadAlternateAdvancementAbilities(aa_abilities,
 		aa_ranks))
 	{
@@ -1710,7 +1714,6 @@ void Zone::LoadAlternateAdvancement() {
 		return;
 	}
 
-	LogInfo("Processing Alternate Advancement Data");
 	for(const auto &ability : aa_abilities) {
 		ability.second->first = GetAlternateAdvancementRank(ability.second->first_rank_id);
 
@@ -1760,14 +1763,11 @@ void Zone::LoadAlternateAdvancement() {
 			current = current->next;
 		}
 	}
-
-	LogInfo("Loaded Alternate Advancement Data");
 }
 
 bool ZoneDatabase::LoadAlternateAdvancementAbilities(std::unordered_map<int, std::unique_ptr<AA::Ability>> &abilities,
 													std::unordered_map<int, std::unique_ptr<AA::Rank>> &ranks)
 {
-	LogInfo("Loading Alternate Advancement Abilities");
 	abilities.clear();
 	std::string query = "SELECT id, name, category, classes, races, deities, drakkin_heritage, status, type, charges, "
 		"grant_only, reset_on_death, first_rank_id FROM aa_ability WHERE enabled = 1";
@@ -1798,11 +1798,10 @@ bool ZoneDatabase::LoadAlternateAdvancementAbilities(std::unordered_map<int, std
 		return false;
 	}
 
-	LogInfo("Loaded [{}] Alternate Advancement Abilities", (int)abilities.size());
+	LogInfo("Loaded [{}] Alternate Advancement Abilities", Strings::Commify((int)abilities.size()));
 	int expansion = RuleI(Expansion, CurrentExpansion);
 	bool use_expansion_aa = RuleB(Expansion, UseCurrentExpansionAAOnly);
 
-	LogInfo("Loading Alternate Advancement Ability Ranks");
 	ranks.clear();
 	if (use_expansion_aa && expansion >= 0) {
 		query = fmt::format("SELECT id, upper_hotkey_sid, lower_hotkey_sid, title_sid, desc_sid, cost, level_req, spell, spell_type, recast_time, "
@@ -1840,9 +1839,8 @@ bool ZoneDatabase::LoadAlternateAdvancementAbilities(std::unordered_map<int, std
 		return false;
 	}
 
-	LogInfo("Loaded [{}] Alternate Advancement Ability Ranks", (int)ranks.size());
+	LogInfo("Loaded [{}] Alternate Advancement Ability Ranks", Strings::Commify((int)ranks.size()));
 
-	LogInfo("Loading Alternate Advancement Ability Rank Effects");
 	query = "SELECT rank_id, slot, effect_id, base1, base2 FROM aa_rank_effects";
 	results = QueryDatabase(query);
 	if(results.Success()) {
@@ -1867,9 +1865,8 @@ bool ZoneDatabase::LoadAlternateAdvancementAbilities(std::unordered_map<int, std
 		return false;
 	}
 
-	LogInfo("Loaded Alternate Advancement Ability Rank Effects");
+	LogInfo("Loaded [{}] Alternate Advancement Ability Rank Effects", Strings::Commify(results.RowCount()));
 
-	LogInfo("Loading Alternate Advancement Ability Rank Prereqs");
 	query = "SELECT rank_id, aa_id, points FROM aa_rank_prereqs";
 	results = QueryDatabase(query);
 	if(results.Success()) {
@@ -1892,7 +1889,7 @@ bool ZoneDatabase::LoadAlternateAdvancementAbilities(std::unordered_map<int, std
 		return false;
 	}
 
-	LogInfo("Loaded Alternate Advancement Ability Rank Prereqs");
+	LogInfo("Loaded [{}] Alternate Advancement Ability Rank Prereqs", Strings::Commify(results.RowCount()));
 
 	return true;
 }

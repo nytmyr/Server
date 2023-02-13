@@ -43,9 +43,7 @@
 #include "water_map.h"
 #include "npc_scale_manager.h"
 
-#ifdef BOTS
 #include "bot.h"
-#endif
 
 #include <cctype>
 #include <stdio.h>
@@ -163,42 +161,43 @@ NPC::NPC(const NPCType *npc_type_data, Spawn2 *in_respawn, const glm::vec4 &posi
 		size = 5;
 	}
 
-	taunting       = false;
-	proximity      = nullptr;
-	copper         = 0;
-	silver         = 0;
-	gold           = 0;
-	platinum       = 0;
-	max_dmg        = npc_type_data->max_dmg;
-	min_dmg        = npc_type_data->min_dmg;
-	attack_count   = npc_type_data->attack_count;
-	grid           = 0;
-	wp_m           = 0;
-	max_wp         = 0;
-	save_wp        = 0;
-	spawn_group_id = 0;
-	swarmInfoPtr   = nullptr;
-	spellscale     = npc_type_data->spellscale;
-	healscale      = npc_type_data->healscale;
-	pAggroRange    = npc_type_data->aggroradius;
-	pAssistRange   = npc_type_data->assistradius;
-	findable       = npc_type_data->findable;
-	trackable      = npc_type_data->trackable;
-	MR             = npc_type_data->MR;
-	CR             = npc_type_data->CR;
-	DR             = npc_type_data->DR;
-	FR             = npc_type_data->FR;
-	PR             = npc_type_data->PR;
-	Corrup         = npc_type_data->Corrup;
-	PhR          = npc_type_data->PhR;
-	STR          = npc_type_data->STR;
-	STA          = npc_type_data->STA;
-	AGI          = npc_type_data->AGI;
-	DEX          = npc_type_data->DEX;
-	INT          = npc_type_data->INT;
-	WIS          = npc_type_data->WIS;
-	CHA          = npc_type_data->CHA;
-	npc_mana     = npc_type_data->Mana;
+	taunting             = false;
+	proximity            = nullptr;
+	copper               = 0;
+	silver               = 0;
+	gold                 = 0;
+	platinum             = 0;
+	max_dmg              = npc_type_data->max_dmg;
+	min_dmg              = npc_type_data->min_dmg;
+	attack_count         = npc_type_data->attack_count;
+	grid                 = 0;
+	wp_m                 = 0;
+	max_wp               = 0;
+	save_wp              = 0;
+	spawn_group_id       = 0;
+	swarmInfoPtr         = nullptr;
+	spellscale           = npc_type_data->spellscale;
+	healscale            = npc_type_data->healscale;
+	pAggroRange          = npc_type_data->aggroradius;
+	pAssistRange         = npc_type_data->assistradius;
+	findable             = npc_type_data->findable;
+	trackable            = npc_type_data->trackable;
+	MR                   = npc_type_data->MR;
+	CR                   = npc_type_data->CR;
+	DR                   = npc_type_data->DR;
+	FR                   = npc_type_data->FR;
+	PR                   = npc_type_data->PR;
+	Corrup               = npc_type_data->Corrup;
+	PhR                  = npc_type_data->PhR;
+	STR                  = npc_type_data->STR;
+	STA                  = npc_type_data->STA;
+	AGI                  = npc_type_data->AGI;
+	DEX                  = npc_type_data->DEX;
+	INT                  = npc_type_data->INT;
+	WIS                  = npc_type_data->WIS;
+	CHA                  = npc_type_data->CHA;
+	npc_mana             = npc_type_data->Mana;
+	m_is_underwater_only = npc_type_data->underwater;
 
 	//quick fix of ordering if they screwed it up in the DB
 	if (max_dmg < min_dmg) {
@@ -321,11 +320,9 @@ NPC::NPC(const NPCType *npc_type_data, Spawn2 *in_respawn, const glm::vec4 &posi
 	if (!EQ::ValueWithin(npc_type_data->npc_spells_id, EQ::constants::BotSpellIDs::Warrior, EQ::constants::BotSpellIDs::Berserker)) {
 		AI_Init();
 		AI_Start();
-#ifdef BOTS
 	} else {
 		CastToBot()->AI_Bot_Init();
 		CastToBot()->AI_Bot_Start();
-#endif
 	}
 
 	d_melee_texture1 = npc_type_data->d_melee_texture1;
@@ -376,16 +373,16 @@ NPC::NPC(const NPCType *npc_type_data, Spawn2 *in_respawn, const glm::vec4 &posi
 		}
 	}
 
-	ldon_trapped       = false;
-	ldon_trap_type     = 0;
-	ldon_spell_id      = 0;
-	ldon_locked        = false;
-	ldon_locked_skill  = 0;
-	ldon_trap_detected = false;
+	SetLDoNTrapped(false);
+	SetLDoNTrapType(0);
+	SetLDoNTrapSpellID(0);
+	SetLDoNLocked(false);
+	SetLDoNLockedSkill(0);
+	SetLDoNTrapDetected(false);
 
 	if (npc_type_data->trap_template > 0) {
 		std::map<uint32, std::list<LDoNTrapTemplate *> >::iterator trap_ent_iter;
-		std::list<LDoNTrapTemplate *>                              trap_list;
+		std::list<LDoNTrapTemplate *> trap_list;
 
 		trap_ent_iter = zone->ldon_trap_entry_list.find(npc_type_data->trap_template);
 		if (trap_ent_iter != zone->ldon_trap_entry_list.end()) {
@@ -395,26 +392,25 @@ NPC::NPC(const NPCType *npc_type_data, Spawn2 *in_respawn, const glm::vec4 &posi
 				std::advance(trap_list_iter, zone->random.Int(0, trap_list.size() - 1));
 				LDoNTrapTemplate *trap_template = (*trap_list_iter);
 				if (trap_template) {
-					if ((uint8) trap_template->spell_id > 0) {
-						ldon_trapped  = true;
-						ldon_spell_id = trap_template->spell_id;
-					}
-					else {
-						ldon_trapped  = false;
-						ldon_spell_id = 0;
+					if (trap_template->spell_id > 0) {
+						SetLDoNTrapped(true);
+						SetLDoNTrapSpellID(trap_template->spell_id);
+					} else {
+						SetLDoNTrapped(false);
+						SetLDoNTrapSpellID(0);
 					}
 
-					ldon_trap_type     = (uint8) trap_template->type;
+					SetLDoNTrapType(static_cast<uint8>(trap_template->type));
+
 					if (trap_template->locked > 0) {
-						ldon_locked       = true;
-						ldon_locked_skill = trap_template->skill;
-					}
-					else {
-						ldon_locked       = false;
-						ldon_locked_skill = 0;
+						SetLDoNLocked(true);
+						SetLDoNLockedSkill(trap_template->skill);
+					} else {
+						SetLDoNLocked(false);
+						SetLDoNLockedSkill(0);
 					}
 
-					ldon_trap_detected = 0;
+					SetLDoNTrapDetected(false);
 				}
 			}
 		}
@@ -903,7 +899,10 @@ bool NPC::Process()
 	}
 
 	if (tic_timer.Check()) {
-		parse->EventNPC(EVENT_TICK, this, nullptr, "", 0);
+		if (parse->HasQuestSub(GetNPCTypeID(), EVENT_TICK)) {
+			parse->EventNPC(EVENT_TICK, this, nullptr, "", 0);
+		}
+
 		BuffProcess();
 
 		if (currently_fleeing) {
@@ -1119,13 +1118,21 @@ void NPC::Depop(bool start_spawn_timer) {
 	}
 
 	if (IsNPC()) {
-		parse->EventNPC(EVENT_DESPAWN, this, nullptr, "", 0);
-		DispatchZoneControllerEvent(EVENT_DESPAWN_ZONE, this, "", 0, nullptr);
-#ifdef BOTS
+		if (parse->HasQuestSub(GetNPCTypeID(), EVENT_DESPAWN)) {
+			parse->EventNPC(EVENT_DESPAWN, this, nullptr, "", 0);
+		}
+
+		if (parse->HasQuestSub(ZONE_CONTROLLER_NPC_ID, EVENT_DESPAWN_ZONE)) {
+			DispatchZoneControllerEvent(EVENT_DESPAWN_ZONE, this, "", 0, nullptr);
+		}
 	} else if (IsBot()) {
-		parse->EventBot(EVENT_DESPAWN, CastToBot(), nullptr, "", 0);
-		DispatchZoneControllerEvent(EVENT_DESPAWN_ZONE, this, "", 0, nullptr);
-#endif
+		if (parse->BotHasQuestSub(EVENT_DESPAWN)) {
+			parse->EventBot(EVENT_DESPAWN, CastToBot(), nullptr, "", 0);
+		}
+
+		if (parse->HasQuestSub(ZONE_CONTROLLER_NPC_ID, EVENT_DESPAWN_ZONE)) {
+			DispatchZoneControllerEvent(EVENT_DESPAWN_ZONE, this, "", 0, nullptr);
+		}
 	}
 
 	p_depop = true;
@@ -1804,7 +1811,7 @@ int32 NPC::GetEquipmentMaterial(uint8 material_slot) const
 {
 	int32 texture_profile_material = GetTextureProfileMaterial(material_slot);
 
-	Log(Logs::Detail, Logs::MobAppearance, "NPC::GetEquipmentMaterial [%s] material_slot: %u",
+	Log(Logs::Detail, Logs::MobAppearance, "[%s] material_slot: %u",
 		clean_name,
 		material_slot
 	);
@@ -3063,8 +3070,11 @@ void NPC::SignalNPC(int _signal_id)
 
 void NPC::SendPayload(int payload_id, std::string payload_value)
 {
-	const auto export_string = fmt::format("{} {}", payload_id, payload_value);
-	parse->EventNPC(EVENT_PAYLOAD, this, nullptr, export_string, 0);
+	if (parse->HasQuestSub(GetNPCTypeID(), EVENT_PAYLOAD)) {
+		const auto& export_string = fmt::format("{} {}", payload_id, payload_value);
+
+		parse->EventNPC(EVENT_PAYLOAD, this, nullptr, export_string, 0);
+	}
 }
 
 NPC_Emote_Struct* NPC::GetNPCEmote(uint32 emoteid, uint8 event_) {
@@ -3699,7 +3709,7 @@ void NPC::ReloadSpells() {
 	AI_AddNPCSpellsEffects(GetNPCSpellsEffectsID());
 }
 
-void NPC::ScaleNPC(uint8 npc_level) {
+void NPC::ScaleNPC(uint8 npc_level, bool always_scale, bool override_special_abilities) {
 	if (GetLevel() != npc_level) {
 		SetLevel(npc_level);
 		RecalculateSkills();
@@ -3707,7 +3717,7 @@ void NPC::ScaleNPC(uint8 npc_level) {
 	}
 
 	npc_scale_manager->ResetNPCScaling(this);
-	npc_scale_manager->ScaleNPC(this);
+	npc_scale_manager->ScaleNPC(this, always_scale, override_special_abilities);
 }
 
 bool NPC::IsGuard()
@@ -3790,4 +3800,15 @@ int NPC::GetRolledItemCount(uint32 item_id)
 	}
 
 	return rolled_count;
+}
+
+void NPC::SendPositionToClients()
+{
+	auto      p  = new EQApplicationPacket(OP_ClientUpdate, sizeof(PlayerPositionUpdateServer_Struct));
+	auto      *s = (PlayerPositionUpdateServer_Struct *) p->pBuffer;
+	for (auto &c: entity_list.GetClientList()) {
+		MakeSpawnUpdate(s);
+		c.second->QueuePacket(p, false);
+	}
+	safe_delete(p);
 }

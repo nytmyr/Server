@@ -327,7 +327,7 @@ public:
 	 * @param log_category
 	 * @param message
 	 */
-	static void GMSayHookCallBackProcess(uint16 log_category, std::string message)
+	static void GMSayHookCallBackProcess(uint16 log_category, const char *func, std::string message)
 	{
 		// we don't want to loop up with chat messages
 		if (message.find("OP_SpecialMesg") != std::string::npos) {
@@ -372,7 +372,7 @@ public:
 				0,
 				AccountStatus::QuestTroupe,
 				LogSys.GetGMSayColorFromCategory(log_category),
-				message.c_str()
+				fmt::format("[{}] [{}] {}", Logs::LogCategoryName[log_category], func, message).c_str()
 			);
 		}
 	}
@@ -395,11 +395,6 @@ public:
 
 	double GetMaxMovementUpdateRange() const { return max_movement_update_range; }
 
-	/**
-	 * Modding hooks
-	 */
-	void mod_init();
-	void mod_repop();
 	void SetIsHotzone(bool is_hotzone);
 
 private:
@@ -420,7 +415,7 @@ private:
 	char      *long_name;
 	char      *map_name;
 	char      *short_name;
-	char      file_name[16];
+	char      file_name[32];
 	glm::vec4 m_safe_points;
 	glm::vec4 m_graveyard;
 	int       default_ruleset;

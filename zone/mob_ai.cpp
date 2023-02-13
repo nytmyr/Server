@@ -32,9 +32,7 @@
 #include "fastmath.h"
 #include "../common/data_verification.h"
 
-#ifdef BOTS
 #include "bot.h"
-#endif
 
 #include <glm/gtx/projection.hpp>
 #include <algorithm>
@@ -131,7 +129,7 @@ bool NPC::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes, bool bInnates
 				&& (AIspells[i].time_cancast + (zone->random.Int(0, 4) * 500)) <= Timer::GetCurrentTime() //break up the spelling casting over a period of time.
 				) {
 
-				LogAI("[Mob::AICastSpell] Casting: spellid [{}] tar [{}] dist2[[{}]]<=[{}] mana_cost[[{}]]<=[{}] cancast[[{}]]<=[{}] type [{}]",
+				LogAI("Casting: spellid [{}] tar [{}] dist2[[{}]]<=[{}] mana_cost[[{}]]<=[{}] cancast[[{}]]<=[{}] type [{}]",
 					AIspells[i].spellid, tar->GetName(), dist2, (spells[AIspells[i].spellid].range * spells[AIspells[i].spellid].range), mana_cost, GetMana(), AIspells[i].time_cancast, Timer::GetCurrentTime(), AIspells[i].type);
 
 				switch (AIspells[i].type) {
@@ -363,7 +361,7 @@ bool NPC::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes, bool bInnates
 				}
 			}
 			else {
-				LogAI("[Mob::AICastSpell] NotCasting: spellid [{}] tar [{}] dist2[[{}]]<=[{}] mana_cost[[{}]]<=[{}] cancast[[{}]]<=[{}] type [{}]",
+				LogAI("NotCasting: spellid [{}] tar [{}] dist2[[{}]]<=[{}] mana_cost[[{}]]<=[{}] cancast[[{}]]<=[{}] type [{}]",
 					AIspells[i].spellid, tar->GetName(), dist2, (spells[AIspells[i].spellid].range * spells[AIspells[i].spellid].range), mana_cost, GetMana(), AIspells[i].time_cancast, Timer::GetCurrentTime(), AIspells[i].type);
 			}
 		}
@@ -372,7 +370,7 @@ bool NPC::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes, bool bInnates
 }
 
 bool NPC::AIDoSpellCast(uint8 i, Mob* tar, int32 mana_cost, uint32* oDontDoAgainBefore) {
-	LogAI("[Mob::AIDoSpellCast] spellid [{}] tar [{}] mana [{}] Name [{}]", AIspells[i].spellid, tar->GetName(), mana_cost, spells[AIspells[i].spellid].name);
+	LogAI("spellid [{}] tar [{}] mana [{}] Name [{}]", AIspells[i].spellid, tar->GetName(), mana_cost, spells[AIspells[i].spellid].name);
 	casting_spell_AIindex = i;
 
 	return CastSpell(AIspells[i].spellid, tar->GetID(), EQ::spells::CastingSlot::Gem2, AIspells[i].manacost == -2 ? 0 : -1, mana_cost, oDontDoAgainBefore, -1, -1, 0, &(AIspells[i].resist_adjust));
@@ -1001,7 +999,13 @@ void Mob::AI_Process() {
 				}
 
 				if (door->GetTriggerDoorID() > 0) {
-					continue;
+					auto trigger_door = entity_list.GetDoorsByDoorID(door->GetTriggerDoorID());
+					if (trigger_door) {
+						if (Strings::RemoveNumbers(door->GetDoorName()) !=
+							Strings::RemoveNumbers(trigger_door->GetDoorName())) {
+							continue;
+						}
+					}
 				}
 
 				if (door->GetDoorParam() > 0) {
@@ -1119,14 +1123,12 @@ void Mob::AI_Process() {
 			return;
 		}
 
-#ifdef BOTS
 		if (IsPet() && GetOwner() && GetOwner()->IsBot() && target == GetOwner())
 		{
 			// this blocks all pet attacks against owner..bot pet test (copied above check)
 			RemoveFromHateList(this);
 			return;
 		}
-#endif //BOTS
 
 		if (DivineAura())
 			return;
@@ -1751,9 +1753,10 @@ void NPC::AI_DoMovement() {
 						RotateTo(m_CurrentWayPoint.w);
 					}
 
-					//kick off event_waypoint arrive
-					std::string export_string = fmt::format("{}", cur_wp);
-					parse->EventNPC(EVENT_WAYPOINT_ARRIVE, CastToNPC(), nullptr, export_string, 0);
+					if (parse->HasQuestSub(GetNPCTypeID(), EVENT_WAYPOINT_ARRIVE)) {
+						parse->EventNPC(EVENT_WAYPOINT_ARRIVE, CastToNPC(), nullptr, std::to_string(cur_wp), 0);
+					}
+
 					// No need to move as we are there.  Next loop will
 					// take care of normal grids, even at pause 0.
 					// We do need to call and setup a wp if we're cur_wp=-2
@@ -1869,9 +1872,9 @@ void NPC::AI_SetupNextWaypoint() {
 		entity_list.OpenDoorsNear(this);
 
 		if (!DistractedFromGrid) {
-			//kick off event_waypoint depart
-			std::string export_string = fmt::format("{}", cur_wp);
-			parse->EventNPC(EVENT_WAYPOINT_DEPART, CastToNPC(), nullptr, export_string, 0);
+			if (parse->HasQuestSub(GetNPCTypeID(), EVENT_WAYPOINT_DEPART)) {
+				parse->EventNPC(EVENT_WAYPOINT_DEPART, CastToNPC(), nullptr, std::to_string(cur_wp), 0);
+			}
 
 			//setup our next waypoint, if we are still on our normal grid
 			//remember that the quest event above could have done anything it wanted with our grid
@@ -1920,25 +1923,28 @@ void Mob::AI_Event_Engaged(Mob *attacker, bool yell_for_help)
 			//if the target dies before it goes off
 			if (attacker->GetHP() > 0) {
 				if (!CastToNPC()->GetCombatEvent() && GetHP() > 0) {
-					parse->EventNPC(EVENT_COMBAT, CastToNPC(), attacker, "1", 0);
+					if (parse->HasQuestSub(GetNPCTypeID(), EVENT_COMBAT)) {
+						parse->EventNPC(EVENT_COMBAT, CastToNPC(), attacker, "1", 0);
+					}
+
 					auto emote_id = GetEmoteID();
 					if (emote_id) {
 						CastToNPC()->DoNPCEmote(EQ::constants::EmoteEventTypes::EnterCombat, emoteid);
 					}
 
 					std::string mob_name = GetCleanName();
-					combat_record.Start(mob_name);
+					m_combat_record.Start(mob_name);
 					CastToNPC()->SetCombatEvent(true);
 				}
 			}
 		}
 	}
 
-#ifdef BOTS
 	if (IsBot()) {
-		parse->EventBot(EVENT_COMBAT, CastToBot(), attacker, "1", 0);
+		if (parse->BotHasQuestSub(EVENT_COMBAT)) {
+			parse->EventBot(EVENT_COMBAT, CastToBot(), attacker, "1", 0);
+		}
 	}
-#endif
 }
 
 // Note: Hate list may not be actually clear until after this function call completes
@@ -1965,19 +1971,23 @@ void Mob::AI_Event_NoLongerEngaged() {
 		if (CastToNPC()->GetCombatEvent() && GetHP() > 0) {
 			if (entity_list.GetNPCByID(GetID())) {
 				auto emote_id = CastToNPC()->GetEmoteID();
-				parse->EventNPC(EVENT_COMBAT, CastToNPC(), nullptr, "0", 0);
+
+				if (parse->HasQuestSub(GetNPCTypeID(), EVENT_COMBAT)) {
+					parse->EventNPC(EVENT_COMBAT, CastToNPC(), nullptr, "0", 0);
+				}
+
 				if (emote_id) {
 					CastToNPC()->DoNPCEmote(EQ::constants::EmoteEventTypes::LeaveCombat, emoteid);
 				}
 
-				combat_record.Stop();
+				m_combat_record.Stop();
 				CastToNPC()->SetCombatEvent(false);
 			}
 		}
-#ifdef BOTS
 	} else if (IsBot()) {
-		parse->EventBot(EVENT_COMBAT, CastToBot(), nullptr, "0", 0);
-#endif
+		if (parse->BotHasQuestSub(EVENT_COMBAT)) {
+			parse->EventBot(EVENT_COMBAT, CastToBot(), nullptr, "0", 0);
+		}
 	}
 }
 
@@ -2062,7 +2072,7 @@ bool NPC::AI_IdleCastCheck() {
 				//last duration it was set to... try to put up a more reasonable timer...
 				AIautocastspell_timer->Start(RandomTimer(AISpellVar.idle_no_sp_recast_min, AISpellVar.idle_no_sp_recast_max), false);
 
-				LogSpells("[NPC::AI_IdleCastCheck] Mob [{}] Min [{}] Max [{}]", GetCleanName(), AISpellVar.idle_no_sp_recast_min, AISpellVar.idle_no_sp_recast_max);
+				LogSpells("Mob [{}] Min [{}] Max [{}]", GetCleanName(), AISpellVar.idle_no_sp_recast_min, AISpellVar.idle_no_sp_recast_max);
 
 			}	//else, spell casting finishing will reset the timer.
 		}	//else, spell casting finishing will reset the timer.
@@ -2471,8 +2481,10 @@ void NPC::CheckSignal() {
 	if (!signal_q.empty()) {
 		int signal_id = signal_q.front();
 		signal_q.pop_front();
-		const auto export_string = fmt::format("{}", signal_id);
-		parse->EventNPC(EVENT_SIGNAL, this, nullptr, export_string, 0);
+
+		if (parse->HasQuestSub(GetNPCTypeID(), EVENT_SIGNAL)) {
+			parse->EventNPC(EVENT_SIGNAL, this, nullptr, std::to_string(signal_id), 0);
+		}
 	}
 }
 

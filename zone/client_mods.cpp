@@ -27,9 +27,7 @@
 #include "client.h"
 #include "mob.h"
 
-#ifdef BOTS
-	#include "bot.h"
-#endif
+#include "bot.h"
 
 #include <algorithm>
 
@@ -581,7 +579,7 @@ int64 Client::CalcMaxMana()
 				break;
 			}
 		default: {
-				LogSpells("[Client::CalcMaxMana] Invalid Class [{}] in CalcMaxMana", GetCasterClass());
+				LogSpells("Invalid Class [{}] in CalcMaxMana", GetCasterClass());
 				max_mana = 0;
 				break;
 			}
@@ -599,7 +597,7 @@ int64 Client::CalcMaxMana()
 			current_mana = curMana_cap;
 		}
 	}
-	LogSpells("[Client::CalcMaxMana] for [{}] returning [{}]", GetName(), max_mana);
+	LogSpells("for [{}] returning [{}]", GetName(), max_mana);
 	return max_mana;
 }
 
@@ -1033,14 +1031,14 @@ int Client::CalcHaste()
 		h += spellbonuses.hastetype2 > 10 ? 10 : spellbonuses.hastetype2;
 	}
 	// 26+ no cap, 1-25 10
-	if (level > 25) { // 26+
+	if (level > 25 || RuleB(Character, IgnoreLevelBasedHasteCaps)) { // 26+
 		h += itembonuses.haste;
 	}
 	else {   // 1-25
 		h += itembonuses.haste > 10 ? 10 : itembonuses.haste;
 	}
 	// 60+ 100, 51-59 85, 1-50 level+25
-	if (level > 59) { // 60+
+	if (level > 59 || RuleB(Character, IgnoreLevelBasedHasteCaps)) { // 60+
 		cap = RuleI(Character, HasteCap);
 	}
 	else if (level > 50) {  // 51-59
@@ -1049,12 +1047,11 @@ int Client::CalcHaste()
 	else {   // 1-50
 		cap = level + 25;
 	}
-	cap = mod_client_haste_cap(cap);
 	if (h > cap) {
 		h = cap;
 	}
 	// 51+ 25 (despite there being higher spells...), 1-50 10
-	if (level > 50) { // 51+
+	if (level > 50 || RuleB(Character, IgnoreLevelBasedHasteCaps)) { // 51+
 		cap = RuleI(Character, Hastev3Cap);
 		if (spellbonuses.hastetype3 > cap) {
 			h += cap;
@@ -1066,7 +1063,6 @@ int Client::CalcHaste()
 		h += spellbonuses.hastetype3 > 10 ? 10 : spellbonuses.hastetype3;
 	}
 	h += ExtraHaste;	//GM granted haste.
-	h = mod_client_haste(h);
 	Haste = 100 + h;
 	return Haste;
 }
@@ -1663,7 +1659,7 @@ uint32 Mob::GetInstrumentMod(uint16 spell_id)
 		}
 	}
 
-	LogSpells("[Mob::GetInstrumentMod] Name [{}] spell [{}] mod [{}] modcap [{}]\n", GetName(), spell_id, effectmod, effectmodcap);
+	LogSpells("Name [{}] spell [{}] mod [{}] modcap [{}]\n", GetName(), spell_id, effectmod, effectmodcap);
 
 	return effectmod;
 }

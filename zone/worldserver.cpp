@@ -22,7 +22,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #include <stdio.h>
 #include <iomanip>
 #include <stdarg.h>
-#include <limits.h>
 
 #ifdef _WINDOWS
 #include <process.h>
@@ -54,11 +53,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #include "worldserver.h"
 #include "zone.h"
 #include "zone_config.h"
-#include "zone_reload.h"
 #include "../common/shared_tasks.h"
 #include "shared_task_zone_messaging.h"
 #include "dialogue_window.h"
+#include "bot_command.h"
 #include "queryserv.h"
+#include "../common/events/player_event_logs.h"
 
 extern EntityList entity_list;
 extern Zone* zone;
@@ -204,11 +204,11 @@ void WorldServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p)
 		ServerConnectInfo* sci = (ServerConnectInfo*)pack->pBuffer;
 
 		if (sci->port == 0) {
-			LogCritical("World did not have a port to assign from this server, the port range was not large enough.");
+			LogError("World did not have a port to assign from this server, the port range was not large enough.");
 			Shutdown();
 		}
 		else {
-			LogInfo("World assigned Port: [{}] for this zone", sci->port);
+			LogInfo("World assigned Port [{}] for this zone", sci->port);
 			ZoneConfig::SetZonePort(sci->port);
 
 			LogSys.SetDiscordHandler(&Zone::DiscordWebhookMessageHandler);
@@ -1906,6 +1906,7 @@ void WorldServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p)
 		if (zone && zone->IsLoaded()) {
 			zone->SendReloadMessage("Alternate Advancement Data");
 			zone->LoadAlternateAdvancement();
+			entity_list.SendAlternateAdvancementStats();
 		}
 		break;
 	}
@@ -1929,6 +1930,9 @@ void WorldServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p)
 	{
 		zone->SendReloadMessage("Commands");
 		command_init();
+		if (RuleB(Bots, Enabled) && database.DoesTableExist("bot_command_settings")) {
+			bot_command_init();
+		}
 		break;
 	}
 	case ServerOP_ReloadContentFlags:
@@ -1937,30 +1941,12 @@ void WorldServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p)
 		content_service.SetExpansionContext()->ReloadContentFlags();
 		break;
 	}
-	case ServerOP_ReloadDoors:
-	{
-		if (zone && zone->IsLoaded()) {
-			zone->SendReloadMessage("Doors");
-			entity_list.RemoveAllDoors();
-			zone->LoadZoneDoors();
-			entity_list.RespawnAllDoors();
-		}
-		break;
-	}
 	case ServerOP_ReloadDzTemplates:
 	{
 		if (zone)
 		{
 			zone->SendReloadMessage("Dynamic Zone Templates");
 			zone->LoadDynamicZoneTemplates();
-		}
-		break;
-	}
-	case ServerOP_ReloadGroundSpawns:
-	{
-		if (zone && zone->IsLoaded()) {
-			zone->SendReloadMessage("Ground Spawns");
-			zone->LoadGroundSpawns();
 		}
 		break;
 	}
@@ -1974,8 +1960,9 @@ void WorldServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p)
 	}
 	case ServerOP_ReloadLogs:
 	{
-			zone->SendReloadMessage("Log Settings");
-			LogSys.LoadLogDatabaseSettings();
+		zone->SendReloadMessage("Log Settings");
+		LogSys.LoadLogDatabaseSettings();
+		player_event_logs.ReloadSettings();
 		break;
 	}
 	case ServerOP_ReloadMerchants: {
@@ -1993,15 +1980,6 @@ void WorldServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p)
 		}
 		break;
 	}
-	case ServerOP_ReloadObjects:
-	{
-		if (zone && zone->IsLoaded()) {
-			zone->SendReloadMessage("Objects");
-			entity_list.RemoveAllObjects();
-			zone->LoadZoneObjects();
-		}
-		break;
-	}
 	case ServerOP_ReloadPerlExportSettings:
 	{
 		zone->SendReloadMessage("Perl Event Export Settings");
@@ -2014,6 +1992,9 @@ void WorldServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p)
 		RuleManager::Instance()->LoadRules(&database, RuleManager::Instance()->GetActiveRuleset(), true);
 		break;
 	}
+	case ServerOP_ReloadDoors:
+	case ServerOP_ReloadGroundSpawns:
+	case ServerOP_ReloadObjects:
 	case ServerOP_ReloadStaticZoneData: {
 		if (zone && zone->IsLoaded()) {
 			zone->SendReloadMessage("Static Zone Data");
@@ -3305,7 +3286,7 @@ void WorldServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p)
 		break;
 	}
 	default: {
-		LogInfo("[HandleMessage] Unknown ZS Opcode [{}] size [{}]", (int)pack->opcode, pack->size);
+		LogInfo("Unknown ZS Opcode [{}] size [{}]", (int)pack->opcode, pack->size);
 		break;
 	}
 	}
@@ -3450,7 +3431,7 @@ bool WorldServer::SendVoiceMacro(Client* From, uint32 Type, char* Target, uint32
 
 bool WorldServer::RezzPlayer(EQApplicationPacket* rpack, uint32 rezzexp, uint32 dbid, uint16 opcode)
 {
-	LogSpells("[WorldServer::RezzPlayer] rezzexp is [{}] (0 is normal for RezzComplete", rezzexp);
+	LogSpells("rezzexp is [{}] (0 is normal for RezzComplete", rezzexp);
 	auto pack = new ServerPacket(ServerOP_RezzPlayer, sizeof(RezzPlayer_Struct));
 	RezzPlayer_Struct* sem = (RezzPlayer_Struct*)pack->pBuffer;
 	sem->rezzopcode = opcode;
@@ -3459,9 +3440,9 @@ bool WorldServer::RezzPlayer(EQApplicationPacket* rpack, uint32 rezzexp, uint32 
 	sem->dbid = dbid;
 	bool ret = SendPacket(pack);
 	if (ret)
-		LogSpells("[WorldServer::RezzPlayer] Sending player rezz packet to world spellid:[{}]", sem->rez.spellid);
+		LogSpells("Sending player rezz packet to world spellid:[{}]", sem->rez.spellid);
 	else
-		LogSpells("[WorldServer::RezzPlayer] NOT Sending player rezz packet to world");
+		LogSpells("NOT Sending player rezz packet to world");
 
 	safe_delete(pack);
 	return ret;

@@ -16,8 +16,6 @@
 	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-#ifdef BOTS
-
 #include "bot.h"
 #include "object.h"
 #include "raids.h"
@@ -90,8 +88,6 @@ Bot::Bot(NPCType *npcTypeData, Client* botOwner) : NPC(npcTypeData, nullptr, glm
 
 	m_alt_combat_hate_timer.Start(250);
 	m_auto_defend_timer.Disable();
-	//m_combat_jitter_timer.Disable();
-	//SetCombatJitterFlag(false);
 	SetGuardFlag(false);
 	SetHoldFlag(false);
 	SetAttackFlag(false);
@@ -203,8 +199,6 @@ Bot::Bot(uint32 botID, uint32 botOwnerCharacterID, uint32 botSpellsID, double to
 
 	m_alt_combat_hate_timer.Start(250);
 	m_auto_defend_timer.Disable();
-	//m_combat_jitter_timer.Disable();
-	//SetCombatJitterFlag(false);
 	SetGuardFlag(false);
 	SetHoldFlag(false);
 	SetAttackFlag(false);
@@ -228,9 +222,6 @@ Bot::Bot(uint32 botID, uint32 botOwnerCharacterID, uint32 botSpellsID, double to
 	memset(&_botInspectMessage, 0, sizeof(InspectMessage_Struct));
 	if (!database.botdb.LoadInspectMessage(GetBotID(), _botInspectMessage) && bot_owner)
 		bot_owner->Message(Chat::White, "%s for '%s'", BotDatabase::fail::LoadInspectMessage(), GetCleanName());
-
-	if (!database.botdb.LoadGuildMembership(GetBotID(), _guildId, _guildRank, _guildName) && bot_owner)
-		bot_owner->Message(Chat::White, "%s for '%s'", BotDatabase::fail::LoadGuildMembership(), GetCleanName());
 
 	std::string error_message;
 
@@ -263,12 +254,13 @@ Bot::Bot(uint32 botID, uint32 botOwnerCharacterID, uint32 botSpellsID, double to
 
 	LoadAAs();
 
-	// copied from client CompleteConnect() handler - watch for problems
-	// (may have to move to post-spawn location if certain buffs still don't process correctly)
-	if (database.botdb.LoadBuffs(this) && bot_owner) {
-
+	if (!database.botdb.LoadBuffs(this)) {
+		if (bot_owner) {
+			bot_owner->Message(Chat::White, "&s for '%s'", BotDatabase::fail::LoadBuffs(), GetCleanName());
+		}
+	} else {
 		//reapply some buffs
-		uint32 buff_count = GetMaxTotalSlots();
+		uint32 buff_count = GetMaxBuffSlots();
 		for (uint32 j1 = 0; j1 < buff_count; j1++) {
 			if (!IsValidSpell(buffs[j1].spellid)) {
 				continue;
@@ -338,11 +330,6 @@ Bot::Bot(uint32 botID, uint32 botOwnerCharacterID, uint32 botSpellsID, double to
 					}
 					break;
 				}
-				//case SE_SummonHorse: {
-				//	SummonHorse(buffs[j1].spellid);
-				//	//hasmount = true;	//this was false, is that the correct thing?
-				//	break;
-				//}
 				case SE_Silence:
 				{
 					Silence(true);
@@ -369,12 +356,8 @@ Bot::Bot(uint32 botID, uint32 botOwnerCharacterID, uint32 botSpellsID, double to
 				{
 					if (!zone->CanLevitate())
 					{
-						//if (!GetGM())
-						//{
 							SendAppearancePacket(AT_Levitate, 0);
 							BuffFadeByEffect(SE_Levitate);
-							//Message(Chat::White, "You can't levitate in this zone.");
-						//}
 					}
 					else {
 						SendAppearancePacket(AT_Levitate, 2);
@@ -411,9 +394,6 @@ Bot::Bot(uint32 botID, uint32 botOwnerCharacterID, uint32 botSpellsID, double to
 				}
 			}
 		}
-	}
-	else {
-		bot_owner->Message(Chat::White, "&s for '%s'", BotDatabase::fail::LoadBuffs(), GetCleanName());
 	}
 
 	CalcBotStats(false);
@@ -583,7 +563,7 @@ void Bot::Stand() {
 	SetAppearance(eaStanding);
 }
 
-bool Bot::IsSitting() {
+bool Bot::IsSitting() const {
 	bool result = false;
 	if(GetAppearance() == eaSitting && !IsMoving())
 		result = true;
@@ -1629,7 +1609,7 @@ int32 Bot::acmod() {
 	else
 		return (65 + ((agility - 300) / 21));
 
-	LogError("[Bot::acmod] Agility [{}] Level [{}]",agility,level);
+	LogError("Agility [{}] Level [{}]",agility,level);
 	return 0;
 }
 
@@ -2156,7 +2136,7 @@ bool Bot::Process()
 
 	if (mob_close_scan_timer.Check()) {
 		LogAIScanCloseDetail(
-			"[Bot::Process] is_moving [{}] bot [{}] timer [{}]",
+			"is_moving [{}] bot [{}] timer [{}]",
 			moving ? "true" : "false",
 			GetCleanName(),
 			mob_close_scan_timer.GetDuration()
@@ -2318,7 +2298,7 @@ void Bot::BotRangedAttack(Mob* other) {
 	//make sure the attack and ranged timers are up
 	//if the ranged timer is disabled, then they have no ranged weapon and shouldent be attacking anyhow
 	if((attack_timer.Enabled() && !attack_timer.Check(false)) || (ranged_timer.Enabled() && !ranged_timer.Check())) {
-		LogCombatDetail("[Bot::BotRangedAttack] Bot Archery attack canceled. Timer not up. Attack [{}] ranged [{}]", attack_timer.GetRemainingTime(), ranged_timer.GetRemainingTime());
+		LogCombatDetail("Bot Archery attack canceled. Timer not up. Attack [{}] ranged [{}]", attack_timer.GetRemainingTime(), ranged_timer.GetRemainingTime());
 		Message(0, "Error: Timer not up. Attack %d, ranged %d", attack_timer.GetRemainingTime(), ranged_timer.GetRemainingTime());
 		return;
 	}
@@ -2336,7 +2316,7 @@ void Bot::BotRangedAttack(Mob* other) {
 	if(!RangeWeapon || !Ammo)
 		return;
 
-	LogCombatDetail("[Bot::BotRangedAttack] Shooting [{}] with bow [{}] ([{}]) and arrow [{}] ([{}])", other->GetCleanName(), RangeWeapon->Name, RangeWeapon->ID, Ammo->Name, Ammo->ID);
+	LogCombatDetail("Shooting [{}] with bow [{}] ([{}]) and arrow [{}] ([{}])", other->GetCleanName(), RangeWeapon->Name, RangeWeapon->ID, Ammo->Name, Ammo->ID);
 	if(!IsAttackAllowed(other) || IsCasting() || DivineAura() || IsStunned() || IsMezzed() || (GetAppearance() == eaDead))
 		return;
 
@@ -2346,21 +2326,21 @@ void Bot::BotRangedAttack(Mob* other) {
 
 	//break invis when you attack
 	if(invisible) {
-		LogCombatModerate("[Bot::BotRangedAttack] Removing invisibility due to melee attack");
+		LogCombatDetail("Removing invisibility due to melee attack");
 		BuffFadeByEffect(SE_Invisibility);
 		BuffFadeByEffect(SE_Invisibility2);
 		invisible = false;
 	}
 
 	if(invisible_undead) {
-		LogCombatModerate("[Bot::BotRangedAttack] Removing invisibility vs. undead due to melee attack");
+		LogCombatDetail("Removing invisibility vs. undead due to melee attack");
 		BuffFadeByEffect(SE_InvisVsUndead);
 		BuffFadeByEffect(SE_InvisVsUndead2);
 		invisible_undead = false;
 	}
 
 	if(invisible_animals) {
-		LogCombatModerate("[Bot::BotRangedAttack] Removing invisibility vs. animals due to melee attack");
+		LogCombatDetail("Removing invisibility vs. animals due to melee attack");
 		BuffFadeByEffect(SE_InvisVsAnimals);
 		invisible_animals = false;
 	}
@@ -3894,7 +3874,7 @@ void Bot::AI_Process()
 
 				if (GetTarget() && !IsRooted()) {
 
-					LogAIDetail("[Bot::AI_Process] Pursuing [{}] while engaged", GetTarget()->GetCleanName());
+					LogAIDetail("Pursuing [{}] while engaged", GetTarget()->GetCleanName());
 					Goal = GetTarget()->GetPosition();
 					if (DistanceSquared(m_Position, Goal) <= leash_distance) {
 						if (GetMaxMeleeRange() && (DistanceSquared(m_Position, Goal) <= melee_distance * 0.85)) {
@@ -4286,7 +4266,7 @@ void Bot::PetAIProcess() {
 				else if (botPet->GetTarget() && botPet->GetAIMovementTimer()->Check()) {
 					botPet->SetRunAnimSpeed(0);
 					if(!botPet->IsRooted()) {
-						LogAIDetail("[Bot::AI_Process] Pursuing [{}] while engaged", botPet->GetTarget()->GetCleanName());
+						LogAIDetail("Pursuing [{}] while engaged", botPet->GetTarget()->GetCleanName());
 						botPet->RunTo(botPet->GetTarget()->GetX(), botPet->GetTarget()->GetY(), botPet->GetTarget()->GetZ());
 						return;
 					} else {
@@ -4864,7 +4844,7 @@ void Bot::AddBotItem(
 
 	if (!inst) {
 		LogError(
-			"[Bot::AI_Process] Bot:AddItem Invalid Item data: ID [{}] Charges [{}] Aug1 [{}] Aug2 [{}] Aug3 [{}] Aug4 [{}] Aug5 [{}] Aug6 [{}] Attuned [{}]",
+			"Bot:AddItem Invalid Item data: ID [{}] Charges [{}] Aug1 [{}] Aug2 [{}] Aug3 [{}] Aug4 [{}] Aug5 [{}] Aug6 [{}] Attuned [{}]",
 			item_id,
 			charges,
 			augment_one,
@@ -4879,7 +4859,7 @@ void Bot::AddBotItem(
 	}
 
 	if (!database.botdb.SaveItemBySlot(this, slot_id, inst)) {
-		LogError("[Bot::AI_Process] Failed to save item by slot to slot [{}] for [{}].", slot_id, GetCleanName());
+		LogError("Failed to save item by slot to slot [{}] for [{}].", slot_id, GetCleanName());
 		safe_delete(inst);
 		return;
 	}
@@ -5141,7 +5121,7 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 		}
 
 		if (!trade_instance->GetItem()) {
-			LogError("[Bot::PerformTradeWithClient] could not find item from instance in trade for [{}] with [{}] in slot [{}].", client->GetCleanName(), GetCleanName(), trade_index);
+			LogError("could not find item from instance in trade for [{}] with [{}] in slot [{}].", client->GetCleanName(), GetCleanName(), trade_index);
 			client->Message(
 				Chat::White,
 				fmt::format(
@@ -5160,7 +5140,7 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 		auto item_link = linker.GenerateLink();
 
 		if (trade_index != invslot::slotCursor && !trade_instance->IsDroppable()) {
-			LogError("[Bot::PerformTradeWithClient] trade hack detected by [{}] with [{}].", client->GetCleanName(), GetCleanName());
+			LogError("trade hack detected by [{}] with [{}].", client->GetCleanName(), GetCleanName());
 			client->Message(Chat::White, "Trade hack detected, the trade has been cancelled.");
 			client->ResetTrade();
 			return;
@@ -5295,14 +5275,14 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 			}
 
 			if (trade_instance->GetItem()->LoreGroup == -1 && check_iterator.trade_item_instance->GetItem()->ID == trade_instance->GetItem()->ID) {
-				LogError("[Bot::PerformTradeWithClient] trade hack detected by [{}] with [{}].", client->GetCleanName(), GetCleanName());
+				LogError("trade hack detected by [{}] with [{}].", client->GetCleanName(), GetCleanName());
 				client->Message(Chat::White, "Trade hack detected, the trade has been cancelled.");
 				client->ResetTrade();
 				return;
 			}
 
 			if ((trade_instance->GetItem()->LoreGroup > 0) && (check_iterator.trade_item_instance->GetItem()->LoreGroup == trade_instance->GetItem()->LoreGroup)) {
-				LogError("[Bot::PerformTradeWithClient] trade hack detected by [{}] with [{}].", client->GetCleanName(), GetCleanName());
+				LogError("trade hack detected by [{}] with [{}].", client->GetCleanName(), GetCleanName());
 				client->Message(Chat::White, "Trade hack detected, the trade has been cancelled.");
 				client->ResetTrade();
 				return;
@@ -5328,6 +5308,10 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 
 			for (auto index : bot_equip_order) {
 				if (!(trade_instance->GetItem()->Slots & (1 << index))) {
+					continue;
+				}
+
+				if (trade_instance->GetItem()->ItemType == EQ::item::ItemTypeAugmentation) {
 					continue;
 				}
 
@@ -5426,7 +5410,7 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 		}
 
 		if (!return_instance->GetItem()) {
-			LogError("[Bot::PerformTradeWithClient] error processing bot slot [{}] for [{}] in trade with [{}].", return_iterator.from_bot_slot, GetCleanName(), client->GetCleanName());
+			LogError("error processing bot slot [{}] for [{}] in trade with [{}].", return_iterator.from_bot_slot, GetCleanName(), client->GetCleanName());
 			client->Message(
 				Chat::White,
 				fmt::format(
@@ -5542,6 +5526,25 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 
 			BotRemoveEquipItem(return_iterator.from_bot_slot);
 
+			if (parse->BotHasQuestSub(EVENT_UNEQUIP_ITEM_BOT)) {
+				const auto& export_string = fmt::format(
+					"{} {}",
+					return_iterator.return_item_instance->IsStackable() ? return_iterator.return_item_instance->GetCharges() : 1,
+					return_iterator.from_bot_slot
+				);
+
+				std::vector<std::any> args = { return_iterator.return_item_instance };
+
+				parse->EventBot(
+					EVENT_UNEQUIP_ITEM_BOT,
+					this,
+					nullptr,
+					export_string,
+					return_iterator.return_item_instance->GetID(),
+					&args
+				);
+			}
+
 			if (return_instance) {
 				EQ::SayLinkEngine linker;
 				linker.SetLinkType(EQ::saylink::SayLinkItemInst);
@@ -5590,6 +5593,26 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 
 		m_inv.PutItem(trade_iterator.to_bot_slot, *trade_iterator.trade_item_instance);
 		BotAddEquipItem(trade_iterator.to_bot_slot, (trade_iterator.trade_item_instance ? trade_iterator.trade_item_instance->GetID() : 0));
+
+		if (parse->BotHasQuestSub(EVENT_EQUIP_ITEM_BOT)) {
+			const auto& export_string = fmt::format(
+				"{} {}",
+				trade_iterator.trade_item_instance->IsStackable() ? trade_iterator.trade_item_instance->GetCharges() : 1,
+				trade_iterator.to_bot_slot
+			);
+
+			std::vector<std::any> args = { trade_iterator.trade_item_instance };
+
+			parse->EventBot(
+				EVENT_EQUIP_ITEM_BOT,
+				this,
+				nullptr,
+				export_string,
+				trade_iterator.trade_item_instance->GetID(),
+				&args
+			);
+		}
+
 		trade_iterator.trade_item_instance = nullptr; // actual deletion occurs in client delete below
 
 		client->DeleteItemInInventory(trade_iterator.from_client_slot, 0, (trade_iterator.from_client_slot == EQ::invslot::slotCursor));
@@ -5625,8 +5648,11 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 			std::vector<EQ::ItemInstance*> items(insts, insts + std::size(insts));
 
 			// Check if EVENT_TRADE accepts any items
-			std::vector<std::any> item_list(items.begin(), items.end());
-			parse->EventBot(EVENT_TRADE, this, client, "", 0, &item_list);
+			if (parse->BotHasQuestSub(EVENT_TRADE)) {
+				std::vector<std::any> item_list(items.begin(), items.end());
+				parse->EventBot(EVENT_TRADE, this, client, "", 0, &item_list);
+			}
+
 			CalcBotStats(false);
 
 		} else {
@@ -5641,8 +5667,11 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 			std::vector<EQ::ItemInstance*> items(insts, insts + std::size(insts));
 
 			// Check if EVENT_TRADE accepts any items
-			std::vector<std::any> item_list(items.begin(), items.end());
-			parse->EventBot(EVENT_TRADE, this, client, "", 0, &item_list);
+			if (parse->BotHasQuestSub(EVENT_TRADE)) {
+				std::vector<std::any> item_list(items.begin(), items.end());
+				parse->EventBot(EVENT_TRADE, this, client, "", 0, &item_list);
+			}
+
 			CalcBotStats(false);
 		}
 	}
@@ -5732,15 +5761,17 @@ bool Bot::Death(Mob *killerMob, int64 damage, uint16 spell_id, EQ::skills::Skill
 		my_owner->CastToClient()->SetBotPulling(false);
 	}
 
-	const auto export_string = fmt::format(
-		"{} {} {} {}",
-		killerMob ? killerMob->GetID() : 0,
-		damage,
-		spell_id,
-		static_cast<int>(attack_skill)
-	);
+	if (parse->BotHasQuestSub(EVENT_DEATH_COMPLETE)) {
+		const auto& export_string = fmt::format(
+			"{} {} {} {}",
+			killerMob ? killerMob->GetID() : 0,
+			damage,
+			spell_id,
+			static_cast<int>(attack_skill)
+		);
 
-	parse->EventBot(EVENT_DEATH_COMPLETE, this, killerMob, export_string, 0);
+		parse->EventBot(EVENT_DEATH_COMPLETE, this, killerMob, export_string, 0);
+	}
 
 	Raid* raid = entity_list.GetRaidByBotName(this->GetName());
 	
@@ -5768,16 +5799,19 @@ void Bot::Damage(Mob *from, int64 damage, uint16 spell_id, EQ::skills::SkillType
 		spell_id = SPELL_UNKNOWN;
 
 	//handle EVENT_ATTACK. Resets after we have not been attacked for 12 seconds
-	if(attacked_timer.Check()) {
-		LogCombat("[Bot::Damage] Triggering EVENT_ATTACK due to attack by [{}]", from->GetName());
-		parse->EventBot(EVENT_ATTACK, this, from, "", 0);
+	if (attacked_timer.Check()) {
+		if (parse->BotHasQuestSub(EVENT_ATTACK)) {
+			LogCombat("Triggering EVENT_ATTACK due to attack by [{}]", from->GetName());
+
+			parse->EventBot(EVENT_ATTACK, this, from, "", 0);
+		}
 	}
 
 	attacked_timer.Start(CombatEventTimer_expire);
 	// if spell is lifetap add hp to the caster
 	if (spell_id != SPELL_UNKNOWN && IsLifetapSpell(spell_id)) {
 		int64 healed = GetActSpellHealing(spell_id, damage);
-		LogCombatDetail("[Bot::Damage] Applying lifetap heal of [{}] to [{}]", healed, GetCleanName());
+		LogCombatDetail("Applying lifetap heal of [{}] to [{}]", healed, GetCleanName());
 		HealDamage(healed);
 		entity_list.FilteredMessageClose(this, true, RuleI(Range, SpellMessages), Chat::Emote, FilterSocials, "%s beams a smile at %s", GetCleanName(), from->GetCleanName() );
 	}
@@ -5803,171 +5837,6 @@ void Bot::Damage(Mob *from, int64 damage, uint16 spell_id, EQ::skills::SkillType
 			}
 		}
 	}
-}
-
-bool Bot::Attack(Mob* other, int Hand, bool FromRiposte, bool IsStrikethrough, bool IsFromSpell, ExtraAttackOptions *opts) {
-	if (!other) {
-		SetTarget(nullptr);
-		LogErrorDetail("[Bot::Attack] A null Mob object was passed to Bot::Attack for evaluation!");
-		return false;
-	}
-
-	if ((GetHP() <= 0) || (GetAppearance() == eaDead)) {
-		SetTarget(nullptr);
-		LogCombatModerate("[Bot::Attack] Attempted to attack [{}] while unconscious or, otherwise, appearing dead", other->GetCleanName());
-		return false;
-	}
-
-	//if(!GetTarget() || GetTarget() != other) // NPC::Attack() doesn't do this
-	//	SetTarget(other);
-
-	// apparently, we always want our target to be 'other'..why not just set it?
-	SetTarget(other);
-	// takes more to compare a call result, load for a call, load a compare to address and compare, and finally
-	// push a value to an address than to just load for a call and push a value to an address.
-
-	LogCombat("[Bot::Attack] Attacking [{}] with hand [{}] [{}]", other->GetCleanName(), Hand, (FromRiposte ? "(this is a riposte)" : ""));
-	if ((IsCasting() && (GetClass() != BARD) && !IsFromSpell) || (!IsAttackAllowed(other))) {
-		if(GetOwnerID())
-			entity_list.MessageClose(this, 1, 200, 10, "%s says, '%s is not a legal target master.'", GetCleanName(), GetTarget()->GetCleanName());
-
-		if(other) {
-			RemoveFromHateList(other);
-			LogCombat("[Bot::Attack] I am not allowed to attack [{}]", other->GetCleanName());
-		}
-		return false;
-	}
-
-	if(DivineAura()) {//cant attack while invulnerable
-		LogCombat("[Bot::Attack] Attack canceled, Divine Aura is in effect");
-		return false;
-	}
-
-	FaceTarget(GetTarget());
-	EQ::ItemInstance* weapon = nullptr;
-	if (Hand == EQ::invslot::slotPrimary) {
-		weapon = GetBotItem(EQ::invslot::slotPrimary);
-		OffHandAtk(false);
-	}
-
-	if (Hand == EQ::invslot::slotSecondary) {
-		weapon = GetBotItem(EQ::invslot::slotSecondary);
-		OffHandAtk(true);
-	}
-
-	if(weapon != nullptr) {
-		if (!weapon->IsWeapon()) {
-			LogCombat("[Bot::Attack] Attack canceled, Item [{}] ([{}]) is not a weapon", weapon->GetItem()->Name, weapon->GetID());
-			return false;
-		}
-		LogCombat("[Bot::Attack] Attacking with weapon: [{}] ([{}])", weapon->GetItem()->Name, weapon->GetID());
-	}
-	else
-		LogCombat("[Bot::Attack] Attacking without a weapon");
-
-	// calculate attack_skill and skillinuse depending on hand and weapon
-	// also send Packet to near clients
-	DamageHitInfo my_hit;
-	my_hit.skill = AttackAnimation(Hand, weapon);
-	LogCombat("[Bot::Attack] Attacking with [{}] in slot [{}] using skill [{}]", weapon?weapon->GetItem()->Name:"Fist", Hand, my_hit.skill);
-
-	// Now figure out damage
-	my_hit.damage_done = 1;
-	my_hit.min_damage = 0;
-	uint8 mylevel = GetLevel() ? GetLevel() : 1;
-	int64 hate = 0;
-	if (weapon)
-		hate = (weapon->GetItem()->Damage + weapon->GetItem()->ElemDmgAmt);
-
-	my_hit.base_damage = GetWeaponDamage(other, weapon, &hate);
-	if (hate == 0 && my_hit.base_damage > 1)
-		hate = my_hit.base_damage;
-
-	//if weapon damage > 0 then we know we can hit the target with this weapon
-	//otherwise we cannot and we set the damage to -5 later on
-	if (my_hit.base_damage > 0) {
-		my_hit.min_damage = 0;
-
-		// ***************************************************************
-		// *** Calculate the damage bonus, if applicable, for this hit ***
-		// ***************************************************************
-
-#ifndef EQEMU_NO_WEAPON_DAMAGE_BONUS
-
-		// If you include the preprocessor directive "#define EQEMU_NO_WEAPON_DAMAGE_BONUS", that indicates that you do not
-		// want damage bonuses added to weapon damage at all. This feature was requested by ChaosSlayer on the EQEmu Forums.
-		//
-		// This is not recommended for normal usage, as the damage bonus represents a non-trivial component of the DPS output
-		// of weapons wielded by higher-level melee characters (especially for two-handed weapons).
-		int ucDamageBonus = 0;
-		if (Hand == EQ::invslot::slotPrimary && GetLevel() >= 28 && IsWarriorClass()) {
-			// Damage bonuses apply only to hits from the main hand (Hand == MainPrimary) by characters level 28 and above
-			// who belong to a melee class. If we're here, then all of these conditions apply.
-			ucDamageBonus = GetWeaponDamageBonus(weapon ? weapon->GetItem() : (const EQ::ItemData*) nullptr);
-			my_hit.min_damage = ucDamageBonus;
-			hate += ucDamageBonus;
-		}
-#endif
-		//Live AA - Sinister Strikes *Adds weapon damage bonus to offhand weapon.
-		if (Hand == EQ::invslot::slotSecondary) {
-			if (aabonuses.SecondaryDmgInc || itembonuses.SecondaryDmgInc || spellbonuses.SecondaryDmgInc) {
-				ucDamageBonus = GetWeaponDamageBonus(weapon ? weapon->GetItem() : (const EQ::ItemData*) nullptr);
-				my_hit.min_damage = ucDamageBonus;
-				hate += ucDamageBonus;
-			}
-		}
-
-		LogCombat("[Bot::Attack] Damage calculated: base [{}] min damage [{}] skill [{}]", my_hit.base_damage, my_hit.min_damage, my_hit.skill);
-
-		int hit_chance_bonus = 0;
-		my_hit.offense = offense(my_hit.skill);
-		my_hit.hand = Hand;
-
-		if (opts) {
-			my_hit.base_damage *= opts->damage_percent;
-			my_hit.base_damage += opts->damage_flat;
-			hate *= opts->hate_percent;
-			hate += opts->hate_flat;
-			hit_chance_bonus += opts->hit_chance;
-		}
-
-		my_hit.tohit = GetTotalToHit(my_hit.skill, hit_chance_bonus);
-
-		DoAttack(other, my_hit, opts, FromRiposte);
-
-		LogCombat("[Bot::Attack] Final damage after all reductions: [{}]", my_hit.damage_done);
-	} else {
-		my_hit.damage_done = DMG_INVULNERABLE;
-	}
-
-	// Hate Generation is on a per swing basis, regardless of a hit, miss, or block, its always the same.
-	// If we are this far, this means we are atleast making a swing.
-	other->AddToHateList(this, hate);
-
-	///////////////////////////////////////////////////////////
-	////// Send Attack Damage
-	///////////////////////////////////////////////////////////
-	other->Damage(this, my_hit.damage_done, SPELL_UNKNOWN, my_hit.skill);
-
-	if (GetHP() < 0)
-		return false;
-
-	MeleeLifeTap(my_hit.damage_done);
-
-	if (my_hit.damage_done > 0)
-		CheckNumHitsRemaining(NumHit::OutgoingHitSuccess);
-
-	CommonBreakInvisibleFromCombat();
-	if (spellbonuses.NegateIfCombat)
-		BuffFadeByEffect(SE_NegateIfCombat);
-
-	if(GetTarget())
-		TriggerDefensiveProcs(other, Hand, true, my_hit.damage_done);
-
-	if (my_hit.damage_done > 0)
-		return true;
-	else
-		return false;
 }
 
 //proc chance includes proc bonus
@@ -5999,7 +5868,7 @@ float Bot::GetProcChances(float ProcBonus, uint16 hand) {
 		ProcChance += (ProcChance * ProcBonus / 100.0f);
 	}
 
-	LogCombat("[Bot::GetProcChances] Proc chance [{}] ([{}] from bonuses)", ProcChance, ProcBonus);
+	LogCombat("Proc chance [{}] ([{}] from bonuses)", ProcChance, ProcBonus);
 	return ProcChance;
 }
 
@@ -6053,13 +5922,13 @@ bool Bot::TryFinishingBlow(Mob *defender, int64 &damage)
 		int fb_damage = aabonuses.FinishingBlow[1];
 		int levelreq = aabonuses.FinishingBlowLvl[0];
 		if (defender->GetLevel() <= levelreq && (chance >= zone->random.Int(1, 1000))) {
-			LogCombat("[Bot::TryFinishingBlow] Landed a finishing blow: levelreq at [{}] other level [{}]",
+			LogCombat("Landed a finishing blow: levelreq at [{}] other level [{}]",
 				levelreq, defender->GetLevel());
 			entity_list.MessageCloseString(this, false, 200, Chat::MeleeCrit, FINISHING_BLOW, GetName());
 			damage = fb_damage;
 			return true;
 		} else {
-			LogCombat("[Bot::TryFinishingBlow] failed a finishing blow: levelreq at [{}] other level [{}]",
+			LogCombat("failed a finishing blow: levelreq at [{}] other level [{}]",
 				levelreq, defender->GetLevel());
 			return false;
 		}
@@ -6068,14 +5937,14 @@ bool Bot::TryFinishingBlow(Mob *defender, int64 &damage)
 }
 
 void Bot::DoRiposte(Mob* defender) {
-	LogCombatDetail("[Bot::DoRiposte] Preforming a riposte");
+	LogCombatDetail("Preforming a riposte");
 	if (!defender)
 		return;
 
 	defender->Attack(this, EQ::invslot::slotPrimary, true);
 	int32 DoubleRipChance = (defender->GetAABonuses().GiveDoubleRiposte[0] + defender->GetSpellBonuses().GiveDoubleRiposte[0] + defender->GetItemBonuses().GiveDoubleRiposte[0]);
 	if(DoubleRipChance && (DoubleRipChance >= zone->random.Int(0, 100))) {
-		LogCombatDetail("[Bot::DoRiposte] Preforming a double riposte ([{}] percent chance)", DoubleRipChance);
+		LogCombatDetail("Preforming a double riposte ([{}] percent chance)", DoubleRipChance);
 		defender->Attack(this, EQ::invslot::slotPrimary, true);
 	}
 
@@ -6767,65 +6636,6 @@ void Bot::ProcessBotOwnerRefDelete(Mob* botOwner) {
 	}
 }
 
-void Bot::ProcessGuildInvite(Client* guildOfficer, Bot* botToGuild) {
-	if(guildOfficer && botToGuild) {
-		if(!botToGuild->IsInAGuild()) {
-			if (!guild_mgr.CheckPermission(guildOfficer->GuildID(), guildOfficer->GuildRank(), GUILD_INVITE)) {
-				guildOfficer->Message(Chat::White, "You dont have permission to invite.");
-				return;
-			}
-
-			if (!database.botdb.SaveGuildMembership(botToGuild->GetBotID(), guildOfficer->GuildID(), GUILD_MEMBER)) {
-				guildOfficer->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveGuildMembership(), botToGuild->GetCleanName());
-				return;
-			}
-
-			ServerPacket* pack = new ServerPacket(ServerOP_GuildCharRefresh, sizeof(ServerGuildCharRefresh_Struct));
-			ServerGuildCharRefresh_Struct *s = (ServerGuildCharRefresh_Struct *) pack->pBuffer;
-			s->guild_id = guildOfficer->GuildID();
-			s->old_guild_id = GUILD_NONE;
-			s->char_id = botToGuild->GetBotID();
-			worldserver.SendPacket(pack);
-
-			safe_delete(pack);
-		} else {
-			guildOfficer->Message(Chat::White, "Bot is in a guild.");
-			return;
-		}
-	}
-}
-
-bool Bot::ProcessGuildRemoval(Client* guildOfficer, std::string botName) {
-	bool Result = false;
-	if(guildOfficer && !botName.empty()) {
-		Bot* botToUnGuild = entity_list.GetBotByBotName(botName);
-		if(botToUnGuild) {
-			if (database.botdb.DeleteGuildMembership(botToUnGuild->GetBotID()))
-				Result = true;
-		} else {
-			uint32 ownerId = 0;
-			if (!database.botdb.LoadOwnerID(botName, ownerId))
-				guildOfficer->Message(Chat::White, "%s for '%s'", BotDatabase::fail::LoadOwnerID(), botName.c_str());
-			uint32 botId = 0;
-			if (!database.botdb.LoadBotID(ownerId, botName, botId))
-				guildOfficer->Message(Chat::White, "%s for '%s'", BotDatabase::fail::LoadBotID(), botName.c_str());
-			if (botId && database.botdb.DeleteGuildMembership(botId))
-				Result = true;
-		}
-
-		if(Result) {
-			EQApplicationPacket* outapp = new EQApplicationPacket(OP_GuildManageRemove, sizeof(GuildManageRemove_Struct));
-			GuildManageRemove_Struct* gm = (GuildManageRemove_Struct*) outapp->pBuffer;
-			gm->guildeqid = guildOfficer->GuildID();
-			strcpy(gm->member, botName.c_str());
-			guildOfficer->Message(Chat::White, "%s successfully removed from your guild.", botName.c_str());
-			entity_list.QueueClientsGuild(guildOfficer, outapp, false, gm->guildeqid);
-			safe_delete(outapp);
-		}
-	}
-	return Result;
-}
-
 int64 Bot::CalcMaxMana() {
 	switch(GetCasterClass()) {
 		case 'I':
@@ -6838,7 +6648,7 @@ int64 Bot::CalcMaxMana() {
 			break;
 		}
 		default: {
-			LogDebug("[Bot::CalcMaxMana] Invalid Class [{}] in CalcMaxMana", GetCasterClass());
+			LogDebug("Invalid Class [{}] in CalcMaxMana", GetCasterClass());
 			max_mana = 0;
 			break;
 		}
@@ -7009,7 +6819,7 @@ bool Bot::CastSpell(
 				(IsSilenced() && !IsDiscipline(spell_id)) ||
 				(IsAmnesiad() && IsDiscipline(spell_id))
 			) {
-				LogSpellsModerate("[Bot::CastSpell] Spell casting canceled: not able to cast now. Valid? [{}] casting [{}] waiting? [{}] spellend? [{}] stunned? [{}] feared? [{}] mezed? [{}] silenced? [{}]",
+				LogSpellsDetail("Spell casting canceled: not able to cast now. Valid? [{}] casting [{}] waiting? [{}] spellend? [{}] stunned? [{}] feared? [{}] mezed? [{}] silenced? [{}]",
 					IsValidSpell(spell_id), casting_spell_id, delaytimer, spellend_timer.Enabled(), IsStunned(), IsFeared(), IsMezzed(), IsSilenced()
 				);
 				if (IsSilenced() && !IsDiscipline(spell_id)) {
@@ -7038,7 +6848,7 @@ bool Bot::CastSpell(
 		}
 
 		if (DivineAura()) {
-			LogSpellsDetail("[Bot::CastSpell] Spell casting canceled: cannot cast while Divine Aura is in effect");
+			LogSpellsDetail("Spell casting canceled: cannot cast while Divine Aura is in effect");
 			InterruptSpell(173, 0x121, false);
 			return false;
 		}
@@ -7048,13 +6858,13 @@ bool Bot::CastSpell(
 			InterruptSpell(fizzle_msg, 0x121, spell_id);
 
 			uint32 use_mana = ((spells[spell_id].mana) / 4);
-			LogSpellsModerate("[Bot::CastSpell] Spell casting canceled: fizzled. [{}] mana has been consumed", use_mana);
+			LogSpellsDetail("Spell casting canceled: fizzled. [{}] mana has been consumed", use_mana);
 			SetMana(GetMana() - use_mana);
 			return false;
 		}
 
 		if (HasActiveSong()) {
-			LogSpellsDetail("[Bot::CastSpell] Casting a new spell/song while singing a song. Killing old song [{}]", bardsong);
+			LogSpellsDetail("Casting a new spell/song while singing a song. Killing old song [{}]", bardsong);
 			bardsong = 0;
 			bardsong_target_id = 0;
 			bardsong_slot = EQ::spells::CastingSlot::Gem1;
@@ -7067,7 +6877,17 @@ bool Bot::CastSpell(
 	return Result;
 }
 
-bool Bot::SpellOnTarget(uint16 spell_id, Mob* spelltar) {
+bool Bot::SpellOnTarget(
+		uint16 spell_id,
+		Mob *spelltar,
+		int reflect_effectiveness,
+		bool use_resist_adjust,
+		int16 resist_adjust,
+		bool isproc,
+		int level_override,
+		int duration_override,
+		bool disable_buff_overwrite
+) {
 	if (!IsValidSpell(spell_id)) {
 		return false;
 	}
@@ -7106,19 +6926,19 @@ bool Bot::IsImmuneToSpell(uint16 spell_id, Mob *caster) {
 			if(caster->IsBot()) {
 				if(spells[spell_id].target_type == ST_Undead) {
 					if((GetBodyType() != BT_SummonedUndead) && (GetBodyType() != BT_Undead) && (GetBodyType() != BT_Vampire)) {
-						LogSpellsModerate("[Bot::IsImmuneToSpell] Bot's target is not an undead");
+						LogSpellsDetail("Bot's target is not an undead");
 						return true;
 					}
 				}
 				if(spells[spell_id].target_type == ST_Summoned) {
 					if((GetBodyType() != BT_SummonedUndead) && (GetBodyType() != BT_Summoned) && (GetBodyType() != BT_Summoned2) && (GetBodyType() != BT_Summoned3)) {
-						LogSpellsModerate("[Bot::IsImmuneToSpell] Bot's target is not a summoned creature");
+						LogSpellsDetail("Bot's target is not a summoned creature");
 						return true;
 					}
 				}
 			}
 
-			LogSpellsModerate("[Bot::IsImmuneToSpell] No bot immunities to spell [{}] found", spell_id);
+			LogSpellsDetail("No bot immunities to spell [{}] found", spell_id);
 		}
 	}
 
@@ -7269,7 +7089,7 @@ bool Bot::DoFinishedSpellSingleTarget(uint16 spell_id, Mob* spellTarget, EQ::spe
 					if((spelltypeequal || spelltypetargetequal) || spelltypeclassequal || slotequal) {
 						if(((spells[thespell].effect_id[0] == 0) && (spells[thespell].base_value[0] < 0)) &&
 							(spellTarget->GetHP() < ((spells[thespell].base_value[0] * (-1)) + 100))) {
-							LogSpells("[Bot::DoFinishedSpellSingleTarget] GroupBuffing failure");
+							LogSpells("GroupBuffing failure");
 							return false;
 						}
 
@@ -9288,7 +9108,11 @@ void EntityList::AddBot(Bot *new_bot, bool send_spawn_packet, bool dont_queue) {
 		new_bot->SetID(GetFreeID());
 		bot_list.push_back(new_bot);
 		mob_list.insert(std::pair<uint16, Mob*>(new_bot->GetID(), new_bot));
-		parse->EventBot(EVENT_SPAWN, new_bot, nullptr, "", 0);
+
+		if (parse->BotHasQuestSub(EVENT_SPAWN)) {
+			parse->EventBot(EVENT_SPAWN, new_bot, nullptr, "", 0);
+		}
+
 		new_bot->SetSpawned();
 		if (send_spawn_packet) {
 			if (dont_queue) {
@@ -9306,7 +9130,9 @@ void EntityList::AddBot(Bot *new_bot, bool send_spawn_packet, bool dont_queue) {
 			}
 		}
 
-		new_bot->DispatchZoneControllerEvent(EVENT_SPAWN_ZONE, new_bot, "", 0, nullptr);
+		if (parse->HasQuestSub(ZONE_CONTROLLER_NPC_ID, EVENT_SPAWN_ZONE)) {
+			new_bot->DispatchZoneControllerEvent(EVENT_SPAWN_ZONE, new_bot, "", 0, nullptr);
+		}
 	}
 }
 
@@ -9477,7 +9303,7 @@ void EntityList::ScanCloseClientMobs(std::unordered_map<uint16, Mob*>& close_mob
 		}
 	}
 
-	LogAIScanCloseModerate("[EntityList::ScanCloseClientMobs] Close Client Mob List Size [{}] for mob [{}]", close_mobs.size(), scanning_mob->GetCleanName());
+	LogAIScanCloseDetail("Close Client Mob List Size [{}] for mob [{}]", close_mobs.size(), scanning_mob->GetCleanName());
 }
 
 uint8 Bot::GetNumberNeedingHealedInGroup(uint8 hpr, bool includePets) {
@@ -10190,14 +10016,18 @@ void Bot::SpawnBotGroupByName(Client* c, std::string botgroup_name, uint32 leade
 
 void Bot::Signal(int signal_id)
 {
-	const auto export_string = fmt::format("{}", signal_id);
-	parse->EventBot(EVENT_SIGNAL, this, nullptr, export_string, 0);
+	if (parse->BotHasQuestSub(EVENT_SIGNAL)) {
+		parse->EventBot(EVENT_SIGNAL, this, nullptr, std::to_string(signal_id), 0);
+	}
 }
 
 void Bot::SendPayload(int payload_id, std::string payload_value)
 {
-	const auto export_string = fmt::format("{} {}", payload_id, payload_value);
-	parse->EventBot(EVENT_PAYLOAD, this, nullptr, export_string, 0);
+	if (parse->BotHasQuestSub(EVENT_PAYLOAD)) {
+		const auto& export_string = fmt::format("{} {}", payload_id, payload_value);
+
+		parse->EventBot(EVENT_PAYLOAD, this, nullptr, export_string, 0);
+	}
 }
 
 void Bot::OwnerMessage(std::string message)

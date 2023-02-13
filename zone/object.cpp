@@ -25,9 +25,11 @@
 #include "object.h"
 
 #include "quest_parser_collection.h"
+#include "worldserver.h"
 #include "zonedb.h"
 #include "../common/zone_store.h"
 #include "../common/repositories/criteria/content_filter_criteria.h"
+#include "../common/events/player_event_logs.h"
 
 #include <iostream>
 
@@ -37,6 +39,7 @@ const char DEFAULT_OBJECT_NAME_SUFFIX[] = "_ACTORDEF";
 
 extern Zone* zone;
 extern EntityList entity_list;
+extern WorldServer worldserver;
 
 // Loading object from database
 Object::Object(uint32 id, uint32 type, uint32 icon, const Object_Struct& object, const EQ::ItemInstance* inst)
@@ -341,7 +344,7 @@ const EQ::ItemInstance* Object::GetItem(uint8 index) {
 void Object::PutItem(uint8 index, const EQ::ItemInstance* inst)
 {
 	if (index > 9) {
-		LogError("Object::PutItem: Invalid index specified ([{}])", index);
+		LogError("Invalid index specified ([{}])", index);
 		return;
 	}
 
@@ -477,7 +480,7 @@ void Object::RandomSpawn(bool send_packet) {
 		}
 	}
 
-	LogInfo("Object::RandomSpawn([{}]): [{}] ([{}], [{}], [{}])", m_data.object_name, m_inst->GetID(), m_data.x, m_data.y, m_data.z);
+	LogInfo("[{}] [{}] ([{}] [{}] [{}])", m_data.object_name, m_inst->GetID(), m_data.x, m_data.y, m_data.z);
 
 	respawn_timer.Disable();
 
@@ -507,41 +510,54 @@ bool Object::HandleClick(Client* sender, const ClickObject_Struct* click_object)
 					cursordelete = true;	// otherwise, we delete the new one
 			}
 
-			if (item->RecastDelay)
-				m_inst->SetRecastTimestamp(
-				    database.GetItemRecastTimestamp(sender->CharacterID(), item->RecastType));
-
-			std::string export_string = fmt::format("{}", item->ID);
-			std::vector<std::any> args;
-			args.push_back(m_inst);
-			if(parse->EventPlayer(EVENT_PLAYER_PICKUP, sender, export_string, GetID(), &args))
-			{
-				auto outapp = new EQApplicationPacket(OP_ClickObject, sizeof(ClickObject_Struct));
-				memcpy(outapp->pBuffer, click_object, sizeof(ClickObject_Struct));
-				ClickObject_Struct* co = (ClickObject_Struct*)outapp->pBuffer;
-				co->drop_id = 0;
-				entity_list.QueueClients(nullptr, outapp, false);
-				safe_delete(outapp);
-
-				// No longer using a tradeskill object
-				sender->SetTradeskillObject(nullptr);
-				user = nullptr;
-
-				return true;
+			if (item->RecastDelay) {
+				if (item->RecastType != RECAST_TYPE_UNLINKED_ITEM) {
+					m_inst->SetRecastTimestamp(
+						database.GetItemRecastTimestamp(sender->CharacterID(), item->RecastType));
+				} else {
+					m_inst->SetRecastTimestamp(
+						database.GetItemRecastTimestamp(sender->CharacterID(), item->ID));
+				}
 			}
 
+			if (player_event_logs.IsEventEnabled(PlayerEvent::GROUNDSPAWN_PICKUP)) {
+				auto e = PlayerEvent::GroundSpawnPickupEvent{
+					.item_id = item->ID,
+					.item_name = item->Name,
+				};
+				RecordPlayerEventLogWithClient(sender, PlayerEvent::GROUNDSPAWN_PICKUP, e);
+			}
+
+			if (parse->PlayerHasQuestSub(EVENT_PLAYER_PICKUP)) {
+				std::vector<std::any> args = { m_inst };
+
+				if (parse->EventPlayer(EVENT_PLAYER_PICKUP, sender, std::to_string(item->ID), GetID(), &args)) {
+					auto outapp = new EQApplicationPacket(OP_ClickObject, sizeof(ClickObject_Struct));
+					memcpy(outapp->pBuffer, click_object, sizeof(ClickObject_Struct));
+					auto* co = (ClickObject_Struct*) outapp->pBuffer;
+					co->drop_id = 0;
+					entity_list.QueueClients(nullptr, outapp, false);
+					safe_delete(outapp);
+
+					sender->SetTradeskillObject(nullptr);
+					user = nullptr;
+
+					return true;
+				}
+			}
 
 			// Transfer item to client
 			sender->PutItemInInventory(EQ::invslot::slotCursor, *m_inst, false);
 			sender->SendItemPacket(EQ::invslot::slotCursor, m_inst, ItemPacketTrade);
 
 			// Could be an undiscovered ground_spawn
-			if (m_ground_spawn && (RuleB(Character, EnableDiscoveredItems)))
-			{
-				if (!sender->GetGM() && !sender->IsDiscovered(item->ID))
-				{
-					sender->DiscoverItem(item->ID);
-				}
+			if (
+				m_ground_spawn &&
+				RuleB(Character, EnableDiscoveredItems) &&
+				!sender->GetGM() &&
+				!sender->IsDiscovered(item->ID)
+			) {
+				sender->DiscoverItem(item->ID);
 			}
 
 			if(cursordelete)	// delete the item if it's a duplicate lore. We have to do this because the client expects the item packet

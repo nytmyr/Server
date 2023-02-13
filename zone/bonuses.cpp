@@ -26,9 +26,7 @@
 #include "entity.h"
 #include "mob.h"
 
-#ifdef BOTS
 #include "bot.h"
-#endif
 
 #include "quest_parser_collection.h"
 
@@ -130,7 +128,7 @@ void Client::CalcBonuses()
 		consume_food_timer.SetTimer(timer);
 }
 
-int Client::CalcRecommendedLevelBonus(uint8 level, uint8 reclevel, int basestat)
+int Mob::CalcRecommendedLevelBonus(uint8 level, uint8 reclevel, int basestat)
 {
 	if( (reclevel > 0) && (level < reclevel) )
 	{
@@ -4011,7 +4009,10 @@ bool Client::CalcItemScale(uint32 slot_x, uint32 slot_y) {
 		if(inst->IsScaling())
 		{
 			uint16 oldexp = inst->GetExp();
-			parse->EventItem(EVENT_SCALE_CALC, this, inst, nullptr, "", 0);
+
+			if (parse->ItemHasQuestSub(inst, EVENT_SCALE_CALC)) {
+				parse->EventItem(EVENT_SCALE_CALC, this, inst, nullptr, "", 0);
+			}
 
 			if (inst->GetExp() != oldexp) {	// if the scaling factor changed, rescale the item and update the client
 				inst->ScaleItem();
@@ -4030,7 +4031,10 @@ bool Client::CalcItemScale(uint32 slot_x, uint32 slot_y) {
 			if(a_inst->IsScaling())
 			{
 				uint16 oldexp = a_inst->GetExp();
-				parse->EventItem(EVENT_SCALE_CALC, this, a_inst, nullptr, "", 0);
+
+				if (parse->ItemHasQuestSub(a_inst, EVENT_SCALE_CALC)) {
+					parse->EventItem(EVENT_SCALE_CALC, this, a_inst, nullptr, "", 0);
+				}
 
 				if (a_inst->GetExp() != oldexp)
 				{
@@ -4098,9 +4102,14 @@ bool Client::DoItemEnterZone(uint32 slot_x, uint32 slot_y) {
 		{
 			uint16 oldexp = inst->GetExp();
 
-			parse->EventItem(EVENT_ITEM_ENTER_ZONE, this, inst, nullptr, "", 0);
+			if (parse->ItemHasQuestSub(inst, EVENT_ITEM_ENTER_ZONE)) {
+				parse->EventItem(EVENT_ITEM_ENTER_ZONE, this, inst, nullptr, "", 0);
+			}
+
 			if (i <= EQ::invslot::EQUIPMENT_END) {
-				parse->EventItem(EVENT_EQUIP_ITEM, this, inst, nullptr, "", i);
+				if (parse->ItemHasQuestSub(inst, EVENT_EQUIP_ITEM)) {
+					parse->EventItem(EVENT_EQUIP_ITEM, this, inst, nullptr, "", i);
+				}
 			}
 
 			if (inst->GetExp() != oldexp) {	// if the scaling factor changed, rescale the item and update the client
@@ -4110,10 +4119,14 @@ bool Client::DoItemEnterZone(uint32 slot_x, uint32 slot_y) {
 			}
 		} else {
 			if (i <= EQ::invslot::EQUIPMENT_END) {
-				parse->EventItem(EVENT_EQUIP_ITEM, this, inst, nullptr, "", i);
+				if (parse->ItemHasQuestSub(inst, EVENT_EQUIP_ITEM)) {
+					parse->EventItem(EVENT_EQUIP_ITEM, this, inst, nullptr, "", i);
+				}
 			}
 
-			parse->EventItem(EVENT_ITEM_ENTER_ZONE, this, inst, nullptr, "", 0);
+			if (parse->ItemHasQuestSub(inst, EVENT_ITEM_ENTER_ZONE)) {
+				parse->EventItem(EVENT_ITEM_ENTER_ZONE, this, inst, nullptr, "", 0);
+			}
 		}
 
 		//iterate all augments
@@ -4127,7 +4140,9 @@ bool Client::DoItemEnterZone(uint32 slot_x, uint32 slot_y) {
 			{
 				uint16 oldexp = a_inst->GetExp();
 
-				parse->EventItem(EVENT_ITEM_ENTER_ZONE, this, a_inst, nullptr, "", 0);
+				if (parse->ItemHasQuestSub(a_inst, EVENT_ITEM_ENTER_ZONE)) {
+					parse->EventItem(EVENT_ITEM_ENTER_ZONE, this, a_inst, nullptr, "", 0);
+				}
 
 				if (a_inst->GetExp() != oldexp)
 				{
@@ -4136,7 +4151,9 @@ bool Client::DoItemEnterZone(uint32 slot_x, uint32 slot_y) {
 					update_slot = true;
 				}
 			} else {
-				parse->EventItem(EVENT_ITEM_ENTER_ZONE, this, a_inst, nullptr, "", 0);
+				if (parse->ItemHasQuestSub(a_inst, EVENT_ITEM_ENTER_ZONE)) {
+					parse->EventItem(EVENT_ITEM_ENTER_ZONE, this, a_inst, nullptr, "", 0);
+				}
 			}
 		}
 

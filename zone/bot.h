@@ -19,8 +19,6 @@
 #ifndef BOT_H
 #define BOT_H
 
-#ifdef BOTS
-
 #include "bot_structs.h"
 #include "mob.h"
 #include "client.h"
@@ -147,15 +145,13 @@ public:
 
 	//abstract virtual override function implementations requird by base abstract class
 	bool Death(Mob* killerMob, int64 damage, uint16 spell_id, EQ::skills::SkillType attack_skill) override;
-	void Damage(Mob* from, int64 damage, uint16 spell_id, EQ::skills::SkillType attack_skill, bool avoidable = true, int8 buffslot = -1, 
+	void Damage(Mob* from, int64 damage, uint16 spell_id, EQ::skills::SkillType attack_skill, bool avoidable = true, int8 buffslot = -1,
 		bool iBuffTic = false, eSpecialAttacks special = eSpecialAttacks::None) override;
 
-	bool Attack(Mob* other, int Hand = EQ::invslot::slotPrimary, bool FromRiposte = false, bool IsStrikethrough = false, bool IsFromSpell = false,
-		ExtraAttackOptions *opts = nullptr) override;
-	bool HasRaid() override { return (GetRaid() ? true : false); }
-	bool HasGroup() override { return (GetGroup() ? true : false); }
-	Raid* GetRaid() override { return entity_list.GetRaidByMob(this); }
-	Group* GetGroup() override { return entity_list.GetGroupByMob(this); }
+	bool HasRaid() final { return (GetRaid() ? true : false); }
+	bool HasGroup() final { return (GetGroup() ? true : false); }
+	Raid* GetRaid() final { return entity_list.GetRaidByMob(this); }
+	Group* GetGroup() final { return entity_list.GetGroupByMob(this); }
 
 	// Common, but informal "interfaces" with Client object
 	uint32 CharacterID() { return GetBotID(); } // Just returns the Bot Id
@@ -224,7 +220,7 @@ public:
 	void ChangeBotArcherWeapons(bool isArcher);
 	void Sit();
 	void Stand();
-	bool IsSitting();
+	bool IsSitting() const override;
 	bool IsStanding();
 	int GetWalkspeed() const override { return (int)((float)_GetWalkSpeed() * 1.785714285f); } // 1.25 / 0.7 = 1.7857142857142857142857142857143
 	int GetRunspeed() const override { return (int)((float)_GetRunSpeed() * 1.785714285f); }
@@ -514,8 +510,8 @@ public:
 	void AI_Bot_Start(uint32 iMoveDelay = 0);
 
 	// Mob AI Virtual Override Methods
-	void AI_Process() override;
-	void AI_Stop() override;
+	void AI_Process() final;
+	void AI_Stop() final;
 
 	// Mob Spell Virtual Override Methods
 	void SpellProcess() override;
@@ -525,11 +521,31 @@ public:
 	void DoBuffTic(const Buffs_Struct &buff, int slot, Mob* caster = nullptr) override;
 	virtual bool CastSpell(uint16 spell_id, uint16 target_id, EQ::spells::CastingSlot slot = EQ::spells::CastingSlot::Item, int32 casttime = -1, int32 mana_cost = -1, uint32* oSpellWillFinish = 0,
 						uint32 item_slot = 0xFFFFFFFF, int16 *resist_adjust = nullptr, uint32 aa_id = 0);
-	virtual bool SpellOnTarget(uint16 spell_id, Mob* spelltar);
+	bool SpellOnTarget(
+			uint16 spell_id,
+			Mob* spelltar,
+			int reflect_effectiveness = 0,
+			bool use_resist_adjust = false,
+			int16 resist_adjust = 0,
+			bool isproc = false,
+			int level_override = -1,
+			int duration_override = 0,
+			bool disable_buff_overwrite = false
+	) final;
 	bool IsImmuneToSpell(uint16 spell_id, Mob *caster) override;
 	virtual bool DetermineSpellTargets(uint16 spell_id, Mob *&spell_target, Mob *&ae_center, CastAction_type &CastAction, EQ::spells::CastingSlot slot);
-	virtual bool DoCastSpell(uint16 spell_id, uint16 target_id, EQ::spells::CastingSlot slot = EQ::spells::CastingSlot::Item, int32 casttime = -1, int32 mana_cost = -1, 
+	virtual bool DoCastSpell(uint16 spell_id, uint16 target_id, EQ::spells::CastingSlot slot = EQ::spells::CastingSlot::Item, int32 casttime = -1, int32 mana_cost = -1,
 						uint32* oSpellWillFinish = 0, uint32 item_slot = 0xFFFFFFFF, uint32 aa_id = 0);
+	inline int64 GetFocusEffect(focusType type, uint16 spell_id, Mob *caster = nullptr, bool from_buff_tic = false) override
+		{ return Mob::GetFocusEffect(type, spell_id, caster, from_buff_tic); }
+	inline bool Attack(Mob* other, int Hand = EQ::invslot::slotPrimary, bool FromRiposte = false, bool IsStrikethrough = false,
+		bool IsFromSpell = false, ExtraAttackOptions *opts = nullptr) override
+			{ return Mob::Attack(other, Hand, FromRiposte, IsStrikethrough, IsFromSpell, opts); }
+
+	[[nodiscard]] int GetMaxBuffSlots() const final { return EQ::spells::LONG_BUFFS; }
+	[[nodiscard]] int GetMaxSongSlots() const final { return EQ::spells::SHORT_BUFFS; }
+	[[nodiscard]] int GetMaxDiscSlots() const final { return EQ::spells::DISC_BUFFS; }
+	[[nodiscard]] int GetMaxTotalSlots() const final { return EQ::spells::TOTAL_BUFFS; }
 
 	bool GetBotOwnerDataBuckets();
 	bool GetBotDataBuckets();
@@ -633,6 +649,9 @@ public:
 	bool IsBotArcher() { return m_bot_archery_setting; }
 	bool IsBotCharmer() { return _botCharmer; }
 	bool IsBot() const override { return true; }
+	bool IsOfClientBot() const override { return true; }
+	bool IsOfClientBotMerc() const override { return true; }
+
 	bool GetRangerAutoWeaponSelect() { return _rangerAutoWeaponSelect; }
 	BotRoleType GetBotRole() { return _botRole; }
 	EQ::constants::StanceType GetBotStance() { return _botStance; }
@@ -1143,7 +1162,5 @@ private:
 };
 
 bool IsSpellInBotList(DBbotspells_Struct* spell_list, uint16 iSpellID);
-
-#endif // BOTS
 
 #endif // BOT_H
