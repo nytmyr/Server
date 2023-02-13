@@ -2235,31 +2235,32 @@ Raid* EntityList::GetRaidByClient(Client* client)
 
 	return nullptr;
 }
-#ifdef BOTS
-Raid* EntityList::GetRaidByBotName(const char* name)
-{
 
-	std::list<Raid*>::iterator iterator;
-	iterator = raid_list.begin();
+//if (RuleB(Bots, Enabled)) {
+	Raid* EntityList::GetRaidByBotName(const char* name)
+	{
 
-	while (iterator != raid_list.end()) {
-		for (auto& member : (*iterator)->members) {
-			if (member.membername) {
-				if (strcmp(member.membername, name) == 0) {
-					//client->p_raid_instance = *iterator;
-					return *iterator;
+		std::list<Raid*>::iterator iterator;
+		iterator = raid_list.begin();
+
+		while (iterator != raid_list.end()) {
+			for (auto& member : (*iterator)->members) {
+				if (member.membername) {
+					if (strcmp(member.membername, name) == 0) {
+						//client->p_raid_instance = *iterator;
+						return *iterator;
+					}
 				}
 			}
+
+			++iterator;
 		}
 
-		++iterator;
+		return nullptr;
 	}
+//}
 
-	return nullptr;
-}
-#endif
-
-#ifdef BOTS
+//if (RuleB(Bots, Enabled)) {
 Raid* EntityList::GetRaidByBot(Bot* bot)
 {
 
@@ -2277,7 +2278,7 @@ Raid* EntityList::GetRaidByBot(Bot* bot)
 	}
 	return nullptr;
 }
-#endif
+//}
 
 
 Raid *EntityList::GetRaidByMob(Mob *mob)

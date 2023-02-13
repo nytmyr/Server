@@ -151,60 +151,60 @@ public:
 	~EntityList();
 
 	Entity* GetID(uint16 id);
-	Mob *GetMob(uint16 id);
-	inline Mob *GetMobID(uint16 id) { return(GetMob(id)); }	//for perl
-	Mob *GetMob(const char* name);
-	Mob *GetMobByNpcTypeID(uint32 get_id);
+	Mob* GetMob(uint16 id);
+	inline Mob* GetMobID(uint16 id) { return(GetMob(id)); }	//for perl
+	Mob* GetMob(const char* name);
+	Mob* GetMobByNpcTypeID(uint32 get_id);
 	bool IsMobSpawnedByNpcTypeID(uint32 get_id);
 	bool IsNPCSpawned(std::vector<uint32> npc_ids);
 	uint32 CountSpawnedNPCs(std::vector<uint32> npc_ids);
-	inline NPC *GetNPCByID(uint16 id)
+	inline NPC* GetNPCByID(uint16 id)
 	{
 		auto it = npc_list.find(id);
 		if (it != npc_list.end())
 			return it->second;
 		return nullptr;
 	}
-	NPC *GetNPCByNPCTypeID(uint32 npc_id);
-	NPC *GetNPCBySpawnID(uint32 spawn_id);
-	inline Merc *GetMercByID(uint16 id)
+	NPC* GetNPCByNPCTypeID(uint32 npc_id);
+	NPC* GetNPCBySpawnID(uint32 spawn_id);
+	inline Merc* GetMercByID(uint16 id)
 	{
 		auto it = merc_list.find(id);
 		if (it != merc_list.end())
 			return it->second;
 		return nullptr;
 	}
-	Client *GetClientByName(const char *name);
-	Client *GetClientByAccID(uint32 accid);
-	inline Client *GetClientByID(uint16 id)
+	Client* GetClientByName(const char* name);
+	Client* GetClientByAccID(uint32 accid);
+	inline Client* GetClientByID(uint16 id)
 	{
 		auto it = client_list.find(id);
 		if (it != client_list.end())
 			return it->second;
 		return nullptr;
 	}
-	Client *GetClientByCharID(uint32 iCharID);
-	Client *GetClientByWID(uint32 iWID);
-	Client *GetClientByLSID(uint32 iLSID);
-	Client *GetClient(uint32 ip, uint16 port);
+	Client* GetClientByCharID(uint32 iCharID);
+	Client* GetClientByWID(uint32 iWID);
+	Client* GetClientByLSID(uint32 iLSID);
+	Client* GetClient(uint32 ip, uint16 port);
 
 	Bot* GetRandomBot(const glm::vec3& location = glm::vec3(0.f), float distance = 0, Bot* exclude_bot = nullptr);
 	Client* GetRandomClient(const glm::vec3& location = glm::vec3(0.f), float distance = 0, Client* exclude_client = nullptr);
 	NPC* GetRandomNPC(const glm::vec3& location = glm::vec3(0.f), float distance = 0, NPC* exclude_npc = nullptr);
 	Mob* GetRandomMob(const glm::vec3& location = glm::vec3(0.f), float distance = 0, Mob* exclude_mob = nullptr);
-	Group *GetGroupByMob(Mob* mob);
-	bool IsInSameGroupOrRaidGroup(Client *client1, Client *client2);
-	Group *GetGroupByClient(Client* client);
-	Group *GetGroupByID(uint32 id);
-	Group *GetGroupByLeaderName(const char* leader);
-	Raid *GetRaidByMob(Mob* mob);
-	Raid *GetRaidByClient(Client* client);
-	Raid *GetRaidByID(uint32 id);
-	Raid *GetRaidByLeaderName(const char *leader);
-#ifdef BOTS // possible fix
-	Raid* GetRaidByBotName(const char* name);
-	Raid* GetRaidByBot(Bot* bot);
-#endif
+	Group* GetGroupByMob(Mob* mob);
+	bool IsInSameGroupOrRaidGroup(Client* client1, Client* client2);
+	Group* GetGroupByClient(Client* client);
+	Group* GetGroupByID(uint32 id);
+	Group* GetGroupByLeaderName(const char* leader);
+	Raid* GetRaidByMob(Mob* mob);
+	Raid* GetRaidByClient(Client* client);
+	Raid* GetRaidByID(uint32 id);
+	Raid* GetRaidByLeaderName(const char* leader);
+	//if (RuleB(Bots, Enabled)) { // possible fix
+		Raid* GetRaidByBotName(const char* name);
+		Raid* GetRaidByBot(Bot * bot);
+	//}
 //#ifdef BOTS
 //	Raid* EntityList::GetRaidByBot(Bot* bot);
 //	Raid* EntityList::GetRaidByBotName(const char* name);

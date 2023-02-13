@@ -16,7 +16,7 @@
 	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-#ifdef BOTS
+//if (RuleB(Bots, Enabled)) {
 
 #include "bot.h"
 #include "object.h"
@@ -3036,4 +3036,4 @@ uint8 Bot::GetNumberNeedingHealedInRaidGroup(uint8 hpr, bool includePets) {
 		}
 	return needHealed;
 }
-#endif
+//}

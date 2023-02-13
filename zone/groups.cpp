@@ -247,24 +247,23 @@ bool Group::AddMember(Mob* newmember, const char *NewMemberName, uint32 Characte
 	uint32 i = 0;
 	for (i = 0; i < MAX_GROUP_MEMBERS; ++i)
 	{
-#ifdef BOTSS
-		if (newmember->IsBot() && !newmember->HasGroup() && !strcasecmp(membername[i], NewMemberName)) // Mitch
-		{
-			//Bot::RemoveBotFromGroup(newmember->CastToBot(), members[0]->GetGroup());
-			//Group::DelMember(newmember);
-			memset(membername[i], 0, 64);
-			members[i] = nullptr;
+		if (RuleB(Bots, Enabled)) {
+			if (newmember->IsBot() && !newmember->HasGroup() && !strcasecmp(membername[i], NewMemberName)) // Mitch
+			{
+				//Bot::RemoveBotFromGroup(newmember->CastToBot(), members[0]->GetGroup());
+				//Group::DelMember(newmember);
+				memset(membername[i], 0, 64);
+				members[i] = nullptr;
+			}
+			else if (!strcasecmp(membername[i], NewMemberName))
+			{
+				return false;
+			}
 		}
-		else if (!strcasecmp(membername[i], NewMemberName))
-		{
-			return false;
-		}
-#else
 		if (!strcasecmp(membername[i], NewMemberName))
 		{
 			return false;
 		}
-#endif
 	}
 
 	// Put them in the group

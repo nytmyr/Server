@@ -88,11 +88,11 @@ struct RaidMember{
 	bool IsGroupLeader;
 	bool IsRaidLeader;
 	bool IsLooter;
-#ifdef BOTS
-	bool IsBot;
-	bool IsRaidMainAssistOne = false;
-	uint32 BotOwnerID;
-#endif
+	//if (RuleB(Bots, Enabled)) {
+		bool IsBot;
+		bool IsRaidMainAssistOne = false;
+		uint32 BotOwnerID;
+	//}
 };
 
 struct GroupMentor {
@@ -103,7 +103,7 @@ struct GroupMentor {
 
 class Raid : public GroupIDConsumer {
 public:
-	Raid(Client *nLeader);
+	Raid(Client* nLeader);
 	Raid(uint32 raidID);
 	~Raid();
 
@@ -112,29 +112,29 @@ public:
 	std::string GetLeaderName() { return leadername; }
 	bool IsLeader(Client* c) { return c == leader; }
 	bool IsLeader(const char* name) { return !strcmp(leadername, name); }
-	void SetRaidLeader(const char *wasLead, const char *name);
+	void SetRaidLeader(const char* wasLead, const char* name);
 
 	bool	Process();
 	bool	IsRaid() { return true; }
 
-	void	AddMember(Client *c, uint32 group = 0xFFFFFFFF, bool rleader=false, bool groupleader=false, bool looter=false);
-	void	RemoveMember(const char *c);
+	void	AddMember(Client* c, uint32 group = 0xFFFFFFFF, bool rleader = false, bool groupleader = false, bool looter = false);
+	void	RemoveMember(const char* c);
 	void	DisbandRaid();
-	void	MoveMember(const char *name, uint32 newGroup);
-	void	SetGroupLeader(const char *who, bool glFlag = true);
-	Client	*GetGroupLeader(uint32 group_id);
-	void	RemoveGroupLeader(const char *who);
+	void	MoveMember(const char* name, uint32 newGroup);
+	void	SetGroupLeader(const char* who, bool glFlag = true);
+	Client* GetGroupLeader(uint32 group_id);
+	void	RemoveGroupLeader(const char* who);
 	bool	IsGroupLeader(const char* name);
-	bool	IsGroupLeader(Client *c);
+	bool	IsGroupLeader(Client* c);
 	bool	IsRaidMember(const char* name);
-	bool	IsRaidMember(Client *c);
-	void	UpdateLevel(const char *name, int newLevel);
-	
-#ifdef BOTS
-	void	AddBot(Bot* b, uint32 group = 0xFFFFFFFF, bool rleader = false, bool groupleader = false, bool looter = false);
-	void    RaidBotGroupSay(Bot* b, uint8 language, uint8 lang_skill, const char* msg, ...); //Not yet implemented
-	Mob* GetRaidMainAssistOneByName(const char* name);
-#endif
+	bool	IsRaidMember(Client* c);
+	void	UpdateLevel(const char* name, int newLevel);
+
+	//if (RuleB(Bots, Enabled)) {
+		void	AddBot(Bot * b, uint32 group = 0xFFFFFFFF, bool rleader = false, bool groupleader = false, bool looter = false);
+		void    RaidBotGroupSay(Bot * b, uint8 language, uint8 lang_skill, const char* msg, ...); //Not yet implemented
+		Mob* GetRaidMainAssistOneByName(const char* name);
+	//}
 
 	uint32	GetFreeGroup();
 	uint8	GroupCount(uint32 gid);

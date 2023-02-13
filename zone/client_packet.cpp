@@ -26,10 +26,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #include <string.h>
 #include <zlib.h>
 
-#ifdef BOTS
-#include "bot.h"
-#include "bot_command.h"
-#endif
+//if (RuleB(Bots, Enabled)) {
+	#include "bot.h"
+	#include "bot_command.h"
+//}
 
 #ifdef _WINDOWS
 #define snprintf	_snprintf
@@ -11886,7 +11886,7 @@ void Client::Handle_OP_RaidCommand(const EQApplicationPacket* app)
 	case RaidCommandInviteIntoExisting:
 	case RaidCommandInvite: {
 
-#ifdef BOTS
+		//if (RuleB(Bots, Enabled)) {
 
 		Bot* player_to_invite = nullptr;
 		Client* player_to_invite_owner = nullptr;
@@ -11934,113 +11934,113 @@ void Client::Handle_OP_RaidCommand(const EQApplicationPacket* app)
 
 			Bot::ProcessRaidInvite(player_to_invite, player_to_invite_owner);
 			break;
-			}
-			else
-			{
-#endif
-				Client* player_to_invite = entity_list.GetClientByName(raid_command_packet->player_name);
+		}
+		else
+		{
+			//}
+			Client* player_to_invite = entity_list.GetClientByName(raid_command_packet->player_name);
 
-				if (!player_to_invite)
-					break;
+			if (!player_to_invite)
+				break;
 
-				Group* player_to_invite_group = player_to_invite->GetGroup();
+			Group* player_to_invite_group = player_to_invite->GetGroup();
 
-				if (player_to_invite->HasRaid()) {
-					Message(Chat::Red, "%s is already in a raid.", player_to_invite->GetName());
-					break;
-				}
-
-				if (player_to_invite_group && player_to_invite_group->IsGroupMember(this)) {
-					MessageString(Chat::Red, ALREADY_IN_PARTY);
-					break;
-				}
-				// Not allowed: Invite a client that is in a group but not the groupleader
-				if (player_to_invite_group && !player_to_invite_group->IsLeader(player_to_invite)) {
-					Message(Chat::Red, "You can only invite an ungrouped player or group leader to join your raid.");
-					break;
-				}
-
-				/* Send out invite to the client */
-				auto outapp = new EQApplicationPacket(OP_RaidUpdate, sizeof(RaidGeneral_Struct));
-				RaidGeneral_Struct* raid_command = (RaidGeneral_Struct*)outapp->pBuffer;
-
-				strn0cpy(raid_command->leader_name, raid_command_packet->leader_name, 64);
-				strn0cpy(raid_command->player_name, raid_command_packet->player_name, 64);
-
-				raid_command->parameter = 0;
-				raid_command->action = 20;
-
-				player_to_invite->QueuePacket(outapp);
-
-				safe_delete(outapp);
-
+			if (player_to_invite->HasRaid()) {
+				Message(Chat::Red, "%s is already in a raid.", player_to_invite->GetName());
 				break;
 			}
-#ifdef BOTS
+
+			if (player_to_invite_group && player_to_invite_group->IsGroupMember(this)) {
+				MessageString(Chat::Red, ALREADY_IN_PARTY);
+				break;
+			}
+			// Not allowed: Invite a client that is in a group but not the groupleader
+			if (player_to_invite_group && !player_to_invite_group->IsLeader(player_to_invite)) {
+				Message(Chat::Red, "You can only invite an ungrouped player or group leader to join your raid.");
+				break;
+			}
+
+			/* Send out invite to the client */
+			auto outapp = new EQApplicationPacket(OP_RaidUpdate, sizeof(RaidGeneral_Struct));
+			RaidGeneral_Struct* raid_command = (RaidGeneral_Struct*)outapp->pBuffer;
+
+			strn0cpy(raid_command->leader_name, raid_command_packet->leader_name, 64);
+			strn0cpy(raid_command->player_name, raid_command_packet->player_name, 64);
+
+			raid_command->parameter = 0;
+			raid_command->action = 20;
+
+			player_to_invite->QueuePacket(outapp);
+
+			safe_delete(outapp);
+
+			break;
 		}
-#endif
+		//if (RuleB(Bots, Enabled)) {
+		//}
+	}
 
 	case RaidCommandAcceptInvite: {
 		Client* player_accepting_invite = entity_list.GetClientByName(raid_command_packet->player_name);
 
-#ifdef BOTS
-		// If the accepting client is in a group with a Bot or the invitor is in a group with a Bot, send the invite to Bot:ProcessRaidInvite
-		// instead of remaining here.
-		Bot* b = nullptr;
-		Client* invitee = entity_list.GetClientByName(raid_command_packet->leader_name);
-		Client* invitor = entity_list.GetClientByName(raid_command_packet->player_name);
+		//if (RuleB(Bots, Enabled)) {
+			// If the accepting client is in a group with a Bot or the invitor is in a group with a Bot, send the invite to Bot:ProcessRaidInvite
+			// instead of remaining here.
+			Bot* b = nullptr;
+			Client* invitee = entity_list.GetClientByName(raid_command_packet->leader_name);
+			Client* invitor = entity_list.GetClientByName(raid_command_packet->player_name);
 
-		if (!invitee)
-			break;
+			if (!invitee)
+				break;
 
-		if (!invitor)
-			break;
+			if (!invitor)
+				break;
 
-		if (invitee && invitee->IsRaidGrouped()) {
-			invitor->MessageString(Chat::White, ALREADY_IN_RAID, invitee->GetName()); //group failed, must invite members not in raid...
-			return;
-		}
+			if (invitee && invitee->IsRaidGrouped()) {
+				invitor->MessageString(Chat::White, ALREADY_IN_RAID, invitee->GetName()); //group failed, must invite members not in raid...
+				return;
+			}
 
-		Group* g_invitee = invitee->GetGroup();
-		Group* g_invitor = invitor->GetGroup();
+			Group* g_invitee = invitee->GetGroup();
+			Group* g_invitor = invitor->GetGroup();
 
-		bool invitor_has_bot = false;
-		bool invitee_has_bot = false;
+			bool invitor_has_bot = false;
+			bool invitee_has_bot = false;
 
-		if (g_invitor && g_invitor->IsLeader(invitor))
-		{
-			for (int x = 0; x < 6; x++)
+			if (g_invitor && g_invitor->IsLeader(invitor))
 			{
-				if (g_invitor->members[x] && g_invitor->members[x]->IsBot())
+				for (int x = 0; x < 6; x++)
 				{
-					b = entity_list.GetBotByBotName(g_invitor->members[x]->GetName());
-					invitee_has_bot = true;
+					if (g_invitor->members[x] && g_invitor->members[x]->IsBot())
+					{
+						b = entity_list.GetBotByBotName(g_invitor->members[x]->GetName());
+						invitee_has_bot = true;
+					}
 				}
 			}
-		}
-		if (g_invitee && g_invitee->IsLeader(invitee))
-		{
-			for (int x = 0; x < 6; x++)
+			if (g_invitee && g_invitee->IsLeader(invitee))
 			{
-				if (g_invitee->members[x] && g_invitee->members[x]->IsBot())
+				for (int x = 0; x < 6; x++)
 				{
-					b = entity_list.GetBotByBotName(g_invitee->members[x]->GetName());
-					invitee_has_bot = true;
-					break;
+					if (g_invitee->members[x] && g_invitee->members[x]->IsBot())
+					{
+						b = entity_list.GetBotByBotName(g_invitee->members[x]->GetName());
+						invitee_has_bot = true;
+						break;
+					}
 				}
 			}
-		}
-		if (invitor_has_bot || invitee_has_bot) {
-			Bot::ProcessRaidInvite(invitee, invitor);  //two clients with one or both having groups with bots
-			break;
-		}
-		else if (invitee && invitee->IsBot())
-		{
-			Bot::ProcessRaidInvite(b, player_accepting_invite); //client inviting a bot
-			break;
-		}
+			if (invitor_has_bot || invitee_has_bot) {
+				Bot::ProcessRaidInvite(invitee, invitor);  //two clients with one or both having groups with bots
+				break;
+			}
+			else if (invitee && invitee->IsBot())
+			{
+				Bot::ProcessRaidInvite(b, player_accepting_invite); //client inviting a bot
+				break;
+			}
 
-#endif
+		//}
 		if (player_accepting_invite) {
 			if (IsRaidGrouped()) {
 				player_accepting_invite->MessageString(Chat::White, ALREADY_IN_RAID, GetName()); //group failed, must invite members not in raid...
@@ -12312,9 +12312,9 @@ void Client::Handle_OP_RaidCommand(const EQApplicationPacket* app)
 		Raid* raid = entity_list.GetRaidByClient(this);
 		Client* c_to_disband = entity_list.GetClientByName(raid_command_packet->leader_name);
 		Client* c_doing_disband = entity_list.GetClientByName(raid_command_packet->player_name);
-#ifdef BOTS
-		Bot* b_to_disband = entity_list.GetBotByBotName(raid_command_packet->leader_name);
-#endif
+		//if (RuleB(Bots, Enabled)) {
+			Bot* b_to_disband = entity_list.GetBotByBotName(raid_command_packet->leader_name);
+		//}
 
 		if (raid) {
 			uint32 group = raid->GetGroup(raid_command_packet->leader_name);
