@@ -2005,7 +2005,7 @@ void Client::DoEnduranceUpkeep() {
 	uint32 buffs_i;
 	uint32 buff_count = GetMaxTotalSlots();
 	for (buffs_i = 0; buffs_i < buff_count; buffs_i++) {
-		if (buffs[buffs_i].spellid != SPELL_UNKNOWN) {
+		if (IsValidSpell(buffs[buffs_i].spellid)) {
 			int upkeep = spells[buffs[buffs_i].spellid].endurance_upkeep;
 			if(upkeep > 0) {
 				has_effect = true;
@@ -2054,7 +2054,7 @@ void Client::CalcRestState()
 
 	uint32 buff_count = GetMaxTotalSlots();
 	for (unsigned int j = 0; j < buff_count; j++) {
-		if(buffs[j].spellid != SPELL_UNKNOWN) {
+		if(IsValidSpell(buffs[j].spellid)) {
 			if(IsDetrimentalSpell(buffs[j].spellid) && (buffs[j].ticsremaining > 0))
 				if(!DetrimentalSpellAllowsRest(buffs[j].spellid))
 					return;

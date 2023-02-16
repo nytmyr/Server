@@ -2576,8 +2576,9 @@ void ZoneDatabase::SaveMercBuffs(Merc *merc) {
 	}
 
 	for (int buffCount = 0; buffCount <= BUFF_COUNT; buffCount++) {
-		if(buffs[buffCount].spellid == 0 || buffs[buffCount].spellid == SPELL_UNKNOWN)
-            continue;
+		if (!IsValidSpell(buffs[buffCount].spellid)) {
+			continue;
+		}
 
         int IsPersistent = buffs[buffCount].persistant_buff? 1: 0;
 
@@ -3120,8 +3121,9 @@ void ZoneDatabase::SaveBuffs(Client *client) {
 	Buffs_Struct *buffs = client->GetBuffs();
 
 	for (int index = 0; index < buff_count; index++) {
-		if(buffs[index].spellid == SPELL_UNKNOWN)
-            continue;
+		if (!IsValidSpell(buffs[index].spellid)) {
+			continue;
+		}
 
 		query = StringFormat("INSERT INTO `character_buffs` (character_id, slot_id, spell_id, "
                             "caster_level, caster_name, ticsremaining, counters, numhits, melee_rune, "
@@ -3302,8 +3304,9 @@ void ZoneDatabase::SavePetInfo(Client *client)
 		// pet buffs!
 		int max_slots = RuleI(Spells, MaxTotalSlotsPET);
 		for (int index = 0; index < max_slots; index++) {
-			if (petinfo->Buffs[index].spellid == SPELL_UNKNOWN || petinfo->Buffs[index].spellid == 0)
+			if (!IsValidSpell(petinfo->Buffs[index].spellid)) {
 				continue;
+			}
 			if (query.length() == 0)
 				query = StringFormat("INSERT INTO `character_pet_buffs` "
 						"(`char_id`, `pet`, `slot`, `spell_id`, `caster_level`, "
