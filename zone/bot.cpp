@@ -531,7 +531,7 @@ uint32 Bot::GetBotArcheryRange() {
 }
 
 void Bot::ChangeBotArcherWeapons(bool isArcher) {
-	if((GetClass()==WARRIOR) || (GetClass()==PALADIN) || (GetClass()==RANGER) || (GetClass()==SHADOWKNIGHT) || (GetClass()==ROGUE)) {
+	if((GetClass() == WARRIOR) || (GetClass() == PALADIN) || (GetClass() == RANGER) || (GetClass() == SHADOWKNIGHT) || (GetClass() == ROGUE)) {
 		if(!isArcher) {
 			BotAddEquipItem(EQ::invslot::slotPrimary, GetBotItemBySlot(EQ::invslot::slotPrimary));
 			BotAddEquipItem(EQ::invslot::slotSecondary, GetBotItemBySlot(EQ::invslot::slotSecondary));
