@@ -3550,10 +3550,10 @@ void Bot::AI_Process()
 									BotGroupSay(this, "Attempting to evade %s", tar->GetCleanName());
 									//bot_owner->Message(Chat::Tell, "%s tells you, Attempting to evade %s", GetCleanName(), tar->GetCleanName());
 									if (zone->random.Int(0, 260) < (int)GetSkill(EQ::skills::SkillHide)) {
-										SendAppearancePacket(AT_Invis, Invisibility::Invisible);
+										//SendAppearancePacket(AT_Invis, Invisibility::Invisible);
 										RogueEvade(tar);
 									}
-									SendAppearancePacket(AT_Invis, Invisibility::Visible);
+									//SendAppearancePacket(AT_Invis, Invisibility::Visible);
 									return;
 								}
 							}
@@ -3568,20 +3568,18 @@ void Bot::AI_Process()
 									}
 
 									m_monk_evade_timer.Start(timer_duration);
+									BotGroupSay(this, "Attempting to evade %s", tar->GetCleanName());
+									//bot_owner->Message(Chat::Tell, "%s tells you, Attempting to evade %s", GetCleanName(), tar->GetCleanName());
 									if (zone->random.Int(0, 260) < (int)GetSkill(EQ::skills::SkillFeignDeath)) {
-										BotGroupSay(this, "Attempting to evade %s", tar->GetCleanName());
-										//bot_owner->Message(Chat::Tell, "%s tells you, Attempting to evade %s", GetCleanName(), tar->GetCleanName());
-										if (zone->random.Int(0, 260) < (int)GetSkill(EQ::skills::SkillFeignDeath)) {
-											SetFeigned(false);
-											SendAppearancePacket(AT_Anim, ANIM_DEATH);
-											entity_list.MessageCloseString(this, false, 200, 10, STRING_FEIGNFAILED, GetName());
-										}
-										else {
-											SetFeigned(true);
-											SendAppearancePacket(AT_Anim, ANIM_DEATH);
-										}
+										//SendAppearancePacket(AT_Anim, ANIM_DEATH);
+										entity_list.MessageCloseString(this, false, 200, 10, STRING_FEIGNFAILED, GetName());
 									}
-									SendAppearancePacket(AT_Anim, ANIM_STAND);
+									else {
+										SetFeigned(true);
+										//SendAppearancePacket(AT_Anim, ANIM_DEATH);
+									}
+									//SendAppearancePacket(AT_Anim, ANIM_STAND);
+									SetFeigned(false);
 									return;
 								}
 							}
@@ -3747,7 +3745,6 @@ void Bot::AI_Process()
 
 				TEST_COMBATANTS();
 				if (attack_timer.Check()) { // Process primary weapon attacks
-
 					Attack(tar, EQ::invslot::slotPrimary);
 
 					TEST_COMBATANTS();
@@ -8695,13 +8692,8 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 				if(g) {
 					for(int i = 0; i < MAX_GROUP_MEMBERS; i++) {
 						if(g->members[i] && !g->members[i]->qglobal) {
-							if (g->members[i]->IsClient()) { //deleteme remove this after client addition
-								if (caster->AICastSpell(g->members[i], 100, SpellType_Heal))
-									return true;
-							}
-							else if (g->members[i]->IsBot()) { //deleteme remove this after client addition
-								if (caster->AICastSpell(g->members[i], 100, SpellType_Heal))
-									return true;
+							if (caster->AICastSpell(g->members[i], 100, SpellType_Heal)) {
+								return true;
 							}
 						}
 
@@ -8730,15 +8722,9 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 						for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
 							//for (auto& iter : raid->GetRaidGroupMembers(g)) {
 							if (iter->member && entity_list.IsMobInZone(iter->member) && !iter->member->qglobal) { // do a message here to find hp to troubleshoot
-								if (iter->member->IsClient()) { //deleteme remove this after client addition
-									if (caster->AICastSpell(iter->member, 100, SpellType_Heal))
-										return true;
+								if (caster->AICastSpell(iter->member, 100, SpellType_Heal)) {
+									return true;
 								}
-								else if (iter->member->IsBot()) { //deleteme remove this after client addition
-									if (caster->AICastSpell(iter->member, 100, SpellType_Heal))
-										return true;
-								}
-
 							}
 
 							if (iter->member && entity_list.IsMobInZone(iter->member) && !iter->member->qglobal && iter->member->HasPet() && iter->member->GetPet()->GetHPRatio() < hpRatioToHeal) {
@@ -8782,13 +8768,8 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 				if (g) {
 					for (int i = 0; i < MAX_GROUP_MEMBERS; i++) {
 						if (g->members[i] && !g->members[i]->qglobal) {
-							if (g->members[i]->IsClient()) { //deleteme remove this after client addition
-								if (caster->AICastSpell(g->members[i], 100, SpellType_Heal))
-									return true;
-							}
-							else if (g->members[i]->IsBot()) { //deleteme remove this after client addition
-								if (caster->AICastSpell(g->members[i], 100, SpellType_Heal))
-									return true;
+							if (caster->AICastSpell(g->members[i], 100, SpellType_Heal)) {
+								return true;
 							}
 						}
 
@@ -8817,13 +8798,8 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 						for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
 							//for (auto& iter : raid->GetRaidGroupMembers(g)) {
 							if (iter->member && entity_list.IsMobInZone(iter->member) && !iter->member->qglobal) { // do a message here to find hp to troubleshoot
-								if (iter->member->IsClient()) { //deleteme remove this after client addition
-									if (caster->AICastSpell(iter->member, 100, SpellType_Heal))
-										return true;
-								}
-								else if (iter->member->IsBot()) { //deleteme remove this after client addition
-									if (caster->AICastSpell(iter->member, 100, SpellType_Heal))
-										return true;
+								if (caster->AICastSpell(iter->member, 100, SpellType_Heal)) {
+									return true;
 								}
 
 							}

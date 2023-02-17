@@ -823,10 +823,10 @@ void Bot::AI_Process_Raid()
 									BotGroupSay(this, "Attempting to evade %s", tar->GetCleanName());
 									//bot_owner->Message(Chat::Tell, "%s tells you, Attempting to evade %s", GetCleanName(), tar->GetCleanName());
 									if (zone->random.Int(0, 260) < (int)GetSkill(EQ::skills::SkillHide)) {
-										SendAppearancePacket(AT_Invis, Invisibility::Invisible);
+										//SendAppearancePacket(AT_Invis, Invisibility::Invisible);
 										RogueEvade(tar);
 									}
-									SendAppearancePacket(AT_Invis, Invisibility::Visible);
+									//SendAppearancePacket(AT_Invis, Invisibility::Visible);
 									return;
 								}
 							}
@@ -841,20 +841,18 @@ void Bot::AI_Process_Raid()
 									}
 
 									m_monk_evade_timer.Start(timer_duration);
+									BotGroupSay(this, "Attempting to evade %s", tar->GetCleanName());
+									//bot_owner->Message(Chat::Tell, "%s tells you, Attempting to evade %s", GetCleanName(), tar->GetCleanName());
 									if (zone->random.Int(0, 260) < (int)GetSkill(EQ::skills::SkillFeignDeath)) {
-										BotGroupSay(this, "Attempting to evade %s", tar->GetCleanName());
-										//bot_owner->Message(Chat::Tell, "%s tells you, Attempting to evade %s", GetCleanName(), tar->GetCleanName());
-										if (zone->random.Int(0, 260) < (int)GetSkill(EQ::skills::SkillFeignDeath)) {
-											SetFeigned(false);
-											SendAppearancePacket(AT_Anim, ANIM_DEATH);
-											entity_list.MessageCloseString(this, false, 200, 10, STRING_FEIGNFAILED, GetName());
-										}
-										else {
-											SetFeigned(true);
-											SendAppearancePacket(AT_Anim, ANIM_DEATH);
-										}
+										//SendAppearancePacket(AT_Anim, ANIM_DEATH);
+										entity_list.MessageCloseString(this, false, 200, 10, STRING_FEIGNFAILED, GetName());
 									}
-									SendAppearancePacket(AT_Anim, ANIM_STAND);
+									else {
+										SetFeigned(true);
+										//SendAppearancePacket(AT_Anim, ANIM_DEATH);
+									}
+									//SendAppearancePacket(AT_Anim, ANIM_STAND);
+									SetFeigned(false);
 									return;
 								}
 							}
