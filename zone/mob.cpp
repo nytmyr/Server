@@ -2479,14 +2479,14 @@ void Mob::ShowBuffList(Client* client) {
 	}
 }
 
-void Mob::GMMove(float x, float y, float z, float heading) {
+void Mob::GMMove(float x, float y, float z, float heading, bool save_guard_spot) {
 	m_Position.x = x;
 	m_Position.y = y;
 	m_Position.z = z;
 	SetHeading(heading);
 	mMovementManager->SendCommandToClients(this, 0.0, 0.0, 0.0, 0.0, 0, ClientRangeAny);
 
-	if (IsNPC()) {
+	if (IsNPC() && save_guard_spot) {
 		CastToNPC()->SaveGuardSpot(glm::vec4(x, y, z, heading));
 	}
 }
@@ -3833,10 +3833,32 @@ bool Mob::HateSummon() {
 					new_pos.w
 				);
 				parse->EventPlayer(EVENT_SUMMON_PC, target->CastToClient(), export_string, 0);
-				target->CastToClient()->MovePC(zone->GetZoneID(), zone->GetInstanceID(), new_pos.x, new_pos.y, new_pos.z, new_pos.w, 0, SummonPC);
+
+				target->CastToClient()->MovePC(
+					zone->GetZoneID(),
+					zone->GetInstanceID(),
+					new_pos.x,
+					new_pos.y,
+					new_pos.z,
+					new_pos.w,
+					0,
+					SummonPC
+				);
+			} else {
+				bool target_is_client_pet = (
+					target->IsPet() &&
+					target->IsPetOwnerClient()
+				);
+				bool set_new_guard_spot = !(IsNPC() && target_is_client_pet);
+
+				target->GMMove(
+					new_pos.x,
+					new_pos.y,
+					new_pos.z,
+					new_pos.w,
+					set_new_guard_spot
+				);
 			}
-			else
-				target->GMMove(new_pos.x, new_pos.y, new_pos.z, new_pos.w);
 
 			return true;
 		} else if(summon_level == 2) {
@@ -4380,6 +4402,10 @@ void Mob::SetTarget(Mob *mob)
 		parse->BotHasQuestSub(EVENT_TARGET_CHANGE)
 	);
 
+	if (IsClient() && CastToClient()->admin > AccountStatus::GMMgmt) {
+		DisplayInfo(mob);
+	}
+
 	if (has_target_change_event) {
 		std::vector<std::any> args;
 
@@ -4392,10 +4418,6 @@ void Mob::SetTarget(Mob *mob)
 		} else if (IsClient()) {
 			if (parse->PlayerHasQuestSub(EVENT_TARGET_CHANGE)) {
 				parse->EventPlayer(EVENT_TARGET_CHANGE, CastToClient(), "", 0, &args);
-			}
-
-			if (CastToClient()->admin > AccountStatus::GMMgmt) {
-				DisplayInfo(mob);
 			}
 
 			CastToClient()->SetBotPrecombat(false); // Any change in target will nullify this flag (target == mob checked above)

@@ -1,3 +1,46 @@
+## [22.4.2] - 02/18/2023 
+
+### Content
+
+* Added optional SQL 2023_02_17_fix_sseru_mischief_doors.sql to fix sseru/mischief doors ([#2955](https://github.com/EQEmu/Server/pull/2955)) ([Akkadius](https://github.com/Akkadius)) 2023-02-18
+
+### Logging
+
+* Remove noisy raid/group/forage errors ([#2952](https://github.com/EQEmu/Server/pull/2952)) ([Akkadius](https://github.com/Akkadius)) 2023-02-18
+
+### MySQL
+
+* Add keepalives to UCS and Loginserver ([#2953](https://github.com/EQEmu/Server/pull/2953)) ([Akkadius](https://github.com/Akkadius)) 2023-02-18
+
+### Player Events
+
+* Add logging category to hold processing batch logs ([#2954](https://github.com/EQEmu/Server/pull/2954)) ([Akkadius](https://github.com/Akkadius)) 2023-02-18
+
+### Tradeskills
+
+* Fix regression caused by #2932 ([#2956](https://github.com/EQEmu/Server/pull/2956)) ([Aeadoin](https://github.com/Aeadoin)) 2023-02-18
+
+## [22.4.1] - 02/17/2023 
+
+### Bots
+
+* Set Taunt to enabled for SK/Paladin Bots by Default. ([#2941](https://github.com/EQEmu/Server/pull/2941)) ([Aeadoin](https://github.com/Aeadoin)) 2023-02-17
+
+### DevTools
+
+* Fix NPC targetting dev tools display window ([#2943](https://github.com/EQEmu/Server/pull/2943)) ([Akkadius](https://github.com/Akkadius)) 2023-02-17
+
+### Fixes
+
+* Issue with AssignRaidToInstance that was using the groups repository instead of raid ([#2947](https://github.com/EQEmu/Server/pull/2947)) ([Akkadius](https://github.com/Akkadius)) 2023-02-17
+* Missing comma in schema list breaking dumps  ([Akkadius](https://github.com/Akkadius)) 2023-02-17
+
+### Player Events
+
+* Fix issue with item instances not being validated properly before accessing causing crashes on handin ([#2945](https://github.com/EQEmu/Server/pull/2945)) ([Akkadius](https://github.com/Akkadius)) 2023-02-17
+* Fix rare out of bound issue when loading event types ([#2946](https://github.com/EQEmu/Server/pull/2946)) ([Akkadius](https://github.com/Akkadius)) 2023-02-17
+* Turn off KILLED_NPC (trash) off by default ([#2948](https://github.com/EQEmu/Server/pull/2948)) ([Akkadius](https://github.com/Akkadius)) 2023-02-17
+
 ## [22.4.0] - 02/17/2023 
 
 ### Bots

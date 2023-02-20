@@ -138,6 +138,7 @@ namespace Logs {
 		TestDebug,
 		Bugs,
 		QuestErrors,
+		PlayerEvents,
 		MaxCategoryID /* Don't Remove this */
 	};
 
@@ -234,7 +235,8 @@ namespace Logs {
 		"HealAI",
 		"TestDebug",
 		"Bugs",
-		"QuestErrors"
+		"QuestErrors",
+		"PlayerEvents",
 	};
 }
 

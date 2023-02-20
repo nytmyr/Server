@@ -4885,23 +4885,19 @@ uint32 Bot::CountBotItem(uint32 item_id) {
 	return item_count;
 }
 
-bool Bot::HasBotItem(uint32 item_id) {
-	bool has_item = false;
-	EQ::ItemInstance *inst = nullptr;
+int16 Bot::HasBotItem(uint32 item_id) {
+	EQ::ItemInstance const *inst = nullptr;
 
 	for (uint16 slot_id = EQ::invslot::EQUIPMENT_BEGIN; slot_id <= EQ::invslot::EQUIPMENT_END; ++slot_id) {
 		inst = GetBotItem(slot_id);
 		if (!inst || !inst->GetItem()) {
 			continue;
 		}
-
 		if (inst->GetID() == item_id) {
-			has_item = true;
-			break;
+			return slot_id;
 		}
 	}
-
-	return has_item;
+	return INVALID_INDEX;
 }
 
 void Bot::RemoveBotItem(uint32 item_id) {
@@ -10247,7 +10243,7 @@ void Bot::ListBotSpells(uint8 min_level)
 	auto spell_count = 0;
 	auto spell_number = 1;
 
-	for (const auto& s : (AIBot_spells.size() > AIBot_spells_enforced.size()) ? AIBot_spells : AIBot_spells_enforced) {
+	for (const auto& s : (GetBotEnforceSpellSetting()) ? AIBot_spells_enforced : AIBot_spells) {
 		auto b = bot_spell_settings.find(s.spellid);
 		if (b == bot_spell_settings.end() && s.minlevel >= min_level) {
 			bot_owner->Message(
