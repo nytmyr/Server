@@ -52,26 +52,18 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 
 				if (parse->PlayerHasQuestSub(EVENT_WARP)) {
 					const auto& export_string = fmt::format(
-						"{} {} {}",
+						"{} {} {} {} {} {} {}",
 						position1.x,
 						position1.y,
-						position1.z
+						position1.z,
+						position2.x,
+						position2.y,
+						position2.z,
+						1
 					);
-
 					parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
 				}
 			}
-			/* CHECK THSI EVENT_WARP ANTICHEAT
-				std::string export_string = fmt::format(
-					"{} {} {} {}",
-					position1.x,
-					position1.y,
-					position1.z,
-					1
-				);
-				parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
-			}
-			*/
 			break;
 		case MQWarpAbsolute:
 			if (RuleB(Cheat, EnableMQWarpDetector) &&
@@ -96,24 +88,17 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 
 				if (parse->PlayerHasQuestSub(EVENT_WARP)) {
 					const auto& export_string = fmt::format(
-						"{} {} {}",
+						"{} {} {} {} {} {} {}",
 						position1.x,
 						position1.y,
-						position1.z
+						position1.z,
+						position2.x,
+						position2.y,
+						position2.z,
+						2
 					);
-
 					parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
 				}
-				/* CHECK THSI EVENT_WARP ANTICHEAT
-				std::string export_string = fmt::format(
-					"{} {} {} {}",
-					position1.x,
-					position1.y,
-					position1.z,
-					2
-				);
-				parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
-				*/
 				m_time_since_last_warp_detection.Start(2500);
 			}
 			break;
@@ -134,10 +119,13 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 				RecordPlayerEventLogWithClient(m_target, PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
 				LogCheat(fmt::runtime(message));
 				std::string export_string = fmt::format(
-					"{} {} {} {}",
+					"{} {} {} {} {} {} {}",
 					position1.x,
 					position1.y,
 					position1.z,
+					-1,
+					-1,
+					-1,
 					3
 				);
 				parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
@@ -160,10 +148,13 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 				RecordPlayerEventLogWithClient(m_target, PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
 				LogCheat(fmt::runtime(message));
 				std::string export_string = fmt::format(
-					"{} {} {} {}",
+					"{} {} {} {} {} {} {}",
 					position1.x,
 					position1.y,
 					position1.z,
+					-1,
+					-1,
+					-1,
 					4
 				);
 				parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
@@ -188,10 +179,13 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 					RecordPlayerEventLogWithClient(m_target, PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
 					LogCheat(fmt::runtime(message));
 					std::string export_string = fmt::format(
-						"{} {} {} {}",
+						"{} {} {} {} {} {} {}",
 						position1.x,
 						position1.y,
 						position1.z,
+						-1,
+						-1,
+						-1,
 						5
 					);
 					parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
@@ -216,10 +210,13 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 				RecordPlayerEventLogWithClient(m_target, PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
 				LogCheat(fmt::runtime(message));
 				std::string export_string = fmt::format(
-					"{} {} {} {}",
+					"{} {} {} {} {} {} {}",
 					position1.x,
 					position1.y,
 					position1.z,
+					-1,
+					-1,
+					-1,
 					6
 				);
 				parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
@@ -242,10 +239,13 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 				RecordPlayerEventLogWithClient(m_target, PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
 				LogCheat(fmt::runtime(message));
 				std::string export_string = fmt::format(
-					"{} {} {} {}",
+					"{} {} {} {} {} {} {}",
 					position1.x,
 					position1.y,
 					position1.z,
+					-1,
+					-1,
+					-1,
 					7
 				);
 				parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
@@ -268,10 +268,13 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 				RecordPlayerEventLogWithClient(m_target, PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
 				LogCheat(fmt::runtime(message));
 				std::string export_string = fmt::format(
-					"{} {} {} {}",
+					"{} {} {} {} {} {} {}",
 					position1.x,
 					position1.y,
 					position1.z,
+					-1,
+					-1,
+					-1,
 					8
 				);
 				parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
@@ -289,16 +292,19 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 				);
 				RecordPlayerEventLogWithClient(m_target, PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
 				LogCheat("{}", message);
-				/* CHECK THSI EVENT_WARP ANTICHEAT
-				std::string export_string = fmt::format(
-					"{} {} {} {}",
-					position1.x,
-					position1.y,
-					position1.z,
-					9
-				);
-				parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
-				*/
+				if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+					const auto& export_string = fmt::format(
+						"{} {} {} {} {} {} {}",
+						position1.x,
+						position1.y,
+						position1.z,
+						-1,
+						-1,
+						-1,
+						9
+					);
+					parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
+				}
 			}
 			break;
 		case MQFastMem:
@@ -319,10 +325,13 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 				RecordPlayerEventLogWithClient(m_target, PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
 				LogCheat(fmt::runtime(message));
 				std::string export_string = fmt::format(
-					"{} {} {} {}",
+					"{} {} {} {} {} {} {}",
 					position1.x,
 					position1.y,
 					position1.z,
+					-1,
+					-1,
+					-1,
 					10
 				);
 				parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
@@ -343,10 +352,13 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 			RecordPlayerEventLogWithClient(m_target, PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
 			LogCheat(fmt::runtime(message));
 			std::string export_string = fmt::format(
-				"{} {} {} {}",
+				"{} {} {} {} {} {} {}",
 				position1.x,
 				position1.y,
 				position1.z,
+				-1,
+				-1,
+				-1,
 				11
 			);
 			parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);

@@ -2026,20 +2026,19 @@ bool Client::SwapItem(MoveItem_Struct* move_in) {
 				banker ? banker->GetName() : "UNKNOWN NPC", distance
 			);
 			RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
-			/* CHECK THSI EVENT_WARP ANTICHEAT
-			auto hacked_string = fmt::format("Player tried to make use of a banker(items) but {} is "
-							 "non-existant or too far away ({} units).",
-							 banker ? banker->GetName() : "UNKNOWN NPC", distance);
-			database.SetMQDetectionFlag(AccountName(), GetName(), hacked_string, zone->GetShortName());
-			std::string export_string = fmt::format(
-				"{} {} {} {}",
-				GetX(),
-				GetY(),
-				GetZ(),
-				34
-			);
-			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
-			*/
+			if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+				const auto& export_string = fmt::format(
+					"{} {} {} {} {} {} {}",
+					GetX(),
+					GetY(),
+					GetZ(),
+					-1,
+					-1,
+					-1,
+					34
+				);
+				parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+			}
 			Kick("Inventory desync");	// Kicking player to avoid item loss do to client and server inventories not being sync'd
 			return false;
 		}

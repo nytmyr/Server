@@ -3620,17 +3620,19 @@ void Client::Handle_OP_BankerChange(const EQApplicationPacket *app)
 		    "Player tried to make use of a banker(money) but {} is non-existant or too far away ({} units).",
 		    banker ? banker->GetName() : "UNKNOWN NPC", distance);
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
-		/* CHECK THSI EVENT_WARP ANTICHEAT
-		database.SetMQDetectionFlag(AccountName(), GetName(), hacked_string, zone->GetShortName());
-		std::string export_string = fmt::format(
-			"{} {} {} {}",
-			GetX(),
-			GetY(),
-			GetZ(),
-			12
-		);
-		parse->EventPlayer(EVENT_WARP, this, export_string, 0);
-		*/
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				-1,
+				-1,
+				-1,
+				12
+			);
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
 		return;
 	}
 
@@ -4355,10 +4357,13 @@ void Client::Handle_OP_CastSpell(const EQApplicationPacket *app)
 					RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
 					InterruptSpell(castspell->spell_id);	//CHEATER!!
 					std::string export_string = fmt::format(
-						"{} {} {} {}",
+						"{} {} {} {} {} {} {}",
 						GetX(),
 						GetY(),
 						GetZ(),
+						-1,
+						-1,
+						-1,
 						13
 					);
 					parse->EventPlayer(EVENT_WARP, this, export_string, 0);
@@ -4406,10 +4411,13 @@ void Client::Handle_OP_CastSpell(const EQApplicationPacket *app)
 							Message(Chat::Red, "Error: level not high enough.", castspell->inventoryslot);
 							InterruptSpell(castspell->spell_id);
 							std::string export_string = fmt::format(
-								"{} {} {} {}",
+								"{} {} {} {} {} {} {}",
 								GetX(),
 								GetY(),
 								GetZ(),
+								-1,
+								-1,
+								-1,
 								14
 							);
 							parse->EventPlayer(EVENT_WARP, this, export_string, 0);
@@ -5366,18 +5374,19 @@ void Client::Handle_OP_ControlBoat(const EQApplicationPacket *app)
 	{
 		auto message = fmt::format("OP_Control Boat was sent against {} which is of race {}", boat->GetName(), boat->GetRace());
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
-		/* CHECK THSI EVENT_WARP ANTICHEAT
-		auto hacked_string = fmt::format("OP_Control Boat was sent against {} which is of race {}", boat->GetName(), boat->GetRace());
-		database.SetMQDetectionFlag(AccountName(), GetName(), hacked_string, zone->GetShortName());
-		std::string export_string = fmt::format(
-			"{} {} {} {}",
-			GetX(),
-			GetY(),
-			GetZ(),
-			15
-		);
-		parse->EventPlayer(EVENT_WARP, this, export_string, 0);
-		*/
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				-1,
+				-1,
+				-1,
+				15
+			);
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
 		return;
 	}
 
@@ -5710,18 +5719,19 @@ void Client::Handle_OP_Disarm(const EQApplicationPacket *app) {
 		// Client sent a disarm request with an originator ID not matching their own ID.
 		auto message = fmt::format("Player {} ({}) sent OP_Disarm with source ID of: {}", GetCleanName(), GetID(), pmob->GetID());
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
-		/* CHECK THSI EVENT_WARP ANTICHEAT
-		auto hack_str = fmt::format("Player {} ({}) sent OP_Disarm with source ID of: {}", GetCleanName(), GetID(), pmob->GetID());
-		database.SetMQDetectionFlag(account_name, name, hack_str, zone->GetShortName());
-		std::string export_string = fmt::format(
-			"{} {} {} {}",
-			GetX(),
-			GetY(),
-			GetZ(),
-			16
-		);
-		parse->EventPlayer(EVENT_WARP, this, export_string, 0);
-		*/
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				-1,
+				-1,
+				-1,
+				16
+			);
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
 		return;
 	}
 	// No disarm on corpses
@@ -8684,17 +8694,19 @@ void Client::Handle_OP_Illusion(const EQApplicationPacket *app)
 			PlayerEvent::POSSIBLE_HACK,
 			PlayerEvent::PossibleHackEvent{.message = "OP_Illusion sent by non Game Master"}
 		);
-		/* CHECK THSI EVENT_WARP ANTICHEAT
-		database.SetMQDetectionFlag(AccountName(), GetName(), "OP_Illusion sent by non Game Master.", zone->GetShortName());
-		std::string export_string = fmt::format(
-			"{} {} {} {}",
-			GetX(),
-			GetY(),
-			GetZ(),
-			17
-		);
-		parse->EventPlayer(EVENT_WARP, this, export_string, 0);
-		*/
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				-1,
+				-1,
+				-1,
+				17
+			);
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
 		return;
 	}
 
@@ -10506,10 +10518,13 @@ void Client::Handle_OP_MoveItem(const EQApplicationPacket *app)
 			RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
 			Kick("Inventory desync"); // Kick client to prevent client and server from getting out-of-sync inventory slots
 			std::string export_string = fmt::format(
-				"{} {} {} {}",
+				"{} {} {} {} {} {} {}",
 				GetX(),
 				GetY(),
 				GetZ(),
+				-1,
+				-1,
+				-1,
 				18
 			);
 			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
@@ -11495,17 +11510,19 @@ void Client::Handle_OP_PickPocket(const EQApplicationPacket *app)
 	{
 		Message(Chat::Red, "Ability recovery time not yet met.");
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = "OP_PickPocket was sent again too quickly."});
-		/* CHECK THSI EVENT_WARP ANTICHEAT
-		database.SetMQDetectionFlag(AccountName(), GetName(), "OP_PickPocket was sent again too quickly.", zone->GetShortName());
-		std::string export_string = fmt::format(
-			"{} {} {} {}",
-			GetX(),
-			GetY(),
-			GetZ(),
-			19
-		);
-		parse->EventPlayer(EVENT_WARP, this, export_string, 0);
-		*/
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				-1,
+				-1,
+				-1,
+				19
+			);
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
 		return;
 	}
 	PickPocket_Struct* pick_in = (PickPocket_Struct*)app->pBuffer;
@@ -11528,17 +11545,19 @@ void Client::Handle_OP_PickPocket(const EQApplicationPacket *app)
 	else if (Distance(GetPosition(), victim->GetPosition()) > 20) {
 		Message(Chat::Red, "Attempt to pickpocket out of range detected.");
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = "OP_PickPocket was sent from outside combat range"});
-		/* CHECK THSI EVENT_WARP ANTICHEAT
-		database.SetMQDetectionFlag(AccountName(), GetName(), "OP_PickPocket was sent from outside combat range.", zone->GetShortName());
-		std::string export_string = fmt::format(
-			"{} {} {} {}",
-			GetX(),
-			GetY(),
-			GetZ(),
-			20
-		);
-		parse->EventPlayer(EVENT_WARP, this, export_string, 0);
-		*/
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				-1,
+				-1,
+				-1,
+				20
+			);
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
 	}
 	else if (victim->IsNPC()) {
 		auto body = victim->GetBodyType();
@@ -13762,20 +13781,19 @@ void Client::Handle_OP_ShopPlayerBuy(const EQApplicationPacket *app)
 		);
 
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
-		/* CHECK THSI EVENT_WARP ANTICHEAT
-		auto hacker_str = fmt::format("Vendor Cheat: attempted to buy {} of {}: {} that cost {} cp but only has {} pp {} gp {} sp {} cp",
-			mpo->quantity, item->ID, item->Name,
-			mpo->price, m_pp.platinum, m_pp.gold, m_pp.silver, m_pp.copper);
-		database.SetMQDetectionFlag(AccountName(), GetName(), Strings::Escape(hacker_str), zone->GetShortName());
-		std::string export_string = fmt::format(
-			"{} {} {} {}",
-			GetX(),
-			GetY(),
-			GetZ(),
-			21
-		);
-		parse->EventPlayer(EVENT_WARP, this, export_string, 0);
-		*/
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				-1,
+				-1,
+				-1,
+				21
+			);
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
 		safe_delete(outapp);
 		safe_delete(inst);
 		return;
@@ -14332,18 +14350,19 @@ void Client::Handle_OP_SpawnAppearance(const EQApplicationPacket *app)
 				{
 					auto message = fmt::format("Player sent OP_SpawnAppearance with AT_Invis [{}]", sa->parameter);
 					RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
-					/* CHECK THSI EVENT_WARP ANTICHEAT
-					auto hack_str = fmt::format("Player sent OP_SpawnAppearance with AT_Invis: {}", sa->parameter);
-					database.SetMQDetectionFlag(account_name, name, hack_str, zone->GetShortName());
-					std::string export_string = fmt::format(
-						"{} {} {} {}",
-						GetX(),
-						GetY(),
-						GetZ(),
-						22
-					);
-					parse->EventPlayer(EVENT_WARP, this, export_string, 0);
-					*/
+					if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+						const auto& export_string = fmt::format(
+							"{} {} {} {} {} {} {}",
+							GetX(),
+							GetY(),
+							GetZ(),
+							-1,
+							-1,
+							-1,
+							22
+						);
+						parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+					}
 				}
 			}
 			return;
@@ -14445,18 +14464,19 @@ void Client::Handle_OP_SpawnAppearance(const EQApplicationPacket *app)
 			{
 				auto message = fmt::format("Player sent OP_SpawnAppearance with AT_Sneak [{}]", sa->parameter);
 				RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
-				/* CHECK THSI EVENT_WARP ANTICHEAT
-				auto hack_str = fmt::format("Player sent OP_SpawnAppearance with AT_Sneak: {}", sa->parameter);
-				database.SetMQDetectionFlag(account_name, name, hack_str, zone->GetShortName());
-				std::string export_string = fmt::format(
-					"{} {} {} {}",
-					GetX(),
-					GetY(),
-					GetZ(),
-					23
-				);
-				parse->EventPlayer(EVENT_WARP, this, export_string, 0);
-				*/
+				if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+					const auto& export_string = fmt::format(
+						"{} {} {} {} {} {} {}",
+						GetX(),
+						GetY(),
+						GetZ(),
+						-1,
+						-1,
+						-1,
+						23
+					);
+					parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+				}
 			}
 			return;
 		}
@@ -14467,18 +14487,19 @@ void Client::Handle_OP_SpawnAppearance(const EQApplicationPacket *app)
 	{
 		auto message = fmt::format("Player sent OP_SpawnAppearance with AT_Size [{}]", sa->parameter);
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
-		/* CHECK THSI EVENT_WARP ANTICHEAT
-		auto hack_str = fmt::format("Player sent OP_SpawnAppearance with AT_Size: {}", sa->parameter);
-		database.SetMQDetectionFlag(account_name, name, hack_str, zone->GetShortName());
-		std::string export_string = fmt::format(
-			"{} {} {} {}",
-			GetX(),
-			GetY(),
-			GetZ(),
-			24
-		);
-		parse->EventPlayer(EVENT_WARP, this, export_string, 0);
-		*/
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				-1,
+				-1,
+				-1,
+				24
+			);
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
 	}
 	else if (sa->type == AT_Light)	// client emitting light (lightstone, shiny shield)
 	{
@@ -14828,19 +14849,19 @@ void Client::Handle_OP_TargetCommand(const EQApplicationPacket *app)
 					(int) GetTarget()->GetBodyType()
 				);
 				RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
-				/* CHECK THSI EVENT_WARP ANTICHEAT
-				auto hacker_str = fmt::format("{} attempting to target something untargetable, {} bodytype: {}",
-					GetName(), GetTarget()->GetName(), (int)GetTarget()->GetBodyType());
-				database.SetMQDetectionFlag(AccountName(), GetName(), Strings::Escape(hacker_str), zone->GetShortName());
-				std::string export_string = fmt::format(
-					"{} {} {} {}",
-					GetX(),
-					GetY(),
-					GetZ(),
-					25
-				);
-				parse->EventPlayer(EVENT_WARP, this, export_string, 0);
-				*/
+				if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+					const auto& export_string = fmt::format(
+						"{} {} {} {} {} {} {}",
+						GetX(),
+						GetY(),
+						GetZ(),
+						-1,
+						-1,
+						-1,
+						25
+					);
+					parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+				}
 				SetTarget((Mob*)nullptr);
 				return;
 			}
@@ -14879,17 +14900,19 @@ void Client::Handle_OP_TargetCommand(const EQApplicationPacket *app)
 						    GetTarget()->GetY(), GetTarget()->GetZ());
 
 						RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
-						/* CHECK THSI EVENT_WARP ANTICHEAT
-						database.SetMQDetectionFlag(AccountName(), GetName(), Strings::Escape(hacker_str), zone->GetShortName());
-						std::string export_string = fmt::format(
-							"{} {} {} {}",
-							GetX(),
-							GetY(),
-							GetZ(),
-							26
-						);
-						parse->EventPlayer(EVENT_WARP, this, export_string, 0);
-						*/
+						if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+							const auto& export_string = fmt::format(
+								"{} {} {} {} {} {} {}",
+								GetX(),
+								GetY(),
+								GetZ(),
+								-1,
+								-1,
+								-1,
+								26
+							);
+							parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+						}
 						SetTarget(nullptr);
 						return;
 					}
@@ -14912,23 +14935,19 @@ void Client::Handle_OP_TargetCommand(const EQApplicationPacket *app)
 				);
 
 				RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
-				/* CHECK THSI EVENT_WARP ANTICHEAT
-				auto hacker_str =
-				    fmt::format("{} attempting to target something beyond the clip plane of {:.2f} "
-						"units, from ({:.2f}, {:.2f}, {:.2f}) to {} ({:.2f}, {:.2f}, {:.2f})",
-						GetName(), (zone->newzone_data.maxclip * zone->newzone_data.maxclip),
-						GetX(), GetY(), GetZ(), GetTarget()->GetName(), GetTarget()->GetX(),
-						GetTarget()->GetY(), GetTarget()->GetZ());
-				database.SetMQDetectionFlag(AccountName(), GetName(), Strings::Escape(hacker_str), zone->GetShortName());
-				std::string export_string = fmt::format(
-					"{} {} {} {}",
-					GetX(),
-					GetY(),
-					GetZ(),
-					27
-				);
-				parse->EventPlayer(EVENT_WARP, this, export_string, 0);
-				*/
+				if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+					const auto& export_string = fmt::format(
+						"{} {} {} {} {} {} {}",
+						GetX(),
+						GetY(),
+						GetZ(),
+						-1,
+						-1,
+						-1,
+						27
+					);
+					parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+				}
 				SetTarget(nullptr);
 				return;
 			}

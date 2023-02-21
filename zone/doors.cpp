@@ -512,10 +512,13 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 				sender->KeyRingAdd(player_key);
 			}
 			std::string export_string = fmt::format(
-				"{} {} {} {}",
+				"{} {} {} {} {} {} {}",
 				GetX(),
 				GetY(),
 				GetZ(),
+				m_destination.x,
+				m_destination.y,
+				m_destination.z,
 				99
 			);
 			parse->EventPlayer(EVENT_WARP, sender, export_string, 0);
@@ -540,10 +543,13 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 				sender->KeyRingAdd(player_key);
 			}
 			std::string export_string = fmt::format(
-				"{} {} {} {}",
+				"{} {} {} {} {} {} {}",
 				GetX(),
 				GetY(),
 				GetZ(),
+				m_destination.x,
+				m_destination.y,
+				m_destination.z,
 				99
 			);
 			parse->EventPlayer(EVENT_WARP, sender, export_string, 0);
@@ -559,10 +565,13 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 			}
 			else {
 				std::string export_string = fmt::format(
-					"{} {} {} {}",
+					"{} {} {} {} {} {} {}",
 					GetX(),
 					GetY(),
 					GetZ(),
+					m_destination.x,
+					m_destination.y,
+					m_destination.z,
 					99
 				);
 				parse->EventPlayer(EVENT_WARP, sender, export_string, 0);
@@ -580,10 +589,13 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 		if ((!IsDoorOpen() || m_open_type == 58) && (!required_key_item)) {
 			if (ZoneID(m_destination_zone_name) == zone->GetZoneID()) {
 				std::string export_string = fmt::format(
-					"{} {} {} {}",
+					"{} {} {} {} {} {} {}",
 					GetX(),
 					GetY(),
 					GetZ(),
+					m_destination.x,
+					m_destination.y,
+					m_destination.z,
 					99
 				);
 				parse->EventPlayer(EVENT_WARP, sender, export_string, 0);
@@ -598,10 +610,13 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 			}
 			else {
 				std::string export_string = fmt::format(
-					"{} {} {} {}",
+					"{} {} {} {} {} {} {}",
 					GetX(),
 					GetY(),
 					GetZ(),
+					m_destination.x,
+					m_destination.y,
+					m_destination.z,
 					99
 				);
 				parse->EventPlayer(EVENT_WARP, sender, export_string, 0);

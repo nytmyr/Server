@@ -1083,6 +1083,15 @@ void handle_player_warp(
 	lua_setfield(L, -2, "from_z");
 
 	lua_pushnumber(L, std::stof(sep.arg[3]));
+	lua_setfield(L, -2, "to_x");
+
+	lua_pushnumber(L, std::stof(sep.arg[4]));
+	lua_setfield(L, -2, "to_y");
+
+	lua_pushnumber(L, std::stof(sep.arg[5]));
+	lua_setfield(L, -2, "to_z");
+
+	lua_pushnumber(L, std::stof(sep.arg[6]));
 	lua_setfield(L, -2, "warptype");
 }
 
