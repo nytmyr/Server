@@ -472,7 +472,9 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 							//if (!tar->CheckSpellLevelRestriction(selectedBotSpell.SpellId))
 							//	break;
 
-							castedSpell = AIDoSpellCast(selectedBotSpell.SpellIndex, tar, selectedBotSpell.ManaCost);
+							if (IsValidSpellRange(selectedBotSpell.SpellId, tar)) {
+								castedSpell = AIDoSpellCast(selectedBotSpell.SpellIndex, tar, selectedBotSpell.ManaCost);
+							}
 
 							//if (TempDontBuffMeBefore != tar->DontBuffMeBefore())
 								//tar->SetDontBuffMeBefore(TempDontBuffMeBefore);
@@ -519,7 +521,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						if (IsInvulnerabilitySpell(botSpell.SpellId))
 							tar = this; //target self for invul type spells
 
-						if (IsValidSpellRange(botSpell.SpellId, tar) || botClass == BARD) {
+						if (IsValidSpellRange(botSpell.SpellId, tar) || botClass == BARD || botClass == SHADOWKNIGHT || botClass == NECROMANCER) {
 							castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
 						}
 
@@ -652,7 +654,10 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						}
 						if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, NukeResistLimit)))
 							continue;
-						castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
+
+						if (IsValidSpellRange(botSpell.SpellId, tar)) {
+							castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
+						}
 
 						if (castedSpell)
 							BotGroupSay(this, "Nuking %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
@@ -755,6 +760,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						break;
 
 					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
+
 					if (castedSpell)
 						BotGroupSay(this, "Summoning a pet [%s].", GetSpellName(botSpell.SpellId));
 				}
@@ -788,14 +794,14 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						if ((botClass == SHADOWKNIGHT) && !DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, InCombatBuffResistLimit)))
 							continue;
 
-						castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
+						if (IsValidSpellRange(botSpell.SpellId, tar) || botClass != SHADOWKNIGHT) {
+							castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
+						}
 
 						m_incombatbuff_delay_timer.Start(GetInCombatBuffDelay());
 
 						if (castedSpell && (botClass == SHADOWKNIGHT))
 							BotGroupSay(this, "Using an In-Combat Buff on %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
-
-
 
 					}
 				}
@@ -1031,9 +1037,10 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 							if (!DoResistCheck(this, tar, selectedBotSpell.SpellId, RuleI(Bots, DoTResistLimit)))
 								continue;
 
-							if (IsValidSpellRange(botSpell.SpellId, tar)) {
+							if (IsValidSpellRange(selectedBotSpell.SpellId, tar)) {
 								castedSpell = AIDoSpellCast(selectedBotSpell.SpellIndex, tar, selectedBotSpell.ManaCost);
 							}
+
 							if (castedSpell)
 								continue;
 
@@ -1104,7 +1111,9 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 								if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, DoTResistLimit)))
 									continue;
 
-								castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
+								if (IsValidSpellRange(botSpell.SpellId, tar)) {
+									castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
+								}
 
 								if (castedSpell)
 									BotGroupSay(this, "Casting a DoT on %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
@@ -1360,7 +1369,10 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						if (!CheckSpellRecastTimers(this, iter.SpellIndex))
 							continue;
 
-						castedSpell = AIDoSpellCast(iter.SpellIndex, tar, iter.ManaCost);
+						if (IsValidSpellRange(iter.SpellId, tar)) {
+							castedSpell = AIDoSpellCast(iter.SpellIndex, tar, iter.ManaCost);
+						}
+
 						if (castedSpell)
 							BotGroupSay(this, "Attempting to reduce my hate on %s with [%s].", tar->GetCleanName(), GetSpellName(iter.SpellId));
 
@@ -1398,7 +1410,9 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					}
 					if (tar->CanBuffStack(iter.SpellId, botLevel, true) < 0)
 						continue;
+
 					castedSpell = AIDoSpellCast(iter.SpellIndex, tar, iter.ManaCost);
+
 					if (castedSpell)
 						break;
 				}
@@ -1433,7 +1447,9 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					}
 					if (tar->CanBuffStack(iter.SpellId, botLevel, true) < 0)
 						continue;
+
 					castedSpell = AIDoSpellCast(iter.SpellIndex, tar, iter.ManaCost);
+
 					if (castedSpell)
 						break;
 				}
@@ -2068,6 +2084,7 @@ bool Bot::AIHealRotation(Mob* tar, bool useFastHeals) {
 		return false;
 
 	uint32 TempDontHealMeBeforeTime = tar->DontHealMeBefore();
+
 	if (IsValidSpellRange(botSpell.SpellId, tar)) {
 		castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost, &TempDontHealMeBeforeTime);
 	}

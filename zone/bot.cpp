@@ -73,7 +73,7 @@ Bot::Bot(NPCType *npcTypeData, Client* botOwner) : NPC(npcTypeData, nullptr, glm
 	m_enforce_spell_settings = 0;
 	m_bot_archery_setting = 0;
 	m_expansion_bitmask = -1;
-	m_bot_caster_range = 0;
+	//m_bot_caster_range = 0;
 	SetBotID(0);
 	SetBotSpellID(0);
 	SetSpawnStatus(false);
@@ -2539,10 +2539,6 @@ void Bot::SetAutoResist(uint8 autoresist) {
 
 void Bot::SetBehindMob(uint8 behindmobstatus) {
 	_behindMobStatus = behindmobstatus;
-}
-
-void Bot::SetBotCasterRange(uint32 botcasterrange) {
-	_botcasterRange = botcasterrange;
 }
 
 void Bot::SetBuffDelay(uint32 buffdelay) {

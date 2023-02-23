@@ -167,7 +167,6 @@ public:
 	bool SaveAutoDS(const uint32 owner_id, const uint32 bot_id, const uint8 ad_value);
 	bool SaveAutoResist(const uint32 owner_id, const uint32 bot_id, const uint8 ar_value);
 	bool SaveBehindMob(const uint32 owner_id, const uint32 bot_id, const uint8 behindmob_value);
-	bool SaveBotCasterRange(const uint32 owner_id, const uint32 bot_id, const uint32 botcasterrange_value);
 	bool SaveBuffDelay(const uint32 owner_id, const uint32 bot_id, const uint32 buff_delay_value);
 	bool SaveCompleteHealDelay(const uint32 owner_id, const uint32 bot_id, const uint32 cheal_delay_value);
 	bool SaveCureDelay(const uint32 owner_id, const uint32 bot_id, const uint32 cure_delay_value);
@@ -356,7 +355,6 @@ public:
 		static const char* SaveAutoDS();
 		static const char* SaveAutoResist();
 		static const char* SaveBehindMob();
-		static const char* SaveBotCasterRange();
 		static const char* SaveBuffDelay();
 		static const char* SaveCompleteHealDelay();
 		static const char* SaveCureDelay();
