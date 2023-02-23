@@ -4944,7 +4944,7 @@ bool Bot::AddBotToGroup(Bot* bot, Group* group) {
 						group->SendUpdate(groupActUpdate, TempLeader);
 					}
 				}
-				group->VerifyGroup();
+				//group->VerifyGroup();
 				Result = true;
 			}
 		}
