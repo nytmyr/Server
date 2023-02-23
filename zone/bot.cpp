@@ -73,6 +73,7 @@ Bot::Bot(NPCType *npcTypeData, Client* botOwner) : NPC(npcTypeData, nullptr, glm
 	m_enforce_spell_settings = 0;
 	m_bot_archery_setting = 0;
 	m_expansion_bitmask = -1;
+	m_bot_caster_range = 0;
 	SetBotID(0);
 	SetBotSpellID(0);
 	SetSpawnStatus(false);
@@ -3445,34 +3446,9 @@ void Bot::AI_Process()
 			melee_distance = melee_distance_max * float(RuleR(Bots, PercentMaxMeleeRangeDistance));
 			//melee_distance_min = melee_distance_max * float(RuleR(Bots, PercentMaxMeleeRangeDistance));
 		}
-		// Calculate caster distances
-		float caster_distance_max = 0.0f;
-		float caster_distance_min = 0.0f;
-		float caster_distance = 0.0f;
-		{
-			if (GetBotCasterRange() == 0) {
-				if (GetLevel() >= GetStopMeleeLevel() && GetClass() >= WARRIOR && GetClass() <= BERSERKER) {
-					caster_distance_max = MAX_CASTER_DISTANCE[(GetClass() - 1)];
-				}
-			}
-			else {
-				caster_distance_max = GetBotCasterRange() * GetBotCasterRange();
-			}
-
-			if (caster_distance_max) {
-
-				caster_distance_min = melee_distance_max;
-				if (caster_distance_max <= caster_distance_min) {
-					caster_distance_max = caster_distance_min * 1.25f;
-				}
-
-				caster_distance = ((caster_distance_max + caster_distance_min) / 2);
-			}
-		}
+		float caster_distance_max = GetBotCasterMaxRange(melee_distance_max);
 
 		bool atArcheryRange = IsArcheryRange(tar);
-
-		bool stopMeleeLevelValid = GetLevel() < GetStopMeleeLevel();
 
 		if (GetRangerAutoWeaponSelect()) {
 
@@ -3493,14 +3469,14 @@ void Bot::AI_Process()
 				ChangeBotArcherWeapons(IsBotArcher());
 			}
 		}
-
+		bool stop_melee_level = GetLevel() >= GetStopMeleeLevel();
 		if (IsBotArcher() && atArcheryRange) {
 			atCombatRange = true;
 		}
-		else if (caster_distance_max && tar_distance <= caster_distance_max && !stopMeleeLevelValid) {
+		else if (caster_distance_max && tar_distance <= caster_distance_max && stop_melee_level) {
 			atCombatRange = true;
 		}
-		else if (tar_distance <= melee_distance || (tar_distance <= melee_distance && stopMeleeLevelValid)) {
+		else if (tar_distance <= melee_distance || (tar_distance <= melee_distance && stop_melee_level)) {
 			if (GetMaxMeleeRange() && tar_distance >= melee_distance * 0.85) {
 				atCombatRange = true;
 			}
@@ -4963,26 +4939,16 @@ bool Bot::AddBotToGroup(Bot* bot, Group* group) {
 		if(!bot->HasGroup()) {
 			// Add bot to this group
 			if(group->AddMember(bot)) {
-				if (group->GetLeader()) {
-					if (group->GetLeader()->CastToClient()->CharacterID() == bot->GetOwner()->CastToClient()->CharacterID()) {
-						bot->SetFollowID(group->GetLeader()->GetID());
-						// Need to send this only once when a group is formed with a bot so the client knows it is also the group leader
-						if (group->GroupCount() == 2 && group->GetLeader()->IsClient()) {
-							group->UpdateGroupAAs();
-							Mob* TempLeader = group->GetLeader();
-							group->SendUpdate(groupActUpdate, TempLeader);
-						}
-					}
-					else {
-						bot->SetFollowID(bot->GetOwner()->CastToClient()->GetID());
-						// Need to send this only once when a group is formed with a bot so the client knows it is also the group leader
-						if (group->GroupCount() == 2 && group->GetLeader()->IsClient()) {
-							group->UpdateGroupAAs();
-							Mob* TempLeader = group->GetLeader();
-							group->SendUpdate(groupActUpdate, TempLeader);
-						}
+				if(group->GetLeader()) {
+					bot->SetFollowID(group->GetLeader()->GetID());
+					// Need to send this only once when a group is formed with a bot so the client knows it is also the group leader
+					if(group->GroupCount() == 2 && group->GetLeader()->IsClient()) {
+						group->UpdateGroupAAs();
+						Mob *TempLeader = group->GetLeader();
+						group->SendUpdate(groupActUpdate, TempLeader);
 					}
 				}
+				group->VerifyGroup();
 				Result = true;
 			}
 		}
@@ -10598,6 +10564,24 @@ void Bot::SendSpellAnim(uint16 target_id, uint16 spell_id)
 
 	app.priority = 1;
 	entity_list.QueueCloseClients(this, &app, false, RuleI(Range, SpellParticles));
+}
+
+float Bot::GetBotCasterMaxRange(float melee_distance_max) {// Calculate caster distances
+	float caster_distance_max = 0.0f;
+	float caster_distance_min = 0.0f;
+	float caster_distance = 0.0f;
+
+	caster_distance_max = GetBotCasterRange() * GetBotCasterRange();
+	if (!GetBotCasterRange() && GetLevel() >= GetStopMeleeLevel() && GetClass() >= WARRIOR && GetClass() <= BERSERKER) {
+		caster_distance_max = MAX_CASTER_DISTANCE[GetClass() - 1];
+	}
+	if (caster_distance_max) {
+		caster_distance_min = melee_distance_max;
+		if (caster_distance_max <= caster_distance_min) {
+			caster_distance_max = caster_distance_min * 1.25f;
+		}
+	}
+	return caster_distance_max;
 }
 
 uint8 Bot::spell_casting_chances[SPELL_TYPE_COUNT][PLAYER_CLASS_COUNT][EQ::constants::STANCE_TYPE_COUNT][cntHSND] = { 0 };

@@ -5124,6 +5124,30 @@ std::string BotDatabase::GetBotNameByID(const uint32 bot_id)
 	return nullptr;
 }
 
+bool BotDatabase::SaveBotCasterRange(const uint32 owner_id, const uint32 bot_id, const uint32 bot_caster_range_value)
+{
+	if (!owner_id || !bot_id) {
+		return false;
+	}
+
+	query = fmt::format(
+			"UPDATE `bot_data`"
+			" SET `caster_range` = '{}'"
+			" WHERE `owner_id` = '{}'"
+			" AND `bot_id` = '{}'",
+			bot_caster_range_value,
+			owner_id,
+			bot_id
+	);
+	auto results = database.QueryDatabase(query);
+
+	if (!results.Success()) {
+		return false;
+	}
+
+	return true;
+}
+
 /* fail::Bot functions   */
 const char* BotDatabase::fail::LoadBotsList() { return "Failed to bots list"; }
 const char* BotDatabase::fail::LoadOwnerID() { return "Failed to load owner ID"; }
@@ -5178,6 +5202,7 @@ const char* BotDatabase::fail::ToggleAllHelmAppearances() { return "Failed to sa
 const char* BotDatabase::fail::SaveFollowDistance() { return "Failed to save follow distance"; }
 const char* BotDatabase::fail::SaveAllFollowDistances() { return "Failed to save all follow distances"; }
 const char* BotDatabase::fail::SaveStopMeleeLevel() { return "Failed to save stop melee level"; }
+const char* BotDatabase::fail::SaveBotCasterRange() { return "Failed to save caster range"; }
 
 //Custom spell commands
 const char* BotDatabase::fail::SaveHoldBuffs() { return "Failed to save hold buffs status"; }
