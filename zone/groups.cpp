@@ -717,6 +717,22 @@ bool Group::DelMember(Mob* oldmember, bool ignoresender)
 		return true;
 	}
 
+	if (RuleB(Bots, Enabled)) {
+		if (oldmember->IsClient()) {
+			for (uint32 nl = 0; nl < MAX_GROUP_MEMBERS; nl++) {
+				if (members[nl] && members[nl]->IsBot()) {
+					if (members[nl]->GetOwner()->CastToClient()->CharacterID() == oldmember->CastToClient()->CharacterID()) {
+						members[nl]->CastToBot()->RemoveBotFromGroup(members[nl]->CastToBot(), members[nl]->CastToBot()->GetGroup());
+					}
+				}
+				if (!GetLeaderName()) {
+					DisbandGroup();
+					return true;
+				}
+			}
+		}
+	}
+
 	auto pack = new ServerPacket(ServerOP_GroupLeave, sizeof(ServerGroupLeave_Struct));
 	ServerGroupLeave_Struct* gl = (ServerGroupLeave_Struct*)pack->pBuffer;
 	gl->gid = GetID();
