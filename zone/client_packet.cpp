@@ -12375,25 +12375,26 @@ void Client::Handle_OP_RaidCommand(const EQApplicationPacket* app)
 			}
 
 			if (c_to_disband) {
-				if (group < 12) {
-					uint32 i = raid->GetPlayerIndex(raid_command_packet->leader_name);
-					std::vector<Bot*> raid_members_bots;
-					// Determine if the client has any BOTS in the raid
-					uint32 owner_id = c_to_disband->CharacterID();
-					for (int i = 0; i < MAX_RAID_MEMBERS; ++i)
+				uint32 i = raid->GetPlayerIndex(raid_command_packet->leader_name);
+				std::vector<Bot*> raid_members_bots;
+				// Determine if the client has any BOTS in the raid
+				uint32 owner_id = c_to_disband->CharacterID();
+				for (int i = 0; i < MAX_RAID_MEMBERS; ++i)
+				{
+					if (raid->members[i].member && raid->members[i].IsBot && raid->members[i].BotOwnerID == owner_id)
 					{
-						if (raid->members[i].member && raid->members[i].IsBot && raid->members[i].BotOwnerID == owner_id)
-						{
-							raid_members_bots.emplace_back(raid->members[i].member->CastToBot());
-						}
+						raid_members_bots.emplace_back(raid->members[i].member->CastToBot());
 					}
-					// If any of the bots are a group leader then re-create the botgroup on disband, dropping any clients
-						if (raid->members[i].IsGroupLeader) { //assign group leader to someone else
-							for (int x = 0; x < MAX_RAID_MEMBERS; x++) {
-								if (strlen(raid->members[x].membername) > 0 && i != x && raid->members[x].BotOwnerID == owner_id && raid->members[x].IsGroupLeader) {
-									raid->SetGroupLeader(raid->members[x].membername, false);
-									if (strlen(raid->members[x].membername) > 0 && i != x && raid->members[x].BotOwnerID != owner_id) {
-										if (raid->members[x].GroupNumber == group) {
+				}
+				for (auto bot_iter : raid_members_bots) {
+					// If member is a group leader, assign to someone else but now own bot
+					uint32 b = raid->GetPlayerIndex(bot_iter->GetName());
+					if (raid->members[b].IsGroupLeader) {
+						for (int x = 0; x < MAX_RAID_MEMBERS; x++) {
+							if (strlen(raid->members[x].membername) > 0 && b != x && raid->members[x].BotOwnerID == owner_id && raid->members[x].IsGroupLeader) {
+								raid->SetGroupLeader(raid->members[x].membername, false);
+								if (strlen(raid->members[x].membername) > 0 && b != x && raid->members[x].BotOwnerID != owner_id) {
+									if (raid->members[x].GroupNumber == group) {
 										raid->SetGroupLeader(raid_command_packet->leader_name, false);
 										raid->SetGroupLeader(raid->members[x].membername);
 										raid->UpdateGroupAAs(group);
@@ -12403,19 +12404,33 @@ void Client::Handle_OP_RaidCommand(const EQApplicationPacket* app)
 							}
 						}
 					}
-					if (raid->members[i].IsRaidLeader) {
-						for (int x = 0; x < MAX_RAID_MEMBERS; x++) {
-							if (strlen(raid->members[x].membername) > 0 && strcmp(raid->members[x].membername, raid->members[i].membername) != 0)
-							{
-								raid->SetRaidLeader(raid->members[i].membername, raid->members[x].membername);
-								raid->UpdateRaidAAs();
-								raid->SendAllRaidLeadershipAA();
+					raid->RemoveMember(bot_iter->GetName());
+				}
+				// If member is a group leader, assign to someone else but now own bot
+				if (raid->members[i].IsGroupLeader) {
+					for (int x = 0; x < MAX_RAID_MEMBERS; x++) {
+						if (strlen(raid->members[x].membername) > 0 && i != x && raid->members[x].BotOwnerID == owner_id && raid->members[x].IsGroupLeader) {
+							raid->SetGroupLeader(raid->members[x].membername, false);
+							if (strlen(raid->members[x].membername) > 0 && i != x && raid->members[x].BotOwnerID != owner_id) {
+								if (raid->members[x].GroupNumber == group) {
+								raid->SetGroupLeader(raid_command_packet->leader_name, false);
+								raid->SetGroupLeader(raid->members[x].membername);
+								raid->UpdateGroupAAs(group);
 								break;
+								}
 							}
 						}
 					}
-					for (auto bot_iter : raid_members_bots) {
-						raid->RemoveMember(bot_iter->GetName());
+				}
+				// If member is raid leader, assign to someone else
+				if (raid->members[i].IsRaidLeader) {
+					for (int x = 0; x < MAX_RAID_MEMBERS; x++) {
+						if (strlen(raid->members[x].membername) > 0 && strcmp(raid->members[x].membername, raid->members[i].membername) != 0) {
+							raid->SetRaidLeader(raid->members[i].membername, raid->members[x].membername);
+							raid->UpdateRaidAAs();
+							raid->SendAllRaidLeadershipAA();
+							break;
+						}
 					}
 				}
 			}
