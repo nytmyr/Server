@@ -9164,7 +9164,7 @@ void bot_command_use_epic(Client *c, const Seperator *sep)
 					c->Message(Chat::White, "usage: target the corpse or NPC you want the bot to cast on and type %s <bot name>", sep->arg[0]);
 					return;
 				}
-				Bot* my_bot = nullptr;
+				Bot* selected_bot = nullptr;
 				std::list<Bot*> sbl;
 				MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[1]);
 				if (sbl.empty()) {
@@ -9172,14 +9172,15 @@ void bot_command_use_epic(Client *c, const Seperator *sep)
 					return;
 				}
 
-				if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+				selected_bot = sbl.front();
+
+				if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(selected_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(selected_bot->GetName()))) {
 				}
 				else {
 					c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
 					return;
 				}
 
-				auto selected_bot = sbl.front();
 				auto bot_class = selected_bot->GetClass();	
 				auto target_mob = c->GetTarget();
 				if (bot_class == WIZARD) {
