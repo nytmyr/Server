@@ -3181,8 +3181,7 @@ int Mob::CheckStackConflict(uint16 spellid1, int caster_level1, uint16 spellid2,
 			values_equal = false;
 
 		if (RuleB(Spells, ResurrectionEffectsBlock) && IsResurrectionEffects(spellid1)) {
-			LogSpells("Spell [{}] is blocked by [{}]",
-				sp2.name, sp1.name);
+			LogSpells("ResurrectionEffectsBlock triggered -- [{}] is blocked by [{}]", sp2.name, sp1.name);
 			return -1;	// can't stack
 		}
 		//we dont return here... a better value on this one effect dosent mean they are
@@ -4386,6 +4385,11 @@ bool Mob::SpellOnTarget(
 	safe_delete(message_packet);
 
 	LogSpells("Cast of [{}] by [{}] on [{}] complete successfully", spell_id, GetName(), spelltar->GetName());
+
+	if (IsBot()) {
+		LogSpells("Attempting to set a delay for [{}] with spell [{}]-[{}]", CastToBot()->GetCleanName(), spell_id, GetSpellName(spell_id)); //deleteme
+		CastToBot()->SetBotSpellDelay(CastToBot(), spell_id, spelltar);
+	}
 
 	return true;
 }

@@ -1607,7 +1607,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 	if (!raid)
 		return false;
 
-	if (!tar) {
+	if (!tar || tar->IsFamiliar()) {
 		return false;
 	}
 
@@ -1653,7 +1653,8 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 					checked_los = true;
 				}
-
+				if ((botClass == NECROMANCER) && tar->GetBodyType() != BT_Undead && tar->GetBodyType() != BT_SummonedUndead && tar->GetBodyType() != BT_Vampire)
+					break;
 				//TODO
 				//Check if single target or AoE mez is best
 				//if (TARGETS ON MT IS => 3 THEN botSpell = AoEMez)
@@ -1666,25 +1667,29 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, MezResistLimit)))
 					break;
 
-				//TestDebug("[{}]::: found a Mez spell", GetCleanName());
 				Mob* addMob = GetFirstIncomingMobToMez(this, botSpell);
 
 				if (!addMob) {
 					//Say("!addMob.");
 					break;
 				}
-				TestDebug("[{}]::: found a mob to mez [{}]", GetCleanName(), addMob->GetCleanName());
+
 				if (!(!addMob->IsImmuneToSpell(botSpell.SpellId, this) && addMob->CanBuffStack(botSpell.SpellId, botLevel, true) >= 0))
 					break;
+
 
 
 				if (IsValidSpellRange(botSpell.SpellId, addMob)) {
 					castedSpell = AIDoSpellCast(botSpell.SpellIndex, addMob, botSpell.ManaCost);
 				}
+				else {
+					break;
+				}
 
-				if (castedSpell)
+				if (castedSpell) {
 					BotGroupSay(this, "Attempting to mez %s with [%s].", addMob->GetCleanName(), GetSpellName(botSpell.SpellId));
-				m_mez_delay_timer.Start(GetMezDelay());
+					//m_mez_delay_timer.Start(GetMezDelay());
+				}
 			}
 			break;
 		}
@@ -1693,7 +1698,6 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 	case SpellType_Heal: {
 		if (CanCastBySpellType(this, tar, SpellType_Heal)) {
 			if ((botClass == CLERIC) || (botClass == DRUID) || (botClass == SHAMAN) || (botClass == PALADIN) || (botClass == BEASTLORD) || (botClass == RANGER)) {
-
 				uint8 hpr = tar->GetHPRatio();
 				std::string spellType = "None";
 				std::string targetName = tar->GetCleanName();
@@ -1761,13 +1765,13 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						if (botSpell.SpellId != 0 && (botClass == CLERIC))
 							spellType = "Complete Heal";
 						if (botSpell.SpellId != 0 && (botClass != CLERIC))
-							spellType = "Regular Heal";
+							spellType = "Percentage Heal";
 					}
 					//if (botSpell.SpellId == 0) {
-						//	botSpell = GetBestBotSpellForRegularSingleTargetHeal(this);
-						//	if (botSpell.SpellId != 0)
-						//		spellType = "Regular Heal";
-						//}
+					//	botSpell = GetBestBotSpellForRegularSingleTargetHeal(this);
+					//	if (botSpell.SpellId != 0)
+					//		spellType = "Regular Heal";
+					//}
 				}
 				if (botSpell.SpellId == 0 && hpr <= hothealThreshold && hothealTime <= currentTime) {
 					if (botSpell.SpellId == 0 && botClass == BARD)
@@ -1794,7 +1798,13 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				//	break;
 
 				if (IsValidSpellRange(botSpell.SpellId, tar) || botClass == BARD) {
+					if (IsTargetAlreadyReceivingSpell(tar, botSpell.SpellId)) {
+						break;
+					}
 					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
+				}
+				else {
+					break;
 				}
 
 				if (castedSpell) {
@@ -1852,28 +1862,28 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 				// TODO: If there is a ranger in the group then don't allow root spells
 
-				/* Original AI
-				botSpell = GetFirstBotSpellBySpellType(this, SpellType_Root);
+					/* Original AI
+					botSpell = GetFirstBotSpellBySpellType(this, SpellType_Root);
 
-				if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, RootResistLimit)))
-					break;
+					if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, RootResistLimit)))
+						break;
 
-				if (botSpell.SpellId == 0)
-					break;
+					if (botSpell.SpellId == 0)
+						break;
 
-				if (tar->CanBuffStack(botSpell.SpellId, botLevel, true) == 0)
-					break;
+					if (tar->CanBuffStack(botSpell.SpellId, botLevel, true) == 0)
+						break;
 
-				uint32 TempDontRootMeBefore = tar->DontRootMeBefore();
+					uint32 TempDontRootMeBefore = tar->DontRootMeBefore();
 
-				castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost, &TempDontRootMeBefore);
-				if (castedSpell)
-					BotGroupSay(this, "Rooting %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
+					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost, &TempDontRootMeBefore);
+					if (castedSpell)
+						BotGroupSay(this, "Rooting %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
 
-				m_root_delay_timer.Start(GetRootDelay());
-				//if (TempDontRootMeBefore != tar->DontRootMeBefore())
-					//tar->SetDontRootMeBefore(TempDontRootMeBefore);
-				*/
+					m_root_delay_timer.Start(GetRootDelay());
+					//if (TempDontRootMeBefore != tar->DontRootMeBefore())
+						//tar->SetDontRootMeBefore(TempDontRootMeBefore);
+					*/
 				std::list<BotSpell_wPriority> spellList = GetPrioritizedBotSpellsBySpellType(this, SpellType_Root);
 				for (std::list<BotSpell_wPriority>::iterator itr = spellList.begin(); itr != spellList.end(); ++itr) {
 					BotSpell_wPriority botSpell = *itr;
@@ -1890,11 +1900,15 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					if (IsValidSpellRange(botSpell.SpellId, tar)) {
 						castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
 					}
+					else {
+						continue;
+					}
 
-					if (castedSpell)
+					if (castedSpell) {
 						BotGroupSay(this, "Rooting %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
-
-					m_root_delay_timer.Start(GetRootDelay());
+						//m_root_delay_timer.Start(GetRootDelay());
+						break;
+					}
 				}
 				break;
 			}
@@ -1935,11 +1949,20 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 				// Validate target
 
-				if (!((spells[selectedBotSpell.SpellId].target_type == ST_Target || spells[selectedBotSpell.SpellId].target_type == ST_Pet || tar == this ||
-					spells[selectedBotSpell.SpellId].target_type == ST_Group || spells[selectedBotSpell.SpellId].target_type == ST_GroupTeleport ||
-					(botClass == BARD && spells[selectedBotSpell.SpellId].target_type == ST_AEBard))
-					&& !tar->IsImmuneToSpell(selectedBotSpell.SpellId, this)
-					&& (tar->CanBuffStack(selectedBotSpell.SpellId, botLevel, true) >= 0))) {
+				if (
+					!(
+						(
+							spells[selectedBotSpell.SpellId].target_type == ST_Target ||
+							spells[selectedBotSpell.SpellId].target_type == ST_Pet ||
+							(tar == this && spells[selectedBotSpell.SpellId].target_type != ST_TargetsTarget) ||
+							spells[selectedBotSpell.SpellId].target_type == ST_Group ||
+							spells[selectedBotSpell.SpellId].target_type == ST_GroupTeleport ||
+							(botClass == BARD && spells[selectedBotSpell.SpellId].target_type == ST_AEBard)
+							) &&
+						!tar->IsImmuneToSpell(selectedBotSpell.SpellId, this) &&
+						tar->CanBuffStack(selectedBotSpell.SpellId, botLevel, true) >= 0
+						)
+					) {
 					continue;
 				}
 
@@ -2030,14 +2053,21 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				//	break;
 
 				if (IsValidSpellRange(selectedBotSpell.SpellId, tar)) {
+					if (IsTargetAlreadyReceivingSpell(tar, selectedBotSpell.SpellId)) {
+						continue;
+					}
 					castedSpell = AIDoSpellCast(selectedBotSpell.SpellIndex, tar, selectedBotSpell.ManaCost);
+				}
+				else {
+					continue;
 				}
 
 				//if (TempDontBuffMeBefore != tar->DontBuffMeBefore())
 					//tar->SetDontBuffMeBefore(TempDontBuffMeBefore);
 
 				if (castedSpell) {
-					m_buff_delay_timer.Start(GetBuffDelay());
+					BotGroupSay(this, "Buffing %s with [%s].", tar->GetCleanName(), GetSpellName(selectedBotSpell.SpellId));
+					//m_buff_delay_timer.Start(GetBuffDelay());
 					break;
 				}
 			}
@@ -2071,7 +2101,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				BotSpell_wPriority botSpell = *itr;
 
 				if (botSpell.SpellId == 0)
-					break;
+					continue;
 				if (!CheckSpellRecastTimers(this, botSpell.SpellIndex))
 					continue;
 
@@ -2081,11 +2111,15 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				if (IsValidSpellRange(botSpell.SpellId, tar) || botClass == BARD || botClass == SHADOWKNIGHT || botClass == NECROMANCER) {
 					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
 				}
+				else {
+					continue;
+				}
 
-				if (castedSpell)
+				if (castedSpell) {
 					BotGroupSay(this, "Attempting to escape from %s [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
-
-				m_escape_delay_timer.Start(GetEscapeDelay());
+					//m_escape_delay_timer.Start(GetEscapeDelay());
+					break;
+				}
 			}
 			break;
 			//}
@@ -2132,21 +2166,27 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 			}
 			*/
 
-			if (botClass == MAGICIAN || botClass == SHADOWKNIGHT || botClass == NECROMANCER || botClass == PALADIN || botClass == RANGER || botClass == DRUID || botClass == CLERIC) {
-				if (tar->GetBodyType() == BT_Undead || tar->GetBodyType() == BT_SummonedUndead || tar->GetBodyType() == BT_Vampire)
+			if (botClass == MAGICIAN || botClass == SHADOWKNIGHT || botClass == NECROMANCER || botClass == PALADIN || botClass == RANGER || botClass == DRUID || botClass == CLERIC || botClass == WIZARD) {
+				if ((botClass == CLERIC || botClass == PALADIN || botClass == SHADOWKNIGHT || botClass == NECROMANCER) && (tar->GetBodyType() == BT_Undead || tar->GetBodyType() == BT_SummonedUndead || tar->GetBodyType() == BT_Vampire))
 					botSpell = GetBestBotSpellForNukeByTargetType(this, ST_Undead);
-				else if (tar->GetBodyType() == BT_Summoned || tar->GetBodyType() == BT_Summoned2 || tar->GetBodyType() == BT_Summoned3)
+				else if ((botClass == CLERIC || botClass == RANGER || botClass == DRUID || botClass == MAGICIAN) && (tar->GetBodyType() == BT_Summoned || tar->GetBodyType() == BT_Summoned2 || tar->GetBodyType() == BT_Summoned3))
 					botSpell = GetBestBotSpellForNukeByTargetType(this, ST_Summoned);
-				else if (tar->GetBodyType() == BT_Plant && botClass == NECROMANCER)
+				else if ((botClass == RANGER || botClass == DRUID) && tar->GetBodyType() == BT_Animal)
+					botSpell = GetBestBotSpellForNukeByTargetType(this, ST_Animal);
+				else if (botClass == NECROMANCER && tar->GetBodyType() == BT_Plant)
 					botSpell = GetBestBotSpellForNukeByTargetType(this, ST_Plant);
+				else if (botClass == WIZARD && tar->GetBodyType() == BT_Giant)
+					botSpell = GetBestBotSpellForNukeByTargetType(this, ST_Giant);
+				else if (botClass == WIZARD && tar->GetBodyType() == BT_Dragon)
+					botSpell = GetBestBotSpellForNukeByTargetType(this, ST_Dragon);
 			}
 
-			if (botClass == PALADIN || botClass == DRUID || botClass == CLERIC || botClass == 1 || botClass == WIZARD) {
+			if (botClass == PALADIN || botClass == DRUID || botClass == CLERIC || botClass == 1 || botClass == WIZARD || botClass == ENCHANTER || botClass == NECROMANCER) {
 				if (botSpell.SpellId == 0) {
-					uint8 stunChance = (tar->IsCasting() ? 30 : 15);
+					uint8 stunChance = (tar->IsCasting() ? RuleI(Bots, StunCastChanceIfCasting) : RuleI(Bots, StunCastChanceNormal));
 
 					if (botClass == PALADIN)
-						stunChance = 50;
+						stunChance = RuleI(Bots, StunCastChanceIfCastingPaladins);
 
 					if (!tar->GetSpecialAbility(UNSTUNABLE) && !tar->IsStunned() && (zone->random.Int(1, 100) <= stunChance)) {
 						botSpell = GetBestBotSpellForStunByTargetType(this, ST_Target);
@@ -2157,34 +2197,34 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 			if (botClass == WIZARD && botSpell.SpellId == 0) {
 				botSpell = GetBestBotWizardNukeSpellByTargetResists(this, tar);
 			}
-			/* Original AI
-			if (botSpell.SpellId == 0)
-				botSpell = GetBestBotSpellForNukeByTargetType(this, ST_Target);
 
-			if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, NukeResistLimit)))
-				break;
+			if (botSpell.SpellId != 0) {
+				if (!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
+					botSpell.SpellId = 0;
 
-			if (botSpell.SpellId == 0)
-				break;
+				if (IsFearSpell(botSpell.SpellId)) {
+					// don't let fear cast if the npc isn't snared or rooted
+					if (tar->GetSnaredAmount() == -1) {
+						if (!tar->IsRooted())
+							botSpell.SpellId = 0;
+					}
+				}
+				if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, NukeResistLimit)))
+					botSpell.SpellId = 0;
 
-			if (!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && (tar->CanBuffStack(botSpell.SpellId, botLevel, true) >= 0)))
-				break;
-
-			if (IsFearSpell(botSpell.SpellId)) {
-				// don't let fear cast if the npc isn't snared or rooted
-				if (tar->GetSnaredAmount() == -1) {
-					if (!tar->IsRooted())
-						break;
+				if (IsValidSpellRange(botSpell.SpellId, tar)) {
+					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
+				}
+				else {
+					botSpell.SpellId = 0;
+				}
+				if (castedSpell) {
+					BotGroupSay(this, "Nuking %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
+					//m_nuke_delay_timer.Start(GetNukeDelay());
+					break;
 				}
 			}
-
-			castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
-			if (castedSpell)
-				BotGroupSay(this, "Nuking %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
-
-			m_nuke_delay_timer.Start(GetNukeDelay());
-			*/
-			if (botSpell.SpellId == 0) {
+			else {
 				std::list<BotSpell_wPriority> spellList = GetPrioritizedBotSpellsBySpellType(this, SpellType_Nuke);
 				for (std::list<BotSpell_wPriority>::iterator itr = spellList.begin(); itr != spellList.end(); ++itr) {
 					BotSpell_wPriority botSpell = *itr;
@@ -2194,9 +2234,13 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						continue;
 					if (GetSpellTargetType(botSpell.SpellId) == ST_Plant && tar->GetBodyType() != BT_Plant)
 						continue;
-					if (GetSpellTargetType(botSpell.SpellId) == ST_Undead && tar->GetBodyType() != BT_Undead)
+					if (GetSpellTargetType(botSpell.SpellId) == ST_Undead && (tar->GetBodyType() == BT_Undead || tar->GetBodyType() == BT_SummonedUndead || tar->GetBodyType() == BT_Vampire))
 						continue;
 					if (GetSpellTargetType(botSpell.SpellId) == ST_Summoned && (tar->GetBodyType() != BT_Summoned && tar->GetBodyType() != BT_Summoned2 && tar->GetBodyType() != BT_Summoned3))
+						continue;
+					if (GetSpellTargetType(botSpell.SpellId) == ST_Giant && tar->GetBodyType() != BT_Giant)
+						continue;
+					if (GetSpellTargetType(botSpell.SpellId) == ST_Dragon && tar->GetBodyType() != BT_Dragon)
 						continue;
 
 					if (!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
@@ -2214,36 +2258,15 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					if (IsValidSpellRange(botSpell.SpellId, tar)) {
 						castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
 					}
-
-					if (castedSpell)
+					else {
+						continue;
+					}
+					if (castedSpell) {
 						BotGroupSay(this, "Nuking %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
-
-					m_nuke_delay_timer.Start(GetNukeDelay());
-				}
-				break;
-			}
-			else {
-				if (!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
-					break;
-
-				if (IsFearSpell(botSpell.SpellId)) {
-					// don't let fear cast if the npc isn't snared or rooted
-					if (tar->GetSnaredAmount() == -1) {
-						if (!tar->IsRooted())
-							break;
+						//m_nuke_delay_timer.Start(GetNukeDelay());
+						break;
 					}
 				}
-				if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, NukeResistLimit)))
-					break;
-
-				if (IsValidSpellRange(botSpell.SpellId, tar)) {
-					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
-				}
-
-				if (castedSpell)
-					BotGroupSay(this, "Nuking %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
-
-				m_nuke_delay_timer.Start(GetNukeDelay());
 			}
 		}
 		break;
@@ -2253,7 +2276,6 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 			if (!checked_los) {
 				if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
 					break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
-
 				checked_los = true;
 			}
 
@@ -2271,10 +2293,14 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				if (IsValidSpellRange(botSpell.SpellId, tar)) {
 					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
 				}
+				else {
+					break;
+				}
 
-				if (castedSpell)
+				if (castedSpell) {
 					BotGroupSay(this, "Attempting to dispel %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
-				m_dispel_delay_timer.Start(GetDispelDelay());
+					//m_dispel_delay_timer.Start(GetDispelDelay());
+				}
 			}
 		}
 		break;
@@ -2318,8 +2344,9 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 				castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
 
-				if (castedSpell)
+				if (castedSpell) {
 					BotGroupSay(this, "Summoning a pet [%s].", GetSpellName(botSpell.SpellId));
+				}
 			}
 			break;
 		}
@@ -2354,14 +2381,17 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					if (IsValidSpellRange(botSpell.SpellId, tar) || botClass != SHADOWKNIGHT) {
 						castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
 					}
+					else {
+						continue;
+					}
 
-					m_incombatbuff_delay_timer.Start(GetInCombatBuffDelay());
-
-					if (castedSpell && (botClass == SHADOWKNIGHT))
-						BotGroupSay(this, "Using an In-Combat Buff on %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
-
-
-
+					if (castedSpell) {
+						//m_incombatbuff_delay_timer.Start(GetInCombatBuffDelay());
+						if (botClass == SHADOWKNIGHT) {
+							BotGroupSay(this, "Using an In-Combat Buff on %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
+						}
+						break;
+					}
 				}
 			}
 			else if (botClass == BARD) {
@@ -2492,13 +2522,15 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				if (IsValidSpellRange(botSpell.SpellId, tar)) {
 					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
 				}
+				else {
+					continue;
+				}
 
-				m_lifetap_delay_timer.Start(GetLifetapDelay());
-
-				if (castedSpell)
+				if (castedSpell) {
 					BotGroupSay(this, "Lifetapping %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
-
-
+					//m_lifetap_delay_timer.Start(GetLifetapDelay());
+					break;
+				}
 			}
 			break;
 		}
@@ -2527,6 +2559,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 			uint32 TempDontSnareMeBefore = tar->DontSnareMeBefore();
 
+		if (IsValidSpellRange(botSpell.SpellId, tar)) {
 			castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost, &TempDontSnareMeBefore);
 			if (castedSpell)
 				BotGroupSay(this, "Snaring %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
@@ -2551,11 +2584,15 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				if (IsValidSpellRange(botSpell.SpellId, tar)) {
 					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
 				}
+				else {
+					continue;
+				}
 
-				if (castedSpell)
+				if (castedSpell) {
 					BotGroupSay(this, "Snaring %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
-
-				m_snare_delay_timer.Start(GetSnareDelay());
+					//m_snare_delay_timer.Start(GetSnareDelay());
+					break;
+				}
 			}
 			break;
 			//}
@@ -2573,7 +2610,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				checked_los = true;
 			}
 
-			if (GetClass() == BARD) {
+			if (botClass == BARD) {
 				std::list<BotSpell_wPriority> dotList = GetPrioritizedBotSpellsBySpellType(this, SpellType_DOT);
 
 				const int maxDotSelect = 5;
@@ -2598,14 +2635,14 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					if (IsValidSpellRange(selectedBotSpell.SpellId, tar)) {
 						castedSpell = AIDoSpellCast(selectedBotSpell.SpellIndex, tar, selectedBotSpell.ManaCost);
 					}
-
-					if (castedSpell)
+					else {
 						continue;
+					}
 
-					if (castedSpell)
+					if (castedSpell) {
 						BotGroupSay(this, "Casting a DoT on %s with [%s].", tar->GetCleanName(), GetSpellName(selectedBotSpell.SpellId));
-
-					m_dot_delay_timer.Start(GetDotDelay());
+						//m_dot_delay_timer.Start(GetDotDelay());
+					}
 					//if (TempDontDotMeBefore != tar->DontDotMeBefore())
 						//tar->SetDontDotMeBefore(TempDontDotMeBefore);
 
@@ -2672,11 +2709,14 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					if (IsValidSpellRange(botSpell.SpellId, tar)) {
 						castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
 					}
+					else {
+						continue;
+					}
 
-					if (castedSpell)
+					if (castedSpell) {
 						BotGroupSay(this, "Casting a DoT on %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
-
-					m_dot_delay_timer.Start(GetDotDelay());
+						//m_dot_delay_timer.Start(GetDotDelay());
+					}
 
 					dotSelectCounter++;
 
@@ -2701,55 +2741,55 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 			}
 
 			switch (botClass) {
-				case BARD: {
-					// probably needs attackable check
-					std::list<BotSpell_wPriority> botSongList = GetPrioritizedBotSpellsBySpellType(this, SpellType_Slow);
-					for (auto iter : botSongList) {
-						if (!iter.SpellId)
-							continue;
-						if (!CheckSpellRecastTimers(this, iter.SpellIndex))
-							continue;
+			case BARD: {
+				// probably needs attackable check
+				std::list<BotSpell_wPriority> botSongList = GetPrioritizedBotSpellsBySpellType(this, SpellType_Slow);
+				for (auto iter : botSongList) {
+					if (!iter.SpellId)
+						continue;
+					if (!CheckSpellRecastTimers(this, iter.SpellIndex))
+						continue;
 
-						if (spells[iter.SpellId].zone_type != -1 && zone->GetZoneType() != -1 && spells[iter.SpellId].zone_type != zone->GetZoneType() && zone->CanCastOutdoor() != 1) // is this bit or index?
-							continue;
-						if (spells[iter.SpellId].target_type != ST_Target)
-							continue;
-						if (tar->CanBuffStack(iter.SpellId, botLevel, true) < 0)
-							continue;
+					if (spells[iter.SpellId].zone_type != -1 && zone->GetZoneType() != -1 && spells[iter.SpellId].zone_type != zone->GetZoneType() && zone->CanCastOutdoor() != 1) // is this bit or index?
+						continue;
+					if (spells[iter.SpellId].target_type != ST_Target)
+						continue;
+					if (tar->CanBuffStack(iter.SpellId, botLevel, true) < 0)
+						continue;
 
-						if (!DoResistCheck(this, tar, iter.SpellId, RuleI(Bots, SlowResistLimit)))
-							continue;
+					if (!DoResistCheck(this, tar, iter.SpellId, RuleI(Bots, SlowResistLimit)))
+						continue;
 
-						if (IsValidSpellRange(iter.SpellId, tar)) {
-							castedSpell = AIDoSpellCast(iter.SpellIndex, tar, iter.ManaCost);
-						}
-
-						if (!castedSpell)
-							continue;
-
-						//if (castedSpell)
-							//BotGroupSay(this, "Slowing %s with [%s].", tar->GetCleanName(), GetSpellName(iter.SpellId));
-
-						m_slow_delay_timer.Start(GetSlowDelay());
-
-						if (castedSpell)
-							break;
+					if (IsValidSpellRange(iter.SpellId, tar)) {
+						castedSpell = AIDoSpellCast(iter.SpellIndex, tar, iter.ManaCost);
 					}
 
-					break;
-				}
-				case ENCHANTER: {
-					botSpell = GetBestBotSpellForMagicBasedSlow(this);
-					break;
-				}
-				case SHAMAN:
-				case BEASTLORD: {
-					botSpell = GetBestBotSpellForMagicBasedSlow(this);
-					if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, SlowResistLimit))) {
-						botSpell = GetBestBotSpellForDiseaseBasedSlow(this);
+					if (!castedSpell)
+						continue;
+
+					//if (castedSpell)
+						//BotGroupSay(this, "Slowing %s with [%s].", tar->GetCleanName(), GetSpellName(iter.SpellId));
+
+					if (castedSpell) {
+						//m_slow_delay_timer.Start(GetSlowDelay());
+						break;
 					}
-					break;
 				}
+
+				break;
+			}
+			case ENCHANTER: {
+				botSpell = GetBestBotSpellForMagicBasedSlow(this);
+				break;
+			}
+			case SHAMAN:
+			case BEASTLORD: {
+				botSpell = GetBestBotSpellForMagicBasedSlow(this);
+				if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, SlowResistLimit))) {
+					botSpell = GetBestBotSpellForDiseaseBasedSlow(this);
+				}
+				break;
+			}
 			}
 
 			if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, SlowResistLimit)))
@@ -2767,11 +2807,16 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 			if (IsValidSpellRange(botSpell.SpellId, tar)) {
 				castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
 			}
+			else {
+				break;
+			}
 
-			if (castedSpell && GetClass() != BARD)
-				BotGroupSay(this, "Attempting to slow %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
-
-			m_slow_delay_timer.Start(GetSlowDelay());
+			if (castedSpell) {
+				if (botClass != BARD) {
+					BotGroupSay(this, "Attempting to slow %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
+				}
+				//m_slow_delay_timer.Start(GetSlowDelay());
+			}
 		}
 		break;
 	}
@@ -2822,11 +2867,15 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				if (IsValidSpellRange(botSpell.SpellId, tar)) {
 					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
 				}
+				else {
+					continue;
+				}
 
-				if (castedSpell)
+				if (castedSpell && botClass != BARD) {
 					BotGroupSay(this, "Debuffing %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
-
-				m_debuff_delay_timer.Start(GetDebuffDelay());
+					//m_debuff_delay_timer.Start(GetDebuffDelay());
+					break;
+				}
 			}
 			break;
 
@@ -2836,7 +2885,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 	}
 	case SpellType_Cure: {
 		if (CanCastBySpellType(this, tar, SpellType_Cure)) {
-			//if (GetNeedsCured(tar) && (tar->DontCureMeBefore() < Timer::GetCurrentTime()) && !(GetNumberNeedingHealedInGroup(25, false) > 0) && !(GetNumberNeedingHealedInGroup(40, false) > 2))
+			//if (GetNeedsCured(tar) && (tar->DontCureMeBefore() < Timer::GetCurrentTime()) && !(GetNumberNeedingHealedInRaidGroup(25, false) > 0) && !(GetNumberNeedingHealedInRaidGroup(40, false) > 2))
 			if (GetNeedsCured(tar) && !(GetNumberNeedingHealedInRaidGroup(25, false) > 0) && !(GetNumberNeedingHealedInRaidGroup(40, false) > 2))
 			{
 				botSpell = GetBestBotSpellForCure(this, tar);
@@ -2851,32 +2900,13 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				if (IsValidSpellRange(botSpell.SpellId, tar)) {
 					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
 				}
-
-				if (castedSpell)
-					BotGroupSay(this, "Attempting to cure %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
+				else {
+					break;
+				}
 
 				if (castedSpell) {
-					if (botClass != BARD) {
-						if (IsGroupSpell(botSpell.SpellId)) {
-							if (this->IsRaidGrouped()) {
-								if (r_group) {
-									std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(r_group);
-									for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
-										if (iter->member && !iter->member->qglobal) {
-											//if (TempDontCureMeBeforeTime != tar->DontCureMeBefore())
-												//iter->member->SetDontCureMeBefore(Timer::GetCurrentTime() + 4000);
-											m_cure_delay_timer.Start(GetCureDelay());
-										}
-									}
-								}
-							}
-						}
-						else {
-							//if (TempDontCureMeBeforeTime != tar->DontCureMeBefore())
-								//tar->SetDontCureMeBefore(Timer::GetCurrentTime() + 4000);
-							m_cure_delay_timer.Start(GetCureDelay());
-						}
-					}
+					BotGroupSay(this, "Attempting to cure %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
+					//m_cure_delay_timer.Start(GetCureDelay());
 				}
 			}
 			break;
@@ -2888,7 +2918,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 	case SpellType_HateRedux: {
 		if (CanCastBySpellType(this, tar, SpellType_HateRedux)) {
 			// assumed group member at this point
-			if (GetClass() == BARD) {
+			if (botClass == BARD) {
 				std::list<BotSpell_wPriority> botSongList = GetPrioritizedBotSpellsBySpellType(this, SpellType_HateRedux);
 				for (auto iter : botSongList) {
 					if (!iter.SpellId)
@@ -2909,11 +2939,15 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					if (IsValidSpellRange(iter.SpellId, tar)) {
 						castedSpell = AIDoSpellCast(iter.SpellIndex, tar, iter.ManaCost);
 					}
+					else {
+						continue;
+					}
 
-					if (castedSpell)
+					if (castedSpell) {
 						BotGroupSay(this, "Attempting to reduce my hate on %s with [%s].", tar->GetCleanName(), GetSpellName(iter.SpellId));
-
-					m_hateredux_delay_timer.Start(GetHateReduxDelay());
+						//m_hateredux_delay_timer.Start(GetHateReduxDelay());
+						break;
+					}
 				}
 			}
 			else {
@@ -2927,11 +2961,15 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					if (IsValidSpellRange(iter.SpellId, tar)) {
 						castedSpell = AIDoSpellCast(iter.SpellIndex, tar, iter.ManaCost);
 					}
+					else {
+						continue;
+					}
 
-					if (castedSpell)
+					if (castedSpell) {
 						BotGroupSay(this, "Attempting to reduce my hate on %s with [%s].", tar->GetCleanName(), GetSpellName(iter.SpellId));
-
-					m_hateredux_delay_timer.Start(GetHateReduxDelay());
+						//m_hateredux_delay_timer.Start(GetHateReduxDelay());
+						break;
+					}
 				}
 			}
 
@@ -2941,7 +2979,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 	}
 	case SpellType_InCombatBuffSong: {
 		if (CanCastBySpellType(this, tar, SpellType_InCombatBuffSong)) {
-			if (GetClass() != BARD || tar != this) // In-Combat songs can be cast Out-of-Combat in preparation for battle
+			if (botClass != BARD || tar != this) // In-Combat songs can be cast Out-of-Combat in preparation for battle
 				break;
 
 			std::list<BotSpell_wPriority> botSongList = GetPrioritizedBotSpellsBySpellType(this, SpellType_InCombatBuffSong);
@@ -2978,7 +3016,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 	}
 	case SpellType_OutOfCombatBuffSong: {
 		if (CanCastBySpellType(this, tar, SpellType_OutOfCombatBuffSong)) {
-			if (GetClass() != BARD || tar != this || IsEngaged()) // Out-of-Combat songs can not be cast in combat
+			if (botClass != BARD || tar != this || IsEngaged()) // Out-of-Combat songs can not be cast in combat
 				break;
 
 			std::list<BotSpell_wPriority> botSongList = GetPrioritizedBotSpellsBySpellType(this, SpellType_OutOfCombatBuffSong);

@@ -8655,7 +8655,7 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 							}
 						}
 
-						if(g->members[i] && !g->members[i]->qglobal && g->members[i]->HasPet() && g->members[i]->GetPet()->GetHPRatio() < hpRatioToHeal) {
+						if(g->members[i] && !g->members[i]->qglobal && g->members[i]->HasPet() && !g->members[i]->GetPet()->IsFamiliar() && g->members[i]->GetPet()->GetHPRatio() < hpRatioToHeal) {
 							if(g->members[i]->GetPet()->GetOwner() != caster && caster->IsEngaged() && g->members[i]->IsCasting() && g->members[i]->GetClass() != ENCHANTER )
 								continue;
 						
@@ -8685,7 +8685,7 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 								}
 							}
 
-							if (iter->member && entity_list.IsMobInZone(iter->member) && !iter->member->qglobal && iter->member->HasPet() && iter->member->GetPet()->GetHPRatio() < hpRatioToHeal) {
+							if (iter->member && entity_list.IsMobInZone(iter->member) && !iter->member->qglobal && iter->member->HasPet() && !iter->member->GetPet()->IsFamiliar() && iter->member->GetPet()->GetHPRatio() < hpRatioToHeal) {
 								if (iter->member->GetPet()->GetOwner() != caster && caster->IsEngaged() && iter->member->IsCasting() && iter->member->GetClass() != ENCHANTER)
 									continue;
 

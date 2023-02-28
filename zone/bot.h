@@ -150,7 +150,8 @@ public:
 
 	bool HasRaid() final { return (GetRaid() ? true : false); }
 	bool HasGroup() final { return (GetGroup() ? true : false); }
-	Raid* GetRaid() final { return entity_list.GetRaidByMob(this); }
+	//Raid* GetRaid() final { return entity_list.GetRaidByMob(this); }
+	Raid* GetRaid() final { return entity_list.GetRaidByBotName(this->GetName()); }
 	Group* GetGroup() final { return entity_list.GetGroupByMob(this); }
 
 	// Common, but informal "interfaces" with Client object
@@ -353,6 +354,9 @@ public:
 	void SetHoldMode();
 	uint32 GetBotCasterRange() { return m_bot_caster_range; }
 	bool IsValidSpellRange(uint16 spell_id, Mob const* tar);
+	bool IsTargetAlreadyReceivingSpell(Mob* tar, uint16 spellid);
+	uint32 GetBotSpellType(Bot* botCaster, uint16 spellid);
+	void SetBotSpellDelay(Bot* botCaster, uint32 iSpellTypes, Mob* spelltar);
 
 	// Custom commands for spells
 	bool CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType);

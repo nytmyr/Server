@@ -631,6 +631,10 @@ RULE_BOOL(Bots, OldRaceRezEffects, false, "Older clients had ID 757 for races wi
 RULE_BOOL(Bots, ResurrectionSickness, true, "Use Resurrection Sickness based on Resurrection spell cast, set to false to disable Resurrection Sickness.")
 RULE_INT(Bots, OldResurrectionSicknessSpell, 757, "757 is Default Old Resurrection Sickness Spell")
 RULE_INT(Bots, ResurrectionSicknessSpell, 756, "756 is Default Resurrection Sickness Spell")
+
+/*
+* CUSTOM BOT RULES
+*/
 RULE_INT(Bots, NukeResistLimit, 115, "115 Default. This is the resist gap where bots will refuse to cast due to a high resist chance.")
 RULE_INT(Bots, RootResistLimit, 115, "115 Default. This is the resist gap where bots will refuse to cast due to a high resist chance.")
 RULE_INT(Bots, InCombatBuffResistLimit, 115, "115 Default. This is the resist gap where bots will refuse to cast due to a high resist chance.")
@@ -687,11 +691,13 @@ RULE_REAL(Bots, PercentMaxMeleeRangeDistance, 0.85, "Multiplier of the melee ran
 RULE_REAL(Bots, NormalMeleeRangeDistance, 0.50, "Multiplier of the melee range at which a bot will stand in melee combat. 0.50 Recommended, max melee for all abilities to land.")
 RULE_BOOL(Bots, UseFlatNormalMeleeRange, false, "False Default. If true, bots melee distance will be a flat distance set by Bots:NormalMeleeRangeDistance.")
 RULE_BOOL(Bots, DisableSpecialAbilitiesAtMaxMelee, false, "False Default. If true, when bots are at max melee distance, special abilities including taunt will be disabled.")
-
-/*
-* CUSTOM BOT RULES
-*/
 RULE_BOOL(Bots, PreventBotCampOnFD, false, "False Default. If true, players will not be able to camp bots while feign death.")
+RULE_INT(Bots, StunCastChanceIfCasting, 50, "50 Default. Chance for non-Paladins to cast a stun spell if the target is casting.")
+RULE_INT(Bots, StunCastChanceNormal, 15, "15 Default. Chance for non-Paladins to cast a stun spell on the target.")
+RULE_INT(Bots, StunCastChanceIfCastingPaladins, 75, "75 Default. Chance for Paladins to cast a stun spell if the target is casting.")
+RULE_INT(Bots, MezChance, 35, "35 Default. Chance for a bot to attempt to Mez as target after validating it is eligible.")
+RULE_INT(Bots, MezSuccessDelay, 3500, "3500 (3.5 sec) Default. Delay between successful Mez attempts.")
+RULE_INT(Bots, MezFailDelay, 2000, "2000 (2 sec) Default. Delay between failed Mez attempts.")
 
 RULE_CATEGORY_END()
 

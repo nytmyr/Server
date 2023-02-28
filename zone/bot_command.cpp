@@ -9184,49 +9184,39 @@ void bot_command_use_epic(Client *c, const Seperator *sep)
 				auto bot_class = selected_bot->GetClass();	
 				auto target_mob = c->GetTarget();
 				if (bot_class == WIZARD) {
-					//check and use 14341 | 1931 | 25101
+					//check and use 14341 | 614341
 					auto instp = selected_bot->CastToBot()->GetBotItem(13);
 						if (!instp || !instp->GetItem()) {
 							c->Message(Chat::White, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
 							return;
 						}
-					auto insts = selected_bot->CastToBot()->GetBotItem(13);
-						if (!insts || !insts->GetItem()) {
-							c->Message(Chat::White, "I need something for my %s (slot 14)", EQ::invslot::GetInvPossessionsSlotName(14), 14);
-							return;
-						}
 					auto pitem = instp->GetItem()->ID;	
-						if (pitem == 14341) {
+						if (pitem == 14341 || pitem == 614341) {
 							uint32 dont_root_before = 0;
 							if (helper_cast_standard_spell(selected_bot, selected_bot, 25101, true, &dont_root_before))
 								target_mob->SetDontRootMeBefore(dont_root_before);
 								return;
-						} else if (pitem != 14341) {
+						} else if (pitem != 14341 || pitem != 614341) {
 							c->Message(Chat::White, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
 							return;
 						}
 				}
 				auto target_corpse = target_mob->IsPlayerCorpse();
 				if (target_mob && bot_class == CLERIC){
-					//check and use 5532 | 1524 | 25102
+					//check and use 5532 | 605532
 					if (target_corpse) {
 					auto instp = selected_bot->CastToBot()->GetBotItem(13);
 						if (!instp || !instp->GetItem()) {
 							c->Message(Chat::White, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
 							return;
 						}
-					auto insts = selected_bot->CastToBot()->GetBotItem(13);
-						if (!insts || !insts->GetItem()) {
-							c->Message(Chat::White, "I need something for my %s (slot 14)", EQ::invslot::GetInvPossessionsSlotName(14), 14);
-							return;
-						}
 					auto pitem = instp->GetItem()->ID;	
-						if (pitem == 5532) {
+						if (pitem == 5532 || pitem == 605532) {
 							uint32 dont_root_before = 0;
 							if (helper_cast_standard_spell(selected_bot, target_mob, 25102, true, &dont_root_before))
 								target_mob->SetDontRootMeBefore(dont_root_before);
 								return;
-						} else if (pitem != 5532) {
+						} else if (pitem != 5532 || pitem != 605532) {
 							c->Message(Chat::White, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
 							return;
 						}
@@ -9237,24 +9227,19 @@ void bot_command_use_epic(Client *c, const Seperator *sep)
 				}
 				auto target_enemy = ActionableTarget::VerifyEnemy(c, BCEnum::TT_Single);
 				if (!target_enemy && !target_corpse && bot_class == ENCHANTER) {
-					//check and use 10650 | 1939 | 25103
+					//check and use 10650 | 610650
 					auto instp = selected_bot->CastToBot()->GetBotItem(13);
 						if (!instp || !instp->GetItem()) {
 							c->Message(Chat::White, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
 							return;
 						}
-					auto insts = selected_bot->CastToBot()->GetBotItem(13);
-						if (!insts || !insts->GetItem()) {
-							c->Message(Chat::White, "I need something for my %s (slot 14)", EQ::invslot::GetInvPossessionsSlotName(14), 14);
-							return;
-						}
 					auto pitem = instp->GetItem()->ID;	
-						if (pitem == 10650) {
+						if (pitem == 10650 || pitem == 610650) {
 							uint32 dont_root_before = 0;
 							if (helper_cast_standard_spell(selected_bot, target_mob, 25103, true, &dont_root_before))
 								target_mob->SetDontRootMeBefore(dont_root_before);
 								return;
-						} else if (pitem != 10650) {
+						} else if (pitem != 10650 || pitem != 610650) {
 							c->Message(Chat::White, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
 							return;
 						}
@@ -9264,70 +9249,55 @@ void bot_command_use_epic(Client *c, const Seperator *sep)
 					return;
 				}
 				if (target_enemy && bot_class == DRUID) {
-					//check and use 20490 | 1926 | 25104
+					//check and use 20490 | 620490
 					auto instp = selected_bot->CastToBot()->GetBotItem(13);
 						if (!instp || !instp->GetItem()) {
 							c->Message(Chat::White, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
 							return;
 						}
-					auto insts = selected_bot->CastToBot()->GetBotItem(13);
-						if (!insts || !insts->GetItem()) {
-							c->Message(Chat::White, "I need something for my %s (slot 14)", EQ::invslot::GetInvPossessionsSlotName(14), 14);
-							return;
-						}
 					auto pitem = instp->GetItem()->ID;	
-						if (pitem == 20490) {
+						if (pitem == 20490 || pitem == 620490) {
 							uint32 dont_root_before = 0;
 							if (helper_cast_standard_spell(selected_bot, target_mob, 25104, true, &dont_root_before))
 								target_mob->SetDontRootMeBefore(dont_root_before);
 								return;
-						} else if (pitem != 20490) {
+						} else if (pitem != 20490 || pitem != 620490) {
 							c->Message(Chat::White, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
 							return;
 						}
 				}
 				if (target_enemy && bot_class == NECROMANCER) {
-					//check and use 20544 | 1938 | 25107
+					//check and use 20544 | 620544
 					auto instp = selected_bot->CastToBot()->GetBotItem(13);
 						if (!instp || !instp->GetItem()) {
 							c->Message(Chat::White, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
 							return;
 						}
-					auto insts = selected_bot->CastToBot()->GetBotItem(13);
-						if (!insts || !insts->GetItem()) {
-							c->Message(Chat::White, "I need something for my %s (slot 14)", EQ::invslot::GetInvPossessionsSlotName(14), 14);
-							return;
-						}
 					auto pitem = instp->GetItem()->ID;	
-						if (pitem == 20544) {
+						if (pitem == 20544 || pitem == 620544) {
 							uint32 dont_root_before = 0;
 							if (helper_cast_standard_spell(selected_bot, target_mob, 25107, true, &dont_root_before))
 								target_mob->SetDontRootMeBefore(dont_root_before);
 								return;
-						} else if (pitem != 20544) {
+						} else if (pitem != 20544 || pitem != 620544) {
 							c->Message(Chat::White, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
 							return;
 						}
 				}
 				if (target_enemy && bot_class == SHAMAN) {
-					//check and use 10651 | 1932 | 25106
+					//check and use 10651 | 610651
 					auto instp = selected_bot->CastToBot()->GetBotItem(13);
 						if (!instp || !instp->GetItem()) {
 							c->Message(Chat::White, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
 							return;
 						}
-					auto insts = selected_bot->CastToBot()->GetBotItem(13);
-						if (!insts || !insts->GetItem()) {
-							c->Message(Chat::White, "I need something for my %s (slot 14)", EQ::invslot::GetInvPossessionsSlotName(14), 14);
-							return;
-						}
 					auto pitem = instp->GetItem()->ID;	
-						if (pitem == 10651) {
+						if (pitem == 10651 || pitem == 610651) {
 							uint32 dont_root_before = 0;
 							if (helper_cast_standard_spell(selected_bot, target_mob, 25106, true, &dont_root_before))
 								target_mob->SetDontRootMeBefore(dont_root_before);
 								return;
-						} else if (pitem != 10651) {
+						} else if (pitem != 10651 || pitem != 610651) {
 							c->Message(Chat::White, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
 							return;
 						}
