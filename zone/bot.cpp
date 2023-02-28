@@ -2781,6 +2781,7 @@ void Bot::AI_Process()
 	}
 
 	// We also need a leash owner and follow mob (subset of primary AI criteria)
+	//bot_group->VerifyGroup();
 	Client* leash_owner = nullptr;
 
 	//if (bot_group) {

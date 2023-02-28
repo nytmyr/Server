@@ -2861,6 +2861,11 @@ Bot* Perl_Mob_GetHateRandomBot(Mob* self) // @categories Hate and Aggro
 	return self->GetHateRandomBot();
 }
 
+float Perl_Mob_GetDefaultRaceSize(Mob* self) // @categories Script Utility
+{
+	return self->GetDefaultRaceSize();
+}
+
 void perl_register_mob()
 {
 	perl::interpreter perl(PERL_GET_THX);
@@ -3045,6 +3050,7 @@ void perl_register_mob()
 	package.add("GetClassName", &Perl_Mob_GetClassName);
 	package.add("GetCleanName", &Perl_Mob_GetCleanName);
 	package.add("GetCorruption", &Perl_Mob_GetCorruption);
+	package.add("GetDefaultRaceSize", &Perl_Mob_GetDefaultRaceSize);
 	package.add("GetDEX", &Perl_Mob_GetDEX);
 	package.add("GetDR", &Perl_Mob_GetDR);
 	package.add("GetDamageAmount", &Perl_Mob_GetDamageAmount);
