@@ -40,7 +40,11 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 		return AICastSpell_Raid(tar, iChance, iSpellTypes);
 	}
 
-	if (!tar && tar->IsFamiliar()) {
+	if (!tar) {
+		return false;
+	}
+
+	if (tar->IsFamiliar()) {
 		return false;
 	}
 

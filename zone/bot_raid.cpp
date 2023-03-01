@@ -1607,7 +1607,11 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 	if (!raid)
 		return false;
 
-	if (!tar || tar->IsFamiliar()) {
+	if (!tar) {
+		return false;
+	}
+
+	if (tar->IsFamiliar()) {
 		return false;
 	}
 
