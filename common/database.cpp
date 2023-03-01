@@ -351,6 +351,15 @@ bool Database::ReserveName(uint32 account_id, char* name) {
 		}
 	}
 
+	query = StringFormat("SELECT `owner_id`, `name` FROM `bot_data` WHERE `name` = '%s'", name);
+	results = QueryDatabase(query);
+	for (auto row = results.begin(); row != results.end(); ++row) {
+		if (row[0] && atoi(row[0]) > 0) {
+			LogInfo("Account: [{}] tried to request name: [{}], but it is already taken by a bot", account_id, name);
+			return false;
+		}
+	}
+
 	query = StringFormat("INSERT INTO `character_data` SET `account_id` = %i, `name` = '%s'", account_id, name);
 	results = QueryDatabase(query);
 	if (!results.Success() || results.ErrorMessage() != ""){ return false; }
