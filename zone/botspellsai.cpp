@@ -2014,16 +2014,18 @@ bool Bot::AI_EngagedCastCheck() {
 			}
 		}
 		else if (botClass == BARD) {
-			if (!AICastSpell(GetTarget(), 100, SpellType_Escape)) {
-				if (!AICastSpell(GetTarget(), 100, SpellType_HateRedux)) {
-					if (!entity_list.Bot_AICheckCloseBeneficialSpells(this, 100, BotAISpellRange, SpellType_Cure)) {
-						if (!AICastSpell(this, 100, SpellType_InCombatBuffSong)) {
-							if (!AICastSpell(GetTarget(), 100, SpellType_Dispel)) {
-								if (!AICastSpell(GetTarget(), 100, SpellType_Debuff)) {
-									if (!AICastSpell(GetTarget(), 100, SpellType_Slow)) {
-										if (!AICastSpell(GetTarget(), mayGetAggro ? 0 : 100, SpellType_DOT)) {
-											if (!AICastSpell(GetTarget(), mayGetAggro ? 0 : 100, SpellType_Nuke)) {
-												failedToCast = true;
+			if (!AICastSpell(GetTarget(), 100, SpellType_Mez)) {
+				if (!AICastSpell(GetTarget(), 100, SpellType_Escape)) {
+					if (!AICastSpell(GetTarget(), 100, SpellType_HateRedux)) {
+						if (!entity_list.Bot_AICheckCloseBeneficialSpells(this, 100, BotAISpellRange, SpellType_Cure)) {
+							if (!AICastSpell(this, 100, SpellType_InCombatBuffSong)) {
+								if (!AICastSpell(GetTarget(), 100, SpellType_Dispel)) {
+									if (!AICastSpell(GetTarget(), 100, SpellType_Debuff)) {
+										if (!AICastSpell(GetTarget(), 100, SpellType_Slow)) {
+											if (!AICastSpell(GetTarget(), mayGetAggro ? 0 : 100, SpellType_DOT)) {
+												if (!AICastSpell(GetTarget(), mayGetAggro ? 0 : 100, SpellType_Nuke)) {
+													failedToCast = true;
+												}
 											}
 										}
 									}
