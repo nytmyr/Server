@@ -1634,9 +1634,13 @@ bool Bot::AI_IdleCastCheck() {
 		bool pre_combat = false;
 		Client* test_against = nullptr;
 
-		if (HasGroup() && GetGroup()->GetLeader() && GetGroup()->GetLeader()->IsClient()) {
-			test_against = GetGroup()->GetLeader()->CastToClient();
-		} else if (GetOwner() && GetOwner()->IsClient()) {
+		//if (HasGroup() && GetGroup()->GetLeader() && GetGroup()->GetLeader()->IsClient()) {
+		//	test_against = GetGroup()->GetLeader()->CastToClient();
+		//} else if (GetOwner() && GetOwner()->IsClient()) {
+		//	test_against = GetOwner()->CastToClient();
+		//}
+
+		if (GetOwner() && GetOwner()->IsClient()) {
 			test_against = GetOwner()->CastToClient();
 		}
 
