@@ -235,7 +235,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					//	break;
 
 					if (IsValidSpellRange(botSpell.SpellId, tar) || botClass == BARD) {
-						if (IsTargetAlreadyReceivingSpell(tar, botSpell.SpellId)) {
+						if (IsTargetAlreadyReceivingSpell(tar, botSpell.SpellId, spellType)) {
 							break;
 						}
 						castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
@@ -3999,7 +3999,7 @@ bool Bot::IsValidSpellRange(uint16 spell_id, Mob const* tar) {
 	return false;
 }
 
-bool Bot::IsTargetAlreadyReceivingSpell(Mob* tar, uint16 spellid) {
+bool Bot::IsTargetAlreadyReceivingSpell(Mob* tar, uint16 spellid, std::string healType) {
 
 	if (!tar || !spellid) {
 		return true;
@@ -4027,7 +4027,29 @@ bool Bot::IsTargetAlreadyReceivingSpell(Mob* tar, uint16 spellid) {
 							&& entity_list.GetMobID(iter->member->CastToBot()->casting_spell_targetid) == entity_list.GetMobID(tar->GetID())
 							&& iter->member->CastingSpellID() == spellid
 							) {
-							return true;
+							if (GetBotSpellType(this, spellid) == SpellType_Heal) {
+								uint32 currentTime = Timer::GetCurrentTime();
+								uint32 fasthealTime = tar->DontFastHealMeBefore();
+								uint32 regularhealTime = tar->DontRegularHealMeBefore();
+								uint32 completehealTime = tar->DontCompleteHealMeBefore();
+								uint32 hothealTime = tar->DontHotHealMeBefore();
+								if (healType == "Fast Heal" && fasthealTime <= currentTime) {
+									return false;
+								}
+								else if (healType == "Regular Heal" && regularhealTime <= currentTime) {
+									return false;
+								}
+								else if (healType == "Complete Heal" && completehealTime <= currentTime) {
+									return false;
+								}
+								else if (healType == "HoT Heal" && hothealTime <= currentTime) {
+									return false;
+								}
+								return true;
+							}
+							else {
+								return true;
+							}
 						}
 					}
 				}
@@ -4045,7 +4067,29 @@ bool Bot::IsTargetAlreadyReceivingSpell(Mob* tar, uint16 spellid) {
 							&& entity_list.GetMobID(group_member->CastToBot()->casting_spell_targetid) == entity_list.GetMobID(tar->GetID())
 							&& group_member->CastingSpellID() == spellid
 							) {
-							return true;
+							if (GetBotSpellType(this, spellid) == SpellType_Heal) {
+								uint32 currentTime = Timer::GetCurrentTime();
+								uint32 fasthealTime = tar->DontFastHealMeBefore();
+								uint32 regularhealTime = tar->DontRegularHealMeBefore();
+								uint32 completehealTime = tar->DontCompleteHealMeBefore();
+								uint32 hothealTime = tar->DontHotHealMeBefore();
+								if (healType == "Fast Heal" && fasthealTime <= currentTime) {
+									return false;
+								}
+								else if (healType == "Regular Heal" && regularhealTime <= currentTime) {
+									return false;
+								}
+								else if (healType == "Complete Heal" && completehealTime <= currentTime) {
+									return false;
+								}
+								else if (healType == "HoT Heal" && hothealTime <= currentTime) {
+									return false;
+								}
+								return true;
+							}
+							else {
+								return true;
+							}
 						}
 					}
 				}

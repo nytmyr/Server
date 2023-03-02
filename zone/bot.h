@@ -354,7 +354,7 @@ public:
 	void SetHoldMode();
 	uint32 GetBotCasterRange() { return m_bot_caster_range; }
 	bool IsValidSpellRange(uint16 spell_id, Mob const* tar);
-	bool IsTargetAlreadyReceivingSpell(Mob* tar, uint16 spellid);
+	bool IsTargetAlreadyReceivingSpell(Mob* tar, uint16 spellid, std::string healType = "None");
 	uint32 GetBotSpellType(Bot* botCaster, uint16 spellid);
 	void SetBotSpellDelay(Bot* botCaster, uint32 iSpellTypes, Mob* spelltar);
 

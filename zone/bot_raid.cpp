@@ -1802,7 +1802,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				//	break;
 
 				if (IsValidSpellRange(botSpell.SpellId, tar) || botClass == BARD) {
-					if (IsTargetAlreadyReceivingSpell(tar, botSpell.SpellId)) {
+					if (IsTargetAlreadyReceivingSpell(tar, botSpell.SpellId, spellType)) {
 						break;
 					}
 					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
