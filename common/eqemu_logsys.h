@@ -139,6 +139,7 @@ namespace Logs {
 		Bugs,
 		QuestErrors,
 		PlayerEvents,
+		VegasLoot,
 		MaxCategoryID /* Don't Remove this */
 	};
 
@@ -237,6 +238,7 @@ namespace Logs {
 		"Bugs",
 		"QuestErrors",
 		"PlayerEvents",
+		"VegasLoot",
 	};
 }
 

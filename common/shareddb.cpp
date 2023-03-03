@@ -1281,6 +1281,13 @@ void SharedDatabase::LoadItems(void *data, uint32 size, int32 items, uint32 max_
 		strn0cpy(item.Filename, row[ItemField::filename], sizeof(item.Filename));
 		item.ScriptFileID = std::stoul(row[ItemField::scriptfileid]);
 
+		// Custom Vegas
+		item.GearScore = static_cast<float>(std::stoi(row[ItemField::GearScore]));
+		item.MinDropLevel = static_cast<uint16>(std::stoul(row[ItemField::MinDropLevel]));
+		item.difficulty = static_cast<double>(std::stoul(row[ItemField::difficulty]));
+		item.lowest_drop_npc_id = static_cast<uint32>(std::stoul(row[ItemField::lowest_drop_npc_id]));
+		item.raid_only = static_cast<uint8>(std::stoul(row[ItemField::raid_only]));
+
 		try {
 			hash.insert(item.ID, item);
 		} catch (std::exception &ex) {

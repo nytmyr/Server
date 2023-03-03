@@ -194,6 +194,7 @@ uint16 EQEmuLogSys::GetGMSayColorFromCategory(uint16 log_category)
 		case Logs::MySQLQuery:
 		case Logs::Debug:
 		case Logs::TestDebug:
+		case Logs::VegasLoot:
 			return Chat::Lime;
 		case Logs::Quests:
 			return Chat::Group;

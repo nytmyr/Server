@@ -291,16 +291,6 @@
         OutF(LogSys, Logs::Detail, Logs::Tasks, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
 } while (0)
 
-#define TestDebug(message, ...) do {\
-    if (LogSys.IsLogEnabled(Logs::General, Logs::TestDebug))\
-        OutF(LogSys, Logs::General, Logs::TestDebug, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
-} while (0)
-
-#define TestDebugDetail(message, ...) do {\
-    if (LogSys.IsLogEnabled(Logs::Detail, Logs::TestDebug))\
-        OutF(LogSys, Logs::Detail, Logs::TestDebug, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
-} while (0)
-
 #define LogTradeskills(message, ...) do {\
     if (LogSys.IsLogEnabled(Logs::General, Logs::Tradeskills))\
         OutF(LogSys, Logs::General, Logs::Tradeskills, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
@@ -824,5 +814,28 @@
         OutF(LogSys, debug_level, log_category, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
 } while (0)
 
+/**
+* Custom Vegas
+*/
+
+#define TestDebug(message, ...) do {\
+    if (LogSys.IsLogEnabled(Logs::General, Logs::TestDebug))\
+        OutF(LogSys, Logs::General, Logs::TestDebug, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
+} while (0)
+
+#define TestDebugDetail(message, ...) do {\
+    if (LogSys.IsLogEnabled(Logs::Detail, Logs::TestDebug))\
+        OutF(LogSys, Logs::Detail, Logs::TestDebug, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
+} while (0)
+
+#define VegasLoot(message, ...) do {\
+    if (LogSys.IsLogEnabled(Logs::General, Logs::TestDebug))\
+        OutF(LogSys, Logs::General, Logs::TestDebug, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
+} while (0)
+
+#define VegasLootDetail(message, ...) do {\
+    if (LogSys.IsLogEnabled(Logs::Detail, Logs::TestDebug))\
+        OutF(LogSys, Logs::Detail, Logs::TestDebug, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
+} while (0)
 
 #endif //EQEMU_EQEMU_LOGSYS_LOG_ALIASES_H

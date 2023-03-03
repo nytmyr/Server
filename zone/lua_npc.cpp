@@ -388,6 +388,11 @@ int Lua_NPC::GetSpawnPointID() {
 	return self->GetSpawnPointID();
 }
 
+int Lua_NPC::GetRespawnTime() {
+	Lua_Safe_Call_Int();
+	return self->GetRespawnTime();
+}
+
 float Lua_NPC::GetSpawnPointX() {
 	Lua_Safe_Call_Real();
 	return self->GetSpawnPoint().x;
@@ -772,6 +777,11 @@ bool Lua_NPC::HasSpecialAbilities() {
 	return self->HasSpecialAbilities();
 }
 
+int64 Lua_NPC::GetDifficulty() {
+	Lua_Safe_Call_Int();
+	return self->GetDifficulty();
+}
+
 luabind::scope lua_register_npc() {
 	return luabind::class_<Lua_NPC, Lua_Mob>("NPC")
 	.def(luabind::constructor<>())
@@ -806,6 +816,7 @@ luabind::scope lua_register_npc() {
 	.def("GetAttackSpeed", (float(Lua_NPC::*)(void))&Lua_NPC::GetAttackSpeed)
 	.def("GetAvoidanceRating", &Lua_NPC::GetAvoidanceRating)
 	.def("GetCopper", (uint32(Lua_NPC::*)(void))&Lua_NPC::GetCopper)
+	.def("GetDifficulty", (int64(Lua_NPC::*)(void)) & Lua_NPC::GetDifficulty)
 	.def("GetFirstSlotByItemID", (uint16(Lua_NPC::*)(uint32))&Lua_NPC::GetFirstSlotByItemID)
 	.def("GetFollowCanRun", (bool(Lua_NPC::*)(void))&Lua_NPC::GetFollowCanRun)
 	.def("GetFollowDistance", (int(Lua_NPC::*)(void))&Lua_NPC::GetFollowDistance)
@@ -845,6 +856,7 @@ luabind::scope lua_register_npc() {
 	.def("GetSpawnKillCount", (int(Lua_NPC::*)(void))&Lua_NPC::GetSpawnKillCount)
 	.def("GetSpawnPointH", (float(Lua_NPC::*)(void))&Lua_NPC::GetSpawnPointH)
 	.def("GetSpawnPointID", (int(Lua_NPC::*)(void))&Lua_NPC::GetSpawnPointID)
+	.def("GetRespawnTime", (int(Lua_NPC::*)(void)) & Lua_NPC::GetRespawnTime)
 	.def("GetSpawnPointX", (float(Lua_NPC::*)(void))&Lua_NPC::GetSpawnPointX)
 	.def("GetSpawnPointY", (float(Lua_NPC::*)(void))&Lua_NPC::GetSpawnPointY)
 	.def("GetSpawnPointZ", (float(Lua_NPC::*)(void))&Lua_NPC::GetSpawnPointZ)

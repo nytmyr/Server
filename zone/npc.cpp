@@ -201,6 +201,7 @@ NPC::NPC(const NPCType *npc_type_data, Spawn2 *in_respawn, const glm::vec4 &posi
 	CHA                  = npc_type_data->CHA;
 	npc_mana             = npc_type_data->Mana;
 	m_is_underwater_only = npc_type_data->underwater;
+	difficulty			 = npc_type_data->difficulty;
 
 	//quick fix of ordering if they screwed it up in the DB
 	if (max_dmg < min_dmg) {
@@ -2983,6 +2984,14 @@ uint32 NPC::GetSpawnPointID() const
 {
 	if (respawn2) {
 		return respawn2->GetID();
+	}
+	return 0;
+}
+
+uint32 NPC::GetRespawnTime() const
+{
+	if (respawn2) {
+		return respawn2->RespawnTimer();
 	}
 	return 0;
 }

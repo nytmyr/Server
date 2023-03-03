@@ -530,6 +530,12 @@ namespace EQ
 		char	WornName[65];
 		char	FocusName[65];
 		char	ScrollName[65];
+		//Custom Vegas
+		float GearScore;
+		uint16 MinDropLevel;
+		double difficulty;
+		uint32 lowest_drop_npc_id;
+		uint8 raid_only;
 		//BardName
 
 		bool IsEquipable(uint16 Race, uint16 Class) const;

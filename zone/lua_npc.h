@@ -104,6 +104,7 @@ public:
 	bool GetFollowCanRun();
 	int GetNPCSpellsID();
 	int GetSpawnPointID();
+	int GetRespawnTime();
 	float GetSpawnPointX();
 	float GetSpawnPointY();
 	float GetSpawnPointZ();
@@ -175,6 +176,7 @@ public:
 	void ScaleNPC(uint8 npc_level);
 	void ScaleNPC(uint8 npc_level, bool override_special_abilities);
 	bool HasSpecialAbilities();
+	int64 GetDifficulty();
 };
 
 #endif

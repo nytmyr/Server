@@ -48,6 +48,13 @@ class QuestManager {
 		std::string name;
 		uint32 time;
 	};
+
+	struct VegasItem {
+		uint32 id;
+		float difficulty;
+		int16 maxcharges;
+	};
+
 public:
 	QuestManager();
 	virtual ~QuestManager();
@@ -348,6 +355,21 @@ public:
 	bool DoAugmentSlotsMatch(uint32 item_one, uint32 item_two);
 	int8 DoesAugmentFit(EQ::ItemInstance* inst, uint32 augment_id, uint8 augment_slot = 255);
 	void SendPlayerHandinEvent();
+
+	/**
+	* Custom Vegas
+	*/
+
+	double getitemdifficulty(uint32 item_id);
+	float getitemgearscore(uint32 item_id);
+	uint32 getitemlowestdropnpcid(uint32 item_id);
+	int16 getitemmaxcharges(uint32 item_id);
+	uint16 getitemmindroplevel(uint32 item_id);
+	uint32 getloottablemaxcash(uint32 loottable_id);
+	uint32 getloottablemincash(uint32 loottable_id);
+	uint32 getvegasitem(uint32 id_min, uint32 id_max, float difficulty_min, float difficulty_max, bool raidonly, uint32 lowest_drop_npc_id, uint32 max_drop_npc_id);
+	bool isitemlore(uint32 item_id);
+	bool isitemraidonly(uint32 item_id);
 
 	Bot *GetBot() const;
 	Client *GetInitiator() const;

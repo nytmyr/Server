@@ -116,6 +116,11 @@ uint32_t Perl_NPC_GetCopper(NPC* self) // @categories Currency and Points
 	return self->GetCopper();
 }
 
+uint32_t Perl_NPC_GetDifficulty(NPC* self) // @categories Stats and Attributes
+{
+	return self->GetDifficulty();
+}
+
 uint32_t Perl_NPC_GetSilver(NPC* self) // @categories Currency and Points
 {
 	return self->GetSilver();
@@ -377,6 +382,11 @@ uint32_t Perl_NPC_GetNPCSpellsID(NPC* self) // @categories Stats and Attributes
 uint32_t Perl_NPC_GetSpawnPointID(NPC* self) // @categories Spawns
 {
 	return self->GetSpawnPointID();
+}
+
+uint32_t Perl_NPC_GetRespawnTime(NPC* self) // @categories Spawns
+{
+	return self->GetRespawnTime();
 }
 
 float Perl_NPC_GetSpawnPointX(NPC* self) // @categories Spawns
@@ -813,6 +823,7 @@ void perl_register_npc()
 	package.add("GetAvoidanceRating", &Perl_NPC_GetAvoidanceRating);
 	package.add("GetCombatState", &Perl_NPC_GetCombatState);
 	package.add("GetCopper", &Perl_NPC_GetCopper);
+	package.add("GetDifficulty", &Perl_NPC_GetDifficulty);
 	package.add("GetFirstSlotByItemID", &Perl_NPC_GetFirstSlotByItemID);
 	package.add("GetGold", &Perl_NPC_GetGold);
 	package.add("GetGrid", &Perl_NPC_GetGrid);
@@ -847,6 +858,7 @@ void perl_register_npc()
 	package.add("GetSpawnKillCount", &Perl_NPC_GetSpawnKillCount);
 	package.add("GetSpawnPointH", &Perl_NPC_GetSpawnPointH);
 	package.add("GetSpawnPointID", &Perl_NPC_GetSpawnPointID);
+	package.add("GetRespawnTime", &Perl_NPC_GetRespawnTime);
 	package.add("GetSpawnPointX", &Perl_NPC_GetSpawnPointX);
 	package.add("GetSpawnPointY", &Perl_NPC_GetSpawnPointY);
 	package.add("GetSpawnPointZ", &Perl_NPC_GetSpawnPointZ);

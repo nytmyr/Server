@@ -153,6 +153,7 @@ struct NPCType
 	int             exp_mod;
 	int             heroic_strikethrough;
 	bool            keeps_sold_items;
+	float           difficulty;
 };
 
 namespace player_lootitem {

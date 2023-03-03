@@ -4180,3 +4180,155 @@ void QuestManager::SendPlayerHandinEvent() {
 		RecordPlayerEventLogWithClient(initiator, PlayerEvent::NPC_HANDIN, e);
 	}
 }
+
+/**
+* Custom Vegas
+*/
+
+double QuestManager::getitemdifficulty(uint32 item_id) {
+	const EQ::ItemData* item_data = database.GetItem(item_id);
+	if (!item_data) {
+		return 0;
+	}
+
+	double difficulty = item_data->difficulty;
+	return difficulty;
+}
+
+float QuestManager::getitemgearscore(uint32 item_id) {
+	const EQ::ItemData* item_data = database.GetItem(item_id);
+	if (!item_data) {
+		return 0;
+	}
+
+	float GearScore = item_data->GearScore;
+	return GearScore;
+}
+
+uint32 QuestManager::getitemlowestdropnpcid(uint32 item_id) {
+	const EQ::ItemData* item_data = database.GetItem(item_id);
+	if (!item_data) {
+		return 0;
+	}
+
+	uint32 lowest_drop_npc_id = item_data->lowest_drop_npc_id;
+	return lowest_drop_npc_id;
+}
+
+
+int16 QuestManager::getitemmaxcharges(uint32 item_id) {
+	const EQ::ItemData* item_data = database.GetItem(item_id);
+	if (!item_data) {
+		return 0;
+	}
+
+	int16 MaxCharges = item_data->MaxCharges;
+	return MaxCharges;
+}
+
+uint16 QuestManager::getitemmindroplevel(uint32 item_id) {
+	const EQ::ItemData* item_data = database.GetItem(item_id);
+	if (!item_data) {
+		return 0;
+	}
+
+	uint16 MinDropLevel = item_data->MinDropLevel;
+	return MinDropLevel;
+}
+
+uint32 QuestManager::getloottablemaxcash(uint32 loottable_id) {
+	const LootTable_Struct* loottable_data = database.GetLootTable(loottable_id);
+	if (!loottable_data) {
+		return 0;
+	}
+
+	uint32 maxcash = loottable_data->maxcash;
+	return maxcash;
+}
+
+uint32 QuestManager::getloottablemincash(uint32 loottable_id) {
+	const LootTable_Struct* loottable_data = database.GetLootTable(loottable_id);
+	if (!loottable_data) {
+		return 0;
+	}
+
+	uint32 mincash = loottable_data->mincash;
+	return mincash;
+}
+
+uint32 QuestManager::getvegasitem(uint32 id_min, uint32 id_max, float difficulty_min, float difficulty_max, bool raidonly, uint32 lowest_drop_npc_id, uint32 max_drop_npc_id) {
+	if (!id_min || !id_max) {
+		VegasLoot("There was no id_min and/or id_max given.");
+		return 0;
+	}
+	if (!difficulty_min || !difficulty_max) {
+		VegasLoot("There was no difficulty_min and/or difficulty_max given.");
+		return 0;
+	}
+	if (!lowest_drop_npc_id || !max_drop_npc_id) {
+		VegasLoot("There was no lowest_drop_npc_id and/or max_drop_npc_id given.");
+		return 0;
+	}
+	BenchTimer benchmark;
+	VegasLoot("We are looking for item IDs between [{}] and [{}], with a difficulty between [{}] and [{}] and lowest_drop_ids between [{}] and [{}] - that [{}] raid_only.", id_min, id_max, difficulty_min, difficulty_max, lowest_drop_npc_id, max_drop_npc_id, raidonly == 1 ? "are" : "are not"); //deleteme
+	std::vector<VegasItem> vitems;
+	VegasItem vitem;
+	const EQ::ItemData* item;
+
+	for (int i = id_min; i <= id_max; i++) {
+		item = database.GetItem(i);
+		if (!item) {
+			continue;
+		}
+		if (
+			item->ID >= id_min && item->ID <= id_max 
+			&& item->difficulty >= difficulty_min && item->difficulty <= difficulty_max 
+			&& item->lowest_drop_npc_id >= lowest_drop_npc_id && item->lowest_drop_npc_id <= max_drop_npc_id
+			&& ((raidonly && item->raid_only == 1) || !raidonly)
+			) {
+				vitem.id = item->ID;
+				vitem.difficulty = item->difficulty;
+				vitem.maxcharges = item->MaxCharges;
+				vitems.push_back(vitem);
+		}
+	}
+
+	if (vitems.size() > 0) {
+		VegasLoot("Found [{}] items matching the criteria.", vitems.size()); //deleteme
+		uint32 chosen_item_id = vitems[std::rand() % vitems.size()].id;
+		VegasLoot("Item [{}]-[{}] was chosen.", getitemname(chosen_item_id), chosen_item_id); //deleteme
+		VegasLoot("Vegas Loot Operation took [{}]", benchmark.elapsed());
+		return chosen_item_id;
+	}
+	else {
+		VegasLoot("Didn't find any items matching that criteria"); //deleteme
+		VegasLoot("Vegas Loot Operation took [{}]", benchmark.elapsed());
+		return 0;
+	}
+}
+
+bool QuestManager::isitemlore(uint32 item_id) {
+	const EQ::ItemData* item_data = database.GetItem(item_id);
+	if (!item_data) {
+		return false;
+	}
+
+	int32 lore_group = item_data->LoreGroup;
+	if (lore_group != 0) {
+		return true;
+	}
+	return false;
+}
+
+bool QuestManager::isitemraidonly(uint32 item_id) {
+	const EQ::ItemData* item_data = database.GetItem(item_id);
+	if (!item_data) {
+		return false;
+	}
+
+	bool raid_only = item_data->raid_only;
+	if (raid_only) {
+		return true;
+	}
+	return false;
+}

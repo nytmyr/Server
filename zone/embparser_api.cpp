@@ -4096,6 +4096,50 @@ void Perl__send_player_handin_event()
 	quest_manager.SendPlayerHandinEvent();
 }
 
+/**
+*Custom Vegas
+*/
+
+double Perl__getitemdifficulty(uint32 item_id) {
+	return quest_manager.getitemdifficulty(item_id);
+}
+
+float Perl__getitemgearscore(uint32 item_id) {
+	return quest_manager.getitemgearscore(item_id);
+}
+
+uint32 Perl__getitemlowestdropnpcid(uint32 item_id) {
+	return quest_manager.getitemlowestdropnpcid(item_id);
+}
+
+int16 Perl__getitemmaxcharges(uint32 item_id) {
+	return quest_manager.getitemmaxcharges(item_id);
+}
+
+uint16 Perl__getitemmindroplevel(uint32 item_id) {
+	return quest_manager.getitemmindroplevel(item_id);
+}
+
+uint32 Perl__getloottablemaxcash(uint32 loottable_id) {
+	return quest_manager.getloottablemaxcash(loottable_id);
+}
+
+uint32 Perl__getloottablemincash(uint32 loottable_id) {
+	return quest_manager.getloottablemincash(loottable_id);
+}
+
+uint32 Perl__getvegasitem(uint32 id_min, uint32 id_max, float difficulty_min, float difficulty_max, bool raidonly, uint32 lowest_drop_npc_id, uint32 max_drop_npc_id) {
+	return quest_manager.getvegasitem(id_min, id_max, difficulty_min, difficulty_max, raidonly, lowest_drop_npc_id, max_drop_npc_id);
+}
+
+bool Perl__isitemlore(uint32 item_id) {
+	return quest_manager.isitemlore(item_id);
+}
+
+bool Perl__isitemraidonly(uint32 item_id) {
+	return quest_manager.isitemraidonly(item_id);
+}
+
 void perl_register_quest()
 {
 	perl::interpreter perl(PERL_GET_THX);
@@ -4549,6 +4593,7 @@ void perl_register_quest()
 	package.add("isdisctome", &Perl__isdisctome);
 	package.add("isdooropen", &Perl__isdooropen);
 	package.add("ishotzone", &Perl__ishotzone);
+	
 	package.add("isnpcspawned", &Perl__isnpcspawned);
 	package.add("istaskactive", &Perl__istaskactive);
 	package.add("istaskactivityactive", &Perl__istaskactivityactive);
@@ -4798,6 +4843,22 @@ void perl_register_quest()
 	 */
 	package.add("is_content_flag_enabled", &Perl__IsContentFlagEnabled);
 	package.add("set_content_flag", &Perl__SetContentFlag);
+
+
+	/**
+	* Custom Vegas
+	*/
+
+	package.add("getitemdifficulty", &Perl__getitemdifficulty);
+	package.add("getitemgearscore", &Perl__getitemgearscore);
+	package.add("getitemlowestdropnpcid", &Perl__getitemlowestdropnpcid);
+	package.add("getitemmaxcharges", &Perl__getitemmaxcharges);
+	package.add("getitemmindroplevel", &Perl__getitemmindroplevel);
+	package.add("getloottablemaxcash", &Perl__getloottablemaxcash);
+	package.add("getloottablemincash", &Perl__getloottablemincash);
+	package.add("getvegasitem", &Perl__getvegasitem);
+	package.add("isitemlore", &Perl__isitemlore);
+	package.add("isitemraidonly", &Perl__isitemraidonly);
 
 }
 

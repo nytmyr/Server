@@ -245,6 +245,8 @@ public:
 	int32 GetGrid() const { return grid; }
 	uint32 GetSpawnGroupId() const { return spawn_group_id; }
 	uint32 GetSpawnPointID() const;
+	uint32 GetRespawnTime() const;
+	float GetDifficulty() const { return difficulty; }
 
 	glm::vec4 const GetSpawnPoint() const { return m_SpawnPoint; }
 	glm::vec4 const GetGuardPoint() const { return m_GuardPoint; }
@@ -687,6 +689,10 @@ protected:
 	bool raid_target;
 	bool rare_spawn;
 	bool ignore_despawn; //NPCs with this set to 1 will ignore the despawn value in spawngroup
+
+	//custom vegas
+
+	float difficulty;
 
 
 private:

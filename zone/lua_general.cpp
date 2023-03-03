@@ -3986,6 +3986,50 @@ bool get_ruleb(int rule) {
 	return RuleManager::Instance()->GetBoolRule((RuleManager::BoolType)rule);
 }
 
+/**
+* Custom Vegas
+*/
+
+double lua_getitemdifficulty(uint32 item_id) {
+	return quest_manager.getitemdifficulty(item_id);
+}
+
+float lua_getitemgearscore(uint32 item_id) {
+	return quest_manager.getitemgearscore(item_id);
+}
+
+uint32 lua_getitemlowestdropnpcid(uint32 item_id) {
+	return quest_manager.getitemlowestdropnpcid(item_id);
+}
+
+int16 lua_getitemmaxcharges(uint32 item_id) {
+	return quest_manager.getitemmaxcharges(item_id);
+}
+
+uint16 lua_getitemmindroplevel(uint32 item_id) {
+	return quest_manager.getitemmindroplevel(item_id);
+}
+
+uint32 lua_getloottablemaxcash(uint32 loottable_id) {
+	return quest_manager.getloottablemaxcash(loottable_id);
+}
+
+uint32 lua_getloottablemincash(uint32 loottable_id) {
+	return quest_manager.getloottablemincash(loottable_id);
+}
+
+int lua_getvegasitem(uint32 id_min, uint32 id_max, float difficulty_min, float difficulty_max, bool raidonly, uint32 lowest_drop_npc_id, uint32 max_drop_npc_id) {
+	return quest_manager.getvegasitem(id_min, id_max, difficulty_min, difficulty_max, raidonly, lowest_drop_npc_id, max_drop_npc_id);
+}
+
+bool lua_isitemlore(uint32 item_id) {
+	return quest_manager.isitemlore(item_id);
+}
+
+bool lua_isitemraidonly(uint32 item_id) {
+	return quest_manager.isitemraidonly(item_id);
+}
+
 luabind::scope lua_register_general() {
 	return luabind::namespace_("eq")
 	[(
@@ -4622,7 +4666,23 @@ luabind::scope lua_register_general() {
 		luabind::def("add_expedition_lockout_by_char_id", (void(*)(uint32, std::string, std::string, uint32, std::string))&lua_add_expedition_lockout_by_char_id),
 		luabind::def("remove_expedition_lockout_by_char_id", &lua_remove_expedition_lockout_by_char_id),
 		luabind::def("remove_all_expedition_lockouts_by_char_id", (void(*)(uint32))&lua_remove_all_expedition_lockouts_by_char_id),
-		luabind::def("remove_all_expedition_lockouts_by_char_id", (void(*)(uint32, std::string))&lua_remove_all_expedition_lockouts_by_char_id)
+		luabind::def("remove_all_expedition_lockouts_by_char_id", (void(*)(uint32, std::string))&lua_remove_all_expedition_lockouts_by_char_id),
+
+		/**
+		* Custom Vegas
+		*/
+		
+		luabind::def("getitemdifficulty", &lua_getitemdifficulty),
+		luabind::def("getitemgearscore", &lua_getitemgearscore),
+		luabind::def("getitemlowestdropnpcid", &lua_getitemlowestdropnpcid),
+		luabind::def("getitemmaxcharges", &lua_getitemmaxcharges),
+		luabind::def("getitemmindroplevel", &lua_getitemmindroplevel),
+		luabind::def("getloottablemaxcash", &lua_getloottablemaxcash),
+		luabind::def("getloottablemincash", &lua_getloottablemincash),
+		luabind::def("getvegasitem", &lua_getvegasitem),
+		luabind::def("isitemlore", &lua_isitemlore),
+		luabind::def("isitemraidonly", &lua_isitemraidonly)
+
 	)];
 }
 
