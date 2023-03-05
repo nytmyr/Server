@@ -954,7 +954,7 @@ void Raid::AddRaidLooter(const char* looter)
 
 	for(int x = 0; x < MAX_RAID_MEMBERS; x++)
 	{
-		if(strcmp(looter, members[x].membername) == 0 && !members[x].IsBot)
+		if(strcmp(looter, members[x].membername) == 0 && !members[x].BotOwnerID)
 		{
 			members[x].IsLooter = 1;
 			break;
@@ -1234,7 +1234,7 @@ void Raid::QueuePacket(const EQApplicationPacket *app, bool ack_req)
 	for (int x = 0; x < MAX_RAID_MEMBERS; x++)
 	{
 		//if (RuleB(Bots, Enabled)) {
-			if (members[x].member && !members[x].IsBot)
+			if (members[x].member && !members[x].BotOwnerID)
 		//}
 		//else {
 		//	if (members[x].member)
@@ -1249,7 +1249,7 @@ void Raid::SendMakeLeaderPacket(const char* who) //30
 {
 
 	if (RuleB(Bots, Enabled)) {
-		if (entity_list.GetBotByBotName(who) && members[GetPlayerIndex(who)].IsBot)
+		if (entity_list.GetBotByBotName(who) && members[GetPlayerIndex(who)].BotOwnerID)
 			return;
 	}
 
@@ -1269,7 +1269,7 @@ void Raid::SendMakeLeaderPacketTo(const char* who, Client* to)
 		return;
 
 	if (RuleB(Bots, Enabled)) {
-		if (entity_list.GetBotByBotName(who) && members[GetPlayerIndex(who)].IsBot)
+		if (entity_list.GetBotByBotName(who) && members[GetPlayerIndex(who)].BotOwnerID)
 			return;
 		if (to->IsBot()) // possible fix
 			return; // possible fix
@@ -1300,7 +1300,7 @@ void Raid::SendMakeGroupLeaderPacketTo(const char* who, Client* to)
 		return;
 
 	if (RuleB(Bots, Enabled)) {
-		if (members[GetPlayerIndex(who)].IsBot)
+		if (members[GetPlayerIndex(who)].BotOwnerID)
 			return;
 	}
 }
@@ -1311,7 +1311,7 @@ void Raid::SendGroupUpdate(Client *to)
 		return;
 
 	if (RuleB(Bots, Enabled)) {
-		if (members[GetPlayerIndex(to)].IsBot)
+		if (members[GetPlayerIndex(to)].BotOwnerID)
 			return;
 	}
 
@@ -1359,7 +1359,7 @@ void Raid::GroupUpdate(uint32 gid, bool initial)
 		return;
 	for(int x = 0; x < MAX_RAID_MEMBERS; x++)
 	{
-		if(strlen(members[x].membername) > 0){
+		if(strlen(members[x].membername) > 0 && !members[x].BotOwnerID){
 			if(members[x].GroupNumber == gid){
 				if (members[x].member) {
 					SendGroupUpdate(members[x].member);
@@ -1504,7 +1504,7 @@ void Raid::SendRaidMOTDToWorld()
 void Raid::SendGroupLeadershipAA(Client* c, uint32 gid)
 {
 	if (RuleB(Bots, Enabled)) {
-		if (members[GetPlayerIndex(c)].IsBot)
+		if (members[GetPlayerIndex(c)].BotOwnerID)
 			return;
 		//if (c->IsBot()) // possible fix
 		//	return; // possible fix
@@ -1526,7 +1526,7 @@ void Raid::SendGroupLeadershipAA(uint32 gid)
 {
 	for (uint32 i = 0; i < MAX_RAID_MEMBERS; i++)
 	//if (RuleB(Bots, Enabled)) {
-		if (members[i].member && members[i].GroupNumber == gid && !members[i].IsBot)
+		if (members[i].member && members[i].GroupNumber == gid && !members[i].BotOwnerID)
 	//}
 		//if (members[i].member && members[i].GroupNumber == gid)
 	//}
@@ -1537,7 +1537,7 @@ void Raid::SendAllRaidLeadershipAA()
 {
 	for (uint32 i = 0; i < MAX_RAID_MEMBERS; i++)
 	//if (RuleB(Bots, Enabled)) {
-		if (members[i].member && !members[i].IsBot)
+		if (members[i].member && !members[i].BotOwnerID)
 	//}
 		//if (members[i].member)
 	//}
@@ -1745,7 +1745,7 @@ void Raid::SendHPManaEndPacketsTo(Client *client)
 
 	for(int x = 0; x < MAX_RAID_MEMBERS; x++) {
 		//if (RuleB(Bots, Enabled)) {
-		if (members[x].member && !members[x].IsBot) {
+		if (members[x].member && !members[x].BotOwnerID) {
 		//}
 		//else {
 		//if (members[x].member) {
@@ -1792,7 +1792,7 @@ void Raid::SendHPManaEndPacketsFrom(Mob *mob)
 
 	for(int x = 0; x < MAX_RAID_MEMBERS; x++) {
 		//if (RuleB(Bots, Enabled)) {
-		if(members[x].member && entity_list.IsMobInZone(members[x].member) && !members[x].IsBot) {
+		if(members[x].member && entity_list.IsMobInZone(members[x].member) && !members[x].BotOwnerID) {
 		//}
 		//else
 			//if (members[x].member) {
@@ -1830,7 +1830,7 @@ void Raid::SendManaPacketFrom(Mob *mob)
 
 	for (int x = 0; x < MAX_RAID_MEMBERS; x++) {
 		//if (RuleB(Bots, Enabled)) {
-			if (members[x].member && !members[x].IsBot) {
+			if (members[x].member && !members[x].BotOwnerID) {
 		//}
 		//else {
 			//if (members[x].member) {
@@ -1862,7 +1862,7 @@ void Raid::SendEndurancePacketFrom(Mob *mob)
 
 	for (int x = 0; x < MAX_RAID_MEMBERS; x++) {
 		//if (RuleB(Bots, Enabled)) {
-			if (members[x].member && !members[x].IsBot) {
+			if (members[x].member && !members[x].BotOwnerID) {
 		//}
 		//else {
 			//if (members[x].member) {
@@ -1909,7 +1909,7 @@ void Raid::RaidMessageString(Mob* sender, uint32 type, uint32 string_id, const c
 		if (members[i].member == nullptr)
 			continue;
 
-		if(members[i].member && !members[i].IsBot) {
+		if(members[i].member && !members[i].BotOwnerID) {
 			if(members[i].member != sender)
 				members[i].member->MessageString(type, string_id, message, message2, message3, message4, message5, message6, message7, message8, message9, distance);
 		}
@@ -1977,11 +1977,11 @@ void Raid::SetDirtyAutoHaters()
 {
 	for (int i = 0; i < MAX_RAID_MEMBERS; ++i)
 		//if (RuleB(Bots, Enabled)) {
-			if (members[i].member && entity_list.IsMobInZone(members[i].member) && members[i].IsBot)
+			if (members[i].member && entity_list.IsMobInZone(members[i].member) && members[i].BotOwnerID)
 			{
 				members[i].member->CastToBot()->SetDirtyAutoHaters();
 			}
-			else if (members[i].member && !members[i].IsBot)
+			else if (members[i].member && !members[i].BotOwnerID)
 		//}
 		//else {
 			//if (members[i].member)
@@ -2005,7 +2005,7 @@ void Raid::QueueClients(Mob *sender, const EQApplicationPacket *app, bool ack_re
 				continue;
 
 			if (RuleB(Bots, Enabled)) {
-				if (members[i].IsBot)
+				if (members[i].BotOwnerID)
 					continue;
 			}
 			if (!entity_list.IsMobInZone(members[i].member))

@@ -1496,7 +1496,7 @@ void WorldServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p)
 			{
 				for (int x = 0; x < MAX_RAID_MEMBERS; x++)
 				{
-					if (r->members[x].member && !r->members[x].IsBot) {
+					if (r->members[x].member && !r->members[x].BotOwnerID) {
 						if (strcmp(rmsg->from, r->members[x].member->GetName()) != 0)
 						{
 							if (r->members[x].GroupNumber == rmsg->gid) {
@@ -1521,7 +1521,7 @@ void WorldServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p)
 			{
 				for (int x = 0; x < MAX_RAID_MEMBERS; x++)
 				{
-					if (r->members[x].member && !r->members[x].IsBot) {
+					if (r->members[x].member && !r->members[x].BotOwnerID) {
 						if (strcmp(rmsg->from, r->members[x].member->GetName()) != 0)
 						{
 							if (r->members[x].member->GetFilter(FilterGroupChat) != 0)
