@@ -791,7 +791,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 		}
 		case SpellType_InCombatBuff: {
 			if (CanCastBySpellType(this, tar, SpellType_InCombatBuff)) {
-				if (!checked_los && (botClass == SHADOWKNIGHT)) {
+				if (!checked_los && (botClass != BARD || botClass != CLERIC || botClass != PALADIN || botClass != SHAMAN)) {
 					if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
 						break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
 
