@@ -3182,10 +3182,21 @@ BotSpell Bot::GetBestBotSpellForCure(Bot* botCaster, Mob *tar) {
 
 	if (botCaster && botCaster->AI_HasSpells()) {
 		std::list<BotSpell_wPriority> cureList = GetPrioritizedBotSpellsBySpellType(botCaster, SpellType_Cure);
-
-		if (tar->HasGroup()) {
+		if (tar->IsRaidGrouped()) {
+			Raid* raid = tar->GetRaid();
+			if (raid) {
+				std::vector<RaidMember> raid_group_members = raid->GetMembers();
+				for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
+					if (iter->member && entity_list.IsMobInZone(iter->member)) {
+						if (botCaster->GetNeedsCured(iter->member)) {
+							countNeedsCured++;
+						}
+					}
+				}
+			}
+		}
+		else if (tar->HasGroup()) {
 			Group *g = tar->GetGroup();
-
 			if (g) {
 				for( int i = 0; i<MAX_GROUP_MEMBERS; i++) {
 					if (g->members[i] && !g->members[i]->qglobal) {

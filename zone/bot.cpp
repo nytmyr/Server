@@ -8846,7 +8846,7 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 		}
 		else if (caster->IsRaidGrouped())
 		{
-			return false;
+			//return false;
 			Raid* raid = entity_list.GetRaidByBotName(caster->GetName());
 			uint32 gid = raid->GetGroup(caster->GetName());
 			if (gid < 12) {
