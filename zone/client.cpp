@@ -5184,7 +5184,7 @@ void Client::ShowSkillsWindow()
 			"<td>{}</td>",
 			(
 				skill_maxed ?
-				"<c \"#00FF00\">✔</c>" :
+				"<c \"#00FF00\">Max</c>" :
 				fmt::format(
 					"{}/{}",
 					current_skill,
