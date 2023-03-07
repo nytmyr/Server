@@ -1159,7 +1159,7 @@ void Mob::InterruptSpell(uint16 message, uint16 color, uint16 spellid)
 	uint16 message_other;
 	bool bard_song_mode = false; //has the bard song gone to auto repeat mode
 	if (!IsValidSpell(spellid)) {
-		if(bardsong) {
+		if (bardsong) {
 			spellid = bardsong;
 			bard_song_mode = true;
 		} else {
