@@ -1503,8 +1503,12 @@ void Raid::SendRaidMOTDToWorld()
 
 void Raid::SendGroupLeadershipAA(Client* c, uint32 gid)
 {
+	if (!members[GetPlayerIndex(c)].member) {
+		return;
+	}
+
 	if (RuleB(Bots, Enabled)) {
-		if (members[GetPlayerIndex(c)].BotOwnerID)
+		if (members[GetPlayerIndex(c)].BotOwnerID || members[GetPlayerIndex(c)].IsBot)
 			return;
 		//if (c->IsBot()) // possible fix
 		//	return; // possible fix
