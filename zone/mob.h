@@ -1406,6 +1406,7 @@ public:
 	int64 DoDamageCaps(int64 base_damage);
 
 	int64 GetHPRegen() const;
+	int64 GetHPRegenPerSecond() const;
 	int64 GetManaRegen() const;
 
 	bool CanOpenDoors() const;
