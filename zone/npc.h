@@ -247,6 +247,7 @@ public:
 	uint32 GetSpawnPointID() const;
 	uint32 GetRespawnTime() const;
 	float GetDifficulty() const { return difficulty; }
+	int16 GetRaidPoints() const { return raid_points; }
 
 	glm::vec4 const GetSpawnPoint() const { return m_SpawnPoint; }
 	glm::vec4 const GetGuardPoint() const { return m_GuardPoint; }
@@ -693,6 +694,7 @@ protected:
 	//custom vegas
 
 	float difficulty;
+	int16 raid_points;
 
 
 private:

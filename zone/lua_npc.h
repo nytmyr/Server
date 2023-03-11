@@ -177,7 +177,8 @@ public:
 	void ScaleNPC(uint8 npc_level, bool override_special_abilities);
 	bool IsUnderwaterOnly();
 	bool HasSpecialAbilities();
-	int64 GetDifficulty();
+	float GetDifficulty();
+	int16 GetRaidPoints();
 };
 
 #endif

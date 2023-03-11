@@ -2168,6 +2168,7 @@ const NPCType *ZoneDatabase::LoadNPCTypesData(uint32 npc_type_id, bool bulk_load
 		t->faction_amount         = n.faction_amount;
 		t->keeps_sold_items       = n.keeps_sold_items;
 		t->difficulty			  = n.difficulty;
+		t->raid_points			  = n.raid_points;
 
 		// If NPC with duplicate NPC id already in table,
 		// free item we attempted to add.

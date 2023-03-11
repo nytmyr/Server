@@ -116,7 +116,7 @@ uint32_t Perl_NPC_GetCopper(NPC* self) // @categories Currency and Points
 	return self->GetCopper();
 }
 
-uint32_t Perl_NPC_GetDifficulty(NPC* self) // @categories Stats and Attributes
+float Perl_NPC_GetDifficulty(NPC* self) // @categories Stats and Attributes
 {
 	return self->GetDifficulty();
 }
@@ -135,6 +135,12 @@ uint32_t Perl_NPC_GetPlatinum(NPC* self) // @categories Currency and Points
 {
 	return self->GetPlatinum();
 }
+
+int16_t Perl_NPC_GetRaidPoints(NPC* self) // @categories Stats and Attributes
+{
+	return self->GetRaidPoints();
+}
+
 
 void Perl_NPC_SetCopper(NPC* self, uint32 amt) // @categories Currency and Points
 {
@@ -855,6 +861,7 @@ void perl_register_npc()
 	package.add("GetPlatinum", &Perl_NPC_GetPlatinum);
 	package.add("GetPrimSkill", &Perl_NPC_GetPrimSkill);
 	package.add("GetPrimaryFaction", &Perl_NPC_GetPrimaryFaction);
+	package.add("GetRaidPoints", &Perl_NPC_GetRaidPoints);
 	package.add("GetScore", &Perl_NPC_GetScore);
 	package.add("GetSecSkill", &Perl_NPC_GetSecSkill);
 	package.add("GetSilver", &Perl_NPC_GetSilver);

@@ -202,6 +202,7 @@ NPC::NPC(const NPCType *npc_type_data, Spawn2 *in_respawn, const glm::vec4 &posi
 	npc_mana             = npc_type_data->Mana;
 	m_is_underwater_only = npc_type_data->underwater;
 	difficulty			 = npc_type_data->difficulty;
+	raid_points			 = npc_type_data->raid_points;
 
 	//quick fix of ordering if they screwed it up in the DB
 	if (max_dmg < min_dmg) {

@@ -147,7 +147,8 @@ public:
 		int32_t     heroic_strikethrough;
 		int32_t     faction_amount;
 		uint8_t     keeps_sold_items;
-		int64_t     difficulty;
+		float		difficulty;
+		int16_t		raid_points;
 	};
 
 	static std::string PrimaryKey()
@@ -286,6 +287,7 @@ public:
 			"faction_amount",
 			"keeps_sold_items",
 			"difficulty",
+			"raid_points",
 		};
 	}
 
@@ -420,6 +422,7 @@ public:
 			"faction_amount",
 			"keeps_sold_items",
 			"difficulty",
+			"raid_points",
 		};
 	}
 
@@ -588,6 +591,7 @@ public:
 		e.faction_amount         = 0;
 		e.keeps_sold_items       = 0;
 		e.difficulty			 = 0;
+		e.raid_points			 = 0;
 
 		return e;
 	}
@@ -751,7 +755,8 @@ public:
 			e.heroic_strikethrough   = static_cast<int32_t>(atoi(row[124]));
 			e.faction_amount         = static_cast<int32_t>(atoi(row[125]));
 			e.keeps_sold_items       = static_cast<uint8_t>(strtoul(row[126], nullptr, 10));
-			e.difficulty			 = static_cast<int64_t>(atoi(row[127]));
+			e.difficulty			 = strtof(row[127], nullptr);
+			e.raid_points			 = static_cast<int16_t>(atoi(row[128]));
 
 			return e;
 		}
@@ -912,6 +917,7 @@ public:
 		v.push_back(columns[125] + " = " + std::to_string(e.faction_amount));
 		v.push_back(columns[126] + " = " + std::to_string(e.keeps_sold_items));
 		v.push_back(columns[127] + " = " + std::to_string(e.difficulty));
+		v.push_back(columns[128] + " = " + std::to_string(e.raid_points));
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -1061,6 +1067,7 @@ public:
 		v.push_back(std::to_string(e.faction_amount));
 		v.push_back(std::to_string(e.keeps_sold_items));
 		v.push_back(std::to_string(e.difficulty));
+		v.push_back(std::to_string(e.raid_points));
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -1218,6 +1225,7 @@ public:
 			v.push_back(std::to_string(e.faction_amount));
 			v.push_back(std::to_string(e.keeps_sold_items));
 			v.push_back(std::to_string(e.difficulty));
+			v.push_back(std::to_string(e.raid_points));
 
 			insert_chunks.push_back("(" + Strings::Implode(",", v) + ")");
 		}
@@ -1378,7 +1386,8 @@ public:
 			e.heroic_strikethrough   = static_cast<int32_t>(atoi(row[124]));
 			e.faction_amount         = static_cast<int32_t>(atoi(row[125]));
 			e.keeps_sold_items       = static_cast<uint8_t>(strtoul(row[126], nullptr, 10));
-			e.difficulty			 = static_cast<int64_t>(atoi(row[127]));
+			e.difficulty			 = strtof(row[127], nullptr);
+			e.raid_points			 = static_cast<int16_t>(atoi(row[128]));
 
 			all_entries.push_back(e);
 		}
@@ -1530,7 +1539,8 @@ public:
 			e.heroic_strikethrough   = static_cast<int32_t>(atoi(row[124]));
 			e.faction_amount         = static_cast<int32_t>(atoi(row[125]));
 			e.keeps_sold_items       = static_cast<uint8_t>(strtoul(row[126], nullptr, 10));
-			e.difficulty			 = static_cast<int64_t>(atoi(row[127]));
+			e.difficulty			 = strtof(row[127], nullptr);
+			e.raid_points			 = static_cast<int16_t>(atoi(row[128]));
 
 			all_entries.push_back(e);
 		}

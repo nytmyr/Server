@@ -782,9 +782,14 @@ bool Lua_NPC::HasSpecialAbilities() {
 	return self->HasSpecialAbilities();
 }
 
-int64 Lua_NPC::GetDifficulty() {
+float Lua_NPC::GetDifficulty() {
 	Lua_Safe_Call_Int();
 	return self->GetDifficulty();
+}
+
+int16 Lua_NPC::GetRaidPoints() {
+	Lua_Safe_Call_Int();
+	return self->GetRaidPoints();
 }
 
 luabind::scope lua_register_npc() {
@@ -821,7 +826,7 @@ luabind::scope lua_register_npc() {
 	.def("GetAttackSpeed", (float(Lua_NPC::*)(void))&Lua_NPC::GetAttackSpeed)
 	.def("GetAvoidanceRating", &Lua_NPC::GetAvoidanceRating)
 	.def("GetCopper", (uint32(Lua_NPC::*)(void))&Lua_NPC::GetCopper)
-	.def("GetDifficulty", (int64(Lua_NPC::*)(void)) & Lua_NPC::GetDifficulty)
+	.def("GetDifficulty", (float(Lua_NPC::*)(void)) & Lua_NPC::GetDifficulty)
 	.def("GetFirstSlotByItemID", (uint16(Lua_NPC::*)(uint32))&Lua_NPC::GetFirstSlotByItemID)
 	.def("GetFollowCanRun", (bool(Lua_NPC::*)(void))&Lua_NPC::GetFollowCanRun)
 	.def("GetFollowDistance", (int(Lua_NPC::*)(void))&Lua_NPC::GetFollowDistance)
@@ -852,6 +857,7 @@ luabind::scope lua_register_npc() {
 	.def("GetPlatinum", (uint32(Lua_NPC::*)(void))&Lua_NPC::GetPlatinum)
 	.def("GetPrimSkill", (int(Lua_NPC::*)(void))&Lua_NPC::GetPrimSkill)
 	.def("GetPrimaryFaction", (int(Lua_NPC::*)(void))&Lua_NPC::GetPrimaryFaction)
+	.def("GetRaidPoints", (int16(Lua_NPC::*)(void)) & Lua_NPC::GetRaidPoints)
 	.def("GetRawAC", (int(Lua_NPC::*)(void))&Lua_NPC::GetRawAC)
 	.def("GetScore", (int(Lua_NPC::*)(void))&Lua_NPC::GetScore)
 	.def("GetSecSkill", (int(Lua_NPC::*)(void))&Lua_NPC::GetSecSkill)

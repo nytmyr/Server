@@ -154,6 +154,7 @@ struct NPCType
 	int             heroic_strikethrough;
 	bool            keeps_sold_items;
 	float           difficulty;
+	int16			raid_points;
 };
 
 namespace player_lootitem {
