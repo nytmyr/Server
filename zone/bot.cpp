@@ -11141,7 +11141,7 @@ bool Bot::CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType) {
 			return true;
 			break;
 		case SpellType_Cure:
-			if (GetHoldCures() || targetHP < GetCureMinThreshold() || targetHP > GetCureThreshold() || (m_cure_delay_timer.Enabled() && !m_cure_delay_timer.Check()))
+			if (GetHoldCures() || tar->IsPet() && GetHoldPetHeals() || targetHP < GetCureMinThreshold() || targetHP > GetCureThreshold() || (m_cure_delay_timer.Enabled() && !m_cure_delay_timer.Check()))
 				return false;
 			return true;
 			break;

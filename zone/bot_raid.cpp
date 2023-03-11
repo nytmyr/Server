@@ -2892,10 +2892,18 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 			//if (GetNeedsCured(tar) && (tar->DontCureMeBefore() < Timer::GetCurrentTime()) && !(GetNumberNeedingHealedInRaidGroup(25, false) > 0) && !(GetNumberNeedingHealedInRaidGroup(40, false) > 2))
 			if (GetNeedsCured(tar) && !(GetNumberNeedingHealedInRaidGroup(25, false) > 0) && !(GetNumberNeedingHealedInRaidGroup(40, false) > 2))
 			{
-				botSpell = GetBestBotSpellForCure(this, tar);
+				botSpell = GetBestBotSpellForCure(this, tar, false);
 
 				if (botSpell.SpellId == 0)
 					break;
+
+				if (!IsValidSpellRange(botSpell.SpellId, tar) && IsGroupSpell(botSpell.SpellId)) {
+					botSpell = GetBestBotSpellForCure(this, tar, true);
+				}
+
+				if (botSpell.SpellId == 0)
+					break;
+
 				if (!CheckSpellRecastTimers(this, botSpell.SpellIndex))
 					break;
 

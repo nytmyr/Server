@@ -1325,10 +1325,18 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				//if (GetNeedsCured(tar) && (tar->DontCureMeBefore() < Timer::GetCurrentTime()) && !(GetNumberNeedingHealedInGroup(25, false) > 0) && !(GetNumberNeedingHealedInGroup(40, false) > 2))
 				if (GetNeedsCured(tar) && !(GetNumberNeedingHealedInGroup(25, false) > 0) && !(GetNumberNeedingHealedInGroup(40, false) > 2))
 				{
-					botSpell = GetBestBotSpellForCure(this, tar);
+					botSpell = GetBestBotSpellForCure(this, tar, false);
 
 					if (botSpell.SpellId == 0)
 						break;
+
+					if (!IsValidSpellRange(botSpell.SpellId, tar) && IsGroupSpell(botSpell.SpellId)) {
+						botSpell = GetBestBotSpellForCure(this, tar, true);
+					}
+
+					if (botSpell.SpellId == 0)
+						break;
+
 					if (!CheckSpellRecastTimers(this, botSpell.SpellIndex))
 						break;
 
@@ -3163,7 +3171,7 @@ bool Bot::DoResistCheck(Bot* botCaster, Mob* tar, uint16 botspellid, int32 resis
 	return true;
 }
 
-BotSpell Bot::GetBestBotSpellForCure(Bot* botCaster, Mob *tar) {
+BotSpell Bot::GetBestBotSpellForCure(Bot* botCaster, Mob *tar, bool skipGroup) {
 	BotSpell_wPriority result;
 	bool spellSelected = false;
 
@@ -3208,7 +3216,7 @@ BotSpell Bot::GetBestBotSpellForCure(Bot* botCaster, Mob *tar) {
 		}
 
 		//Check for group cure first
-		if (countNeedsCured > 2) {
+		if (countNeedsCured > 2 && !skipGroup) {
 			for (std::list<BotSpell_wPriority>::iterator itr = cureList.begin(); itr != cureList.end(); ++itr) {
 				BotSpell_wPriority selectedBotSpell = *itr;
 

@@ -621,7 +621,7 @@ public:
 	static BotSpell GetBestBotSpellForStunByTargetType(Bot* botCaster, SpellTargetType targetType);
 	static BotSpell GetBestBotWizardNukeSpellByTargetResists(Bot* botCaster, Mob* target);
 	static BotSpell GetDebuffBotSpell(Bot* botCaster, Mob* target);
-	static BotSpell GetBestBotSpellForCure(Bot* botCaster, Mob* target);
+	static BotSpell GetBestBotSpellForCure(Bot* botCaster, Mob* target, bool skipGroup);
 	static BotSpell GetBestBotSpellForResistDebuff(Bot* botCaster, Mob* target);
 	static bool DoResistCheck(Bot* botCaster, Mob* target, uint16 botspellid, int32 resist_limit);
 
