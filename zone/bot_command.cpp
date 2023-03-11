@@ -7699,6 +7699,9 @@ void bot_command_owner_option(Client *c, const Seperator *sep)
 			database.botdb.SaveOwnerOption(c->CharacterID(), Client::booAltCombat, c->GetBotOption(Client::booAltCombat));
 
 			c->Message(Chat::White, "Bot 'alt combat' is now %s.", (c->GetBotOption(Client::booAltCombat) == true ? "enabled" : "disabled"));
+			if (c->GetBotOption(Client::booAltCombat) == true) {
+				c->Message(Chat::White, "Be aware the AltCombat can cause bots to automatically attack a target if you have autoattack on and are within leash range of the target.");
+			}
 		}
 		else {
 			c->Message(Chat::White, "Bot owner option 'altcombat' is not allowed on this server.");
