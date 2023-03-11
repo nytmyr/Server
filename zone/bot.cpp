@@ -3944,7 +3944,7 @@ void Bot::AI_Process()
 							}
 
 							auto hater = entity_list.GetMob(hater_iter.spawn_id);
-							if (hater && !hater->IsMezzed() && DistanceSquared(hater->GetPosition(), bot_owner->GetPosition()) <= leash_distance) {
+							if (hater && hater->CastToNPC()->IsOnHatelist(bot_owner) && !hater->IsMezzed() && DistanceSquared(hater->GetPosition(), bot_owner->GetPosition()) <= leash_distance) {
 
 								// This is roughly equivilent to npc attacking a client pet owner
 								AddToHateList(hater, 1);
