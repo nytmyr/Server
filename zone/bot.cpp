@@ -1782,7 +1782,7 @@ bool Bot::IsValidName()
 
 bool Bot::IsValidName(std::string& name)
 {
-	if (name.length() < 4)
+	if (name.length() < 4 || name.length() > 15)
 		return false;
 	if (!isupper(name[0]))
 		return false;
