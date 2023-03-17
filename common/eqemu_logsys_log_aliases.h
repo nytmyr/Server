@@ -829,13 +829,13 @@
 } while (0)
 
 #define VegasLoot(message, ...) do {\
-    if (LogSys.IsLogEnabled(Logs::General, Logs::TestDebug))\
-        OutF(LogSys, Logs::General, Logs::TestDebug, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
+    if (LogSys.IsLogEnabled(Logs::General, Logs::VegasLoot))\
+        OutF(LogSys, Logs::General, Logs::VegasLoot, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
 } while (0)
 
 #define VegasLootDetail(message, ...) do {\
-    if (LogSys.IsLogEnabled(Logs::Detail, Logs::TestDebug))\
-        OutF(LogSys, Logs::Detail, Logs::TestDebug, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
+    if (LogSys.IsLogEnabled(Logs::Detail, Logs::VegasLoot))\
+        OutF(LogSys, Logs::Detail, Logs::VegasLoot, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
 } while (0)
 
 #endif //EQEMU_EQEMU_LOGSYS_LOG_ALIASES_H
