@@ -1615,7 +1615,6 @@ protected:
 
 	EQ::LightSourceProfile m_Light;
 
-	float fixedZ;
 	EmuAppearance _appearance;
 	uint8 pRunAnimSpeed;
 	bool m_is_running;
