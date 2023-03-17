@@ -2172,7 +2172,6 @@ bool Bot::Process()
 
 		_botOwner = 0;
 		_botOwnerCharacterID = 0;
-		_previousTarget = 0;
 
 		return false;
 	}
@@ -2454,11 +2453,9 @@ bool Bot::CanDoSpecialAttack(Mob *other) {
 	return true;
 }
 
-void Bot::SetTarget(Mob* mob) {
-	if(mob != this) {
-		if(mob != GetTarget())
-			_previousTarget = GetTarget();
-
+void Bot::SetTarget(Mob *mob)
+{
+	if (mob != this) {
 		NPC::SetTarget(mob);
 	}
 }
@@ -4345,7 +4342,6 @@ void Bot::Depop() {
 
 	_botOwner = 0;
 	_botOwnerCharacterID = 0;
-	_previousTarget = 0;
 	NPC::Depop(false);
 }
 
