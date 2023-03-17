@@ -2238,7 +2238,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						continue;
 					if (GetSpellTargetType(botSpell.SpellId) == ST_Plant && tar->GetBodyType() != BT_Plant)
 						continue;
-					if (GetSpellTargetType(botSpell.SpellId) == ST_Undead && (tar->GetBodyType() == BT_Undead || tar->GetBodyType() == BT_SummonedUndead || tar->GetBodyType() == BT_Vampire))
+					if (GetSpellTargetType(botSpell.SpellId) == ST_Undead && (tar->GetBodyType() != BT_Undead || tar->GetBodyType() != BT_SummonedUndead || tar->GetBodyType() != BT_Vampire))
 						continue;
 					if (GetSpellTargetType(botSpell.SpellId) == ST_Summoned && (tar->GetBodyType() != BT_Summoned && tar->GetBodyType() != BT_Summoned2 && tar->GetBodyType() != BT_Summoned3))
 						continue;
