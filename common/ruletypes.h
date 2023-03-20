@@ -434,7 +434,6 @@ RULE_BOOL(Spells, IllusionsAlwaysPersist, false, "Allows Illusions to persist be
 RULE_BOOL(Spells, UseItemCastMessage, false, "Enable to use the \"item begins to glow\" messages when casting from an item.")
 RULE_BOOL(Spells, WaterMatchRequiredForLoS, false, "Enable/Disable the requirement of both the attacker/victim being both in or out of water for spells LoS to pass.")
 RULE_BOOL(Spells, TargetsTargetRequiresCombatRange, true, "Disable to remove combat range requirement from Target's Target Spell Target Type")
-RULE_BOOL(Spells, ResurrectionEffectsBlock, false, "If enabled, resurrection effects cannot be overwritten.")
 RULE_BOOL(Spells, NPCBuffLevelRestrictions, false, "Impose BuffLevelRestrictions on NPCs if true")
 RULE_CATEGORY_END()
 
@@ -698,6 +697,8 @@ RULE_INT(Bots, StunCastChanceIfCastingPaladins, 75, "75 Default. Chance for Pala
 RULE_INT(Bots, MezChance, 35, "35 Default. Chance for a bot to attempt to Mez as target after validating it is eligible.")
 RULE_INT(Bots, MezSuccessDelay, 3500, "3500 (3.5 sec) Default. Delay between successful Mez attempts.")
 RULE_INT(Bots, MezFailDelay, 2000, "2000 (2 sec) Default. Delay between failed Mez attempts.")
+RULE_INT(Bots, PlaneOfKnowledgeSpawnLimit, 45, "45 Default. Number of bots allowed to be spawned in The Plane of Knowledge.")
+RULE_INT(Bots, PlaneOfTranquilitySpawnLimit, 45, "45 Default. Number of bots allowed to be spawned in The Plane of Tranquility.")
 
 RULE_CATEGORY_END()
 

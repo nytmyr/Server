@@ -3109,11 +3109,13 @@ void bot_command_bind_affinity(Client *c, const Seperator *sep)
 		}
 
 		// Cast effect message is not being generated
-		if (helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id))
-			c->Message(Chat::White, "Successfully bound %s to this location", target_mob->GetCleanName());
-		else
+		if (helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id)) {
+			//c->Message(Chat::White, "Successfully bound %s to this location", target_mob->GetCleanName());
+		}
+		else {
 			c->Message(Chat::White, "Failed to bind %s to this location", target_mob->GetCleanName());
-		break;
+			break;
+		}
 	}
 
 	helper_no_available_bots(c, my_bot);
@@ -10937,6 +10939,13 @@ void bot_subcommand_bot_spawn(Client* c, const Seperator* sep)
 	if (bot_spawn_limit == 999)
 		return;
 
+	if (zone->GetZoneID() == 202) {
+		bot_spawn_limit = RuleI(Bots, PlaneOfKnowledgeSpawnLimit);
+	}
+	else if (zone->GetZoneID() == 203) {
+		bot_spawn_limit = RuleI(Bots, PlaneOfTranquilitySpawnLimit);
+	}
+
 	if (
 		bot_spawn_limit >= 0 &&
 		spawned_bot_count >= bot_spawn_limit &&
@@ -10980,7 +10989,7 @@ void bot_subcommand_bot_spawn(Client* c, const Seperator* sep)
 
 	auto bot_spawn_limit_class = c->GetBotSpawnLimit(bot_class);
 	auto spawned_bot_count_class = Bot::SpawnedBotCount(c->CharacterID(), bot_class);
-
+	/*
 	if (
 		bot_spawn_limit_class >= 0 &&
 		spawned_bot_count_class >= bot_spawn_limit_class &&
@@ -11006,7 +11015,7 @@ void bot_subcommand_bot_spawn(Client* c, const Seperator* sep)
 		c->Message(Chat::White, message.c_str());
 		return;
 	}
-
+	*/
 	auto bot_character_level_class = c->GetBotRequiredLevel(bot_class);
 	if (
 		bot_character_level_class >= 0 &&
@@ -12305,6 +12314,17 @@ void bot_subcommand_botgroup_load(Client *c, const Seperator *sep)
 	auto spawned_bot_count = Bot::SpawnedBotCount(c->CharacterID());
 
 	auto bot_spawn_limit = c->GetBotSpawnLimit();
+
+	if (bot_spawn_limit == 999)
+		return;
+
+	if (zone->GetZoneID() == 202) {
+		spawned_bot_count = RuleI(Bots, PlaneOfKnowledgeSpawnLimit);
+	}
+	else if (zone->GetZoneID() == 203) {
+		spawned_bot_count = RuleI(Bots, PlaneOfTranquilitySpawnLimit);
+	}
+
 	if (
 		bot_spawn_limit >= 0 &&
 		(

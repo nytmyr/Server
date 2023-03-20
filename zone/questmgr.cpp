@@ -2331,6 +2331,16 @@ bool QuestManager::createBot(const char *name, const char *lastname, uint8 level
 
 		auto spawned_bot_count = Bot::SpawnedBotCount(initiator->CharacterID());
 
+		if (bot_spawn_limit == 999)
+			return false;
+
+		if (zone->GetZoneID() == 202) {
+			bot_spawn_limit = RuleI(Bots, PlaneOfKnowledgeSpawnLimit);
+		}
+		else if (zone->GetZoneID() == 203) {
+			bot_spawn_limit = RuleI(Bots, PlaneOfTranquilitySpawnLimit);
+		}
+
 		if (
 			bot_spawn_limit >= 0 &&
 			spawned_bot_count >= bot_spawn_limit &&
@@ -2352,7 +2362,7 @@ bool QuestManager::createBot(const char *name, const char *lastname, uint8 level
 		}
 
 		auto spawned_bot_count_class = Bot::SpawnedBotCount(initiator->CharacterID(), botclass);
-
+		/*
 		if (
 			bot_spawn_limit_class >= 0 &&
 			spawned_bot_count_class >= bot_spawn_limit_class &&
@@ -2376,7 +2386,7 @@ bool QuestManager::createBot(const char *name, const char *lastname, uint8 level
 			initiator->Message(Chat::White, message.c_str());
 			return false;
 		}
-
+		*/
 		std::string test_name = name;
 		bool available_flag = false;
 		if (!database.botdb.QueryNameAvailablity(test_name, available_flag)) {
