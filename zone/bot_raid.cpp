@@ -1939,9 +1939,10 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				if (tar->IsBlockedBuff(selectedBotSpell.SpellId))
 					continue;
 
-				// no buffs with illusions.. use #bot command to cast illusions
-				//if (IsEffectInSpell(selectedBotSpell.SpellId, SE_Illusion) && tar != this)
-					//continue;
+				// no pet buffs with illusions.. use #bot command to cast illusions
+							// if (IsEffectInSpell(selectedBotSpell.SpellId, SE_Illusion) && tar != this)
+				if (IsEffectInSpell(selectedBotSpell.SpellId, SE_Illusion) && tar->IsPet())
+					continue;
 
 				//no teleport spells use #bot command to cast teleports
 				if (IsEffectInSpell(selectedBotSpell.SpellId, SE_Teleport) || IsEffectInSpell(selectedBotSpell.SpellId, SE_Succor))
@@ -2910,6 +2911,9 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				//uint32 TempDontCureMeBeforeTime = tar->DontCureMeBefore();
 
 				if (IsValidSpellRange(botSpell.SpellId, tar)) {
+					if (IsTargetAlreadyReceivingSpell(tar, botSpell.SpellId)) {
+						break;
+					}
 					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
 				}
 				else {
