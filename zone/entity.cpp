@@ -2991,7 +2991,7 @@ void EntityList::ScanCloseMobs(
 				bool has_mob = false;
 
 				for (auto &cm: mob->close_mobs) {
-					if (scanning_mob->GetID() == cm.first) {
+					if (scanning_mob->GetID() && scanning_mob->GetID() == cm.first) {
 						has_mob = true;
 						break;
 					}
