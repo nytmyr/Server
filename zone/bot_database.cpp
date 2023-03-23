@@ -210,7 +210,7 @@ bool BotDatabase::QueryBotCount(const uint32 owner_id, int class_id, uint32& bot
 	}
 
 	query = fmt::format(
-		"SELECT COUNT(`bot_id`) FROM `bot_data` WHERE `owner_id` = {}",
+		"SELECT COUNT(`bot_id`) FROM `bot_data` WHERE `owner_id` = {} and `name` NOT LIKE '%-deleted-%'",
 		owner_id
 	);
 	auto results = database.QueryDatabase(query);
@@ -227,7 +227,7 @@ bool BotDatabase::QueryBotCount(const uint32 owner_id, int class_id, uint32& bot
 
 	if (EQ::ValueWithin(class_id, WARRIOR, BERSERKER)) {
 		query = fmt::format(
-			"SELECT COUNT(`bot_id`) FROM `bot_data` WHERE `owner_id` = {} AND `class` = {}",
+			"SELECT COUNT(`bot_id`) FROM `bot_data` WHERE `owner_id` = {} AND `class` = {} and `name` NOT LIKE '%-deleted-%'",
 			owner_id,
 			class_id
 		);
@@ -256,9 +256,10 @@ bool BotDatabase::LoadBotsList(const uint32 owner_id, std::list<BotsAvailableLis
 		 query = StringFormat("SELECT bot_id, bd.`name`, bd.class, bd.`level`, bd.race, bd.gender, cd.`name` as owner, bd.owner_id, cd.account_id, cd.id"
 			 " FROM bot_data as bd inner join character_data as cd on bd.owner_id = cd.id"
 			 " WHERE cd.account_id = (select account_id from bot_data bd inner join character_data as cd on bd.owner_id = cd.id where bd.owner_id = '%u' LIMIT 1)"
+			 " AND bd.name NOT LIKE '%-deleted-%'"
 			 " ORDER BY bd.owner_id", owner_id);
 	else
-		 query = StringFormat("SELECT `bot_id`, `name`, `class`, `level`, `race`, `gender`, 'You' as owner, owner_id FROM `bot_data` WHERE `owner_id` = '%u'", owner_id);
+		 query = StringFormat("SELECT `bot_id`, `name`, `class`, `level`, `race`, `gender`, 'You' as owner, owner_id FROM `bot_data` WHERE `owner_id` = '%u' AND `name` NOT LIKE '%-deleted-%'", owner_id);
 
 	auto results = database.QueryDatabase(query);
 	if (!results.Success())
@@ -277,6 +278,9 @@ bool BotDatabase::LoadBotsList(const uint32 owner_id, std::list<BotsAvailableLis
 			bot_name = bot_name.substr(0, 63);
 		if (!bot_name.empty())
 			strcpy(bot_entry.Name, bot_name.c_str());
+		if (bot_name.find("-deleted-") != std::string::npos) {
+			continue;
+		}
 		memset(&bot_entry.Owner, 0, sizeof(bot_entry.Owner));
 		std::string bot_owner = row[6];
 		if (bot_owner.size() > 63)
@@ -496,6 +500,7 @@ bool BotDatabase::LoadBot(const uint32 bot_id, Bot*& loaded_bot)
 		loaded_bot->SetHoldMez(l.hold_mez);
 		loaded_bot->SetHoldNukes(l.hold_nukes);
 		loaded_bot->SetHoldOutOfCombatBuffSongs(l.hold_outofcombatbuffsongs);
+		loaded_bot->SetHoldPetBuffs(l.hold_pet_buffs);
 		loaded_bot->SetHoldPetHeals(l.hold_pet_heals);
 		loaded_bot->SetHoldPets(l.hold_pets);
 		loaded_bot->SetHoldPreCombatBuffs(l.hold_precombatbuffs);
@@ -632,6 +637,7 @@ bool BotDatabase::SaveNewBot(Bot* bot_inst, uint32& bot_id)
 	e.hold_mez						= 0;
 	e.hold_nukes					= 0;
 	e.hold_outofcombatbuffsongs		= 0;
+	e.hold_pet_buffs				= 0;
 	e.hold_pet_heals				= 0;
 	e.hold_pets						= 0;
 	e.hold_precombatbuffs			= 0;
@@ -776,6 +782,7 @@ bool BotDatabase::SaveBot(Bot* bot_inst)
 	l.hold_mez						= bot_inst->GetHoldMez();
 	l.hold_nukes					= bot_inst->GetHoldNukes();
 	l.hold_outofcombatbuffsongs		= bot_inst->GetHoldOutOfCombatBuffSongs();
+	l.hold_pet_buffs				= bot_inst->GetHoldPetBuffs();
 	l.hold_pet_heals				= bot_inst->GetHoldPetHeals();
 	l.hold_pets						= bot_inst->GetHoldPets();
 	l.hold_precombatbuffs			= bot_inst->GetHoldPreCombatBuffs();
@@ -2216,6 +2223,7 @@ bool BotDatabase::CreateCloneBot(const uint32 owner_id, const uint32 bot_id, con
 		" `hold_mez`,"
 		" `hold_nukes`,"
 		" `hold_outofcombatbuffsongs`,"
+		" `hold_pet_buffs`,"
 		" `hold_pet_heals`,"
 		" `hold_pets`,"
 		" `hold_precombatbuffs`,"
@@ -2339,6 +2347,7 @@ bool BotDatabase::CreateCloneBot(const uint32 owner_id, const uint32 bot_id, con
 		" bd.`hold_mez`,"
 		" bd.`hold_nukes`,"
 		" bd.`hold_outofcombatbuffsongs`,"
+		" bd.`hold_pet_buffs`,"
 		" bd.`hold_pet_heals`,"
 		" bd.`hold_pets`,"
 		" bd.`hold_precombatbuffs`,"
@@ -2786,6 +2795,27 @@ bool BotDatabase::SaveHoldOutOfCombatBuffSongs(const uint32 owner_id, const uint
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
 		hoocbs_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveHoldPetBuffs(const uint32 owner_id, const uint32 bot_id, const uint8 hpetbuffs_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hold_pet_buffs` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		hpetbuffs_value,
 		owner_id,
 		bot_id
 	);
@@ -5211,6 +5241,7 @@ const char* BotDatabase::fail::SaveHoldLifetaps() { return "Failed to save hold 
 const char* BotDatabase::fail::SaveHoldMez() { return "Failed to save hold mez status"; }
 const char* BotDatabase::fail::SaveHoldNukes() { return "Failed to save hold nukes status"; }
 const char* BotDatabase::fail::SaveHoldOutOfCombatBuffSongs() { return "Failed to save hold out-of-combat buff songs status"; }
+const char* BotDatabase::fail::SaveHoldPetBuffs() { return "Failed to save hold pet buffs status"; }
 const char* BotDatabase::fail::SaveHoldPetHeals() { return "Failed to save hold pet heals status"; }
 const char* BotDatabase::fail::SaveHoldPets() { return "Failed to save hold pets status"; }
 const char* BotDatabase::fail::SaveHoldPreCombatBuffs() { return "Failed to save hold pre-combat buffs status"; }

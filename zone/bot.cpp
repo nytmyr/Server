@@ -1891,28 +1891,30 @@ bool Bot::DeleteBot()
 		return false;
 	}
 
-	if (!database.botdb.DeleteItems(GetBotID())) {
-		bot_owner->Message(
-			Chat::White,
-			fmt::format(
-				"{} for '{}'.",
-				BotDatabase::fail::DeleteItems(),
-				GetCleanName()
-			).c_str()
-		);
-		return false;
-	}
+	if (!RuleB(Bots, BotSoftDeletes)) {
+		if (!database.botdb.DeleteItems(GetBotID())) {
+			bot_owner->Message(
+				Chat::White,
+				fmt::format(
+					"{} for '{}'.",
+					BotDatabase::fail::DeleteItems(),
+					GetCleanName()
+				).c_str()
+			);
+			return false;
+		}
 
-	if (!database.botdb.DeleteTimers(GetBotID())) {
-		bot_owner->Message(
-			Chat::White,
-			fmt::format(
-				"{} for '{}'.",
-				BotDatabase::fail::DeleteTimers(),
-				GetCleanName()
-			).c_str()
-		);
-		return false;
+		if (!database.botdb.DeleteTimers(GetBotID())) {
+			bot_owner->Message(
+				Chat::White,
+				fmt::format(
+					"{} for '{}'.",
+					BotDatabase::fail::DeleteTimers(),
+					GetCleanName()
+				).c_str()
+			);
+			return false;
+		}
 	}
 
 	if (!database.botdb.DeleteBuffs(GetBotID())) {
@@ -1926,30 +1928,70 @@ bool Bot::DeleteBot()
 		);
 		return false;
 	}
+	
+	if (!RuleB(Bots, BotSoftDeletes)) {
+		if (!database.botdb.DeleteStance(GetBotID())) {
+			bot_owner->Message(
+				Chat::White,
+				fmt::format(
+					"{} for '{}'.",
+					BotDatabase::fail::DeleteStance(),
+					GetCleanName()
+				).c_str()
+			);
+			return false;
+		}
 
-	if (!database.botdb.DeleteStance(GetBotID())) {
-		bot_owner->Message(
-			Chat::White,
-			fmt::format(
-				"{} for '{}'.",
-				BotDatabase::fail::DeleteStance(),
-				GetCleanName()
-			).c_str()
-		);
-		return false;
+		if (!database.botdb.DeleteBot(GetBotID())) {
+			bot_owner->Message(
+				Chat::White,
+				fmt::format(
+					"{} '{}'",
+					BotDatabase::fail::DeleteBot(),
+					GetCleanName()
+				).c_str()
+			);
+			return false;
+		}
 	}
 
-	if (!database.botdb.DeleteBot(GetBotID())) {
-		bot_owner->Message(
-			Chat::White,
-			fmt::format(
-				"{} '{}'",
-				BotDatabase::fail::DeleteBot(),
-				GetCleanName()
-			).c_str()
+	std::string delete_type = "hard-deleted";
+	if (RuleB(Bots, BotSoftDeletes)) {
+		delete_type = "soft-deleted";
+		query = fmt::format(
+			SQL(
+				UPDATE
+				bot_data
+				SET
+				name = SUBSTRING(CONCAT(name, '-deleted-', UNIX_TIMESTAMP()), 1, 64)
+				WHERE
+				owner_id = '{}'
+				AND bot_id = '{}'
+			),
+			GetBotOwnerCharacterID(),
+			GetBotID()
 		);
-		return false;
+		auto results = database.QueryDatabase(query);
+		if (!results.Success()) {
+			bot_owner->Message(
+				Chat::White,
+				fmt::format(
+					"Failed to rename {} for a soft-delete.",
+					GetCleanName()
+				).c_str()
+			);
+			return false;
+		}
+		LogInfo(
+			"[DeleteBot] bot_name [{}] ({}) belonging to [{}] ({}) has been [{}]",
+			GetCleanName(),
+			GetBotID(),
+			GetOwner()->GetCleanName(),
+			GetBotOwnerCharacterID(),
+			delete_type
+		);
 	}
+	LogInfo("bot_name [{}] ({}) is being [{}]", GetCleanName(), GetBotID(), delete_type);
 
 	return true;
 }
@@ -2501,6 +2543,10 @@ void Bot::SetHoldOutOfCombatBuffSongs(uint8 holdstatus) {
 	_holdOutOfCombatBuffSongs = holdstatus;
 }
 
+void Bot::SetHoldPetBuffs(uint8 holdstatus) {
+	_holdpetBuffs = holdstatus;
+}
+
 void Bot::SetHoldPetHeals(uint8 holdstatus) {
 	_holdpetHeals = holdstatus;
 }
@@ -2990,12 +3036,12 @@ void Bot::AI_Process()
 //#pragma endregion
 
 //#pragma region ALT COMBAT (ACQUIRE HATE)
-
+	/* DISABLED ALT_COMBAT
 	else if (bo_alt_combat && m_alt_combat_hate_timer.Check(false)) { // 'Alt Combat' gives some more 'control' options on how bots process aggro
-
+	
 		// Empty hate list - let's find some aggro
 		if (!IsEngaged() && NOT_HOLDING && NOT_PASSIVE && (!bot_owner->GetBotPulling() || NOT_PULLING_BOT)) {
-
+	
 			Mob* lo_target = leash_owner->GetTarget();
 			if (lo_target &&
 				lo_target->IsNPC() &&
@@ -3008,25 +3054,25 @@ void Bot::AI_Process()
 			{
 				AddToHateList(lo_target, 1);
 				if (HasPet() && (GetClass() != ENCHANTER || GetPet()->GetPetType() != petAnimation || GetAA(aaAnimationEmpathy) >= 2)) {
-
+	
 					GetPet()->AddToHateList(lo_target, 1);
 					GetPet()->SetTarget(lo_target);
 				}
 			}
 			else {
-
+	
 				for (int counter = 0; counter < bot_group->GroupCount(); counter++) {
-
+	
 					Mob* bg_member = bot_group->members[counter];
 					if (!bg_member) {
 						continue;
 					}
-
+	
 					Mob* bgm_target = bg_member->GetTarget();
 					if (!bgm_target || !bgm_target->IsNPC()) {
 						continue;
 					}
-
+	
 					if (!bgm_target->IsMezzed() &&
 						((bot_owner->GetBotOption(Client::booAutoDefend) && bgm_target->GetHateAmount(bg_member)) || leash_owner->AutoAttackEnabled()) &&
 						lo_distance <= leash_distance &&
@@ -3036,17 +3082,18 @@ void Bot::AI_Process()
 					{
 						AddToHateList(bgm_target, 1);
 						if (HasPet() && (GetClass() != ENCHANTER || GetPet()->GetPetType() != petAnimation || GetAA(aaAnimationEmpathy) >= 2)) {
-
+	
 							GetPet()->AddToHateList(bgm_target, 1);
 							GetPet()->SetTarget(bgm_target);
 						}
-
+	
 						break;
 					}
 				}
 			}
 		}
 	}
+	*/
 
 //#pragma endregion
 
@@ -11133,113 +11180,134 @@ bool Bot::CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType) {
 
 	switch (spellType) {
 		case SpellType_Buff:
-			if (GetHoldBuffs() || targetHP < GetBuffMinThreshold() || targetHP > GetBuffThreshold() || (m_buff_delay_timer.Enabled() && m_buff_delay_timer.GetRemainingTime() > 0))
+			if (((!tar->IsPet() && GetHoldBuffs()) || (tar->IsPet() && GetHoldPetBuffs())) || targetHP < GetBuffMinThreshold() || targetHP > GetBuffThreshold() || (m_buff_delay_timer.Enabled() && m_buff_delay_timer.GetRemainingTime() > 0)) {
 				return false;
+			}
 			return true;
 			break;
 		case SpellType_Charm:
 			return true;
 			break;
 		case SpellType_Cure:
-			if (GetHoldCures() || tar->IsPet() && GetHoldPetHeals() || targetHP < GetCureMinThreshold() || targetHP > GetCureThreshold() || (m_cure_delay_timer.Enabled() && !m_cure_delay_timer.Check()))
+			if (GetHoldCures() || tar->IsPet() && GetHoldPetHeals() || targetHP < GetCureMinThreshold() || targetHP > GetCureThreshold() || (m_cure_delay_timer.Enabled() && !m_cure_delay_timer.Check())) {
 				return false;
+			}
 			return true;
 			break;
 		case SpellType_Debuff:
-			if (GetHoldDebuffs() || targetHP < GetDebuffMinThreshold() || targetHP > GetDebuffThreshold() || (m_debuff_delay_timer.Enabled() && !m_debuff_delay_timer.Check()))
+			if (GetHoldDebuffs() || targetHP < GetDebuffMinThreshold() || targetHP > GetDebuffThreshold() || (m_debuff_delay_timer.Enabled() && !m_debuff_delay_timer.Check())) {
 				return false;
+			}
 			return true;
 			break;
 		case SpellType_Dispel:
-			if (GetHoldDispels() || targetHP < GetDispelMinThreshold() || targetHP > GetDispelThreshold() || (m_dispel_delay_timer.Enabled() && !m_dispel_delay_timer.Check()))
+			if (GetHoldDispels() || targetHP < GetDispelMinThreshold() || targetHP > GetDispelThreshold() || (m_dispel_delay_timer.Enabled() && !m_dispel_delay_timer.Check())) {
 				return false;
+			}
 			return true;
 			break;
 		case SpellType_DOT:
-			if (GetHoldDoTs() || targetHP < GetDotMinThreshold() || targetHP > GetDotThreshold() || (m_dot_delay_timer.Enabled() && !m_dot_delay_timer.Check()))
+			if (GetHoldDoTs() || targetHP < GetDotMinThreshold() || targetHP > GetDotThreshold() || (m_dot_delay_timer.Enabled() && !m_dot_delay_timer.Check())) {
 				return false;
+			}
 			return true;
 			break;
 		case SpellType_Escape:
-			if (GetHoldEscapes() || botHP < GetEscapeMinThreshold() || botHP > GetEscapeThreshold() || (m_escape_delay_timer.Enabled() && !m_escape_delay_timer.Check()))
+			if (GetHoldEscapes() || botHP < GetEscapeMinThreshold() || botHP > GetEscapeThreshold() || (m_escape_delay_timer.Enabled() && !m_escape_delay_timer.Check())) {
 				return false;
+			}
 			return true;
 			break;
 		case SpellType_HateRedux:
-			if (GetHoldHateRedux() || GetTarget()->GetHateTop() != botCaster || botHP < GetHateReduxMinThreshold() || botHP > GetHateReduxThreshold() || (m_hateredux_delay_timer.Enabled() && !m_hateredux_delay_timer.Check()))
+			if (GetHoldHateRedux() || GetTarget()->GetHateTop() != botCaster || botHP < GetHateReduxMinThreshold() || botHP > GetHateReduxThreshold() || (m_hateredux_delay_timer.Enabled() && !m_hateredux_delay_timer.Check())) {
 				return false;
+			}
 			return true;
 			break;
 		case SpellType_Heal:
 		{
-			if ((!tar->IsPet() && GetHoldHeals()) || (tar->IsPet() && GetHoldPetHeals()))
+			if ((!tar->IsPet() && GetHoldHeals()) || (tar->IsPet() && GetHoldPetHeals())) {
 				return false;
+			}
 			return true;
 			break;
 		}
 		case SpellType_InCombatBuff:
-			if ((GetClass() != SHAMAN) && (GetHoldInCombatBuffs() || targetHP < GetInCombatBuffMinThreshold() || targetHP > GetInCombatBuffThreshold() || (m_incombatbuff_delay_timer.Enabled() && !m_incombatbuff_delay_timer.Check())))
+			if ((GetClass() != SHAMAN) && (GetHoldInCombatBuffs() || targetHP < GetInCombatBuffMinThreshold() || targetHP > GetInCombatBuffThreshold() || (m_incombatbuff_delay_timer.Enabled() && !m_incombatbuff_delay_timer.Check()))) {
 				return false;
-			if ((GetClass() == SHAMAN) && (GetHoldInCombatBuffs() || (botHP < GetInCombatBuffMinThreshold() || botHP < 50) || (GetManaRatio() > GetInCombatBuffThreshold() || GetManaRatio() > 90) || (m_incombatbuff_delay_timer.Enabled() && !m_incombatbuff_delay_timer.Check())))
+			}
+			if ((GetClass() == SHAMAN) && (GetHoldInCombatBuffs() || (botHP < GetInCombatBuffMinThreshold() || botHP < 50) || (GetManaRatio() > GetInCombatBuffThreshold() || GetManaRatio() > 90) || (m_incombatbuff_delay_timer.Enabled() && !m_incombatbuff_delay_timer.Check()))) {
 				return false;
+			}
 			return true;
 			break;
 		case SpellType_InCombatBuffSong:
-			if (GetHoldInCombatBuffSongs())
+			if (GetHoldInCombatBuffSongs()) {
 				return false;
+			}
 			return true;
 			break;
 		case SpellType_Lifetap:
-			if (GetHoldLifetaps() || botHP < GetLifetapMinThreshold() || botHP > GetLifetapThreshold() || (m_lifetap_delay_timer.Enabled() && !m_lifetap_delay_timer.Check()))
+			if (GetHoldLifetaps() || botHP < GetLifetapMinThreshold() || botHP > GetLifetapThreshold() || (m_lifetap_delay_timer.Enabled() && !m_lifetap_delay_timer.Check())) {
 				return false;
+			}
 			return true;
 			break;
 		case SpellType_Mez:
-			if (GetHoldMez() || targetHP < GetMezMinThreshold() || targetHP > GetMezThreshold() || (m_mez_delay_timer.Enabled() && !m_mez_delay_timer.Check()))
+			if (GetHoldMez() || targetHP < GetMezMinThreshold() || targetHP > GetMezThreshold() || (m_mez_delay_timer.Enabled() && !m_mez_delay_timer.Check())) {
 				return false;
+			}
 			return true;
 			break;
 		case SpellType_Nuke:
-			if (GetHoldNukes() || targetHP < GetNukeMinThreshold() || targetHP > GetNukeThreshold() || (m_nuke_delay_timer.Enabled() && !m_nuke_delay_timer.Check()))
+			if (GetHoldNukes() || targetHP < GetNukeMinThreshold() || targetHP > GetNukeThreshold() || (m_nuke_delay_timer.Enabled() && !m_nuke_delay_timer.Check())) {
 				return false;
+			}
 			return true;
 			break;
 		case SpellType_OutOfCombatBuffSong:
-			if (GetHoldOutOfCombatBuffSongs())
+			if (GetHoldOutOfCombatBuffSongs()) {
 				return false;
+			}
 			return true;
 			break;
 		case SpellType_Pet:
-			if (GetHoldPets())
+			if (GetHoldPets()) {
 				return false;
+			}
 			return true;
 			break;
 		case SpellType_PreCombatBuff:
-			if (GetHoldPreCombatBuffs())
+			if (GetHoldPreCombatBuffs()) {
 				return false;
+			}
 			return true;
 			break;
 		case SpellType_PreCombatBuffSong:
-			if (GetHoldPreCombatBuffSongs())
+			if (GetHoldPreCombatBuffSongs()) {
 				return false;
+			}
 			return true;
 			break;
 		case SpellType_Resurrect:
 			return true;
 			break;
 		case SpellType_Root:
-			if (GetHoldRoots() || targetHP < GetRootMinThreshold() || targetHP > GetRootThreshold() || (m_root_delay_timer.Enabled() && !m_root_delay_timer.Check()))
+			if (GetHoldRoots() || targetHP < GetRootMinThreshold() || targetHP > GetRootThreshold() || (m_root_delay_timer.Enabled() && !m_root_delay_timer.Check())) {
 				return false;
+			}
 			return true;
 			break;
 		case SpellType_Slow:
-			if (GetHoldSlows() || targetHP < GetSlowMinThreshold() || targetHP > GetSlowThreshold() || (m_slow_delay_timer.Enabled() && !m_slow_delay_timer.Check()))
+			if (GetHoldSlows() || targetHP < GetSlowMinThreshold() || targetHP > GetSlowThreshold() || (m_slow_delay_timer.Enabled() && !m_slow_delay_timer.Check())) {
 				return false;
+			}
 			return true;
 			break;
 		case SpellType_Snare:
-			if (GetHoldSnares() || targetHP < GetSnareMinThreshold() || targetHP > GetSnareThreshold() || (m_snare_delay_timer.Enabled() && !m_snare_delay_timer.Check()))
+			if (GetHoldSnares() || targetHP < GetSnareMinThreshold() || targetHP > GetSnareThreshold() || (m_snare_delay_timer.Enabled() && !m_snare_delay_timer.Check())) {
 				return false;
+			}
 			return true;
 			break;
 		default:

@@ -157,6 +157,7 @@ public:
 	bool SaveHoldMez(const uint32 owner_id, const uint32 bot_id, const uint8 hmez_value);
 	bool SaveHoldNukes(const uint32 owner_id, const uint32 bot_id, const uint8 hn_value);
 	bool SaveHoldOutOfCombatBuffSongs(const uint32 owner_id, const uint32 bot_id, const uint8 hoocbs_value);
+	bool SaveHoldPetBuffs(const uint32 owner_id, const uint32 bot_id, const uint8 hpetbuffs_value);
 	bool SaveHoldPetHeals(const uint32 owner_id, const uint32 bot_id, const uint8 hpetheals_value);
 	bool SaveHoldPets(const uint32 owner_id, const uint32 bot_id, const uint8 hpets_value);
 	bool SaveHoldPreCombatBuffs(const uint32 owner_id, const uint32 bot_id, const uint8 hpcb_value);
@@ -345,6 +346,7 @@ public:
 		static const char* SaveHoldMez();
 		static const char* SaveHoldNukes();
 		static const char* SaveHoldOutOfCombatBuffSongs();
+		static const char* SaveHoldPetBuffs();
 		static const char* SaveHoldPetHeals();
 		static const char* SaveHoldPets();
 		static const char* SaveHoldPreCombatBuffs();

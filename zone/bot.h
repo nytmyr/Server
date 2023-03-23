@@ -374,6 +374,7 @@ public:
 	uint8 GetHoldMez() { return _holdMez; }
 	uint8 GetHoldNukes() { return _holdNukes; }
 	uint8 GetHoldOutOfCombatBuffSongs() { return _holdOutOfCombatBuffSongs; }
+	uint8 GetHoldPetBuffs() { return _holdpetBuffs; }
 	uint8 GetHoldPetHeals() { return _holdpetHeals; }
 	uint8 GetHoldPets() { return _holdPets; }
 	uint8 GetHoldPreCombatBuffs() { return _holdPreCombatBuffs; }
@@ -448,6 +449,7 @@ public:
 	void SetHoldMez(uint8 holdstatus);
 	void SetHoldNukes(uint8 holdstatus);
 	void SetHoldOutOfCombatBuffSongs(uint8 holdstatus);
+	void SetHoldPetBuffs(uint8 holdstatus);
 	void SetHoldPetHeals(uint8 holdstatus);
 	void SetHoldPets(uint8 holdstatus);
 	void SetHoldPreCombatBuffs(uint8 holdstatus);
@@ -1052,6 +1054,7 @@ private:
 	uint8 _holdMez;
 	uint8 _holdNukes;
 	uint8 _holdOutOfCombatBuffSongs;
+	uint8 _holdpetBuffs;
 	uint8 _holdpetHeals;
 	uint8 _holdPets;
 	uint8 _holdPreCombatBuffs;

@@ -699,6 +699,7 @@ RULE_INT(Bots, MezSuccessDelay, 3500, "3500 (3.5 sec) Default. Delay between suc
 RULE_INT(Bots, MezFailDelay, 2000, "2000 (2 sec) Default. Delay between failed Mez attempts.")
 RULE_INT(Bots, PlaneOfKnowledgeSpawnLimit, 45, "45 Default. Number of bots allowed to be spawned in The Plane of Knowledge.")
 RULE_INT(Bots, PlaneOfTranquilitySpawnLimit, 45, "45 Default. Number of bots allowed to be spawned in The Plane of Tranquility.")
+RULE_BOOL(Bots, BotSoftDeletes, true, "When bots are deleted, they are only soft deleted")
 
 RULE_CATEGORY_END()
 
@@ -936,6 +937,19 @@ RULE_BOOL(Items, DisableNoRent, false, "Enable this to disable No Rent Items")
 RULE_BOOL(Items, DisableNoTransfer, false, "Enable this to disable No Transfer Items")
 RULE_BOOL(Items, DisablePotionBelt, false, "Enable this to disable Potion Belt Items")
 RULE_BOOL(Items, DisableSpellFocusEffects, false, "Enable this to disable Spell Focus Effects on Items")
+RULE_CATEGORY_END()
+
+RULE_CATEGORY(Vegas)
+RULE_REAL(Vegas, BagMultiplier, 1.00, "1.00 Default. Multiplier for WR Bag drops.")
+RULE_REAL(Vegas, BridleMultiplier, 1.00, "1.00 Default. Multiplier for Bridle drops.")
+RULE_REAL(Vegas, CashMultiplier, 1.00, "1.00 Default. Multiplier for Cash drops.")
+RULE_BOOL(Vegas, EnableVegasDrops, true, "True Default. Toggles on/off Vegas Drops.")
+RULE_REAL(Vegas, RandomDropMultiplier, 1.75, "1.75 Default. Multiplier for Random Vegas drops.")
+RULE_REAL(Vegas, RandomDropMultiplierScaling, 2.00, "2.00 Default. Scaling Multiplier for Random Vegas drops up until RandomDropScaleLevelLimit.")
+RULE_INT(Vegas, RandomDropScaleLevelLimit, 30, "30 Default. Level at which RandomDropMultiplierScaling stops taking effect.")
+RULE_REAL(Vegas, ShardMultiplier, 1.00, "1.00 Default. Multiplier for Shard drops.")
+RULE_REAL(Vegas, SpellMultiplier, 1.00, "1.00 Default. Multiplier for Spell drops.")
+RULE_REAL(Vegas, TokenMultiplier, 1.00, "1.00 Default. Multiplier for Epic Token drops.")
 RULE_CATEGORY_END()
 
 #undef RULE_CATEGORY

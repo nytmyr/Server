@@ -628,6 +628,7 @@ void bot_command_hold_lifetaps(Client* c, const Seperator* sep);
 void bot_command_hold_mez(Client* c, const Seperator* sep);
 void bot_command_hold_nukes(Client* c, const Seperator* sep);
 void bot_command_hold_outofcombatbuffsongs(Client* c, const Seperator* sep);
+void bot_command_hold_pet_buffs(Client* c, const Seperator* sep);
 void bot_command_hold_pet_heals(Client* c, const Seperator* sep);
 void bot_command_hold_pets(Client* c, const Seperator* sep);
 void bot_command_hold_precombatbuffs(Client* c, const Seperator* sep);

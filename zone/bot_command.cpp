@@ -1506,6 +1506,7 @@ int bot_command_init(void)
 		bot_command_add("holdmez", "Toggles a bot's ability to cast mesmerization spells", AccountStatus::Player, bot_command_hold_mez) ||
 		bot_command_add("holdnukes", "Toggles a bot's ability to cast nukes", AccountStatus::Player, bot_command_hold_nukes) ||
 		bot_command_add("holdoutofcombatbuffsongs", "Toggles a bot's ability to cast out-of-combat buff songs", AccountStatus::Player, bot_command_hold_outofcombatbuffsongs) ||
+		bot_command_add("holdpetbuffs", "Toggles a bot's ability to cast buffs on pets", AccountStatus::Player, bot_command_hold_pet_buffs) ||
 		bot_command_add("holdpetheals", "Toggles a bot's ability to heal pets", AccountStatus::Player, bot_command_hold_pet_heals) ||
 		bot_command_add("holdpets", "Toggles a bot's ability to summon pets", AccountStatus::Player, bot_command_hold_pets) ||
 		bot_command_add("holdprecombatbuffs", "Toggles a bot's ability to cast pre-combat buffs", AccountStatus::Player, bot_command_hold_precombatbuffs) ||
@@ -5896,6 +5897,57 @@ void bot_command_hold_outofcombatbuffsongs(Client* c, const Seperator* sep)
 	}
 }
 
+void bot_command_hold_pet_buffs(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_pet_buffs", sep->arg[0], "holdpetbuffs"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast buffs on pets.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting buffs on pets.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 hbuffs = 0;
+	if (sep->IsNumber(1)) {
+		hbuffs = atoi(sep->arg[1]);
+		int hbuffscheck = hbuffs;
+		if (hbuffscheck == 0 || hbuffscheck == 1) {
+			my_bot->SetHoldPetBuffs(hbuffs);
+			if (!database.botdb.SaveHoldPetBuffs(c->CharacterID(), my_bot->GetBotID(), hbuffs)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldPetBuffs(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold Pet Buffs for %s to %u.", my_bot->GetCleanName(), hbuffs);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold Pet Buffs status is %u.", my_bot->GetHoldPetBuffs());
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^holdpetbuffs help for a list of options.");
+	}
+}
+
 void bot_command_hold_pet_heals(Client* c, const Seperator* sep)
 {
 	if (helper_command_alias_fail(c, "bot_command_hold_pet_heals", sep->arg[0], "holdpetheals"))
@@ -9201,7 +9253,7 @@ void bot_command_use_epic(Client *c, const Seperator *sep)
 							if (helper_cast_standard_spell(selected_bot, selected_bot, 25101, true, &dont_root_before))
 								target_mob->SetDontRootMeBefore(dont_root_before);
 								return;
-						} else if (pitem != 14341 || pitem != 614341) {
+						} else {
 							c->Message(Chat::White, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
 							return;
 						}
@@ -9221,7 +9273,7 @@ void bot_command_use_epic(Client *c, const Seperator *sep)
 							if (helper_cast_standard_spell(selected_bot, target_mob, 25102, true, &dont_root_before))
 								target_mob->SetDontRootMeBefore(dont_root_before);
 								return;
-						} else if (pitem != 5532 || pitem != 605532) {
+						} else {
 							c->Message(Chat::White, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
 							return;
 						}
@@ -9244,7 +9296,7 @@ void bot_command_use_epic(Client *c, const Seperator *sep)
 							if (helper_cast_standard_spell(selected_bot, target_mob, 25103, true, &dont_root_before))
 								target_mob->SetDontRootMeBefore(dont_root_before);
 								return;
-						} else if (pitem != 10650 || pitem != 610650) {
+						} else {
 							c->Message(Chat::White, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
 							return;
 						}
@@ -9266,7 +9318,7 @@ void bot_command_use_epic(Client *c, const Seperator *sep)
 							if (helper_cast_standard_spell(selected_bot, target_mob, 25104, true, &dont_root_before))
 								target_mob->SetDontRootMeBefore(dont_root_before);
 								return;
-						} else if (pitem != 20490 || pitem != 620490) {
+						} else {
 							c->Message(Chat::White, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
 							return;
 						}
@@ -9284,7 +9336,7 @@ void bot_command_use_epic(Client *c, const Seperator *sep)
 							if (helper_cast_standard_spell(selected_bot, target_mob, 25107, true, &dont_root_before))
 								target_mob->SetDontRootMeBefore(dont_root_before);
 								return;
-						} else if (pitem != 20544 || pitem != 620544) {
+						} else {
 							c->Message(Chat::White, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
 							return;
 						}
@@ -9302,7 +9354,7 @@ void bot_command_use_epic(Client *c, const Seperator *sep)
 							if (helper_cast_standard_spell(selected_bot, target_mob, 25106, true, &dont_root_before))
 								target_mob->SetDontRootMeBefore(dont_root_before);
 								return;
-						} else if (pitem != 10651 || pitem != 610651) {
+						} else {
 							c->Message(Chat::White, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
 							return;
 						}
@@ -10006,6 +10058,14 @@ void bot_subcommand_bot_delete(Client *c, const Seperator *sep)
 		c->Message(Chat::White, "You must <target> a bot that you own to use this command");
 		return;
 	}
+	
+	std::string delete_confirm = sep->arg[1];
+
+	std::string deleted_check = "confirm";
+	if (!(delete_confirm.find(deleted_check) != std::string::npos)) {
+		c->Message(Chat::White, "You must type %s confirm to confirm the deletion of %s.", sep->arg[0], my_bot->GetCleanName());
+		return;
+	}
 
 	std::string error_message;
 
@@ -10642,6 +10702,11 @@ void bot_subcommand_bot_list(Client *c, const Seperator *sep)
 				}
 			}
 		}
+		std::string name_check = bots_iter.Name;
+		std::string deleted_check = "-deleted-";
+		if (name_check.find(deleted_check) != std::string::npos) {
+			continue;
+		}
 
 		auto* bot = entity_list.GetBotByBotName(bots_iter.Name);
 
@@ -10974,8 +11039,22 @@ void bot_subcommand_bot_spawn(Client* c, const Seperator* sep)
 
 	std::string bot_name = sep->arg[1];
 
+	std::string deleted_check = "-deleted-";
+	if (bot_name.find(deleted_check) != std::string::npos) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"You don't own a bot named '{}'.",
+				bot_name
+			).c_str()
+		);
+		return;
+	}
+
 	uint32 bot_id = 0;
 	uint8 bot_class = NO_CLASS;
+	
+
 	if (!database.botdb.LoadBotID(c->CharacterID(), bot_name, bot_id, bot_class)) {
 		c->Message(
 			Chat::White,
