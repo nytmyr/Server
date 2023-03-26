@@ -331,6 +331,7 @@ void command_fasthealdelay(Client* c, const Seperator* sep);
 void command_healdelay(Client* c, const Seperator* sep);
 void command_completehealdelay(Client* c, const Seperator* sep);
 void command_hothealdelay(Client* c, const Seperator* sep);
+void command_clearxtargets(Client* c, const Seperator* sep);
 
 #include "bot.h"
 void command_bot(Client*c, const Seperator *sep);

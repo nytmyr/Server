@@ -2381,6 +2381,102 @@ namespace ActionableBots
 		return ab_type;
 	}
 
+	static ABType PopulateSBLForSummon(Client* bot_owner, std::string ab_type_arg, std::list<Bot*>& sbl, int ab_mask, const char* name = nullptr, bool clear_list = true, bool suppress_message = false) {
+		if (clear_list)
+			sbl.clear();
+		if (!bot_owner)
+			return ABT_None;
+
+		auto ab_type = ABT_None;
+		if (!ab_type_arg.compare("target") || ab_type_arg.empty())
+			ab_type = ABT_Target;
+		else if (!ab_type_arg.compare("byname"))
+			ab_type = ABT_ByName;
+		else if (!ab_type_arg.compare("ownergroup"))
+			ab_type = ABT_OwnerGroup;
+		else if (!ab_type_arg.compare("botgroup"))
+			ab_type = ABT_BotGroup;
+		else if (!ab_type_arg.compare("targetgroup"))
+			ab_type = ABT_TargetGroup;
+		else if (!ab_type_arg.compare("namesgroup"))
+			ab_type = ABT_NamesGroup;
+		else if (!ab_type_arg.compare("healrotation"))
+			ab_type = ABT_HealRotation;
+		else if (!ab_type_arg.compare("healrotationmembers"))
+			ab_type = ABT_HealRotationMembers;
+		else if (!ab_type_arg.compare("healrotationtargets"))
+			ab_type = ABT_HealRotationTargets;
+		else if (!ab_type_arg.compare("spawned"))
+			ab_type = ABT_Spawned;
+		else if (!ab_type_arg.compare("mmr"))
+			ab_type = ABT_Spawned;
+		else if (!ab_type_arg.compare("all"))
+			ab_type = ABT_All;
+
+		if (ab_type_arg.empty())
+			ab_type_arg = "target";
+
+		switch (ab_type) {
+		case ABT_Target:
+			if (ab_mask & ABM_Target)
+				MyBots::PopulateSBL_ByTargetedBot(bot_owner, sbl, clear_list);
+			break;
+		case ABT_ByName:
+			if (ab_mask & ABM_ByName)
+				MyBots::PopulateSBL_ByNamedBot(bot_owner, sbl, name, clear_list);
+			break;
+		case ABT_OwnerGroup:
+			if (ab_mask & ABM_OwnerGroup)
+				MyBots::PopulateSBL_ByMyGroupedBots(bot_owner, sbl, clear_list);
+			break;
+		case ABT_BotGroup:
+			if (ab_mask & ABM_BotGroup)
+				MyBots::PopulateSBL_ByBotGroup(bot_owner, sbl, name, clear_list);
+			break;
+		case ABT_TargetGroup:
+			if (ab_mask & ABM_TargetGroup)
+				MyBots::PopulateSBL_ByTargetsGroupedBots(bot_owner, sbl, clear_list);
+			break;
+		case ABT_NamesGroup:
+			if (ab_mask & ABM_NamesGroup)
+				MyBots::PopulateSBL_ByNamesGroupedBots(bot_owner, sbl, name, clear_list);
+			break;
+		case ABT_HealRotation:
+			if (ab_mask & ABM_HealRotation)
+				MyBots::PopulateSBL_ByHealRotation(bot_owner, sbl, name, clear_list);
+			break;
+		case ABT_HealRotationMembers:
+			if (ab_mask & ABM_HealRotationMembers)
+				MyBots::PopulateSBL_ByHealRotationMembers(bot_owner, sbl, name, clear_list);
+			break;
+		case ABT_HealRotationTargets:
+			if (ab_mask & ABM_HealRotationTargets)
+				MyBots::PopulateSBL_ByHealRotationTargets(bot_owner, sbl, name, clear_list);
+			break;
+		case ABT_Spawned:
+		case ABT_All:
+			if (ab_mask & ABM_Spawned_All)
+				MyBots::PopulateSBL_BySpawnedBots(bot_owner, sbl);
+			break;
+		default:
+			break;
+		}
+		if (sbl.empty() && ab_type != ABT_All) {
+			if (suppress_message)
+				return ABT_None;
+
+			if (!ab_mask)
+				bot_owner->Message(Chat::White, "Command passed null 'ActionableBot' criteria");
+			else if (ab_mask & ab_type)
+				bot_owner->Message(Chat::White, "You have no spawned bots meeting this criteria - type: '%s', name: '%s'", ab_type_arg.c_str(), ((name) ? (name) : ("")));
+			else
+				bot_owner->Message(Chat::White, "This command does not allow 'ActionableBot' criteria '%s'", ab_type_arg.c_str());
+			return ABT_None;
+		}
+
+		return ab_type;
+	}
+
 	// Returns single, scoped bot
 	static Bot* AsGroupMember_ByClass(Client *bot_owner, Client *bot_grouped_player, uint8 cls, bool petless = false) {
 		if (!bot_owner || !bot_grouped_player)
@@ -11365,7 +11461,7 @@ void bot_subcommand_bot_summon(Client *c, const Seperator *sep)
 		c->Message(
 			Chat::White,
 			fmt::format(
-				"Usage: {} ([actionable: target | byname | ownergroup | botgroup | targetgroup | namesgroup | healrotation | spawned] ([actionable_name]))",
+				"Usage: {} ([actionable: target | byname | ownergroup | botgroup | targetgroup | namesgroup | healrotation | spawned | mmr] ([actionable_name]))",
 				sep->arg[0]
 			).c_str()
 		);
@@ -11374,13 +11470,26 @@ void bot_subcommand_bot_summon(Client *c, const Seperator *sep)
 	const int ab_mask = ActionableBots::ABM_NoFilter;
 
 	std::list<Bot*> sbl;
-	if (ActionableBots::PopulateSBL(c, sep->arg[1], sbl, ab_mask, sep->arg[2]) == ActionableBots::ABT_None) {
+	if (ActionableBots::PopulateSBLForSummon(c, sep->arg[1], sbl, ab_mask, sep->arg[2]) == ActionableBots::ABT_None) {
 		return;
 	}
+
+	auto sbl_size = sbl.size();
 
 	for (auto bot_iter : sbl) {
 		if (!bot_iter) {
 			continue;
+		}
+
+		//std::string mmr_summon = sep->arg[1];
+		//std::string mmr_check = "mmr";
+		//if ((mmr_summon.find(mmr_check) == std::string::npos)) {
+		//if (mmr_summon.compare(mmr_check) == 0) {
+		if (!strcasecmp(sep->arg[1], "mmr")) {
+			if (!bot_iter->GetMaxMeleeRange()) {
+				--sbl_size;
+				continue;
+			}
 		}
 
 		bot_iter->WipeHateList();
@@ -11410,7 +11519,7 @@ void bot_subcommand_bot_summon(Client *c, const Seperator *sep)
 			Chat::White,
 			fmt::format(
 				"Summoned {} bots to you.",
-				sbl.size()
+				sbl_size
 			).c_str()
 		);
 	}

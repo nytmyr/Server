@@ -380,7 +380,8 @@ int command_init(void)
 		command_add("fasthealdelay", "Sets a delay for how often you will receive Fast Heals from bots", AccountStatus::Player, command_fasthealdelay) ||
 		command_add("healdelay", "Sets a delay for how often you will receive Regular Heals from bots", AccountStatus::Player, command_healdelay) ||
 		command_add("completehealdelay", "Sets a delay for how often you will receive Complete Heals from bots", AccountStatus::Player, command_completehealdelay) ||
-		command_add("hothealdelay", "Sets a delay for how often you will receive Heal Over Time Heals from bots", AccountStatus::Player, command_hothealdelay)
+		command_add("hothealdelay", "Sets a delay for how often you will receive Heal Over Time Heals from bots", AccountStatus::Player, command_hothealdelay) ||
+		command_add("clearxtargets", "Clears Extended Target window.", AccountStatus::Player, command_clearxtargets)
 
 	) {
 		command_deinit();
@@ -1233,3 +1234,4 @@ void command_bot(Client *c, const Seperator *sep)
 #include "gm_commands/healdelay.cpp"
 #include "gm_commands/completehealdelay.cpp"
 #include "gm_commands/hothealdelay.cpp"
+#include "gm_commands/clearxtargets.cpp"

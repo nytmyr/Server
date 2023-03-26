@@ -87,7 +87,7 @@ Bot::Bot(NPCType *npcTypeData, Client* botOwner) : NPC(npcTypeData, nullptr, glm
 	SetShowHelm(true);
 	SetPauseAI(false);
 
-	m_alt_combat_hate_timer.Start(250);
+	//m_alt_combat_hate_timer.Start(250);
 	m_auto_defend_timer.Disable();
 	SetGuardFlag(false);
 	SetHoldFlag(false);
@@ -198,7 +198,7 @@ Bot::Bot(uint32 botID, uint32 botOwnerCharacterID, uint32 botSpellsID, double to
 	SetTaunting((GetClass() == WARRIOR || GetClass() == PALADIN || GetClass() == SHADOWKNIGHT) && (GetBotStance() == EQ::constants::stanceAggressive));
 	SetPauseAI(false);
 
-	m_alt_combat_hate_timer.Start(250);
+	//m_alt_combat_hate_timer.Start(250);
 	m_auto_defend_timer.Disable();
 	SetGuardFlag(false);
 	SetHoldFlag(false);
@@ -2881,6 +2881,9 @@ void Bot::AI_Process()
 
 //#pragma endregion
 
+	if (!follow_mob || !leash_owner)
+		return;
+
 	float fm_distance = DistanceSquared(m_Position, follow_mob->GetPosition());
 	float lo_distance = DistanceSquared(m_Position, leash_owner->GetPosition());
 	float leash_distance = RuleR(Bots, LeashDistance);
@@ -2951,7 +2954,7 @@ void Bot::AI_Process()
 
 //#pragma endregion
 
-	bool bo_alt_combat = (RuleB(Bots, AllowOwnerOptionAltCombat) && bot_owner->GetBotOption(Client::booAltCombat));
+	//bool bo_alt_combat = (RuleB(Bots, AllowOwnerOptionAltCombat) && bot_owner->GetBotOption(Client::booAltCombat));
 
 //#pragma region ATTACK FLAG
 
@@ -3165,6 +3168,7 @@ void Bot::AI_Process()
 
 //#pragma region ALT COMBAT (ACQUIRE TARGET)
 
+		/* DISABLED ALT COMBAT
 		else if (bo_alt_combat && m_alt_combat_hate_timer.Check()) { // Find a mob from hate list to target
 
 			// Group roles can be expounded upon in the future
@@ -3235,7 +3239,7 @@ void Bot::AI_Process()
 					}
 				}
 			}
-		}
+		} */
 
 //#pragma endregion
 
@@ -3254,10 +3258,8 @@ void Bot::AI_Process()
 
 		Mob* tar = GetTarget(); // We should have a target..if not, we're awaiting new orders
 		if (!tar || PASSIVE) {
-			if (GetTarget()) {
-				SetTarget(nullptr);
-			}
 
+			SetTarget(nullptr);
 			WipeHateList();
 			SetAttackFlag(false);
 			SetAttackingFlag(false);
@@ -3302,10 +3304,11 @@ void Bot::AI_Process()
 			lo_distance > leash_distance ||
 			tar_distance > leash_distance ||
 			(!GetAttackingFlag() && !CheckLosFN(tar) && !leash_owner->CheckLosFN(tar)) || // This is suppose to keep bots from attacking things behind walls
-			!IsAttackAllowed(tar) ||
+			!IsAttackAllowed(tar)
+			/* DISABLED ALT COMBAT ||
 			(bo_alt_combat &&
 				(!GetAttackingFlag() && NOT_PULLING_BOT && !leash_owner->AutoAttackEnabled() && !tar->GetHateAmount(this) && !tar->GetHateAmount(leash_owner))
-			)
+			)*/
 		)
 		{
 			// Normally, we wouldn't want to do this without class checks..but, too many issues can arise if we let enchanter animation pets run rampant
@@ -3518,7 +3521,7 @@ void Bot::AI_Process()
 			atCombatRange = true;
 		}
 		else if (tar_distance <= melee_distance || (tar_distance <= melee_distance && stop_melee_level)) {
-			if (GetMaxMeleeRange() && tar_distance >= melee_distance * 0.85) {
+			if (GetMaxMeleeRange() && tar_distance >= melee_distance * float(RuleR(Bots, PercentMinMaxMeleeRangeDistance))) {
 				atCombatRange = true;
 			}
 			else if (!GetMaxMeleeRange()) {
@@ -3891,8 +3894,8 @@ void Bot::AI_Process()
 					LogAIDetail("Pursuing [{}] while engaged", GetTarget()->GetCleanName());
 					Goal = GetTarget()->GetPosition();
 					if (DistanceSquared(m_Position, Goal) <= leash_distance) {
-						if (GetMaxMeleeRange() && (DistanceSquared(m_Position, Goal) <= melee_distance * 0.85)) {
-							Goal = GetOwner()->GetPosition();
+						if (GetMaxMeleeRange() && (DistanceSquared(m_Position, Goal) <= melee_distance * float(RuleR(Bots, PercentMinMaxMeleeRangeDistance)))) {
+							//Goal = GetOwner()->GetPosition();
 							RunTo(Goal.x, Goal.y, Goal.z);
 						}
 						else {

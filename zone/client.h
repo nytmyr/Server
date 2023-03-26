@@ -1496,6 +1496,7 @@ public:
 	void SendXTargetUpdates();
 	void RemoveGroupXTargets();
 	void RemoveAutoXTargets();
+	void RemoveAllAutoXTargets();
 	void ShowXTargets(Client *c);
 	inline XTargetAutoHaters *GetXTargetAutoMgr() { return m_activeautohatermgr; } // will be either raid or group or self
 	inline void SetXTargetAutoMgr(XTargetAutoHaters *in) { if (in) m_activeautohatermgr = in; else m_activeautohatermgr = &m_autohatermgr; }
