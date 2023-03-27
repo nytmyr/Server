@@ -44,6 +44,7 @@ enum : int {	//values for pTimerType
 	pTimerBeggingPickPocket = 27,
 	pTimerLinkedSpellReuseStart = 28,
 	pTimerLinkedSpellReuseEnd = 48,
+	pTimerClearXTarget = 50,
 
 	pTimerShieldAbility = 86,	
 	
@@ -60,10 +61,8 @@ enum : int {	//values for pTimerType
 	pTimerAAEffectStart = 3001,	//AA effect timers
 	pTimerAAEffectEnd	= 4999,
 
-	pTimerSpellStart = 5000,		//Do not put any timer IDs above this one
+	pTimerSpellStart = 5000		//Do not put any timer IDs above this one
 								//if needed, increase its starting ID
-
-	pTimerClearXTarget = 10
 };
 
 class Database;

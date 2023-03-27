@@ -7243,11 +7243,17 @@ void Client::RemoveAllAutoXTargets()
 	if (!XTargettingAvailable())
 		return;
 
-	for (int i = 0; i < GetMaxXTargets(); ++i)
-	{
-		XTargets[i].ID = 0;
-		XTargets[i].Name[0] = 0;
-		SendXTargetPacket(i, nullptr);
+	for (int i = 0; i < GetMaxXTargets(); ++i) {
+		if (XTargets[i].ID) {
+			auto mob = entity_list.GetMob(XTargets[i].ID);
+			if (mob) {
+				RemoveXTarget(mob, false);
+			}
+			XTargets[i].ID = 0;
+			XTargets[i].Name[0] = 0;
+			XTargets[i].dirty = false;
+			SendXTargetPacket(i, nullptr);
+		}
 	}
 }
 
