@@ -109,6 +109,10 @@ void WorldServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p)
 			Server_Speech_Struct *SSS = (Server_Speech_Struct *) p.Data();
 			std::string          tmp1 = SSS->from;
 			std::string          tmp2 = SSS->to;
+			std::string          tmp3 = SSS->message;
+			if (tmp3.rfind("^", 0) == 0 || tmp3.rfind("#", 0) == 0 || tmp3.rfind("Hail, ", 0) == 0) { //skip bot and Gm commands, those are logged in EventLog
+				break;
+			}
 			database.AddSpeech(tmp1.c_str(), tmp2.c_str(), SSS->message, SSS->minstatus, SSS->guilddbid, SSS->type);
 			break;
 		}
