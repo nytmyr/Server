@@ -10969,7 +10969,7 @@ void Bot::ProcessRaidInvite(Bot* invitee, Client* invitor) {
 				}
 			}
 			//			raid->SendBulkRaid(invitor); //Send a raid updates to the invitor
-			g_invitee->JoinRaidXTarget(raid, true);
+			//g_invitee->JoinRaidXTarget(raid, true); //test
 			g_invitee->DisbandGroup(true);
 			if (raid->IsLocked()) {
 				raid->SendRaidLockTo(invitor);
@@ -11042,7 +11042,7 @@ void Bot::ProcessRaidInvite(Bot* invitee, Client* invitor) {
 			}
 //			raid->GroupUpdate(0, true);
 //			raid->SendBulkRaid(invitee); //Send a raid updates to the invitor
-			g_invitor->JoinRaidXTarget(raid, true);
+			//g_invitor->JoinRaidXTarget(raid, true); //test
 			g_invitor->DisbandGroup(true); //Added Jan 23 to fix group database and entity integrity
 			raid->GroupUpdate(0, true);
 			if (raid->IsLocked()) {
@@ -11089,7 +11089,7 @@ void Bot::ProcessRaidInvite(Bot* invitee, Client* invitor) {
 					}
 				}
 				//raid->SendBulkRaid(invitor); //Send a raid updates to the invitor
-				g_invitee->JoinRaidXTarget(raid, true);
+				//g_invitee->JoinRaidXTarget(raid, true); //test
 				g_invitee->DisbandGroup(true);
 				raid->GroupUpdate(raid_free_group_id);
 				if (raid->IsLocked()) {
@@ -11153,7 +11153,7 @@ void Bot::ProcessRaidInvite(Bot* invitee, Client* invitor) {
 					}
 				}
 				//				raid->SendBulkRaid(invitor); //Send a raid updates to the invitor
-				g_invitee->JoinRaidXTarget(raid, true);
+				//g_invitee->JoinRaidXTarget(raid, true); //test
 				g_invitee->DisbandGroup(true);
 				raid->GroupUpdate(raid_free_group_id);
 				if (raid->IsLocked()) {
