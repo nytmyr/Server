@@ -11175,7 +11175,7 @@ void Bot::ProcessRaidInvite(Bot* invitee, Client* invitor) {
 	}
 }
 
-bool Bot::CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType) {
+bool Bot::CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 spellid, std::string healType) {
 
 	if (!botCaster || !spellType || !tar)
 		return false;
@@ -11186,7 +11186,7 @@ bool Bot::CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType) {
 
 	switch (spellType) {
 		case SpellType_Buff:
-			if (((!tar->IsPet() && GetHoldBuffs()) || (tar->IsPet() && GetHoldPetBuffs())) || targetHP < GetBuffMinThreshold() || targetHP > GetBuffThreshold() || (m_buff_delay_timer.Enabled() && m_buff_delay_timer.GetRemainingTime() > 0)) {
+			if (((!tar->IsPet() && GetHoldBuffs()) || (tar->IsPet() && GetHoldPetBuffs())) || targetHP < GetBuffMinThreshold() || targetHP > GetBuffThreshold() || (m_buff_delay_timer.Enabled() && m_buff_delay_timer.Check())) {
 				return false;
 			}
 			return true;
@@ -11195,7 +11195,20 @@ bool Bot::CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType) {
 			return true;
 			break;
 		case SpellType_Cure:
-			if (GetHoldCures() || tar->IsPet() && GetHoldPetHeals() || targetHP < GetCureMinThreshold() || targetHP > GetCureThreshold() || (m_cure_delay_timer.Enabled() && !m_cure_delay_timer.Check())) {
+			if (GetHoldCures() || tar->IsPet() && GetHoldPetHeals()) {
+				return false;
+			}
+			else if (tar->IsBot()) {
+				if (targetHP < tar->CastToBot()->GetCureMinThreshold() || targetHP > tar->CastToBot()->GetCureThreshold() || Timer::GetCurrentTime() < tar->DontCureMeBefore()) {
+					return false;
+				}
+			}
+			else if (tar->IsClient()) {
+				if (targetHP < tar->CastToClient()->GetClientCureMinThreshold() || targetHP > tar->CastToClient()->GetClientCureThreshold() || Timer::GetCurrentTime() < tar->DontCureMeBefore()) {
+					return false;
+				}
+			}
+			else if (m_cure_delay_timer.Enabled() && !m_cure_delay_timer.Check()) {
 				return false;
 			}
 			return true;
@@ -11233,6 +11246,30 @@ bool Bot::CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType) {
 		case SpellType_Heal:
 		{
 			if ((!tar->IsPet() && GetHoldHeals()) || (tar->IsPet() && GetHoldPetHeals())) {
+				return false;
+			}
+			if (healType != "None") {
+				uint32 currentTime = Timer::GetCurrentTime();
+				uint32 fasthealTime = tar->DontFastHealMeBefore();
+				uint32 regularhealTime = tar->DontRegularHealMeBefore();
+				uint32 completehealTime = tar->DontCompleteHealMeBefore();
+				uint32 hothealTime = tar->DontHotHealMeBefore();
+				uint32 grouphealTime = tar->DontHealMeBefore();
+				if (healType == "Fast Heal" && fasthealTime <= currentTime) {
+					return true;
+				}
+				else if (healType == "Regular Heal" && regularhealTime <= currentTime) {
+					return true;
+				}
+				else if (healType == "Complete Heal" && completehealTime <= currentTime) {
+					return true;
+				}
+				else if ((healType == "HoT Heal" || healType == "Group HoT Heal") && hothealTime <= currentTime) {
+					return true;
+				}
+				else if (healType == "Group Regular Heal" && grouphealTime <= currentTime) {
+					return true;
+				}
 				return false;
 			}
 			return true;

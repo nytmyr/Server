@@ -6,7 +6,6 @@ void command_fasthealdelay(Client* c, const Seperator* sep)
 	if (!arguments || !strcasecmp(sep->arg[1], "help")) {
 		c->Message(Chat::White, "usage: #fasthealdelay [help | current | value in milliseconds. For example, 5000 = 5 seconds].");
 		c->Message(Chat::White, "note: Used to control how often you will be fast healed by bots.");
-		c->Message(Chat::White, "note: Set this to control how often a bot can cast a regular heal on you.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: The default interval is 2500 (2.5 seconds).");
 		return;	

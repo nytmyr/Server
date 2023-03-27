@@ -622,7 +622,10 @@ bool ZoneDatabase::LoadCharacterData(uint32 character_id, PlayerProfile_Struct* 
 		"fast_heal_delay,			"
 		"heal_delay,				"
 		"complete_heal_delay,		"
-		"hot_heal_delay				"
+		"hot_heal_delay,			"
+		"cure_delay,				"
+		"cure_min_threshold,		"
+		"cure_threshold				"
 		"FROM                       "
 		"character_data             "
 		"WHERE `id` = %i         ", character_id);
@@ -728,7 +731,10 @@ bool ZoneDatabase::LoadCharacterData(uint32 character_id, PlayerProfile_Struct* 
 		pp->fast_heal_delay = atoi(row[r]); r++;								 // "`fast_heal_delay`		"
 		pp->heal_delay = atoi(row[r]); r++;										 // "`heal_delay`			"
 		pp->complete_heal_delay = atoi(row[r]); r++;							 // "`complete_heal_delay`	"
-		pp->hot_heal_delay = atoi(row[r]); r++;									  // "`hot_heal_delay`		"
+		pp->hot_heal_delay = atoi(row[r]); r++;									 // "`hot_heal_delay`		"
+		pp->cure_delay = atoi(row[r]); r++;										 // "`cure_delay`		"
+		pp->cure_min_threshold = atoi(row[r]); r++;								 // "`cure_min_threshold`		"
+		pp->cure_threshold = atoi(row[r]); r++;									 // "`cure_threshold`		"
 
 	}
 	return true;
@@ -1259,7 +1265,10 @@ bool ZoneDatabase::SaveCharacterData(
 		" fast_heal_delay,			 "
 		" heal_delay,				 "
 		" complete_heal_delay,		 "
-		" hot_heal_delay			 "
+		" hot_heal_delay,			 "
+		" cure_delay,				 "
+		" cure_min_threshold,		 "
+		" cure_threshold			 "
 		")							 "
 		"VALUES ("
 		"{},"  // id																" id,                        "
@@ -1365,7 +1374,10 @@ bool ZoneDatabase::SaveCharacterData(
 		"{},"  // fast_heal_delay
 		"{},"  // heal_delay
 		"{},"  // complete_heal_delay
-		"{}"  // hot_heal_delay
+		"{},"  // hot_heal_delay
+		"{},"  // cure_delay
+		"{},"  // cure_min_threshold
+		"{}"  // cure_threshold
 		")",
 		c->CharacterID(),				  // " id,                        "
 		c->AccountID(),					  // " account_id,                "
@@ -1470,7 +1482,10 @@ bool ZoneDatabase::SaveCharacterData(
 		pp->fast_heal_delay,
 		pp->heal_delay,
 		pp->complete_heal_delay,
-		pp->hot_heal_delay
+		pp->hot_heal_delay,
+		pp->cure_delay,
+		pp->cure_min_threshold,
+		pp->cure_threshold
 	);
 	auto results = database.QueryDatabase(query);
 	LogDebug(

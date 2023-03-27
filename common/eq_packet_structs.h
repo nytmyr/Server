@@ -1106,6 +1106,9 @@ struct PlayerProfile_Struct
 			uint32				heal_delay; /* Used */
 			uint32				complete_heal_delay; /* Used */
 			uint32				hot_heal_delay; /* Used */
+			uint32				cure_delay; /* Used */
+			uint8				cure_min_threshold; /* Used */
+			uint8				cure_threshold; /* Used */
 /*19568*/
 
 	// All player profile packets are translated and this overhead is ignored in out-bound packets

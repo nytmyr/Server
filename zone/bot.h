@@ -353,7 +353,7 @@ public:
 	void SetBotSpellDelay(Bot* botCaster, uint32 iSpellTypes, Mob* spelltar);
 
 	// Custom commands for spells
-	bool CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType);
+	bool CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 spellid = 0, std::string healType = "None");
 	uint8 GetHoldBuffs() { return _holdBuffs; }
 	uint8 GetHoldCures() { return _holdCures; }
 	uint8 GetHoldDoTs() { return _holdDoTs; }

@@ -131,6 +131,9 @@ public:
 		uint32_t	heal_delay;
 		uint32_t	complete_heal_delay;
 		uint32_t	hot_heal_delay;
+		uint32_t	cure_delay;
+		uint8_t		cure_min_threshold;
+		uint8_t		cure_threshold;
 	};
 
 	static std::string PrimaryKey()
@@ -252,6 +255,9 @@ public:
 			"heal_delay",
 			"complete_heal_delay",
 			"hot_heal_delay",
+			"cure_delay",
+			"cure_min_threshold",
+			"cure_threshold",
 		};
 	}
 
@@ -369,6 +375,9 @@ public:
 			"heal_delay",
 			"complete_heal_delay",
 			"hot_heal_delay",
+			"cure_delay",
+			"cure_min_threshold",
+			"cure_threshold",
 		};
 	}
 
@@ -520,6 +529,9 @@ public:
 		e.heal_delay			  = 0;
 		e.complete_heal_delay	  = 0;
 		e.hot_heal_delay		  = 0;
+		e.cure_delay			  = 0;
+		e.cure_min_threshold	  = 0;
+		e.cure_threshold		  = 0;
 
 		return e;
 	}
@@ -659,14 +671,17 @@ public:
 			e.aa_points_old           = static_cast<uint32_t>(strtoul(row[100], nullptr, 10));
 			e.e_last_invsnapshot      = static_cast<uint32_t>(strtoul(row[101], nullptr, 10));
 			e.deleted_at              = strtoll(row[102] ? row[102] : "-1", nullptr, 10);
-			e.fast_heal_threshold = static_cast<uint8_t>(strtoul(row[103], nullptr, 10));
-			e.heal_threshold = static_cast<uint8_t>(strtoul(row[104], nullptr, 10));
+			e.fast_heal_threshold	  = static_cast<uint8_t>(strtoul(row[103], nullptr, 10));
+			e.heal_threshold		  = static_cast<uint8_t>(strtoul(row[104], nullptr, 10));
 			e.complete_heal_threshold = static_cast<uint8_t>(strtoul(row[105], nullptr, 10));
-			e.hot_heal_threshold = static_cast<uint8_t>(strtoul(row[106], nullptr, 10));
-			e.fast_heal_delay = static_cast<uint32_t>(strtoul(row[107], nullptr, 10));
-			e.heal_delay = static_cast<uint32_t>(strtoul(row[108], nullptr, 10));
-			e.complete_heal_delay = static_cast<uint32_t>(strtoul(row[109], nullptr, 10));
-			e.hot_heal_delay = static_cast<uint32_t>(strtoul(row[110], nullptr, 10));
+			e.hot_heal_threshold	  = static_cast<uint8_t>(strtoul(row[106], nullptr, 10));
+			e.fast_heal_delay		  = static_cast<uint32_t>(strtoul(row[107], nullptr, 10));
+			e.heal_delay			  = static_cast<uint32_t>(strtoul(row[108], nullptr, 10));
+			e.complete_heal_delay	  = static_cast<uint32_t>(strtoul(row[109], nullptr, 10));
+			e.hot_heal_delay		  = static_cast<uint32_t>(strtoul(row[110], nullptr, 10));
+			e.cure_delay			  = static_cast<uint32_t>(strtoul(row[111], nullptr, 10));
+			e.cure_min_threshold	  = static_cast<uint8_t>(strtoul(row[112], nullptr, 10));
+			e.cure_threshold		  = static_cast<uint8_t>(strtoul(row[113], nullptr, 10));
 
 			return e;
 		}
@@ -810,6 +825,9 @@ public:
 		v.push_back(columns[108] + " = " + std::to_string(e.heal_delay));
 		v.push_back(columns[109] + " = " + std::to_string(e.complete_heal_delay));
 		v.push_back(columns[110] + " = " + std::to_string(e.hot_heal_delay));
+		v.push_back(columns[111] + " = " + std::to_string(e.cure_delay));
+		v.push_back(columns[112] + " = " + std::to_string(e.cure_min_threshold));
+		v.push_back(columns[113] + " = " + std::to_string(e.cure_threshold));
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -942,6 +960,9 @@ public:
 		v.push_back(std::to_string(e.heal_delay));
 		v.push_back(std::to_string(e.complete_heal_delay));
 		v.push_back(std::to_string(e.hot_heal_delay));
+		v.push_back(std::to_string(e.cure_delay));
+		v.push_back(std::to_string(e.cure_min_threshold));
+		v.push_back(std::to_string(e.cure_threshold));
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -1082,6 +1103,9 @@ public:
 			v.push_back(std::to_string(e.heal_delay));
 			v.push_back(std::to_string(e.complete_heal_delay));
 			v.push_back(std::to_string(e.hot_heal_delay));
+			v.push_back(std::to_string(e.cure_delay));
+			v.push_back(std::to_string(e.cure_min_threshold));
+			v.push_back(std::to_string(e.cure_threshold));
 
 			insert_chunks.push_back("(" + Strings::Implode(",", v) + ")");
 		}
@@ -1218,14 +1242,17 @@ public:
 			e.aa_points_old           = static_cast<uint32_t>(strtoul(row[100], nullptr, 10));
 			e.e_last_invsnapshot      = static_cast<uint32_t>(strtoul(row[101], nullptr, 10));
 			e.deleted_at              = strtoll(row[102] ? row[102] : "-1", nullptr, 10);
-			e.fast_heal_threshold = static_cast<uint8_t>(strtoul(row[103], nullptr, 10));
-			e.heal_threshold = static_cast<uint8_t>(strtoul(row[104], nullptr, 10));
+			e.fast_heal_threshold	  = static_cast<uint8_t>(strtoul(row[103], nullptr, 10));
+			e.heal_threshold		  = static_cast<uint8_t>(strtoul(row[104], nullptr, 10));
 			e.complete_heal_threshold = static_cast<uint8_t>(strtoul(row[105], nullptr, 10));
-			e.hot_heal_threshold = static_cast<uint8_t>(strtoul(row[106], nullptr, 10));
-			e.fast_heal_delay = static_cast<uint32_t>(strtoul(row[107], nullptr, 10));
-			e.heal_delay = static_cast<uint32_t>(strtoul(row[108], nullptr, 10));
-			e.complete_heal_delay = static_cast<uint32_t>(strtoul(row[109], nullptr, 10));
-			e.hot_heal_delay = static_cast<uint32_t>(strtoul(row[110], nullptr, 10));
+			e.hot_heal_threshold	  = static_cast<uint8_t>(strtoul(row[106], nullptr, 10));
+			e.fast_heal_delay		  = static_cast<uint32_t>(strtoul(row[107], nullptr, 10));
+			e.heal_delay			  = static_cast<uint32_t>(strtoul(row[108], nullptr, 10));
+			e.complete_heal_delay     = static_cast<uint32_t>(strtoul(row[109], nullptr, 10));
+			e.hot_heal_delay		  = static_cast<uint32_t>(strtoul(row[110], nullptr, 10));
+			e.cure_delay			  = static_cast<uint32_t>(strtoul(row[111], nullptr, 10));
+			e.cure_min_threshold	  = static_cast<uint8_t>(strtoul(row[112], nullptr, 10));
+			e.cure_threshold		  = static_cast<uint8_t>(strtoul(row[113], nullptr, 10));
 
 			all_entries.push_back(e);
 		}
@@ -1353,14 +1380,17 @@ public:
 			e.aa_points_old           = static_cast<uint32_t>(strtoul(row[100], nullptr, 10));
 			e.e_last_invsnapshot      = static_cast<uint32_t>(strtoul(row[101], nullptr, 10));
 			e.deleted_at              = strtoll(row[102] ? row[102] : "-1", nullptr, 10);
-			e.fast_heal_threshold = static_cast<uint8_t>(strtoul(row[103], nullptr, 10));
-			e.heal_threshold = static_cast<uint8_t>(strtoul(row[104], nullptr, 10));
+			e.fast_heal_threshold	  = static_cast<uint8_t>(strtoul(row[103], nullptr, 10));
+			e.heal_threshold		  = static_cast<uint8_t>(strtoul(row[104], nullptr, 10));
 			e.complete_heal_threshold = static_cast<uint8_t>(strtoul(row[105], nullptr, 10));
-			e.hot_heal_threshold = static_cast<uint8_t>(strtoul(row[106], nullptr, 10));
-			e.fast_heal_delay = static_cast<uint32_t>(strtoul(row[107], nullptr, 10));
-			e.heal_delay = static_cast<uint32_t>(strtoul(row[108], nullptr, 10));
-			e.complete_heal_delay = static_cast<uint32_t>(strtoul(row[109], nullptr, 10));
-			e.hot_heal_delay = static_cast<uint32_t>(strtoul(row[110], nullptr, 10));
+			e.hot_heal_threshold	  = static_cast<uint8_t>(strtoul(row[106], nullptr, 10));
+			e.fast_heal_delay		  = static_cast<uint32_t>(strtoul(row[107], nullptr, 10));
+			e.heal_delay			  = static_cast<uint32_t>(strtoul(row[108], nullptr, 10));
+			e.complete_heal_delay	  = static_cast<uint32_t>(strtoul(row[109], nullptr, 10));
+			e.hot_heal_delay		  = static_cast<uint32_t>(strtoul(row[110], nullptr, 10));
+			e.cure_delay			  = static_cast<uint32_t>(strtoul(row[111], nullptr, 10));
+			e.cure_min_threshold	  = static_cast<uint8_t>(strtoul(row[112], nullptr, 10));
+			e.cure_threshold		  = static_cast<uint8_t>(strtoul(row[113], nullptr, 10));
 
 			all_entries.push_back(e);
 		}

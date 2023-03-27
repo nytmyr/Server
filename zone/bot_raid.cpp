@@ -1807,7 +1807,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				//	break;
 
 				if (IsValidSpellRange(botSpell.SpellId, tar) || botClass == BARD) {
-					if (IsTargetAlreadyReceivingSpell(tar, botSpell.SpellId, spellType)) {
+					if (!CanCastBySpellType(this, tar, SpellType_Heal, botSpell.SpellId, spellType)) {
 						break;
 					}
 					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
@@ -2916,9 +2916,6 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				//uint32 TempDontCureMeBeforeTime = tar->DontCureMeBefore();
 
 				if (IsValidSpellRange(botSpell.SpellId, tar)) {
-					if (IsTargetAlreadyReceivingSpell(tar, botSpell.SpellId)) {
-						break;
-					}
 					castedSpell = AIDoSpellCast(botSpell.SpellIndex, tar, botSpell.ManaCost);
 				}
 				else {
@@ -2927,7 +2924,19 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 				if (castedSpell) {
 					BotGroupSay(this, "Attempting to cure %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
-					//m_cure_delay_timer.Start(GetCureDelay());
+					if (tar->IsBot()) {
+						uint32 currentTime = Timer::GetCurrentTime();
+						uint32 cureDelay = tar->CastToBot()->GetCureDelay();
+						tar->SetDontCureMeBefore(currentTime + cureDelay);
+					}
+					else if (tar->IsClient()) {
+						uint32 currentTime = Timer::GetCurrentTime();
+						uint32 cureDelay = tar->CastToClient()->GetClientCureDelay();
+						tar->SetDontCureMeBefore(currentTime + cureDelay);
+					}
+					else {
+						m_cure_delay_timer.Start(GetCureDelay());
+					}
 				}
 			}
 			break;

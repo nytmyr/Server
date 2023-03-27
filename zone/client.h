@@ -1622,6 +1622,9 @@ public:
 	inline void SetClientHealDelay(uint32 heal_delay) { m_pp.heal_delay = heal_delay; }
 	inline void SetClientCompleteHealDelay(uint32 complete_heal_delay) { m_pp.complete_heal_delay = complete_heal_delay; }
 	inline void SetClientHotHealDelay(uint32 hot_heal_delay) { m_pp.hot_heal_delay = hot_heal_delay; }
+	inline void SetClientCureMinThreshold(uint8 cure_min_threshold) { m_pp.cure_min_threshold = cure_min_threshold; }
+	inline void SetClientCureThreshold(uint8 cure_threshold) { m_pp.cure_threshold = cure_threshold; }
+	inline void SetClientCureDelay(uint32 cure_delay) { m_pp.cure_delay = cure_delay; }
 	inline uint8 GetClientFastHealThreshold() { return m_pp.fast_heal_threshold; }
 	inline uint8 GetClientHealThreshold() { return m_pp.heal_threshold; }
 	inline uint8 GetClientCompleteHealThreshold() { return m_pp.complete_heal_threshold; }
@@ -1630,6 +1633,9 @@ public:
 	inline uint32 GetClientHealDelay() { return m_pp.heal_delay; }
 	inline uint32 GetClientCompleteHealDelay() { return m_pp.complete_heal_delay; }
 	inline uint32 GetClientHotHealDelay() { return m_pp.hot_heal_delay; }
+	inline uint8 GetClientCureMinThreshold() { return m_pp.cure_min_threshold; }
+	inline uint8 GetClientCureThreshold() { return m_pp.cure_threshold; }
+	inline uint32 GetClientCureDelay() { return m_pp.cure_delay; }
 
 	void QuestReward(Mob* target, uint32 copper = 0, uint32 silver = 0, uint32 gold = 0, uint32 platinum = 0, uint32 itemid = 0, uint32 exp = 0, bool faction = false);
 	void QuestReward(Mob* target, const QuestReward_Struct &reward, bool faction = false);
