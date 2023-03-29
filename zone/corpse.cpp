@@ -1528,7 +1528,7 @@ void Corpse::LootItem(Client *client, const EQApplicationPacket *app)
 			!IsPlayerCorpse() &&
 			RuleB(Character, EnableDiscoveredItems) &&
 			client &&
-			!client->GetGM() &&
+			(!client->Admin() >= minStatusToAvoidFalling) &&
 			!client->IsDiscovered(inst->GetItem()->ID)
 		) {
 			client->DiscoverItem(inst->GetItem()->ID);
