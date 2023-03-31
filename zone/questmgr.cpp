@@ -4296,7 +4296,7 @@ uint32 QuestManager::getvegasitem(uint32 id_min, uint32 id_max, float difficulty
 			item->ID >= id_min && item->ID <= id_max 
 			&& item->difficulty >= difficulty_min && item->difficulty <= difficulty_max 
 			&& item->lowest_drop_npc_id >= lowest_drop_npc_id && item->lowest_drop_npc_id <= max_drop_npc_id
-			&& ((raidonly && item->raid_only == 1) || !raidonly)
+			&& ((raidonly && item->raid_only == 1) || (!raidonly && item->raid_only != 1))
 			) {
 				vitem.id = item->ID;
 				vitem.difficulty = item->difficulty;
