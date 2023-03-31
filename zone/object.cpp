@@ -561,7 +561,7 @@ bool Object::HandleClick(Client* sender, const ClickObject_Struct* click_object)
 			if (
 				m_ground_spawn &&
 				RuleB(Character, EnableDiscoveredItems) &&
-				!(sender->Admin() >= minStatusToAvoidFalling) &&
+				sender->Admin() < minStatusToBeGM &&
 				!sender->IsDiscovered(item->ID)
 			) {
 				sender->DiscoverItem(item->ID);

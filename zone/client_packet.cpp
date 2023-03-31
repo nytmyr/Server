@@ -2117,7 +2117,7 @@ void Client::Handle_OP_AdventureMerchantPurchase(const EQApplicationPacket *app)
 	if (item->MaxCharges != 0)
 		charges = item->MaxCharges;
 
-	if (RuleB(Character, EnableDiscoveredItems) && !(Admin() >= minStatusToAvoidFalling) && !IsDiscovered(item->ID)) {
+	if (RuleB(Character, EnableDiscoveredItems) && Admin() < minStatusToBeGM && !IsDiscovered(item->ID)) {
 		DiscoverItem(item->ID);
 	}
 
@@ -2667,7 +2667,7 @@ void Client::Handle_OP_AltCurrencyPurchase(const EQApplicationPacket *app)
 			RecordPlayerEventLog(PlayerEvent::MERCHANT_PURCHASE, e);
 		}
 
-		if (RuleB(Character, EnableDiscoveredItems) && !(Admin() >= minStatusToAvoidFalling) && !IsDiscovered(item->ID)) {
+		if (RuleB(Character, EnableDiscoveredItems) && Admin() < minStatusToBeGM && !IsDiscovered(item->ID)) {
 			DiscoverItem(item->ID);
 		}
 
@@ -13982,7 +13982,7 @@ void Client::Handle_OP_ShopPlayerBuy(const EQApplicationPacket *app)
 		RecordPlayerEventLog(PlayerEvent::MERCHANT_PURCHASE, e);
 	}
 
-	if (RuleB(Character, EnableDiscoveredItems) && !(Admin() >= minStatusToAvoidFalling) && !IsDiscovered(item_id)) {
+	if (RuleB(Character, EnableDiscoveredItems) && Admin() < minStatusToBeGM && !IsDiscovered(item_id)) {
 		DiscoverItem(item_id);
 	}
 
