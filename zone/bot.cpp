@@ -5149,6 +5149,22 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 			return;
 		}
 
+		/* Check for giving summonable items to a bot for stats */
+		int idCheck[] = { 1726, 14733, 29652, 29653, 29654, 29655, 29656, 29657, 29658, 32531, 614733, 632531 };
+
+		for (int i : idCheck) {
+			if (trade_instance->GetItem()->ID == i) {
+				if (i == 14733 || i == 32531 || i == 614733 || i == 632531) {
+					client->Message(Chat::Yellow, fmt::format("You cannot give [{}] to a bot, please visit Quall in The Plane of Knowledge to exchange the parent item for a bot version.", item_link).c_str());
+				}
+				else {
+					client->Message(Chat::Yellow, fmt::format("You cannot give [{}] to a bot.", item_link).c_str());
+				}
+				client->ResetTrade();
+				return;
+			}
+		}
+
 		// if (trade_instance->IsStackable() && trade_instance->GetCharges() < trade_instance->GetItem()->StackSize) { // temp until partial stacks are implemented
 		if (RuleI(Bots, StackSizeMin) != -1) {
 			if (trade_instance->IsStackable() && trade_instance->GetCharges() < RuleI(Bots, StackSizeMin)) { // temp until partial stacks are implemented
