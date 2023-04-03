@@ -11690,9 +11690,10 @@ void bot_subcommand_bot_toggle_archer(Client *c, const Seperator *sep)
 		}
 		bot_iter->ChangeBotArcherWeapons(bot_iter->IsBotArcher());
 
+		/* Disabled Autoswap
 		if (bot_iter->GetClass() == RANGER && bot_iter->GetLevel() >= 61) {
 			bot_iter->SetRangerAutoWeaponSelect(bot_iter->IsBotArcher());
-		}
+		}*/
 	}
 }
 

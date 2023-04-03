@@ -43,8 +43,8 @@ constexpr uint32 BOT_FOLLOW_DISTANCE_WALK = 1000; // as DSq value (~31.623 units
 
 constexpr uint32 BOT_KEEP_ALIVE_INTERVAL = 5000; // 5 seconds
 
-//constexpr uint32 BOT_COMBAT_JITTER_INTERVAL_MIN = 5000; // 5 seconds
-//constexpr uint32 BOT_COMBAT_JITTER_INTERVAL_MAX = 20000; // 20 seconds
+constexpr uint32 BOT_COMBAT_JITTER_INTERVAL_MIN = 1500; // 5 seconds
+constexpr uint32 BOT_COMBAT_JITTER_INTERVAL_MAX = 3000; // 20 seconds
 
 extern WorldServer worldserver;
 
@@ -223,7 +223,8 @@ public:
 	void RunTo(float x, float y, float z) override;
 	void StopMoving() override;
 	void StopMoving(float new_heading) override;
-	//bool GetCombatJitterFlag() { return m_combat_jitter_flag; }
+	bool GetCombatJitterFlag() { return m_combat_jitter_flag; }
+	bool GetCombatOutOfRangeJitterFlag() { return m_combat_out_of_range_jitter_flag; }
 	bool GetGuardFlag() { return m_guard_flag; }
 	void SetGuardFlag(bool flag = true) { m_guard_flag = flag; }
 	bool GetHoldFlag() { return m_hold_flag; }
@@ -351,6 +352,12 @@ public:
 	bool IsTargetAlreadyReceivingSpell(Mob* tar, uint16 spellid, std::string healType = "None");
 	uint32 GetBotSpellType(Bot* botCaster, uint16 spellid);
 	void SetBotSpellDelay(Bot* botCaster, uint32 iSpellTypes, Mob* spelltar);
+	void SetCombatJitter();
+	void SetCombatOutOfRangeJitter();
+	void DoCombatPositioning(Mob* tar, glm::vec3 Goal, bool stop_melee_level, float tar_distance, float melee_distance_min, float melee_distance, float melee_distance_max, bool behind_mob);
+	void DoFaceCheckWithJitter(Mob* tar);
+	void DoFaceCheckNoJitter(Mob* tar);
+	void RunToGoalWithJitter(glm::vec3 Goal);
 
 	// Custom commands for spells
 	bool CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 spellid = 0, std::string healType = "None");
@@ -1001,8 +1008,9 @@ private:
 	Timer m_slow_delay_timer;
 	Timer m_snare_delay_timer;
 
-	//Timer m_combat_jitter_timer;
-	//bool m_combat_jitter_flag;
+	Timer m_combat_jitter_timer;
+	bool m_combat_jitter_flag;
+	bool m_combat_out_of_range_jitter_flag;
 	bool m_dirtyautohaters;
 	bool m_guard_flag;
 	bool m_hold_flag;
@@ -1135,7 +1143,8 @@ private:
 	int32 GenerateBaseManaPoints();
 	void GenerateSpecialAttacks();
 	void SetBotID(uint32 botID);
-	//void SetCombatJitterFlag(bool flag = true) { m_combat_jitter_flag = flag; }
+	void SetCombatJitterFlag(bool flag = true) { m_combat_jitter_flag = flag; }
+	void SetCombatOutOfRangeJitterFlag(bool flag = true) { m_combat_out_of_range_jitter_flag = flag; }
 	void SetAttackingFlag(bool flag = true) { m_attacking_flag = flag; }
 	void SetPullingFlag(bool flag = true) { m_pulling_flag = flag; }
 	void SetReturningFlag(bool flag = true) { m_returning_flag = flag; }

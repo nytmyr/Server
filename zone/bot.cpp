@@ -3376,16 +3376,22 @@ void Bot::AI_Process()
 //#pragma region COMBAT RANGE CALCS
 
 		bool atCombatRange = false;
+		bool jitterCooldown = false;
+		if (m_combat_jitter_timer.GetRemainingTime() > 1 && m_combat_jitter_timer.Enabled()) {
+			jitterCooldown = true;
+		}
 
 		const auto* p_item = GetBotItem(EQ::invslot::slotPrimary);
 		const auto* s_item = GetBotItem(EQ::invslot::slotSecondary);
 
 		bool behind_mob = false;
 		bool backstab_weapon = false;
-		if (GetClass() == ROGUE) {
+		if (/*GetClass() == ROGUE || */GetBehindMob()) {
 
 			behind_mob = BehindMob(tar, GetX(), GetY()); // Can be separated for other future use
-			backstab_weapon = p_item && p_item->GetItemBackstabDamage();
+			if (GetClass() == ROGUE) {
+				backstab_weapon = p_item && p_item->GetItemBackstabDamage();
+			}
 		}
 
 		// Calculate melee distances
@@ -3444,7 +3450,6 @@ void Bot::AI_Process()
 						else {
 							melee_distance = melee_distance_max * 0.40f;
 						}
-
 						break;
 					case NECROMANCER:
 					case WIZARD:
@@ -3456,7 +3461,6 @@ void Bot::AI_Process()
 						else {
 							melee_distance = melee_distance_max * 0.75f;
 						}
-
 						break;
 					case ROGUE:
 						if (behind_mob && backstab_weapon) {
@@ -3466,7 +3470,6 @@ void Bot::AI_Process()
 							else {
 								melee_distance = melee_distance_max * 0.25f;
 							}
-
 							break;
 						}
 						// Fall-through
@@ -3477,56 +3480,48 @@ void Bot::AI_Process()
 						else {
 							melee_distance = melee_distance_max * 0.50f;
 						}
-
 						break;
 				}
-			} else {
+			} 
+			else {
 				melee_distance = melee_distance_max * float(RuleR(Bots, NormalMeleeRangeDistance));
 			}
 		}
-		float melee_distance_min = melee_distance / 2.0f;
-		if (GetMaxMeleeRange()) {
-			//melee_distance_max = melee_distance_max * float(RuleR(Bots, PercentMaxMeleeRangeDistance));
+
+		float melee_distance_min = melee_distance * float(RuleR(Bots, PercentMinMeleeDistance));
+		if (taunting) {
+			melee_distance = melee_distance_max * float(RuleR(Bots, TauntNormalMeleeRangeDistance));
+			melee_distance_min = melee_distance * float(RuleR(Bots, PercentTauntMinMeleeDistance));
+		}
+
+		if (!taunting && !IsBotArcher() && GetMaxMeleeRange()) {
 			melee_distance = melee_distance_max * float(RuleR(Bots, PercentMaxMeleeRangeDistance));
-			//melee_distance_min = melee_distance_max * float(RuleR(Bots, PercentMaxMeleeRangeDistance));
+			melee_distance_min = melee_distance_max * float(RuleR(Bots, PercentMinMaxMeleeRangeDistance));
 		}
-		float caster_distance_max = GetBotCasterMaxRange(melee_distance_max);
 
-		bool atArcheryRange = IsArcheryRange(tar);
-
-		if (GetRangerAutoWeaponSelect()) {
-
-			bool changeWeapons = false;
-
-			if (atArcheryRange && !IsBotArcher()) {
-
-				SetBotArcherySetting(true);
-				changeWeapons = true;
-			}
-			else if (!atArcheryRange && IsBotArcher()) {
-
-				SetBotArcherySetting(false);
-				changeWeapons = true;
-			}
-
-			if (changeWeapons) {
-				ChangeBotArcherWeapons(IsBotArcher());
-			}
-		}
+		/* Caster Range Checks */
 		bool stop_melee_level = GetLevel() >= GetStopMeleeLevel();
-		if (IsBotArcher() && atArcheryRange) {
-			atCombatRange = true;
-		}
-		else if (caster_distance_max && tar_distance <= caster_distance_max && stop_melee_level) {
-			atCombatRange = true;
-		}
-		else if (tar_distance <= melee_distance || (tar_distance <= melee_distance && stop_melee_level)) {
-			if (GetMaxMeleeRange() && tar_distance >= melee_distance * float(RuleR(Bots, PercentMinMaxMeleeRangeDistance))) {
-				atCombatRange = true;
+		if (stop_melee_level) {
+			melee_distance = GetBotCasterMaxRange(melee_distance_max);
+			if (RuleB(Bots, CastersStayJustOutOfMeleeRange)) {
+				melee_distance_min = melee_distance_max + 1;
 			}
-			else if (!GetMaxMeleeRange()) {
-				atCombatRange = true;
+			else {
+				melee_distance_min = melee_distance * float(RuleR(Bots, PercentMinCasterRangeDistance));
 			}
+		}
+
+		/* Archer Checks*/
+		if (IsBotArcher()) {
+			float archeryRange = GetBotArcheryRange() * GetBotArcheryRange();
+			float casterRange = GetBotCasterRange() * GetBotCasterRange();
+			float minArcheryRange = RuleI(Combat, MinRangedAttackDist) * RuleI(Combat, MinRangedAttackDist);
+			melee_distance = std::min(std::max(archeryRange, casterRange), archeryRange);
+			melee_distance_min = std::min(std::max(minArcheryRange, casterRange), archeryRange);
+		}
+
+		if (tar_distance <= melee_distance) {
+			atCombatRange = true;
 		}
 
 //#pragma endregion
@@ -3536,200 +3531,23 @@ void Bot::AI_Process()
 		// We can fight
 		if (atCombatRange) {
 
-			//if (IsMoving() || GetCombatJitterFlag()) { // StopMoving() needs to be called so that the jitter timer can be reset
-			if (IsMoving()) {
-
+			if (IsMoving() || GetCombatJitterFlag() || GetCombatOutOfRangeJitterFlag()) { // StopMoving() needs to be called so that the jitter timer can be reset
 				// Since we're using a pseudo-shadowstep for jitter, disregard the combat jitter flag
-				//if (!GetCombatJitterFlag()) {
+				if (!GetCombatJitterFlag() || !IsMoving() || GetCombatOutOfRangeJitterFlag()) {
 					StopMoving(CalculateHeadingToTarget(tar->GetX(), tar->GetY()));
-				//}
-
+				}
 				return;
 			}
-
 			// Combat 'jitter' code
 			// Note: Combat Jitter is disabled until a working movement solution can be found
-			if (AI_movement_timer->Check() && (!spellend_timer.Enabled() || GetClass() == BARD)) {
+			if (!jitterCooldown && AI_movement_timer->Check() && (!spellend_timer.Enabled() || GetClass() == BARD)) {
+				DoCombatPositioning(tar, Goal, stop_melee_level, tar_distance, melee_distance_min, melee_distance, melee_distance_max, behind_mob);
+			}
+			else {
+				if (!IsSitting() && !IsFacingMob(tar)) {
 
-				if (!IsRooted()) {
-
-					if (HasTargetReflection()) {
-
-						if (!tar->IsFeared() && !tar->IsStunned()) {
-
-							if (GetClass() == ROGUE) {
-
-								if (m_evade_timer.Check(false)) { // Attempt to evade
-
-									int timer_duration = (HideReuseTime - GetSkillReuseTime(EQ::skills::SkillHide)) * 1000;
-									if (timer_duration < 0) {
-										timer_duration = 0;
-									}
-
-									m_evade_timer.Start(timer_duration);
-									BotGroupSay(this, "Attempting to evade %s", tar->GetCleanName());
-									//bot_owner->Message(Chat::Tell, "%s tells you, Attempting to evade %s", GetCleanName(), tar->GetCleanName());
-									if (zone->random.Int(0, 260) < (int)GetSkill(EQ::skills::SkillHide)) {
-										//SendAppearancePacket(AT_Invis, Invisibility::Invisible);
-										RogueEvade(tar);
-									}
-									//SendAppearancePacket(AT_Invis, Invisibility::Visible);
-									return;
-								}
-							}
-
-							if (GetClass() == MONK && GetLevel() >= 17) {
-
-								if (m_monk_evade_timer.Check(false)) { // Attempt to evade
-
-									int timer_duration = (FeignDeathReuseTime - GetSkillReuseTime(EQ::skills::SkillFeignDeath)) * 1000;
-									if (timer_duration < 0) {
-										timer_duration = 0;
-									}
-
-									m_monk_evade_timer.Start(timer_duration);
-									BotGroupSay(this, "Attempting to evade %s", tar->GetCleanName());
-									//bot_owner->Message(Chat::Tell, "%s tells you, Attempting to evade %s", GetCleanName(), tar->GetCleanName());
-									if (zone->random.Int(0, 260) < (int)GetSkill(EQ::skills::SkillFeignDeath)) {
-										//SendAppearancePacket(AT_Anim, ANIM_DEATH);
-										entity_list.MessageCloseString(this, false, 200, 10, STRING_FEIGNFAILED, GetName());
-									}
-									else {
-										SetFeigned(true);
-										//SendAppearancePacket(AT_Anim, ANIM_DEATH);
-									}
-									//SendAppearancePacket(AT_Anim, ANIM_STAND);
-									SetFeigned(false);
-									return;
-								}
-							}
-
-							//if (tar->IsRooted()) { // Move caster/rogue back from rooted mob - out of combat range, if necessary
-
-							//	if (GetArchetype() == ARCHETYPE_CASTER || GetClass() == ROGUE) {
-
-							//		if (tar_distance <= melee_distance_max) {
-
-							//			if (PlotPositionAroundTarget(this, Goal.x, Goal.y, Goal.z)) {
-							//			//if (PlotPositionBehindMeFacingTarget(tar, Goal.x, Goal.y, Goal.z)) {
-
-							//				Teleport(Goal);
-							//				//WalkTo(Goal.x, Goal.y, Goal.z);
-							//				SetCombatJitterFlag();
-
-							//				return;
-							//			}
-							//		}
-							//	}
-							//}
-						}
-					}
-					//else {
-
-					//	if (caster_distance_min && tar_distance < caster_distance_min && !tar->IsFeared()) { // Caster back-off adjustment
-
-					//		if (PlotPositionAroundTarget(this, Goal.x, Goal.y, Goal.z)) {
-					//		//if (PlotPositionBehindMeFacingTarget(tar, Goal.x, Goal.y, Goal.z)) {
-
-					//			if (DistanceSquared(Goal, tar->GetPosition()) <= caster_distance_max) {
-
-					//				Teleport(Goal);
-					//				//WalkTo(Goal.x, Goal.y, Goal.z);
-					//				SetCombatJitterFlag();
-
-					//				return;
-					//			}
-					//		}
-					//	}
-					//	else if (tar_distance < melee_distance_min) { // Melee back-off adjustment
-
-					//		if (PlotPositionAroundTarget(this, Goal.x, Goal.y, Goal.z)) {
-					//		//if (PlotPositionBehindMeFacingTarget(tar, Goal.x, Goal.y, Goal.z)) {
-
-					//			if (DistanceSquared(Goal, tar->GetPosition()) <= melee_distance_max) {
-
-					//				Teleport(Goal);
-					//				//WalkTo(Goal.x, Goal.y, Goal.z);
-					//				SetCombatJitterFlag();
-
-					//				return;
-					//			}
-					//		}
-					//	}
-					else if (!RuleB(Bots, MeleeBehindMob) && backstab_weapon && !behind_mob && !GetMaxMeleeRange()) { // Move the rogue to behind the mob
-						if (PlotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z)) {
-							//if (PlotPositionOnArcBehindTarget(tar, Goal.x, Goal.y, Goal.z, melee_distance)) {
-
-							float distance_squared = DistanceSquared(Goal, tar->GetPosition());
-							if (/*distance_squared >= melee_distance_min && */distance_squared <= melee_distance) {
-
-								//Teleport(Goal);
-								RunTo(Goal.x, Goal.y, Goal.z);
-								//SetCombatJitterFlag();
-
-								return;
-							}
-						}
-					}
-					else if (RuleB(Bots, MeleeBehindMob) && GetBehindMob() && !behind_mob && !taunting && GetTarget()->GetHateTop() != this && !GetMaxMeleeRange()) { // Move melee to behind the mob
-						if (PlotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z)) {
-							//if (PlotPositionOnArcBehindTarget(tar, Goal.x, Goal.y, Goal.z, melee_distance)) {
-
-							float distance_squared = DistanceSquared(Goal, tar->GetPosition());
-							if (/*distance_squared >= melee_distance_min && */distance_squared <= melee_distance) {
-
-								//Teleport(Goal);
-								RunTo(Goal.x, Goal.y, Goal.z);
-								//SetCombatJitterFlag();
-
-								return;
-							}
-						}
-					}
-					//	else if (m_combat_jitter_timer.Check()) {
-
-					//		if (!caster_distance && PlotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z)) {
-					//		//if (!caster_distance && PlotPositionOnArcInFrontOfTarget(tar, Goal.x, Goal.y, Goal.z, melee_distance)) {
-
-					//			float distance_squared = DistanceSquared(Goal, tar->GetPosition());
-					//			if (/*distance_squared >= melee_distance_min && */distance_squared <= melee_distance_max) {
-
-					//				Teleport(Goal);
-					//				//WalkTo(Goal.x, Goal.y, Goal.z);
-					//				SetCombatJitterFlag();
-
-					//				return;
-					//			}
-					//		}
-					//		else if (caster_distance && PlotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z)) {
-					//		//else if (caster_distance && PlotPositionOnArcInFrontOfTarget(tar, Goal.x, Goal.y, Goal.z, caster_distance)) {
-
-					//			float distance_squared = DistanceSquared(Goal, tar->GetPosition());
-					//			if (/*distance_squared >= caster_distance_min && */distance_squared <= caster_distance_max) {
-
-					//				Teleport(Goal);
-					//				//WalkTo(Goal.x, Goal.y, Goal.z);
-					//				SetCombatJitterFlag();
-
-					//				return;
-					//			}
-					//		}
-					//	}
-
-					//	if (!IsFacingMob(tar)) {
-
-					//		FaceTarget(tar);
-					//		return;
-					//	}
-					//}
-				}
-				else {
-
-					if (!IsSitting() && !IsFacingMob(tar)) {
-
-						FaceTarget(tar);
-						return;
-					}
+					FaceTarget(tar);
+					return;
 				}
 			}
 
@@ -3741,7 +3559,7 @@ void Bot::AI_Process()
 			// TEST_COMBATANTS() call. Due to the chance of the target dying and our pointer
 			// being nullified, we need to test it before dereferencing to avoid crashes
 
-			if (IsBotArcher() && ranged_timer.Check(false)) { // Can shoot mezzed, stunned and dead!?
+			if (IsBotArcher() && IsArcheryRange(tar) && ranged_timer.Check(false)) { // Can shoot mezzed, stunned and dead!?
 
 				TEST_COMBATANTS();
 				if (GetTarget()->GetHPRatio() <= 99.0f) {
@@ -3885,22 +3703,16 @@ void Bot::AI_Process()
 //#pragma region ENGAGED NOT AT COMBAT RANGE
 
 		else { // To far away to fight (GetTarget() validity can be iffy below this point - including outer scopes)
-
 			// This code actually gets processed when we are too far away from target and have not engaged yet, too
-			if (/*!GetCombatJitterFlag() && */AI_movement_timer->Check() && (!spellend_timer.Enabled() || GetClass() == BARD)) { // Pursue processing
+			if (AI_movement_timer->Check() && (!spellend_timer.Enabled() || GetClass() == BARD)) { // Pursue processing
 
 				if (GetTarget() && !IsRooted()) {
 
 					LogAIDetail("Pursuing [{}] while engaged", GetTarget()->GetCleanName());
 					Goal = GetTarget()->GetPosition();
 					if (DistanceSquared(m_Position, Goal) <= leash_distance) {
-						if (GetMaxMeleeRange() && (DistanceSquared(m_Position, Goal) <= melee_distance * float(RuleR(Bots, PercentMinMaxMeleeRangeDistance)))) {
-							//Goal = GetOwner()->GetPosition();
-							RunTo(Goal.x, Goal.y, Goal.z);
-						}
-						else {
-							RunTo(Goal.x, Goal.y, Goal.z);
-						}
+						RunTo(Goal.x, Goal.y, Goal.z);
+						SetCombatOutOfRangeJitter();
 					}
 					else {
 
@@ -3935,6 +3747,13 @@ void Bot::AI_Process()
 
 				return;
 			}
+
+			if (!IsSitting() && !IsFacingMob(tar)) {
+
+				FaceTarget(tar);
+				return;
+			}
+
 		} // End not in combat range
 
 //#pragma endregion
@@ -9498,7 +9317,7 @@ bool Bot::GetNeedsHateRedux(Mob *tar) {
 	if (tar->IsBot()) {
 		switch (tar->GetClass()) {
 		case ROGUE:
-			if (tar->CanFacestab() || tar->CastToBot()->m_evade_timer.Check(false))
+			if (tar->CastToBot()->m_evade_timer.Check(false))
 				return false;
 		case MONK:
 			if (tar->CastToBot()->m_monk_evade_timer.Check(false))
@@ -9862,17 +9681,15 @@ std::string Bot::CreateSayLink(Client* c, const char* message, const char* name)
 
 void Bot::StopMoving()
 {
-	//SetCombatJitterFlag(false);
-	//m_combat_jitter_timer.Start(zone->random.Int(BOT_COMBAT_JITTER_INTERVAL_MIN, BOT_COMBAT_JITTER_INTERVAL_MAX));
-
+	SetCombatJitterFlag(false);
+	SetCombatOutOfRangeJitterFlag(false);
 	Mob::StopMoving();
 }
 
 void Bot::StopMoving(float new_heading)
 {
-	//SetCombatJitterFlag(false);
-	//m_combat_jitter_timer.Start(zone->random.Int(BOT_COMBAT_JITTER_INTERVAL_MIN, BOT_COMBAT_JITTER_INTERVAL_MAX));
-
+	SetCombatJitterFlag(false);
+	SetCombatOutOfRangeJitterFlag(false);
 	Mob::StopMoving(new_heading);
 }
 
@@ -11372,4 +11189,148 @@ bool Bot::CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 
 		default:
 			return true;
 	}
+}
+
+void Bot::SetCombatJitter() {
+	SetCombatJitterFlag();
+	if (RuleI(Bots, MaxJitterTimer) > 0) {
+		m_combat_jitter_timer.Start(zone->random.Int(RuleI(Bots, MinJitterTimer), RuleI(Bots, MaxJitterTimer)), true);
+	}
+}
+
+void Bot::SetCombatOutOfRangeJitter() {
+	SetCombatOutOfRangeJitterFlag();
+}
+
+void Bot::DoCombatPositioning(Mob* tar, glm::vec3 Goal, bool stop_melee_level, float tar_distance, float melee_distance_min, float melee_distance, float melee_distance_max, bool behind_mob) {
+	if (HasTargetReflection()) {
+		if (!tar->IsFeared() && !tar->IsStunned()) {
+			if (GetClass() == ROGUE) {
+				if (m_evade_timer.Check(false)) { // Attempt to evade
+					int timer_duration = (HideReuseTime - GetSkillReuseTime(EQ::skills::SkillHide)) * 1000;
+					if (timer_duration < 0) {
+						timer_duration = 0;
+					}
+					m_evade_timer.Start(timer_duration);
+					BotGroupSay(this, "Attempting to evade %s", tar->GetCleanName());
+					if (zone->random.Int(0, 260) < (int)GetSkill(EQ::skills::SkillHide)) {
+						//SendAppearancePacket(AT_Invis, Invisibility::Invisible);
+						RogueEvade(tar);
+					}
+					//SendAppearancePacket(AT_Invis, Invisibility::Visible);
+					return;
+				}
+			}
+			if (GetClass() == MONK && GetLevel() >= 17) {
+				if (m_monk_evade_timer.Check(false)) { // Attempt to evade
+					int timer_duration = (FeignDeathReuseTime - GetSkillReuseTime(EQ::skills::SkillFeignDeath)) * 1000;
+					if (timer_duration < 0) {
+						timer_duration = 0;
+					}
+					m_monk_evade_timer.Start(timer_duration);
+					BotGroupSay(this, "Attempting to evade %s", tar->GetCleanName());
+					if (zone->random.Int(0, 260) < (int)GetSkill(EQ::skills::SkillFeignDeath)) {
+						//SendAppearancePacket(AT_Anim, ANIM_DEATH);
+						entity_list.MessageCloseString(this, false, 200, 10, STRING_FEIGNFAILED, GetName());
+					}
+					else {
+						SetFeigned(true);
+						//SendAppearancePacket(AT_Anim, ANIM_DEATH);
+					}
+					//SendAppearancePacket(AT_Anim, ANIM_STAND);
+					SetFeigned(false);
+					return;
+				}
+			}
+			if (tar->IsRooted() && !taunting) { // Move non-taunters out of range - Above already checks if bot is targeted, otherwise they would stay
+				if (tar_distance <= melee_distance_max) {
+					if (PlotBotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z, (melee_distance_max + 1), (melee_distance_max * 2), false, false, true)) {
+						RunToGoalWithJitter(Goal);
+					}
+				}
+				else {
+					DoFaceCheckWithJitter(tar);
+				}
+			}
+			if (tar_distance < melee_distance_min) {
+				if (PlotBotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z, melee_distance_min, melee_distance, false, true, true)) {
+					RunToGoalWithJitter(Goal);
+				}
+				else {
+					DoFaceCheckWithJitter(tar);
+				}
+			}
+			DoFaceCheckNoJitter(tar);
+		}
+	}
+	else {
+		if (!tar->IsFeared()) {
+			if (!IsBotArcher() && GetBehindMob() && !taunting && (tar_distance < melee_distance_min || !behind_mob)) { // Adjust behind mob
+				if (PlotBotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z, melee_distance_min, melee_distance, true, false, true)) {
+					RunToGoalWithJitter(Goal);
+				}
+				else {
+					DoFaceCheckWithJitter(tar);
+				}
+			}
+			else if (tar_distance < melee_distance_min && !taunting) { // Regular adjustment
+				if (PlotBotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z, melee_distance_min, melee_distance, false, false, true)) {
+					RunToGoalWithJitter(Goal);
+				}
+				else {
+					DoFaceCheckWithJitter(tar);
+				}
+			}
+			else if (taunting) { // Taunting adjustments
+				Mob* mobTar = tar->GetTarget();
+				if (mobTar) {
+				}
+				if (RuleB(Bots, TauntingBotsFollowTopHate)) {
+					if (mobTar != nullptr && (DistanceSquared(m_Position, mobTar->GetPosition()) > pow(RuleR(Bots, DistanceTauntingBotsStickMainHate), 2))) {
+						Goal = mobTar->GetPosition();
+						RunToGoalWithJitter(Goal);
+					}
+				}
+				else {
+					if (mobTar != nullptr && mobTar->IsBot() && mobTar->CastToBot()->taunting && (DistanceSquared(m_Position, mobTar->GetPosition()) > pow(RuleR(Bots, DistanceTauntingBotsStickMainHate), 2))) {
+						Goal = mobTar->GetPosition();
+						RunToGoalWithJitter(Goal);
+					}
+				}
+			}
+			DoFaceCheckNoJitter(tar);
+		}
+		DoFaceCheckNoJitter(tar);
+	}
+}
+
+void Bot::DoFaceCheckWithJitter(Mob* tar) {
+	if (!tar) {
+		return;
+	}
+
+	SetCombatJitter();
+	if (!IsFacingMob(tar)) {
+		FaceTarget(tar);
+		return;
+	}
+	return;
+}
+
+void Bot::DoFaceCheckNoJitter(Mob* tar) {
+	if (!tar) {
+		return;
+	}
+
+	if (!IsFacingMob(tar)) {
+		FaceTarget(tar);
+		return;
+	}
+	return;
+}
+
+void Bot::RunToGoalWithJitter(glm::vec3 Goal) {
+	RunTo(Goal.x, Goal.y, Goal.z);
+	SetCombatJitter();
+	return;
 }
