@@ -6844,6 +6844,7 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "usage: [%s chainonly] will display only Chain-wearing bots that can use the item.", sep->arg[0]);
 		c->Message(Chat::White, "usage: [%s leatheronly] will display only Leather-wearing bots that can use the item.", sep->arg[0]);
 		c->Message(Chat::White, "usage: [%s clothonly] will display only Cloth-wearing bots that can use the item.", sep->arg[0]);
+		c->Message(Chat::White, "usage: [%s gearscore] will display only items with a lower Gear Score than the item on your cursor. You can also use this as an argument to narrow down further, for example [%s plateonly gearscore] to see only plate-wearers that have a lower Gear Score item than the current item on your cursor.", sep->arg[0], sep->arg[0]);
 		return;
 	}
 
@@ -6858,8 +6859,10 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 	bool chain_only = false;
 	bool leather_only = false;
 	bool cloth_only = false;
+	bool gear_score = false;
 
 	std::string arg1 = sep->arg[1];
+	std::string arg2 = sep->arg[2];
 	if (arg1.compare("empty") == 0) {
 		empty_only = true;
 	}
@@ -6898,6 +6901,9 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 	}
 	else if (arg1.compare("clothonly") == 0) {
 		cloth_only = true;
+	}
+	else if (arg1.compare("gearscore") == 0 || arg2.compare("gearscore") == 0) {
+		gear_score = true;
 	}
 	else if (!arg1.empty()) {
 		c->Message(Chat::White, "Please choose the correct subtype. For help use %s help.", sep->arg[0]);
@@ -6978,7 +6984,9 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 
 			if (equipped_item && !empty_only) {
 				linker.SetItemInst(equipped_item);
-
+				if (gear_score && equipped_item->GetItem()->GearScore >= item_data->GearScore) {
+					continue;
+				}
 				c->Message(
 					Chat::Say,
 					fmt::format(
