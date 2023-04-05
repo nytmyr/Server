@@ -970,6 +970,9 @@ RULE_BOOL(Items, DisableSpellFocusEffects, false, "Enable this to disable Spell 
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(Vegas)
+RULE_REAL(Vegas, AltCurrencySellElementalRate, .20, "Sellback rate for Shard bought items. .20 = 20%.")
+RULE_REAL(Vegas, AltCurrencySellOrnateRate, .20, "Sellback rate for Shard bought items. .20 = 20%.")
+RULE_REAL(Vegas, AltCurrencySellShardRate, .50, "Sellback rate for Shard bought items. .50 = 50%.")
 RULE_REAL(Vegas, BagMultiplier, 1.00, "1.00 Default. Multiplier for WR Bag drops.")
 RULE_REAL(Vegas, BridleMultiplier, 1.00, "1.00 Default. Multiplier for Bridle drops.")
 RULE_REAL(Vegas, CashMultiplier, 1.00, "1.00 Default. Multiplier for Cash drops.")

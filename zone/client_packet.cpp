@@ -2759,6 +2759,16 @@ void Client::Handle_OP_AltCurrencySell(const EQApplicationPacket *app)
 			return;
 		}
 
+		if (alt_cur_id == 70 && !RuleB(Vegas, EnableAltCurrencySellShard)) {
+			return;
+		}
+		if (alt_cur_id == 71 && !RuleB(Vegas, EnableAltCurrencySellOrnate)) {
+			return;
+		}
+		if (alt_cur_id == 72 && !RuleB(Vegas, EnableAltCurrencySellElemental)) {
+			return;
+		}
+
 		const EQ::ItemData* item = nullptr;
 		uint32 cost = 0;
 		uint32 current_currency = GetAlternateCurrencyValue(alt_cur_id);
@@ -2784,14 +2794,25 @@ void Client::Handle_OP_AltCurrencySell(const EQApplicationPacket *app)
 
 			if (item->ID == inst->GetItem()->ID) {
 				// 06/11/2016 This formula matches RoF2 client side calculation.
-				cost = EQ::Clamp(
-					cost,
-					EQ::ClampUpper(
-						static_cast<uint32>((ml.alt_currency_cost + 1) * item->LDoNSellBackRate / 100),
+				if (alt_cur_id == 70) {
+					cost = ml.alt_currency_cost * RuleR(Vegas, AltCurrencySellShardRate);
+				}
+				else if (alt_cur_id == 71) {
+					cost = ml.alt_currency_cost * RuleR(Vegas, AltCurrencySellOrnateRate);
+				}
+				else if (alt_cur_id == 72) {
+					cost = ml.alt_currency_cost * RuleR(Vegas, AltCurrencySellElementalRate);
+				}
+				else {
+					cost = EQ::Clamp(
+						cost,
+						EQ::ClampUpper(
+							static_cast<uint32>((ml.alt_currency_cost + 1) * item->LDoNSellBackRate / 100),
+							static_cast<uint32>(ml.alt_currency_cost)
+						),
 						static_cast<uint32>(ml.alt_currency_cost)
-					),
-					static_cast<uint32>(ml.alt_currency_cost)
-				);
+					);
+				}
 				found = true;
 				break;
 			}
@@ -2898,6 +2919,15 @@ void Client::Handle_OP_AltCurrencySellSelection(const EQApplicationPacket *app)
 		uint32 merchant_id = tar->MerchantType;
 
 		if (RuleB(Merchant, EnableAltCurrencySell)) {
+			if (alt_cur_id == 70 && !RuleB(Vegas, EnableAltCurrencySellShard)) {
+				cost = 0;
+			}
+			if (alt_cur_id == 71 && !RuleB(Vegas, EnableAltCurrencySellOrnate)) {
+				cost = 0;
+			}
+			if (alt_cur_id == 72 && !RuleB(Vegas, EnableAltCurrencySellElemental)) {
+				cost = 0;
+			}
 			bool found = false;
 			std::list<MerchantList> merlist = zone->merchanttable[merchant_id];
 			std::list<MerchantList>::const_iterator itr;
@@ -2918,14 +2948,25 @@ void Client::Handle_OP_AltCurrencySellSelection(const EQApplicationPacket *app)
 
 				if (item->ID == inst->GetItem()->ID) {
 					// 06/11/2016 This formula matches RoF2 client side calculation.
-					cost = EQ::Clamp(
-						cost,
-						EQ::ClampUpper(
-							static_cast<uint32>((ml.alt_currency_cost + 1) * item->LDoNSellBackRate / 100),
+					if (alt_cur_id == 70) {
+						cost = ml.alt_currency_cost * RuleR(Vegas, AltCurrencySellShardRate);
+					}
+					else if (alt_cur_id == 71) {
+						cost = ml.alt_currency_cost * RuleR(Vegas, AltCurrencySellOrnateRate);
+					}
+					else if (alt_cur_id == 72) {
+						cost = ml.alt_currency_cost * RuleR(Vegas, AltCurrencySellElementalRate);
+					}
+					else {
+						cost = EQ::Clamp(
+							cost,
+							EQ::ClampUpper(
+								static_cast<uint32>((ml.alt_currency_cost + 1) * item->LDoNSellBackRate / 100),
+								static_cast<uint32>(ml.alt_currency_cost)
+							),
 							static_cast<uint32>(ml.alt_currency_cost)
-						),
-						static_cast<uint32>(ml.alt_currency_cost)
-					);
+						);
+					}
 					found = true;
 					break;
 				}
