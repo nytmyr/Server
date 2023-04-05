@@ -1827,6 +1827,9 @@ void handle_player_alt_currency_merchant(
 	lua_setfield(L, -2, "item_id");
 
 	lua_pushinteger(L, Strings::ToInt(sep.arg[4]));
+	lua_setfield(L, -2, "item_quantity");
+
+	lua_pushinteger(L, Strings::ToInt(sep.arg[5]));
 	lua_setfield(L, -2, "item_cost");
 }
 

@@ -2633,11 +2633,12 @@ void Client::Handle_OP_AltCurrencyPurchase(const EQApplicationPacket *app)
 
 		if (parse->PlayerHasQuestSub(EVENT_ALT_CURRENCY_MERCHANT_BUY)) {
 			const auto& export_string = fmt::format(
-				"{} {} {} {} {}",
+				"{} {} {} {} {} {}",
 				alt_cur_id,
 				tar->GetNPCTypeID(),
 				tar->MerchantType,
 				item->ID,
+				1,
 				cost
 			);
 
@@ -2831,11 +2832,12 @@ void Client::Handle_OP_AltCurrencySell(const EQApplicationPacket *app)
 
 		if (parse->PlayerHasQuestSub(EVENT_ALT_CURRENCY_MERCHANT_SELL)) {
 			const auto& export_string = fmt::format(
-				"{} {} {} {} {}",
+				"{} {} {} {} {} {}",
 				alt_cur_id,
 				tar->GetNPCTypeID(),
 				tar->MerchantType,
 				item->ID,
+				sell->charges,
 				cost
 			);
 

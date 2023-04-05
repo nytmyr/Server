@@ -2062,7 +2062,8 @@ void PerlembParser::ExportEventVariables(
 			ExportVar(package_name.c_str(), "npc_id", sep.arg[1]);
 			ExportVar(package_name.c_str(), "merchant_id", sep.arg[2]);
 			ExportVar(package_name.c_str(), "item_id", sep.arg[3]);
-			ExportVar(package_name.c_str(), "item_cost", sep.arg[4]);
+			ExportVar(package_name.c_str(), "item_quantity", sep.arg[4]);
+			ExportVar(package_name.c_str(), "item_cost", sep.arg[5]);
 			break;
 		}
 
