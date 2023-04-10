@@ -449,7 +449,7 @@ RULE_BOOL(Spells, UseItemCastMessage, false, "Enable to use the \"item begins to
 RULE_BOOL(Spells, WaterMatchRequiredForLoS, false, "Enable/Disable the requirement of both the attacker/victim being both in or out of water for spells LoS to pass.")
 RULE_BOOL(Spells, TargetsTargetRequiresCombatRange, true, "Disable to remove combat range requirement from Target's Target Spell Target Type")
 RULE_BOOL(Spells, NPCBuffLevelRestrictions, false, "Impose BuffLevelRestrictions on NPCs if true")
-RULE_BOOL(Spells, ResurrectionEffectsBlock, true, "If enabled, resurrection effects cannot be overwritten.")
+RULE_INT(Spells, ResurrectionEffectsBlock, 2, "0 = allow overwrites/rule disabled. If set to 1 = Block all buffs that would overwrite Resurrection Effects. If set to 2 = Will not overwrite Resurrection Effects, instead moves new buff to an empty slot if available. Default is 2.")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(Combat)
