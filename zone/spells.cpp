@@ -3185,6 +3185,12 @@ int Mob::CheckStackConflict(uint16 spellid1, int caster_level1, uint16 spellid2,
 			}
 		}
 
+		if (((IsDetrimentalSpell(sp1.id) && !IsDetrimentalSpell(sp2.id)) || (IsDetrimentalSpell(sp2.id) && !IsDetrimentalSpell(sp1.id))) && !RuleB(Spells, DetrimentalBeneficalConflict)) {
+			LogSpells("Spell [{}] (value [{}]) is not as good as [{}] (value [{}]). But rule DetrimentalBeneficalConflict is disabled, moving to another buff slot if available.",
+				sp2.name, sp2_value, sp1.name, sp1_value);
+			return 2;
+		}
+
 		if(sp2_value < sp1_value) {
 			LogSpells("Spell [{}] (value [{}]) is not as good as [{}] (value [{}]). Rejecting [{}]",
 				sp2.name, sp2_value, sp1.name, sp1_value, sp2.name);

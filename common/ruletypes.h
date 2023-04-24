@@ -450,6 +450,7 @@ RULE_BOOL(Spells, WaterMatchRequiredForLoS, false, "Enable/Disable the requireme
 RULE_BOOL(Spells, TargetsTargetRequiresCombatRange, true, "Disable to remove combat range requirement from Target's Target Spell Target Type")
 RULE_BOOL(Spells, NPCBuffLevelRestrictions, false, "Impose BuffLevelRestrictions on NPCs if true")
 RULE_INT(Spells, ResurrectionEffectsBlock, 2, "0 = allow overwrites/rule disabled. If set to 1 = Block all buffs that would overwrite Resurrection Effects. If set to 2 = Will not overwrite Resurrection Effects, instead moves new buff to an empty slot if available. Default is 2.")
+RULE_BOOL(Spells, DetrimentalBeneficalConflict, true, "If set to false, detrimental and beneficial spells cannot block or overwrite one another, they will instead attempt to find other buff slots. Default is true.")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(Combat)
