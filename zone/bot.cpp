@@ -11013,6 +11013,10 @@ bool Bot::CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 
 	if (!botCaster || !spellType || !tar)
 		return false;
 
+	if (tar->GetSpecialAbility(IMMUNE_CASTING_FROM_RANGE) && !CombatRange(tar)) {
+		return false;
+	}
+
 	//bool result = false;
 	uint8 targetHP = tar->GetHPRatio();
 	uint8 botHP = GetHPRatio();
