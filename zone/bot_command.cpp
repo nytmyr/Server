@@ -2500,6 +2500,33 @@ namespace ActionableBots
 		return nullptr;
 	}
 
+	// Returns single, scoped bot
+	static Bot* AsRaidGroupMember_ByClass(Client* bot_owner, Client* bot_grouped_player, uint8 cls, bool petless = false) {
+		if (!bot_owner || !bot_grouped_player)
+			return nullptr;
+		if (!bot_grouped_player->IsRaidGrouped())
+			return nullptr;
+
+		std::list<Mob*> group_list;
+		Raid* raid = bot_grouped_player->GetRaid();
+		if (!raid)
+			return nullptr;
+		uint32 raid_group = raid->GetGroup(bot_grouped_player);
+		for (int x = 0; x < MAX_RAID_MEMBERS; x++) {
+			if (raid->members[x].member && raid->members[x].GroupNumber == raid_group) {
+				if (!MyBots::IsMyBot(bot_owner, raid->members[x].member->CastToMob()))
+					continue;
+				if (raid->members[x].member->GetClass() != cls)
+					continue;
+				if (petless && raid->members[x].member->GetPet())
+					continue;
+
+				return static_cast<Bot*>(raid->members[x].member->CastToBot());
+			}
+		}
+		return nullptr;
+	}
+
 	static Bot* AsGroupMember_ByMinLevelAndClass(Client *bot_owner, Client *bot_grouped_player, uint8 minlvl, uint8 cls, bool petless = false) {
 		// This function can be nixed if we can enforce bot level as owner level..and the level check can then be moved to the spell loop in the command function
 		if (!bot_owner || !bot_grouped_player)
@@ -3980,9 +4007,16 @@ void bot_command_depart(Client *c, const Seperator *sep)
 
 	std::string destination = sep->arg[1];
 	if (!destination.compare("list")) {
-		Bot* my_druid_bot = ActionableBots::AsGroupMember_ByClass(c, c, DRUID);
-		Bot* my_wizard_bot = ActionableBots::AsGroupMember_ByClass(c, c, WIZARD);
-		helper_command_depart_list(c, my_druid_bot, my_wizard_bot, local_list, single);
+		if (c->IsRaidGrouped()) {
+			Bot* my_druid_bot = ActionableBots::AsRaidGroupMember_ByClass(c, c, DRUID);
+			Bot* my_wizard_bot = ActionableBots::AsRaidGroupMember_ByClass(c, c, WIZARD);
+			helper_command_depart_list(c, my_druid_bot, my_wizard_bot, local_list, single);
+		}
+		else {
+			Bot* my_druid_bot = ActionableBots::AsGroupMember_ByClass(c, c, DRUID);
+			Bot* my_wizard_bot = ActionableBots::AsGroupMember_ByClass(c, c, WIZARD);
+			helper_command_depart_list(c, my_druid_bot, my_wizard_bot, local_list, single);
+		}
 		return;
 	}
 	else if (destination.empty()) {
@@ -12762,8 +12796,14 @@ void bot_subcommand_circle(Client *c, const Seperator *sep)
 
 	std::string destination = sep->arg[1];
 	if (!destination.compare("list")) {
-		auto my_druid_bot = ActionableBots::AsGroupMember_ByClass(c, c, DRUID);
-		helper_command_depart_list(c, my_druid_bot, nullptr, local_list, single);
+		if (c->IsRaidGrouped()) {
+			Bot* my_druid_bot = ActionableBots::AsRaidGroupMember_ByClass(c, c, DRUID);
+			helper_command_depart_list(c, my_druid_bot, nullptr, local_list, single);
+		}
+		else {
+			Bot* my_druid_bot = ActionableBots::AsGroupMember_ByClass(c, c, DRUID);
+			helper_command_depart_list(c, my_druid_bot, nullptr, local_list, single);
+		}
 		return;
 	}
 	else if (destination.empty()) {
@@ -14501,8 +14541,14 @@ void bot_subcommand_portal(Client *c, const Seperator *sep)
 
 	std::string destination = sep->arg[1];
 	if (!destination.compare("list")) {
-		auto my_wizard_bot = ActionableBots::AsGroupMember_ByClass(c, c, WIZARD);
-		helper_command_depart_list(c, nullptr, my_wizard_bot, local_list, single);
+		if (c->IsRaidGrouped()) {
+			auto my_wizard_bot = ActionableBots::AsRaidGroupMember_ByClass(c, c, WIZARD);
+			helper_command_depart_list(c, nullptr, my_wizard_bot, local_list, single);
+		}
+		else {
+			auto my_wizard_bot = ActionableBots::AsGroupMember_ByClass(c, c, WIZARD);
+			helper_command_depart_list(c, nullptr, my_wizard_bot, local_list, single);
+		}
 		return;
 	}
 	else if (destination.empty()) {
