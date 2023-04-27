@@ -3363,7 +3363,7 @@ void Bot::AI_Process()
 
 			constexpr size_t PULL_AGGRO = 5225; // spells[5225]: 'Throw Stone' - 0 cast time
 
-			if (tar_distance <= (spells[PULL_AGGRO].range * spells[PULL_AGGRO].range)) {
+			if (tar_distance <= (spells[PULL_AGGRO].range * spells[PULL_AGGRO].range) && CheckLosFN(tar)) {
 
 				StopMoving();
 				CastSpell(PULL_AGGRO, tar->GetID());
