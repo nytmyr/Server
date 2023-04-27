@@ -1863,14 +1863,56 @@ namespace MyBots
 		if (!bot_owner)
 			return;
 
-		if (!bot_owner->GetGroup())
+		if (!bot_owner->GetGroup() && !bot_owner->GetRaid())
 			return;
 
-		std::list<Bot*> group_list;
-		bot_owner->GetGroup()->GetBotList(group_list);
-		for (auto member_iter : group_list) {
-			if (IsMyBot(bot_owner, member_iter))
-				sbl.push_back(member_iter);
+		if (bot_owner->IsRaidGrouped()) {
+			Raid* raid = bot_owner->GetRaid();
+			if (!raid)
+				return;
+			uint32 raid_group = raid->GetGroup(bot_owner);
+			for (int x = 0; x < MAX_RAID_MEMBERS; x++) {
+				if (raid->members[x].member && entity_list.IsMobInZone(raid->members[x].member) && raid->members[x].GroupNumber == raid_group) {
+					if (!MyBots::IsMyBot(bot_owner, raid->members[x].member->CastToBot()))
+						continue;
+					sbl.push_back(raid->members[x].member->CastToBot());
+				}
+			}
+		}
+		else {
+			std::list<Bot*> group_list;
+			bot_owner->GetGroup()->GetBotList(group_list);
+			for (auto member_iter : group_list) {
+				if (IsMyBot(bot_owner, member_iter))
+					sbl.push_back(member_iter);
+			}
+		}
+
+		if (!clear_list)
+			UniquifySBL(sbl);
+	}
+
+	static void PopulateSBL_ByMyRaidBots(Client* bot_owner, std::list<Bot*>& sbl, bool clear_list = true) {
+		if (clear_list)
+			sbl.clear();
+		if (!bot_owner)
+			return;
+
+		if (!bot_owner->GetRaid())
+			return;
+
+		Raid* raid = bot_owner->GetRaid();
+		if (!raid)
+			return;
+
+		uint32 raid_group = raid->GetGroup(bot_owner);
+
+		for (int x = 0; x < MAX_RAID_MEMBERS; x++) {
+			if (raid->members[x].member && entity_list.IsMobInZone(raid->members[x].member)) {
+				if (!MyBots::IsMyBot(bot_owner, raid->members[x].member->CastToBot()))
+					continue;
+				sbl.push_back(raid->members[x].member->CastToBot());
+			}
 		}
 
 		if (!clear_list)
@@ -2256,6 +2298,7 @@ namespace ActionableBots
 		ABT_Target,
 		ABT_ByName,
 		ABT_OwnerGroup,
+		ABT_OwnerRaid,
 		ABT_BotGroup,
 		ABT_TargetGroup,
 		ABT_NamesGroup,
@@ -2271,6 +2314,7 @@ namespace ActionableBots
 		ABM_Target = (1 << (ABT_Target - 1)),
 		ABM_ByName = (1 << (ABT_ByName - 1)),
 		ABM_OwnerGroup = (1 << (ABT_OwnerGroup - 1)),
+		ABM_OwnerRaid = (1 << (ABT_OwnerRaid - 1)),
 		ABM_BotGroup = (1 << (ABT_BotGroup - 1)),
 		ABM_TargetGroup = (1 << (ABT_TargetGroup - 1)),
 		ABM_NamesGroup = (1 << (ABT_NamesGroup - 1)),
@@ -2282,8 +2326,8 @@ namespace ActionableBots
 		ABM_Spawned_All = (3 << (ABT_Spawned - 1)),
 		ABM_NoFilter = ~0,
 		// grouped values
-		ABM_Type1 = (ABM_Target | ABM_ByName | ABM_OwnerGroup | ABM_BotGroup | ABM_TargetGroup | ABM_NamesGroup | ABM_HealRotationTargets | ABM_Spawned),
-		ABM_Type2 = (ABM_ByName | ABM_OwnerGroup | ABM_BotGroup | ABM_NamesGroup | ABM_HealRotation | ABM_Spawned)
+		ABM_Type1 = (ABM_Target | ABM_ByName | ABM_OwnerGroup | ABM_OwnerRaid | ABM_BotGroup | ABM_TargetGroup | ABM_NamesGroup | ABM_HealRotationTargets | ABM_Spawned),
+		ABM_Type2 = (ABM_ByName | ABM_OwnerGroup | ABM_OwnerRaid | ABM_BotGroup | ABM_NamesGroup | ABM_HealRotation | ABM_Spawned)
 	};
 
 	// Populates 'sbl'
@@ -2300,6 +2344,8 @@ namespace ActionableBots
 			ab_type = ABT_ByName;
 		else if (!ab_type_arg.compare("ownergroup"))
 			ab_type = ABT_OwnerGroup;
+		else if (!ab_type_arg.compare("ownerraid"))
+			ab_type = ABT_OwnerRaid;
 		else if (!ab_type_arg.compare("botgroup"))
 			ab_type = ABT_BotGroup;
 		else if (!ab_type_arg.compare("targetgroup"))
@@ -2332,6 +2378,10 @@ namespace ActionableBots
 		case ABT_OwnerGroup:
 			if (ab_mask & ABM_OwnerGroup)
 				MyBots::PopulateSBL_ByMyGroupedBots(bot_owner, sbl, clear_list);
+			break;
+		case ABT_OwnerRaid:
+			if (ab_mask & ABM_OwnerRaid)
+				MyBots::PopulateSBL_ByMyRaidBots(bot_owner, sbl, clear_list);
 			break;
 		case ABT_BotGroup:
 			if (ab_mask & ABM_BotGroup)
@@ -2394,6 +2444,8 @@ namespace ActionableBots
 			ab_type = ABT_ByName;
 		else if (!ab_type_arg.compare("ownergroup"))
 			ab_type = ABT_OwnerGroup;
+		else if (!ab_type_arg.compare("ownerraid"))
+			ab_type = ABT_OwnerRaid;
 		else if (!ab_type_arg.compare("botgroup"))
 			ab_type = ABT_BotGroup;
 		else if (!ab_type_arg.compare("targetgroup"))
@@ -2428,6 +2480,10 @@ namespace ActionableBots
 		case ABT_OwnerGroup:
 			if (ab_mask & ABM_OwnerGroup)
 				MyBots::PopulateSBL_ByMyGroupedBots(bot_owner, sbl, clear_list);
+			break;
+		case ABT_OwnerRaid:
+			if (ab_mask & ABM_OwnerRaid)
+				MyBots::PopulateSBL_ByMyRaidBots(bot_owner, sbl, clear_list);
 			break;
 		case ABT_BotGroup:
 			if (ab_mask & ABM_BotGroup)
@@ -2481,20 +2537,41 @@ namespace ActionableBots
 	static Bot* AsGroupMember_ByClass(Client *bot_owner, Client *bot_grouped_player, uint8 cls, bool petless = false) {
 		if (!bot_owner || !bot_grouped_player)
 			return nullptr;
-		if (!bot_grouped_player->GetGroup())
+		if (!bot_grouped_player->GetGroup() && !bot_grouped_player->GetRaid())
 			return nullptr;
 
-		std::list<Mob*> group_list;
-		bot_grouped_player->GetGroup()->GetMemberList(group_list);
-		for (auto member_iter : group_list) {
-			if (!MyBots::IsMyBot(bot_owner, member_iter))
-				continue;
-			if (member_iter->GetClass() != cls)
-				continue;
-			if (petless && member_iter->GetPet())
-				continue;
 
-			return static_cast<Bot*>(member_iter);
+		if (bot_owner->IsRaidGrouped()) {
+			Raid* raid = bot_grouped_player->GetRaid();
+			if (!raid)
+				return nullptr;
+			uint32 raid_group = raid->GetGroup(bot_grouped_player);
+			for (int x = 0; x < MAX_RAID_MEMBERS; x++) {
+				if (raid->members[x].member && entity_list.IsMobInZone(raid->members[x].member) && raid->members[x].GroupNumber == raid_group) {
+					if (!MyBots::IsMyBot(bot_owner, raid->members[x].member->CastToBot()))
+						continue;
+					if (raid->members[x].member->GetClass() != cls)
+						continue;
+					if (petless && raid->members[x].member->GetPet())
+						continue;
+
+					return static_cast<Bot*>(raid->members[x].member->CastToBot());
+				}
+			}
+		}
+		else {
+			std::list<Mob*> group_list;
+			bot_grouped_player->GetGroup()->GetMemberList(group_list);
+			for (auto member_iter : group_list) {
+				if (!MyBots::IsMyBot(bot_owner, member_iter))
+					continue;
+				if (member_iter->GetClass() != cls)
+					continue;
+				if (petless && member_iter->GetPet())
+					continue;
+
+				return static_cast<Bot*>(member_iter);
+			}
 		}
 
 		return nullptr;
@@ -2513,8 +2590,8 @@ namespace ActionableBots
 			return nullptr;
 		uint32 raid_group = raid->GetGroup(bot_grouped_player);
 		for (int x = 0; x < MAX_RAID_MEMBERS; x++) {
-			if (raid->members[x].member && raid->members[x].GroupNumber == raid_group) {
-				if (!MyBots::IsMyBot(bot_owner, raid->members[x].member->CastToMob()))
+			if (raid->members[x].member && entity_list.IsMobInZone(raid->members[x].member) && raid->members[x].GroupNumber == raid_group) {
+				if (!MyBots::IsMyBot(bot_owner, raid->members[x].member->CastToBot()))
 					continue;
 				if (raid->members[x].member->GetClass() != cls)
 					continue;
@@ -2727,6 +2804,7 @@ void bot_command_actionable(Client *c, const Seperator *sep)
 	c->Message(Chat::White, "target - selects target as single bot .. use ^command [target] or imply by empty actionable argument");
 	c->Message(Chat::White, "byname [name] - selects single bot by name");
 	c->Message(Chat::White, "ownergroup - selects all bots in the owner's group");
+	c->Message(Chat::White, "ownerraid - selects all bots in the owner's raid");
 	c->Message(Chat::White, "botgroup [name] - selects members of a bot-group by its name");
 	c->Message(Chat::White, "targetgroup - selects all bots in target's group");
 	c->Message(Chat::White, "namesgroup [name] - selects all bots in name's group");
@@ -2745,7 +2823,7 @@ void bot_command_aggressive(Client *c, const Seperator *sep)
 	if (helper_spell_list_fail(c, local_list, BCEnum::SpT_Stance) || helper_command_alias_fail(c, "bot_command_aggressive", sep->arg[0], "aggressive"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s ([actionable: target | byname | ownergroup | botgroup | targetgroup | namesgroup | healrotationtargets | spawned] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s ([actionable: target | byname | ownergroup | ownerraid | botgroup | targetgroup | namesgroup | healrotationtargets | spawned] ([actionable_name]))", sep->arg[0]);
 		helper_send_usage_required_bots(c, BCEnum::SpT_Stance);
 		return;
 	}
@@ -2989,7 +3067,7 @@ void bot_command_attack(Client *c, const Seperator *sep)
 	}
 	if (helper_is_help_or_usage(sep->arg[1])) {
 
-		c->Message(Chat::White, "usage: <enemy_target> %s [actionable: byname | ownergroup | botgroup | namesgroup | healrotation | default: spawned] ([actionable_name])", sep->arg[0]);
+		c->Message(Chat::White, "usage: <enemy_target> %s [actionable: byname | ownergroup | ownerraid | botgroup | namesgroup | healrotation | default: spawned] ([actionable_name])", sep->arg[0]);
 		return;
 	}
 	const int ab_mask = ActionableBots::ABM_Type2;
@@ -3934,7 +4012,7 @@ void bot_command_defensive(Client *c, const Seperator *sep)
 	if (helper_spell_list_fail(c, local_list, BCEnum::SpT_Stance) || helper_command_alias_fail(c, "bot_command_defensive", sep->arg[0], "defensive"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s ([actionable: target | byname | ownergroup | botgroup | targetgroup | namesgroup | healrotationtargets | spawned] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s ([actionable: target | byname | ownergroup | ownerraid | botgroup | targetgroup | namesgroup | healrotationtargets | spawned] ([actionable_name]))", sep->arg[0]);
 		helper_send_usage_required_bots(c, BCEnum::SpT_Stance);
 		return;
 	}
@@ -4007,16 +4085,9 @@ void bot_command_depart(Client *c, const Seperator *sep)
 
 	std::string destination = sep->arg[1];
 	if (!destination.compare("list")) {
-		if (c->IsRaidGrouped()) {
-			Bot* my_druid_bot = ActionableBots::AsRaidGroupMember_ByClass(c, c, DRUID);
-			Bot* my_wizard_bot = ActionableBots::AsRaidGroupMember_ByClass(c, c, WIZARD);
-			helper_command_depart_list(c, my_druid_bot, my_wizard_bot, local_list, single);
-		}
-		else {
-			Bot* my_druid_bot = ActionableBots::AsGroupMember_ByClass(c, c, DRUID);
-			Bot* my_wizard_bot = ActionableBots::AsGroupMember_ByClass(c, c, WIZARD);
-			helper_command_depart_list(c, my_druid_bot, my_wizard_bot, local_list, single);
-		}
+		Bot* my_druid_bot = ActionableBots::AsGroupMember_ByClass(c, c, DRUID);
+		Bot* my_wizard_bot = ActionableBots::AsGroupMember_ByClass(c, c, WIZARD);
+		helper_command_depart_list(c, my_druid_bot, my_wizard_bot, local_list, single);
 		return;
 	}
 	else if (destination.empty()) {
@@ -4785,7 +4856,7 @@ void bot_command_follow(Client *c, const Seperator *sep)
 	if (helper_command_alias_fail(c, "bot_command_follow", sep->arg[0], "follow"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: (<friendly_target>) %s ([option: reset]) [actionable: byname | ownergroup | botgroup | namesgroup | healrotation | spawned] ([actionable_name])", sep->arg[0]);
+		c->Message(Chat::White, "usage: (<friendly_target>) %s ([option: reset]) [actionable: byname | ownergroup | ownerraid | botgroup | namesgroup | healrotation | spawned] ([actionable_name])", sep->arg[0]);
 		c->Message(Chat::White, "usage: %s chain", sep->arg[0]);
 		return;
 	}
@@ -4892,7 +4963,7 @@ void bot_command_guard(Client *c, const Seperator *sep)
 	}
 	if (helper_is_help_or_usage(sep->arg[1])) {
 
-		c->Message(Chat::White, "usage: %s ([option: clear]) [actionable: target | byname | ownergroup | botgroup | namesgroup | healrotation | spawned] ([actionable_name])", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s ([option: clear]) [actionable: target | byname | ownergroup | ownerraid | botgroup | namesgroup | healrotation | spawned] ([actionable_name])", sep->arg[0]);
 		return;
 	}
 	const int ab_mask = (ActionableBots::ABM_Target | ActionableBots::ABM_Type2);
@@ -5275,7 +5346,7 @@ void bot_command_hold(Client *c, const Seperator *sep)
 	}
 	if (helper_is_help_or_usage(sep->arg[1])) {
 
-		c->Message(Chat::White, "usage: %s ([option: clear]) [actionable: target | byname | ownergroup | botgroup | namesgroup | healrotation | spawned] ([actionable_name])", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s ([option: clear]) [actionable: target | byname | ownergroup | ownerraid | botgroup | namesgroup | healrotation | spawned] ([actionable_name])", sep->arg[0]);
 		return;
 	}
 	const int ab_mask = (ActionableBots::ABM_Target | ActionableBots::ABM_Type2);
@@ -7264,7 +7335,7 @@ void bot_command_max_melee_range(Client* c, const Seperator* sep)
 	}
 	if (helper_is_help_or_usage(sep->arg[1])) {
 
-		c->Message(Chat::White, "usage: %s ([option: clear]) [actionable: target | byname | ownergroup | botgroup | namesgroup | healrotation | spawned] ([actionable_name])", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s ([option: clear]) [actionable: target | byname | ownergroup | ownerraid | botgroup | namesgroup | healrotation | spawned] ([actionable_name])", sep->arg[0]);
 		return;
 	}
 	const int ab_mask = (ActionableBots::ABM_Target | ActionableBots::ABM_Type2);
@@ -8206,11 +8277,25 @@ void bot_command_pull(Client *c, const Seperator *sep)
 		c->Message(Chat::White, "usage: <enemy_target> %s", sep->arg[0]);
 		return;
 	}
-	int ab_mask = ActionableBots::ABM_OwnerGroup; // existing behavior - need to add c->IsGrouped() check and modify code if different behavior is desired
+
+	int ab_mask;
+	if (c->IsRaidGrouped()) {
+		ab_mask = ActionableBots::ABM_OwnerRaid; // existing behavior - need to add c->IsGrouped() check and modify code if different behavior is desired
+	}
+	else {
+		ab_mask = ActionableBots::ABM_OwnerGroup; // existing behavior - need to add c->IsGrouped() check and modify code if different behavior is desired
+	}
 
 	std::list<Bot*> sbl;
-	if (ActionableBots::PopulateSBL(c, "ownergroup", sbl, ab_mask) == ActionableBots::ABT_None) {
-		return;
+	if (c->IsRaidGrouped()) {
+		if (ActionableBots::PopulateSBL(c, "ownerraid", sbl, ab_mask) == ActionableBots::ABT_None) {
+			return;
+		}
+	}
+	else {
+		if (ActionableBots::PopulateSBL(c, "ownergroup", sbl, ab_mask) == ActionableBots::ABT_None) {
+			return;
+		}
 	}
 	sbl.remove(nullptr);
 
@@ -9252,7 +9337,7 @@ void bot_command_taunt(Client *c, const Seperator *sep)
 	if (helper_command_alias_fail(c, "bot_command_taunt", sep->arg[0], "taunt"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s ([option: on | off]) ([actionable: target | byname | ownergroup | botgroup | targetgroup | namesgroup | healrotationtargets | spawned] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s ([option: on | off]) ([actionable: target | byname | ownergroup | ownerraid | botgroup | targetgroup | namesgroup | healrotationtargets | spawned] ([actionable_name]))", sep->arg[0]);
 		return;
 	}
 	const int ab_mask = ActionableBots::ABM_Type1;
@@ -9755,7 +9840,7 @@ void bot_subcommand_bot_camp(Client *c, const Seperator *sep)
 	if (helper_command_alias_fail(c, "bot_subcommand_bot_camp", sep->arg[0], "botcamp"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s ([actionable: target | byname | ownergroup | botgroup | targetgroup | namesgroup | healrotation | spawned] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s ([actionable: target | byname | ownergroup | ownerraid | botgroup | targetgroup | namesgroup | healrotation | spawned] ([actionable_name]))", sep->arg[0]);
 		return;
 	}
 	const int ab_mask = ActionableBots::ABM_NoFilter;
@@ -10377,7 +10462,7 @@ void bot_subcommand_bot_dye_armor(Client *c, const Seperator *sep)
 		c->Message(
 			Chat::White,
 			fmt::format(
-				"Usage: {} [Material Slot] [Red: 0-255] [Green: 0-255] [Blue: 0-255] ([actionable: target | byname | ownergroup | botgroup | targetgroup | namesgroup | healrotation | spawned] ([actionable_name]))",
+				"Usage: {} [Material Slot] [Red: 0-255] [Green: 0-255] [Blue: 0-255] ([actionable: target | byname | ownergroup | ownerraid | botgroup | targetgroup | namesgroup | healrotation | spawned] ([actionable_name]))",
 				sep->arg[0]
 			).c_str()
 		);
@@ -10589,8 +10674,8 @@ void bot_subcommand_bot_follow_distance(Client *c, const Seperator *sep)
 	if (helper_command_alias_fail(c, "bot_subcommand_bot_follow_distance", sep->arg[0], "botfollowdistance"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s [set] [distance] ([actionable: target | byname | ownergroup | botgroup | targetgroup | namesgroup | healrotation | spawned] ([actionable_name]))", sep->arg[0]);
-		c->Message(Chat::White, "usage: %s [clear] ([actionable: target | byname | ownergroup | botgroup | targetgroup | namesgroup | healrotation | spawned] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [set] [distance] ([actionable: target | byname | ownergroup | ownerraid | botgroup | targetgroup | namesgroup | healrotation | spawned] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [clear] ([actionable: target | byname | ownergroup | ownerraid | botgroup | targetgroup | namesgroup | healrotation | spawned] ([actionable_name]))", sep->arg[0]);
 		return;
 	}
 	const int ab_mask = ActionableBots::ABM_NoFilter;
@@ -10764,7 +10849,7 @@ void bot_subcommand_bot_inspect_message(Client *c, const Seperator *sep)
 	if (helper_command_alias_fail(c, "bot_subcommand_bot_inspect_message", sep->arg[0], "botinspectmessage"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s [set | clear] ([actionable: target | byname | ownergroup | botgroup | targetgroup | namesgroup | healrotation | spawned] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [set | clear] ([actionable: target | byname | ownergroup | ownerraid | botgroup | targetgroup | namesgroup | healrotation | spawned] ([actionable_name]))", sep->arg[0]);
 		c->Message(Chat::White, "Notes:");
 		if (c->ClientVersion() >= EQ::versions::ClientVersion::SoF) {
 			c->Message(Chat::White, "- Self-inspect and type your bot's inspect message");
@@ -11157,7 +11242,7 @@ void bot_subcommand_bot_report(Client *c, const Seperator *sep)
 	if (helper_command_alias_fail(c, "bot_subcommand_bot_report", sep->arg[0], "botreport"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s ([actionable: target | byname | ownergroup | botgroup | targetgroup | namesgroup | healrotation | spawned] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s ([actionable: target | byname | ownergroup | ownerraid | botgroup | targetgroup | namesgroup | healrotation | spawned] ([actionable_name]))", sep->arg[0]);
 		return;
 	}
 	const int ab_mask = ActionableBots::ABM_NoFilter;
@@ -11577,7 +11662,7 @@ void bot_subcommand_bot_summon(Client *c, const Seperator *sep)
 		c->Message(
 			Chat::White,
 			fmt::format(
-				"Usage: {} ([actionable: target | byname | ownergroup | botgroup | targetgroup | namesgroup | healrotation | spawned | mmr] ([actionable_name]))",
+				"Usage: {} ([actionable: target | byname | ownergroup | ownerraid | botgroup | targetgroup | namesgroup | healrotation | spawned | mmr] ([actionable_name]))",
 				sep->arg[0]
 			).c_str()
 		);
@@ -11736,7 +11821,7 @@ void bot_subcommand_bot_toggle_helm(Client *c, const Seperator *sep)
 	if (helper_command_alias_fail(c, "bot_subcommand_bot_toggle_helm", sep->arg[0], "bottogglehelm"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s ([option: on | off]) ([actionable: target | byname | ownergroup | botgroup | targetgroup | namesgroup | healrotation | spawned] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s ([option: on | off]) ([actionable: target | byname | ownergroup | ownerraid | botgroup | targetgroup | namesgroup | healrotation | spawned] ([actionable_name]))", sep->arg[0]);
 		return;
 	}
 	const int ab_mask = ActionableBots::ABM_NoFilter;
@@ -12796,14 +12881,8 @@ void bot_subcommand_circle(Client *c, const Seperator *sep)
 
 	std::string destination = sep->arg[1];
 	if (!destination.compare("list")) {
-		if (c->IsRaidGrouped()) {
-			Bot* my_druid_bot = ActionableBots::AsRaidGroupMember_ByClass(c, c, DRUID);
-			helper_command_depart_list(c, my_druid_bot, nullptr, local_list, single);
-		}
-		else {
-			Bot* my_druid_bot = ActionableBots::AsGroupMember_ByClass(c, c, DRUID);
-			helper_command_depart_list(c, my_druid_bot, nullptr, local_list, single);
-		}
+		Bot* my_druid_bot = ActionableBots::AsGroupMember_ByClass(c, c, DRUID);
+		helper_command_depart_list(c, my_druid_bot, nullptr, local_list, single);
 		return;
 	}
 	else if (destination.empty()) {
@@ -14312,7 +14391,7 @@ void bot_subcommand_pet_get_lost(Client *c, const Seperator *sep)
 	if (helper_command_alias_fail(c, "bot_subcommand_pet_get_lost", sep->arg[0], "petgetlost"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s ([actionable: target | byname | ownergroup | botgroup | targetgroup | namesgroup | healrotation | spawned] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s ([actionable: target | byname | ownergroup | ownerraid | botgroup | targetgroup | namesgroup | healrotation | spawned] ([actionable_name]))", sep->arg[0]);
 		return;
 	}
 	int ab_mask = ActionableBots::ABM_NoFilter;
@@ -14541,14 +14620,8 @@ void bot_subcommand_portal(Client *c, const Seperator *sep)
 
 	std::string destination = sep->arg[1];
 	if (!destination.compare("list")) {
-		if (c->IsRaidGrouped()) {
-			auto my_wizard_bot = ActionableBots::AsRaidGroupMember_ByClass(c, c, WIZARD);
-			helper_command_depart_list(c, nullptr, my_wizard_bot, local_list, single);
-		}
-		else {
-			auto my_wizard_bot = ActionableBots::AsGroupMember_ByClass(c, c, WIZARD);
-			helper_command_depart_list(c, nullptr, my_wizard_bot, local_list, single);
-		}
+		auto my_wizard_bot = ActionableBots::AsGroupMember_ByClass(c, c, WIZARD);
+		helper_command_depart_list(c, nullptr, my_wizard_bot, local_list, single);
 		return;
 	}
 	else if (destination.empty()) {
