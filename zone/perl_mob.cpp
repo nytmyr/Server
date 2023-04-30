@@ -2961,6 +2961,84 @@ float Perl_Mob_GetDefaultRaceSize(Mob* self) // @categories Script Utility
 	return self->GetDefaultRaceSize();
 }
 
+float Perl_Mob_GetDefaultRaceSize(Mob* self, int race_id) // @categories Script Utility
+{
+	return self->GetDefaultRaceSize(race_id);
+}
+
+float Perl_Mob_GetDefaultRaceSize(Mob* self, int race_id, int gender_id) // @categories Script Utility
+{
+	return self->GetDefaultRaceSize(race_id, gender_id);
+}
+
+uint32 Perl_Mob_GetRemainingTimeMS(Mob* self, const char* timer_name)
+{
+	return quest_manager.getremainingtimeMS(timer_name, self);
+}
+
+uint32 Perl_Mob_GetTimerDurationMS(Mob* self, const char* timer_name)
+{
+	return quest_manager.gettimerdurationMS(timer_name, self);
+}
+
+bool Perl_Mob_HasTimer(Mob* self, const char* timer_name)
+{
+	return quest_manager.hastimer(timer_name, self);
+}
+
+bool Perl_Mob_IsPausedTimer(Mob* self, const char* timer_name)
+{
+	return quest_manager.ispausedtimer(timer_name, self);
+}
+
+void Perl_Mob_PauseTimer(Mob* self, const char* timer_name)
+{
+	quest_manager.pausetimer(timer_name, self);
+}
+
+void Perl_Mob_ResumeTimer(Mob* self, const char* timer_name)
+{
+	quest_manager.resumetimer(timer_name, self);
+}
+
+void Perl_Mob_SetTimer(Mob* self, const char* timer_name, int seconds)
+{
+	quest_manager.settimer(timer_name, seconds, self);
+}
+
+void Perl_Mob_SetTimerMS(Mob* self, const char* timer_name, int milliseconds)
+{
+	quest_manager.settimerMS(timer_name, milliseconds, self);
+}
+
+void Perl_Mob_StopAllTimers(Mob* self)
+{
+	quest_manager.stopalltimers(self);
+}
+
+void Perl_Mob_StopTimer(Mob* self, const char* timer_name)
+{
+	quest_manager.stoptimer(timer_name, self);
+}
+
+perl::array Perl_Mob_GetBuffSpellIDs(Mob* self)
+{
+	perl::array l;
+
+	const auto& b = self->GetBuffSpellIDs();
+
+	for (const auto& e : b) {
+		l.push_back(e);
+	}
+
+	return l;
+}
+
+bool Perl_Mob_HasSpellEffect(Mob* self, int effect_id)
+{
+	return self->HasSpellEffect(effect_id);
+}
+
 void perl_register_mob()
 {
 	perl::interpreter perl(PERL_GET_THX);
@@ -3294,8 +3372,10 @@ void perl_register_mob()
 	package.add("HasOwner", &Perl_Mob_HasOwner);
 	package.add("HasPet", &Perl_Mob_HasPet);
 	package.add("HasProcs", &Perl_Mob_HasProcs);
-	package.add("HasShieldEquiped", &Perl_Mob_HasShieldEquiped);
-	package.add("HasTwoHandBluntEquiped", &Perl_Mob_HasTwoHandBluntEquiped);
+	package.add("HasShieldEquipped", &Perl_Mob_HasShieldEquipped);
+	package.add("HasSpellEffect", &Perl_Mob_HasSpellEffect);
+	package.add("HasTimer", &Perl_Mob_HasTimer);
+	package.add("HasTwoHandBluntEquipped", &Perl_Mob_HasTwoHandBluntEquipped);
 	package.add("HasTwoHanderEquipped", &Perl_Mob_HasTwoHanderEquipped);
 	package.add("HateSummon", &Perl_Mob_HateSummon);
 	package.add("Heal", &Perl_Mob_Heal);

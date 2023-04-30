@@ -2935,6 +2935,76 @@ int64 Lua_Mob::GetActReflectedSpellDamage(uint16 spell_id, int64 value, int effe
 	return self->GetActReflectedSpellDamage(spell_id, value, effectiveness);
 }
 
+uint32 Lua_Mob::GetRemainingTimeMS(const char* timer_name) {
+	Lua_Safe_Call_Int();
+	return quest_manager.getremainingtimeMS(timer_name, self);
+}
+
+uint32 Lua_Mob::GetTimerDurationMS(const char* timer_name) {
+	Lua_Safe_Call_Int();
+	return quest_manager.gettimerdurationMS(timer_name, self);
+}
+
+bool Lua_Mob::HasTimer(const char* timer_name) {
+	Lua_Safe_Call_Bool();
+	return quest_manager.hastimer(timer_name, self);
+}
+
+bool Lua_Mob::IsPausedTimer(const char* timer_name) {
+	Lua_Safe_Call_Bool();
+	return quest_manager.ispausedtimer(timer_name, self);
+}
+
+void Lua_Mob::PauseTimer(const char* timer_name) {
+	Lua_Safe_Call_Void();
+	quest_manager.pausetimer(timer_name, self);
+}
+
+void Lua_Mob::ResumeTimer(const char* timer_name) {
+	Lua_Safe_Call_Void();
+	quest_manager.resumetimer(timer_name, self);
+}
+
+void Lua_Mob::SetTimer(const char* timer_name, int seconds) {
+	Lua_Safe_Call_Void();
+	quest_manager.settimer(timer_name, seconds, self);
+}
+
+void Lua_Mob::SetTimerMS(const char* timer_name, int milliseconds) {
+	Lua_Safe_Call_Void();
+	quest_manager.settimerMS(timer_name, milliseconds, self);
+}
+
+void Lua_Mob::StopAllTimers() {
+	Lua_Safe_Call_Void();
+	quest_manager.stopalltimers(self);
+}
+
+void Lua_Mob::StopTimer(const char* timer_name) {
+	Lua_Safe_Call_Void();
+	quest_manager.stoptimer(timer_name, self);
+}
+
+luabind::object Lua_Mob::GetBuffSpellIDs(lua_State* L) {
+	auto t = luabind::newtable(L);
+	if (d_) {
+		auto self = reinterpret_cast<NativeType*>(d_);
+		auto l = self->GetBuffSpellIDs();
+		auto i = 1;
+		for (const auto& v : l) {
+			t[i] = v;
+			i++;
+		}
+	}
+
+	return t;
+}
+
+bool Lua_Mob::HasSpellEffect(int effect_id) {
+	Lua_Safe_Call_Bool();
+	return self->HasSpellEffect(effect_id);
+}
+
 luabind::scope lua_register_mob() {
 	return luabind::class_<Lua_Mob, Lua_Entity>("Mob")
 	.def(luabind::constructor<>())
@@ -3269,8 +3339,10 @@ luabind::scope lua_register_mob() {
 	.def("HasOwner", (bool(Lua_Mob::*)(void))&Lua_Mob::HasOwner)
 	.def("HasPet", (bool(Lua_Mob::*)(void))&Lua_Mob::HasPet)
 	.def("HasProcs", &Lua_Mob::HasProcs)
-	.def("HasShieldEquiped", (bool(Lua_Mob::*)(void))&Lua_Mob::HasShieldEquiped)
-	.def("HasTwoHandBluntEquiped", (bool(Lua_Mob::*)(void))&Lua_Mob::HasTwoHandBluntEquiped)
+	.def("HasShieldEquipped", (bool(Lua_Mob::*)(void))&Lua_Mob::HasShieldEquipped)
+	.def("HasSpellEffect", &Lua_Mob::HasSpellEffect)
+	.def("HasTimer", &Lua_Mob::HasTimer)
+	.def("HasTwoHandBluntEquipped", (bool(Lua_Mob::*)(void))&Lua_Mob::HasTwoHandBluntEquipped)
 	.def("HasTwoHanderEquipped", (bool(Lua_Mob::*)(void))&Lua_Mob::HasTwoHanderEquipped)
 	.def("Heal", &Lua_Mob::Heal)
 	.def("HealDamage", (void(Lua_Mob::*)(uint64))&Lua_Mob::HealDamage)
