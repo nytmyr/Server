@@ -162,8 +162,8 @@ void Client::CalcItemBonuses(StatBonuses* newbon) {
 	unsigned int i;
 	// Update: MainAmmo should only calc skill mods (TODO: Check for other cases)
 	for (i = EQ::invslot::BONUS_BEGIN; i <= EQ::invslot::BONUS_SKILL_END; i++) {
-		const EQ::ItemInstance* inst = m_inv[i];
-		if(inst == 0)
+		const EQ::ItemInstance* inst = GetInv().GetItem(i);
+		if (!inst) {
 			continue;
 		AddItemBonuses(inst, newbon, false, false, 0, (i == EQ::invslot::slotAmmo));
 
