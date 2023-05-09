@@ -285,6 +285,55 @@ struct ClientMercEntry {
 	uint32 npcid;
 };
 
+struct CharacterCorpseItemEntry
+{
+	uint32 item_id;
+	int16 equip_slot;
+	uint16 charges;
+	uint16 lootslot;
+	uint32 aug_1;
+	uint32 aug_2;
+	uint32 aug_3;
+	uint32 aug_4;
+	uint32 aug_5;
+	uint32 aug_6;
+	bool attuned;
+	std::string custom_data;
+	uint32 ornamenticon;
+	uint32 ornamentidfile;
+	uint32 ornament_hero_model;
+};
+
+struct CharacterCorpseEntry
+{
+	bool locked;
+	uint32 exp;
+	float size;
+	uint8 level;
+	uint32 race;
+	uint8 gender;
+	uint8 class_;
+	uint8 deity;
+	uint8 texture;
+	uint8 helmtexture;
+	uint32 copper;
+	uint32 silver;
+	uint32 gold;
+	uint32 plat;
+	EQ::TintProfile item_tint;
+	uint8 haircolor;
+	uint8 beardcolor;
+	uint8 eyecolor1;
+	uint8 eyecolor2;
+	uint8 hairstyle;
+	uint8 face;
+	uint8 beard;
+	uint32 drakkin_heritage;
+	uint32 drakkin_tattoo;
+	uint32 drakkin_details;
+	std::vector<CharacterCorpseItemEntry> items;
+};
+
 namespace BeastlordPetData {
 	struct PetStruct {
 		uint16 race_id = WOLF;
@@ -397,7 +446,6 @@ public:
 
 	bool SaveCharacterAA(uint32 character_id, uint32 aa_id, uint32 current_level, uint32 charges);
 	bool SaveCharacterBandolier(uint32 character_id, uint8 bandolier_id, uint8 bandolier_slot, uint32 item_id, uint32 icon, const char* bandolier_name);
-	bool SaveCharacterBindPoint(uint32 character_id, const BindStruct &bind, uint32 bind_number);
 	bool SaveCharacterCurrency(uint32 character_id, PlayerProfile_Struct* pp);
 	bool SaveCharacterData(Client* c, PlayerProfile_Struct* pp, ExtendedProfile_Struct* m_epp);
 	bool SaveCharacterDisc(uint32 character_id, uint32 slot_id, uint32 disc_id);
@@ -618,6 +666,7 @@ public:
 	// bot database add-on to eliminate the need for a second database connection
 	BotDatabase botdb;
 
+	static void SaveCharacterBinds(Client *c);
 protected:
 	void ZDBInitVars();
 
