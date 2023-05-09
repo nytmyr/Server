@@ -1157,8 +1157,6 @@ bool ZoneDatabase::SaveCharacterData(
 		return false;
 	}
 
-	const auto mail_key = database.GetMailKey(c->CharacterID());
-
 	clock_t t = std::clock(); /* Function timer start */
 	const auto query = fmt::format(
 		"REPLACE INTO `character_data` ("
@@ -1474,7 +1472,7 @@ bool ZoneDatabase::SaveCharacterData(
 		m_epp->perAA,
 		m_epp->expended_aa,
 		m_epp->last_invsnapshot_time,
-		mail_key.c_str(),
+		c->GetMailKeyFull(),
 		pp->fast_heal_threshold,
 		pp->heal_threshold,
 		pp->complete_heal_threshold,
