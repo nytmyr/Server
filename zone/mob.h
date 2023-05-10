@@ -179,6 +179,9 @@ public:
 	Timer                             mob_close_scan_timer;
 	Timer                             mob_check_moving_timer;
 
+	// Bot attack flag
+	Timer bot_attack_flag_timer;
+
 	//Somewhat sorted: needs documenting!
 
 	//Attack
@@ -1085,6 +1088,10 @@ public:
 	int GetPetACBonusFromOwner();
 	int GetPetATKBonusFromOwner();
 
+	//bot attack flag
+	inline bool HasBotAttackFlag() const { return bot_attack_flag; }
+	inline void SetBotAttackFlag(int32 value) { bot_attack_flag = value; }
+
 	inline const bodyType GetBodyType() const { return bodytype; }
 	inline const bodyType GetOrigBodyType() const { return orig_bodytype; }
 	void SetBodyType(bodyType new_body, bool overwrite_orig);
@@ -1829,6 +1836,9 @@ protected:
 	bool pet_owner_client; //Flags regular and pets as belonging to a client
 	bool pet_owner_npc;    //Flags regular and pets as belonging to a npc
 	uint32 pet_targetlock_id;
+
+	//bot attack flags
+	int32 bot_attack_flag;
 
 	glm::vec3 m_TargetRing;
 

@@ -3101,6 +3101,8 @@ void bot_command_attack(Client *c, const Seperator *sep)
 			}
 			++attacker_count;
 
+			target_mob->SetBotAttackFlag(c->CharacterID());
+			target_mob->bot_attack_flag_timer.Start(10000);
 			bot_iter->SetAttackFlag();
 		}
 	}

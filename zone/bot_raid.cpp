@@ -236,7 +236,7 @@ void Bot::AI_Process_Raid()
 
 			auto attack_target = bot_owner->GetTarget();
 
-			if (attack_target) {
+			if (attack_target && attack_target->HasBotAttackFlag()) {
 
 				InterruptSpell();
 				WipeHateList();
@@ -591,12 +591,14 @@ void Bot::AI_Process_Raid()
 
 //#pragma endregion
 
-				// This causes conflicts with default pet handler (bounces between targets)
+		// This causes conflicts with default pet handler (bounces between targets)
+		/* Commenting due to possible unwanted pet attacks
 		if (NOT_PULLING_BOT && HasPet() && (GetClass() != ENCHANTER || GetPet()->GetPetType() != petAnimation || GetAA(aaAnimationEmpathy) >= 2)) {
 
 			// We don't add to hate list here because it's assumed to already be on the list
 			GetPet()->SetTarget(tar);
 		}
+		*/
 
 		if (DivineAura()) {
 			return;

@@ -1076,6 +1076,12 @@ bool NPC::Process()
 		}
 	}
 
+	if (bot_attack_flag_timer.Check()) {
+		TestDebug("[{}]::: Timer hit, disabling", GetCleanName()); //deleteme
+		bot_attack_flag_timer.Disable();
+		SetBotAttackFlag(0);
+	}
+
 	AI_Process();
 
 	return true;

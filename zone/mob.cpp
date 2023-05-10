@@ -125,7 +125,8 @@ Mob::Mob(
 	position_update_melee_push_timer(500),
 	hate_list_cleanup_timer(6000),
 	mob_close_scan_timer(6000),
-	mob_check_moving_timer(1000)
+	mob_check_moving_timer(1000),
+	bot_attack_flag_timer(10000)
 {
 	mMovementManager = &MobMovementManager::Get();
 	mMovementManager->AddMob(this);
@@ -395,6 +396,10 @@ Mob::Mob(
 	pet_owner_client  = false;
 	pet_owner_npc     = false;
 	pet_targetlock_id = 0;
+
+	//bot attack flag
+	bot_attack_flag   = 0;
+	bot_attack_flag_timer.Disable();
 
 	attacked_count = 0;
 	mezzed         = false;

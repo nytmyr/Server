@@ -2409,7 +2409,7 @@ void Group::UpdateXTargetMarkedNPC(uint32 Number, Mob *m)
 void Group::SetDirtyAutoHaters()
 {
 	for (int i = 0; i < MAX_GROUP_MEMBERS; ++i)
-		if (members[i] && members[i]->IsClient())
+		if (members[i] && !members[i]->IsBot() && members[i]->IsClient())
 			members[i]->CastToClient()->SetDirtyAutoHaters();
 }
 
