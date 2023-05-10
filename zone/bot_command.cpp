@@ -3877,10 +3877,6 @@ void bot_command_cure_threshold(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
 		return;
 	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
 
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
@@ -3924,10 +3920,6 @@ void bot_command_cure_min_threshold(Client* c, const Seperator* sep)
 	auto my_bot = ActionableBots::AsTarget_ByBot(c);
 	if (!my_bot) {
 		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
 		return;
 	}
 
