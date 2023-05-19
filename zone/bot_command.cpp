@@ -3171,7 +3171,7 @@ void bot_command_auto_ds(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Auto DS status is %u.", my_bot->GetAutoDS());
+		c->Message(Chat::White, "My current Auto DS status is %s.", my_bot->GetAutoDS());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^autods help for a list of options.");
@@ -3222,7 +3222,7 @@ void bot_command_auto_resist(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Auto Resist status is %u.", my_bot->GetAutoResist());
+		c->Message(Chat::White, "My current Auto Resist status is %s.", my_bot->GetAutoResist());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^auroresist help for a list of options.");
@@ -3269,7 +3269,7 @@ void bot_command_behind_mob(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Behind Mob status is %u.", my_bot->GetBehindMob());
+		c->Message(Chat::White, "My current Behind Mob status is %s.", my_bot->GetBehindMob());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^behindmob help for a list of options.");
@@ -5417,18 +5417,18 @@ void bot_command_hold_buffs(Client* c, const Seperator* sep)
 		return;
 	}
 
-	uint8 hbuffs = 0;
+	uint8 holdstatus = 0;
 	if (sep->IsNumber(1)) {
-		hbuffs = atoi(sep->arg[1]);
-		int hbuffscheck = hbuffs;
-		if (hbuffscheck == 0 || hbuffscheck == 1) {
-			my_bot->SetHoldBuffs(hbuffs);
-			if (!database.botdb.SaveHoldBuffs(c->CharacterID(), my_bot->GetBotID(), hbuffs)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldBuffs(holdstatus);
+			if (!database.botdb.SaveHoldBuffs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldBuffs(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Buffs for %s to %u.", my_bot->GetCleanName(), hbuffs);
+				c->Message(Chat::White, "Successfully set Hold Buffs for %s to %u.", my_bot->GetCleanName(), holdstatus);
 			}
 		}
 		else {
@@ -5437,7 +5437,7 @@ void bot_command_hold_buffs(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Buffs status is %u.", my_bot->GetHoldBuffs());
+		c->Message(Chat::White, "My current Hold Buffs status is %s.", my_bot->GetHoldBuffs() ? "enabled" : "disabled");
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^holdbuffs help for a list of options.");
@@ -5468,18 +5468,18 @@ void bot_command_hold_cures(Client* c, const Seperator* sep)
 		return;
 	}
 
-	uint8 hcures = 0;
+	uint8 holdstatus = 0;
 	if (sep->IsNumber(1)) {
-		hcures = atoi(sep->arg[1]);
-		int hcurescheck = hcures;
-		if (hcurescheck == 0 || hcurescheck == 1) {
-			my_bot->SetHoldCures(hcures);
-			if (!database.botdb.SaveHoldCures(c->CharacterID(), my_bot->GetBotID(), hcures)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldCures(holdstatus);
+			if (!database.botdb.SaveHoldCures(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldCures(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Cures for %s to %u.", my_bot->GetCleanName(), hcures);
+				c->Message(Chat::White, "Successfully set Hold Cures for %s to %u.", my_bot->GetCleanName(), holdstatus);
 			}
 		}
 		else {
@@ -5488,7 +5488,7 @@ void bot_command_hold_cures(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Cures status is %u.", my_bot->GetHoldCures());
+		c->Message(Chat::White, "My current Hold Cures status is %s.", my_bot->GetHoldCures() ? "enabled" : "disabled");
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^holdcures help for a list of options.");
@@ -5519,18 +5519,18 @@ void bot_command_hold_dots(Client* c, const Seperator* sep)
 		return;
 	}
 
-	uint8 hdots = 0;
+	uint8 holdstatus = 0;
 	if (sep->IsNumber(1)) {
-		hdots = atoi(sep->arg[1]);
-		int hdotscheck = hdots;
-		if (hdotscheck == 0 || hdotscheck == 1) {
-			my_bot->SetHoldDoTs(hdots);
-			if (!database.botdb.SaveHoldDoTs(c->CharacterID(), my_bot->GetBotID(), hdots)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldDoTs(holdstatus);
+			if (!database.botdb.SaveHoldDoTs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldDoTs(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold DoTs for %s to %u.", my_bot->GetCleanName(), hdots);
+				c->Message(Chat::White, "Successfully set Hold DoTs for %s to %u.", my_bot->GetCleanName(), holdstatus);
 			}
 		}
 		else {
@@ -5539,7 +5539,7 @@ void bot_command_hold_dots(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold DoTs status is %u.", my_bot->GetHoldDoTs());
+		c->Message(Chat::White, "My current Hold DoTs status is %s.", my_bot->GetHoldDoTs() ? "enabled" : "disabled");
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^holddots help for a list of options.");
@@ -5570,18 +5570,18 @@ void bot_command_hold_debuffs(Client* c, const Seperator* sep)
 		return;
 	}
 
-	uint8 hdebuffs = 0;
+	uint8 holdstatus = 0;
 	if (sep->IsNumber(1)) {
-		hdebuffs = atoi(sep->arg[1]);
-		int hdebuffscheck = hdebuffs;
-		if (hdebuffscheck == 0 || hdebuffscheck == 1) {
-			my_bot->SetHoldDebuffs(hdebuffs);
-			if (!database.botdb.SaveHoldDebuffs(c->CharacterID(), my_bot->GetBotID(), hdebuffs)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldDebuffs(holdstatus);
+			if (!database.botdb.SaveHoldDebuffs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldDebuffs(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Debuffs for %s to %u.", my_bot->GetCleanName(), hdebuffs);
+				c->Message(Chat::White, "Successfully set Hold Debuffs for %s to %u.", my_bot->GetCleanName(), holdstatus);
 			}
 		}
 		else {
@@ -5590,7 +5590,7 @@ void bot_command_hold_debuffs(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Debuffs status is %u.", my_bot->GetHoldDebuffs());
+		c->Message(Chat::White, "My current Hold Debuffs status is %s.", my_bot->GetHoldDebuffs() ? "enabled" : "disabled");
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^holddebuffs help for a list of options.");
@@ -5621,18 +5621,18 @@ void bot_command_hold_dispels(Client* c, const Seperator* sep)
 		return;
 	}
 
-	uint8 hdispels = 0;
+	uint8 holdstatus = 0;
 	if (sep->IsNumber(1)) {
-		hdispels = atoi(sep->arg[1]);
-		int hdispelscheck = hdispels;
-		if (hdispelscheck == 0 || hdispelscheck == 1) {
-			my_bot->SetHoldDispels(hdispels);
-			if (!database.botdb.SaveHoldDispels(c->CharacterID(), my_bot->GetBotID(), hdispels)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldDispels(holdstatus);
+			if (!database.botdb.SaveHoldDispels(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldDispels(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Dispels for %s to %u.", my_bot->GetCleanName(), hdispels);
+				c->Message(Chat::White, "Successfully set Hold Dispels for %s to %u.", my_bot->GetCleanName(), holdstatus);
 			}
 		}
 		else {
@@ -5641,7 +5641,7 @@ void bot_command_hold_dispels(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Dispels status is %u.", my_bot->GetHoldDispels());
+		c->Message(Chat::White, "My current Hold Dispels status is %s.", my_bot->GetHoldDispels() ? "enabled" : "disabled");
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^holddispels help for a list of options.");
@@ -5672,18 +5672,18 @@ void bot_command_hold_escapes(Client* c, const Seperator* sep)
 		return;
 	}
 
-	uint8 hescapes = 0;
+	uint8 holdstatus = 0;
 	if (sep->IsNumber(1)) {
-		hescapes = atoi(sep->arg[1]);
-		int hescapescheck = hescapes;
-		if (hescapescheck == 0 || hescapescheck == 1) {
-			my_bot->SetHoldEscapes(hescapes);
-			if (!database.botdb.SaveHoldEscapes(c->CharacterID(), my_bot->GetBotID(), hescapes)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldEscapes(holdstatus);
+			if (!database.botdb.SaveHoldEscapes(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldEscapes(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Escapes for %s to %u.", my_bot->GetCleanName(), hescapes);
+				c->Message(Chat::White, "Successfully set Hold Escapes for %s to %u.", my_bot->GetCleanName(), holdstatus);
 			}
 		}
 		else {
@@ -5692,7 +5692,7 @@ void bot_command_hold_escapes(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Escapes status is %u.", my_bot->GetHoldEscapes());
+		c->Message(Chat::White, "My current Hold Escapes status is %s.", my_bot->GetHoldEscapes() ? "enabled" : "disabled");
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^holdescapes help for a list of options.");
@@ -5723,18 +5723,18 @@ void bot_command_hold_hateredux(Client* c, const Seperator* sep)
 		return;
 	}
 
-	uint8 hhateredux = 0;
+	uint8 holdstatus = 0;
 	if (sep->IsNumber(1)) {
-		hhateredux = atoi(sep->arg[1]);
-		int hhatereduxcheck = hhateredux;
-		if (hhatereduxcheck == 0 || hhatereduxcheck == 1) {
-			my_bot->SetHoldHateRedux(hhateredux);
-			if (!database.botdb.SaveHoldHateRedux(c->CharacterID(), my_bot->GetBotID(), hhateredux)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldHateRedux(holdstatus);
+			if (!database.botdb.SaveHoldHateRedux(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldHateRedux(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold HateRedux for %s to %u.", my_bot->GetCleanName(), hhateredux);
+				c->Message(Chat::White, "Successfully set Hold HateRedux for %s to %u.", my_bot->GetCleanName(), holdstatus);
 			}
 		}
 		else {
@@ -5743,7 +5743,7 @@ void bot_command_hold_hateredux(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold HateRedux status is %u.", my_bot->GetHoldHateRedux());
+		c->Message(Chat::White, "My current Hold HateRedux status is %s.", my_bot->GetHoldHateRedux() ? "enabled" : "disabled");
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^holdhateredux help for a list of options.");
@@ -5774,18 +5774,18 @@ void bot_command_hold_heals(Client* c, const Seperator* sep)
 		return;
 	}
 
-	uint8 hheals = 0;
+	uint8 holdstatus = 0;
 	if (sep->IsNumber(1)) {
-		hheals = atoi(sep->arg[1]);
-		int hhealscheck = hheals;
-		if (hhealscheck == 0 || hhealscheck == 1) {
-			my_bot->SetHoldHeals(hheals);
-			if (!database.botdb.SaveHoldHeals(c->CharacterID(), my_bot->GetBotID(), hheals)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldHeals(holdstatus);
+			if (!database.botdb.SaveHoldHeals(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldHeals(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Heal for %s to %u.", my_bot->GetCleanName(), hheals);
+				c->Message(Chat::White, "Successfully set Hold Heal for %s to %u.", my_bot->GetCleanName(), holdstatus);
 			}
 		}
 		else {
@@ -5794,7 +5794,7 @@ void bot_command_hold_heals(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Heal status is %u.", my_bot->GetHoldHeals());
+		c->Message(Chat::White, "My current Hold Heal status is %s.", my_bot->GetHoldHeals() ? "enabled" : "disabled");
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^holdheals help for a list of options.");
@@ -5825,18 +5825,18 @@ void bot_command_hold_incombatbuffs(Client* c, const Seperator* sep)
 		return;
 	}
 
-	uint8 hincombatbuffs = 0;
+	uint8 holdstatus = 0;
 	if (sep->IsNumber(1)) {
-		hincombatbuffs = atoi(sep->arg[1]);
-		int hincombatbuffscheck = hincombatbuffs;
-		if (hincombatbuffscheck == 0 || hincombatbuffscheck == 1) {
-			my_bot->SetHoldInCombatBuffs(hincombatbuffs);
-			if (!database.botdb.SaveHoldInCombatBuffs(c->CharacterID(), my_bot->GetBotID(), hincombatbuffs)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldInCombatBuffs(holdstatus);
+			if (!database.botdb.SaveHoldInCombatBuffs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldInCombatBuffs(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold InCombatBuffs for %s to %u.", my_bot->GetCleanName(), hincombatbuffs);
+				c->Message(Chat::White, "Successfully set Hold InCombatBuffs for %s to %u.", my_bot->GetCleanName(), holdstatus);
 			}
 		}
 		else {
@@ -5845,7 +5845,7 @@ void bot_command_hold_incombatbuffs(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold In-Combat Buffs status is %u.", my_bot->GetHoldInCombatBuffs());
+		c->Message(Chat::White, "My current Hold In-Combat Buffs status is %s.", my_bot->GetHoldInCombatBuffs() ? "enabled" : "disabled");
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^holdincombatbuffs help for a list of options.");
@@ -5876,18 +5876,18 @@ void bot_command_hold_incombatbuffsongs(Client* c, const Seperator* sep)
 		return;
 	}
 
-	uint8 hincombatbuffsongs = 0;
+	uint8 holdstatus = 0;
 	if (sep->IsNumber(1)) {
-		hincombatbuffsongs = atoi(sep->arg[1]);
-		int hincombatbuffsongscheck = hincombatbuffsongs;
-		if (hincombatbuffsongscheck == 0 || hincombatbuffsongscheck == 1) {
-			my_bot->SetHoldInCombatBuffSongs(hincombatbuffsongs);
-			if (!database.botdb.SaveHoldInCombatBuffSongs(c->CharacterID(), my_bot->GetBotID(), hincombatbuffsongs)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldInCombatBuffSongs(holdstatus);
+			if (!database.botdb.SaveHoldInCombatBuffSongs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldInCombatBuffSongs(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold InCombatBuffSongs for %s to %u.", my_bot->GetCleanName(), hincombatbuffsongs);
+				c->Message(Chat::White, "Successfully set Hold InCombatBuffSongs for %s to %u.", my_bot->GetCleanName(), holdstatus);
 			}
 		}
 		else {
@@ -5896,7 +5896,7 @@ void bot_command_hold_incombatbuffsongs(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold In-Combat Buff Songs status is %u.", my_bot->GetHoldInCombatBuffSongs());
+		c->Message(Chat::White, "My current Hold In-Combat Buff Songs status is %s.", my_bot->GetHoldInCombatBuffSongs() ? "enabled" : "disabled");
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^holdincombatbuffsongs help for a list of options.");
@@ -5927,18 +5927,18 @@ void bot_command_hold_lifetaps(Client* c, const Seperator* sep)
 		return;
 	}
 
-	uint8 hlifetaps = 0;
+	uint8 holdstatus = 0;
 	if (sep->IsNumber(1)) {
-		hlifetaps = atoi(sep->arg[1]);
-		int hlifetapscheck = hlifetaps;
-		if (hlifetapscheck == 0 || hlifetapscheck == 1) {
-			my_bot->SetHoldLifetaps(hlifetaps);
-			if (!database.botdb.SaveHoldLifetaps(c->CharacterID(), my_bot->GetBotID(), hlifetaps)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldLifetaps(holdstatus);
+			if (!database.botdb.SaveHoldLifetaps(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldLifetaps(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Lifetaps for %s to %u.", my_bot->GetCleanName(), hlifetaps);
+				c->Message(Chat::White, "Successfully set Hold Lifetaps for %s to %u.", my_bot->GetCleanName(), holdstatus);
 			}
 		}
 		else {
@@ -5947,7 +5947,7 @@ void bot_command_hold_lifetaps(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Lifetaps status is %u.", my_bot->GetHoldLifetaps());
+		c->Message(Chat::White, "My current Hold Lifetaps status is %s.", my_bot->GetHoldLifetaps() ? "enabled" : "disabled");
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^holdlifetaps help for a list of options.");
@@ -5978,18 +5978,18 @@ void bot_command_hold_mez(Client* c, const Seperator* sep)
 		return;
 	}
 
-	uint8 hmez = 0;
+	uint8 holdstatus = 0;
 	if (sep->IsNumber(1)) {
-		hmez = atoi(sep->arg[1]);
-		int hmezcheck = hmez;
-		if (hmezcheck == 0 || hmezcheck == 1) {
-			my_bot->SetHoldMez(hmez);
-			if (!database.botdb.SaveHoldMez(c->CharacterID(), my_bot->GetBotID(), hmez)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldMez(holdstatus);
+			if (!database.botdb.SaveHoldMez(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldMez(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Mesmerization Spells for %s to %u.", my_bot->GetCleanName(), hmez);
+				c->Message(Chat::White, "Successfully set Hold Mesmerization Spells for %s to %u.", my_bot->GetCleanName(), holdstatus);
 			}
 		}
 		else {
@@ -5998,7 +5998,7 @@ void bot_command_hold_mez(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Mesmerization Spells status is %u.", my_bot->GetHoldMez());
+		c->Message(Chat::White, "My current Hold Mesmerization Spells status is %s.", my_bot->GetHoldMez() ? "enabled" : "disabled");
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^holdmez help for a list of options.");
@@ -6029,18 +6029,18 @@ void bot_command_hold_nukes(Client* c, const Seperator* sep)
 		return;
 	}
 
-	uint8 hn = 0;
+	uint8 holdstatus = 0;
 	if (sep->IsNumber(1)) {
-		hn = atoi(sep->arg[1]);
-		int hncheck = hn;
-		if (hncheck == 0 || hncheck == 1) {
-			my_bot->SetHoldNukes(hn);
-			if (!database.botdb.SaveHoldNukes(c->CharacterID(), my_bot->GetBotID(), hn)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldNukes(holdstatus);
+			if (!database.botdb.SaveHoldNukes(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldNukes(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Nukes for %s to %u.", my_bot->GetCleanName(), hn);
+				c->Message(Chat::White, "Successfully set Hold Nukes for %s to %u.", my_bot->GetCleanName(), holdstatus);
 			}
 		}
 		else {
@@ -6049,7 +6049,7 @@ void bot_command_hold_nukes(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Nukes status is %u.", my_bot->GetHoldNukes());
+		c->Message(Chat::White, "My current Hold Nukes status is %s.", my_bot->GetHoldNukes() ? "enabled" : "disabled");
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^holdnukes help for a list of options.");
@@ -6080,18 +6080,18 @@ void bot_command_hold_outofcombatbuffsongs(Client* c, const Seperator* sep)
 		return;
 	}
 
-	uint8 houtofcombatbuffsongs = 0;
+	uint8 holdstatus = 0;
 	if (sep->IsNumber(1)) {
-		houtofcombatbuffsongs = atoi(sep->arg[1]);
-		int houtofcombatbuffsongscheck = houtofcombatbuffsongs;
-		if (houtofcombatbuffsongscheck == 0 || houtofcombatbuffsongscheck == 1) {
-			my_bot->SetHoldOutOfCombatBuffSongs(houtofcombatbuffsongs);
-			if (!database.botdb.SaveHoldOutOfCombatBuffSongs(c->CharacterID(), my_bot->GetBotID(), houtofcombatbuffsongs)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldOutOfCombatBuffSongs(holdstatus);
+			if (!database.botdb.SaveHoldOutOfCombatBuffSongs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldOutOfCombatBuffSongs(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold OutOfCombatBuffSongs for %s to %u.", my_bot->GetCleanName(), houtofcombatbuffsongs);
+				c->Message(Chat::White, "Successfully set Hold OutOfCombatBuffSongs for %s to %u.", my_bot->GetCleanName(), holdstatus);
 			}
 		}
 		else {
@@ -6100,7 +6100,7 @@ void bot_command_hold_outofcombatbuffsongs(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Out-Of-Combat Buff Songs status is %u.", my_bot->GetHoldOutOfCombatBuffSongs());
+		c->Message(Chat::White, "My current Hold Out-Of-Combat Buff Songs status is %s.", my_bot->GetHoldOutOfCombatBuffSongs() ? "enabled" : "disabled");
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^holdoutofcombatbuffsongs help for a list of options.");
@@ -6131,18 +6131,18 @@ void bot_command_hold_pet_buffs(Client* c, const Seperator* sep)
 		return;
 	}
 
-	uint8 hbuffs = 0;
+	uint8 holdstatus = 0;
 	if (sep->IsNumber(1)) {
-		hbuffs = atoi(sep->arg[1]);
-		int hbuffscheck = hbuffs;
-		if (hbuffscheck == 0 || hbuffscheck == 1) {
-			my_bot->SetHoldPetBuffs(hbuffs);
-			if (!database.botdb.SaveHoldPetBuffs(c->CharacterID(), my_bot->GetBotID(), hbuffs)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldPetBuffs(holdstatus);
+			if (!database.botdb.SaveHoldPetBuffs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldPetBuffs(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Pet Buffs for %s to %u.", my_bot->GetCleanName(), hbuffs);
+				c->Message(Chat::White, "Successfully set Hold Pet Buffs for %s to %u.", my_bot->GetCleanName(), holdstatus);
 			}
 		}
 		else {
@@ -6151,7 +6151,7 @@ void bot_command_hold_pet_buffs(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Pet Buffs status is %u.", my_bot->GetHoldPetBuffs());
+		c->Message(Chat::White, "My current Hold Pet Buffs status is %s.", my_bot->GetHoldPetBuffs() ? "enabled" : "disabled");
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^holdpetbuffs help for a list of options.");
@@ -6166,8 +6166,8 @@ void bot_command_hold_pet_heals(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to heal Pets.");
-		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from healing Pets.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to heal pets.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from healing pets.");
 		c->Message(Chat::White, "note: The default hold is disabled (0).");
 		return;
 	}
@@ -6182,18 +6182,18 @@ void bot_command_hold_pet_heals(Client* c, const Seperator* sep)
 		return;
 	}
 
-	uint8 hpets = 0;
+	uint8 holdstatus = 0;
 	if (sep->IsNumber(1)) {
-		hpets = atoi(sep->arg[1]);
-		int hpetscheck = hpets;
-		if (hpetscheck == 0 || hpetscheck == 1) {
-			my_bot->SetHoldPetHeals(hpets);
-			if (!database.botdb.SaveHoldPetHeals(c->CharacterID(), my_bot->GetBotID(), hpets)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldPetHeals(holdstatus);
+			if (!database.botdb.SaveHoldPetHeals(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldPetHeals(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Pet Heals for %s to %u.", my_bot->GetCleanName(), hpets);
+				c->Message(Chat::White, "Successfully set Hold Pet Heals for %s to %u.", my_bot->GetCleanName(), holdstatus);
 			}
 		}
 		else {
@@ -6202,7 +6202,7 @@ void bot_command_hold_pet_heals(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Pet Heals status is %u.", my_bot->GetHoldPetHeals());
+		c->Message(Chat::White, "My current Hold Pet Heals status is %s.", my_bot->GetHoldPetHeals() ? "enabled" : "disabled");
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^holdpetheals help for a list of options.");
@@ -6233,18 +6233,18 @@ void bot_command_hold_pets(Client* c, const Seperator* sep)
 		return;
 	}
 
-	uint8 hpets = 0;
+	uint8 holdstatus = 0;
 	if (sep->IsNumber(1)) {
-		hpets = atoi(sep->arg[1]);
-		int hpetscheck = hpets;
-		if (hpetscheck == 0 || hpetscheck == 1) {
-			my_bot->SetHoldPets(hpets);
-			if (!database.botdb.SaveHoldPets(c->CharacterID(), my_bot->GetBotID(), hpets)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldPets(holdstatus);
+			if (!database.botdb.SaveHoldPets(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldPets(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Pets for %s to %u.", my_bot->GetCleanName(), hpets);
+				c->Message(Chat::White, "Successfully set Hold Pets for %s to %u.", my_bot->GetCleanName(), holdstatus);
 			}
 		}
 		else {
@@ -6253,7 +6253,7 @@ void bot_command_hold_pets(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Pets status is %u.", my_bot->GetHoldPets());
+		c->Message(Chat::White, "My current Hold Pets status is %s.", my_bot->GetHoldPets() ? "enabled" : "disabled");
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^holdpets help for a list of options.");
@@ -6284,18 +6284,18 @@ void bot_command_hold_precombatbuffs(Client* c, const Seperator* sep)
 		return;
 	}
 
-	uint8 hprecombatbuffs = 0;
+	uint8 holdstatus = 0;
 	if (sep->IsNumber(1)) {
-		hprecombatbuffs = atoi(sep->arg[1]);
-		int hprecombatbuffscheck = hprecombatbuffs;
-		if (hprecombatbuffscheck == 0 || hprecombatbuffscheck == 1) {
-			my_bot->SetHoldPreCombatBuffs(hprecombatbuffs);
-			if (!database.botdb.SaveHoldPreCombatBuffs(c->CharacterID(), my_bot->GetBotID(), hprecombatbuffs)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldPreCombatBuffs(holdstatus);
+			if (!database.botdb.SaveHoldPreCombatBuffs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldPreCombatBuffs(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold PreCombatBuffs for %s to %u.", my_bot->GetCleanName(), hprecombatbuffs);
+				c->Message(Chat::White, "Successfully set Hold PreCombatBuffs for %s to %u.", my_bot->GetCleanName(), holdstatus);
 			}
 		}
 		else {
@@ -6304,7 +6304,7 @@ void bot_command_hold_precombatbuffs(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Pre-Combat Buffs status is %u.", my_bot->GetHoldPreCombatBuffs());
+		c->Message(Chat::White, "My current Hold Pre-Combat Buffs status is %s.", my_bot->GetHoldPreCombatBuffs() ? "enabled" : "disabled");
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^holdprecombatbuffs help for a list of options.");
@@ -6335,18 +6335,18 @@ void bot_command_hold_precombatbuffsongs(Client* c, const Seperator* sep)
 		return;
 	}
 
-	uint8 hprecombatbuffsongs = 0;
+	uint8 holdstatus = 0;
 	if (sep->IsNumber(1)) {
-		hprecombatbuffsongs = atoi(sep->arg[1]);
-		int hprecombatbuffsongscheck = hprecombatbuffsongs;
-		if (hprecombatbuffsongscheck == 0 || hprecombatbuffsongscheck == 1) {
-			my_bot->SetHoldPreCombatBuffSongs(hprecombatbuffsongs);
-			if (!database.botdb.SaveHoldPreCombatBuffSongs(c->CharacterID(), my_bot->GetBotID(), hprecombatbuffsongs)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldPreCombatBuffSongs(holdstatus);
+			if (!database.botdb.SaveHoldPreCombatBuffSongs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldPreCombatBuffSongs(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold PreCombatBuffSongs for %s to %u.", my_bot->GetCleanName(), hprecombatbuffsongs);
+				c->Message(Chat::White, "Successfully set Hold PreCombatBuffSongs for %s to %u.", my_bot->GetCleanName(), holdstatus);
 			}
 		}
 		else {
@@ -6355,7 +6355,7 @@ void bot_command_hold_precombatbuffsongs(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Pre-Combat Buffs status is %u.", my_bot->GetHoldPreCombatBuffSongs());
+		c->Message(Chat::White, "My current Hold Pre-Combat Buffs status is %s.", my_bot->GetHoldPreCombatBuffSongs() ? "enabled" : "disabled");
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^holdprecombatbuffsongs help for a list of options.");
@@ -6386,18 +6386,18 @@ void bot_command_hold_roots(Client* c, const Seperator* sep)
 		return;
 	}
 
-	uint8 hroots = 0;
+	uint8 holdstatus = 0;
 	if (sep->IsNumber(1)) {
-		hroots = atoi(sep->arg[1]);
-		int hrootscheck = hroots;
-		if (hrootscheck == 0 || hrootscheck == 1) {
-			my_bot->SetHoldRoots(hroots);
-			if (!database.botdb.SaveHoldRoots(c->CharacterID(), my_bot->GetBotID(), hroots)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldRoots(holdstatus);
+			if (!database.botdb.SaveHoldRoots(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldRoots(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Roots for %s to %u.", my_bot->GetCleanName(), hroots);
+				c->Message(Chat::White, "Successfully set Hold Roots for %s to %u.", my_bot->GetCleanName(), holdstatus);
 			}
 		}
 		else {
@@ -6406,7 +6406,7 @@ void bot_command_hold_roots(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Roots status is %u.", my_bot->GetHoldRoots());
+		c->Message(Chat::White, "My current Hold Roots status is %s.", my_bot->GetHoldRoots() ? "enabled" : "disabled");
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^holdroots help for a list of options.");
@@ -6437,18 +6437,18 @@ void bot_command_hold_slows(Client* c, const Seperator* sep)
 		return;
 	}
 
-	uint8 hslows = 0;
+	uint8 holdstatus = 0;
 	if (sep->IsNumber(1)) {
-		hslows = atoi(sep->arg[1]);
-		int hslowscheck = hslows;
-		if (hslowscheck == 0 || hslowscheck == 1) {
-			my_bot->SetHoldSlows(hslows);
-			if (!database.botdb.SaveHoldSlows(c->CharacterID(), my_bot->GetBotID(), hslows)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldSlows(holdstatus);
+			if (!database.botdb.SaveHoldSlows(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldSlows(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Slows for %s to %u.", my_bot->GetCleanName(), hslows);
+				c->Message(Chat::White, "Successfully set Hold Slows for %s to %u.", my_bot->GetCleanName(), holdstatus);
 			}
 		}
 		else {
@@ -6457,7 +6457,7 @@ void bot_command_hold_slows(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Slows status is %u.", my_bot->GetHoldSlows());
+		c->Message(Chat::White, "My current Hold Slows status is %s.", my_bot->GetHoldSlows() ? "enabled" : "disabled");
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^holdslows help for a list of options.");
@@ -6488,18 +6488,18 @@ void bot_command_hold_snares(Client* c, const Seperator* sep)
 		return;
 	}
 
-	uint8 hsnares = 0;
+	uint8 holdstatus = 0;
 	if (sep->IsNumber(1)) {
-		hsnares = atoi(sep->arg[1]);
-		int hsnarescheck = hsnares;
-		if (hsnarescheck == 0 || hsnarescheck == 1) {
-			my_bot->SetHoldSnares(hsnares);
-			if (!database.botdb.SaveHoldSnares(c->CharacterID(), my_bot->GetBotID(), hsnares)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldSnares(holdstatus);
+			if (!database.botdb.SaveHoldSnares(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldSnares(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Snares for %s to %u.", my_bot->GetCleanName(), hsnares);
+				c->Message(Chat::White, "Successfully set Hold Snares for %s to %u.", my_bot->GetCleanName(), holdstatus);
 			}
 		}
 		else {
@@ -6508,7 +6508,7 @@ void bot_command_hold_snares(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Snares status is %u.", my_bot->GetHoldSnares());
+		c->Message(Chat::White, "My current Hold Snares status is %s.", my_bot->GetHoldSnares() ? "enabled" : "disabled");
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^holdsnares help for a list of options.");
