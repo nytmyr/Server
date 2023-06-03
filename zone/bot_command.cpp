@@ -1493,13 +1493,17 @@ int bot_command_init(void)
 		bot_command_add("casterrange", "Controls the range casters will try to stay away from a mob (if too far, they will skip spells that are out-of-range)", AccountStatus::Player, bot_command_caster_range) ||
 		bot_command_add("behindmob", "Toggles whether or not your bot tries to stay behind a mob", AccountStatus::Player, bot_command_behind_mob) ||
 		bot_command_add("holdbuffs", "Toggles a bot's ability to cast buffs", AccountStatus::Player, bot_command_hold_buffs) ||
+		bot_command_add("holdcompleteheals", "Toggles a bot's ability to cast Complete heals", AccountStatus::Player, bot_command_hold_complete_heals) ||
 		bot_command_add("holdcures", "Toggles a bot's ability to cast cures", AccountStatus::Player, bot_command_hold_cures) ||
 		bot_command_add("holddots", "Toggles a bot's ability to cast DoTs", AccountStatus::Player, bot_command_hold_dots) ||
 		bot_command_add("holddebuffs", "Toggles a bot's ability to cast debuffs", AccountStatus::Player, bot_command_hold_debuffs) ||
 		bot_command_add("holddispels", "Toggles a bot's ability to cast dispels", AccountStatus::Player, bot_command_hold_dispels) ||
 		bot_command_add("holdescapes", "Toggles a bot's ability to cast escapes", AccountStatus::Player, bot_command_hold_escapes) ||
+		bot_command_add("holdfastheals", "Toggles a bot's ability to cast Fast heals", AccountStatus::Player, bot_command_hold_fast_heals) ||
+		bot_command_add("holdgroupheals", "Toggles a bot's ability to cast Group heals", AccountStatus::Player, bot_command_hold_group_heals) ||
 		bot_command_add("holdhateredux", "Toggles a bot's ability to cast hate reduction spells", AccountStatus::Player, bot_command_hold_hateredux) ||
 		bot_command_add("holdheals", "Toggles a bot's ability to cast heals", AccountStatus::Player, bot_command_hold_heals) ||
+		bot_command_add("holdhotheals", "Toggles a bot's ability to cast Heal Over Time heals", AccountStatus::Player, bot_command_hold_hot_heals) ||
 		bot_command_add("holdincombatbuffs", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_incombatbuffs) ||
 		bot_command_add("holdincombatbuffsongs", "Toggles a bot's ability to cast in-combat buff songs", AccountStatus::Player, bot_command_hold_incombatbuffsongs) ||
 		bot_command_add("holdlifetaps", "Toggles a bot's ability to cast lifetaps", AccountStatus::Player, bot_command_hold_lifetaps) ||
@@ -1511,6 +1515,7 @@ int bot_command_init(void)
 		bot_command_add("holdpets", "Toggles a bot's ability to summon pets", AccountStatus::Player, bot_command_hold_pets) ||
 		bot_command_add("holdprecombatbuffs", "Toggles a bot's ability to cast pre-combat buffs", AccountStatus::Player, bot_command_hold_precombatbuffs) ||
 		bot_command_add("holdprecombatbuffsongs", "Toggles a bot's ability to cast pre-combat buff songs", AccountStatus::Player, bot_command_hold_precombatbuffsongs) ||
+		bot_command_add("holdregularheals", "Toggles a bot's ability to cast Regular heals", AccountStatus::Player, bot_command_hold_regular_heals) ||
 		bot_command_add("holdroots", "Toggles a bot's ability to cast roots", AccountStatus::Player, bot_command_hold_roots) ||
 		bot_command_add("holdslows", "Toggles a bot's ability to cast slows", AccountStatus::Player, bot_command_hold_slows) ||
 		bot_command_add("holdsnares", "Toggles a bot's ability to cast snares", AccountStatus::Player, bot_command_hold_snares) ||
@@ -5444,6 +5449,57 @@ void bot_command_hold_buffs(Client* c, const Seperator* sep)
 	}
 }
 
+void bot_command_hold_complete_heals(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_complete_heals", sep->arg[0], "holdcompleteheals"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Complete Heals.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Complete Heals.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 holdstatus = 0;
+	if (sep->IsNumber(1)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldCompleteHeals(holdstatus);
+			if (!database.botdb.SaveHoldCompleteHeals(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldCompleteHeals(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold Complete Heals for %s to %u.", my_bot->GetCleanName(), holdstatus);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold Complete Heals status is %s.", my_bot->GetHoldCompleteHeals() ? "enabled" : "disabled");
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^holdcompleteheals help for a list of options.");
+	}
+}
+
 void bot_command_hold_cures(Client* c, const Seperator* sep)
 {
 	if (helper_command_alias_fail(c, "bot_command_hold_cures", sep->arg[0], "holdcures"))
@@ -5699,6 +5755,108 @@ void bot_command_hold_escapes(Client* c, const Seperator* sep)
 	}
 }
 
+void bot_command_hold_fast_heals(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_fast_heals", sep->arg[0], "holdfastheals"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Fast Heals.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Fast Heals.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 holdstatus = 0;
+	if (sep->IsNumber(1)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldFastHeals(holdstatus);
+			if (!database.botdb.SaveHoldFastHeals(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldFastHeals(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold Fast Heals for %s to %u.", my_bot->GetCleanName(), holdstatus);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold Fast Heals status is %s.", my_bot->GetHoldFastHeals() ? "enabled" : "disabled");
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^holdfastheals help for a list of options.");
+	}
+}
+
+void bot_command_hold_group_heals(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_group_heals", sep->arg[0], "holdgroupheals"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Group Heals.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Group Heals.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 holdstatus = 0;
+	if (sep->IsNumber(1)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldGroupHeals(holdstatus);
+			if (!database.botdb.SaveHoldGroupHeals(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldGroupHeals(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold Group Heals for %s to %u.", my_bot->GetCleanName(), holdstatus);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold Group Heals status is %s.", my_bot->GetHoldGroupHeals() ? "enabled" : "disabled");
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^holdgroupheals help for a list of options.");
+	}
+}
+
 void bot_command_hold_hateredux(Client* c, const Seperator* sep)
 {
 	if (helper_command_alias_fail(c, "bot_command_hold_hateredux", sep->arg[0], "holdhateredux"))
@@ -5798,6 +5956,57 @@ void bot_command_hold_heals(Client* c, const Seperator* sep)
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^holdheals help for a list of options.");
+	}
+}
+
+void bot_command_hold_hot_heals(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_hot_heals", sep->arg[0], "holdhotheals"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Heal Over Time Heals.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Heal Over Time Heals.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 holdstatus = 0;
+	if (sep->IsNumber(1)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldHotHeals(holdstatus);
+			if (!database.botdb.SaveHoldHotHeals(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldHotHeals(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold HoT Heals for %s to %u.", my_bot->GetCleanName(), holdstatus);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold HoT Heals status is %s.", my_bot->GetHoldHotHeals() ? "enabled" : "disabled");
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^holdhotheals help for a list of options.");
 	}
 }
 
@@ -6359,6 +6568,57 @@ void bot_command_hold_precombatbuffsongs(Client* c, const Seperator* sep)
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^holdprecombatbuffsongs help for a list of options.");
+	}
+}
+
+void bot_command_hold_regular_heals(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_regular_heals", sep->arg[0], "holdregularheals"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Heal Over Time Heals.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Heal Over Time Heals.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 holdstatus = 0;
+	if (sep->IsNumber(1)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldRegularHeals(holdstatus);
+			if (!database.botdb.SaveHoldRegularHeals(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldRegularHeals(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold Regular Heals for %s to %u.", my_bot->GetCleanName(), holdstatus);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold Regular Heals status is %s.", my_bot->GetHoldRegularHeals() ? "enabled" : "disabled");
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^holdregularheals help for a list of options.");
 	}
 }
 

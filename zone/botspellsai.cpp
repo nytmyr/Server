@@ -182,18 +182,18 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						hothealThreshold = 70;
 					}
 					
-					if (hpr <= fasthealThreshold && fasthealTime <= currentTime) {
+					if (hpr <= fasthealThreshold && fasthealTime <= currentTime && !GetHoldFastHeals()) {
 						botSpell = GetBestBotSpellForFastHeal(this);
 						if (botSpell.SpellId != 0)
 							spellType = "Fast Heal";
 					}
-					if (botSpell.SpellId == 0 && hpr <= regularhealThreshold && regularhealTime <= currentTime) {
+					if (botSpell.SpellId == 0 && hpr <= regularhealThreshold && regularhealTime <= currentTime && !GetHoldRegularHeals()) {
 						botSpell = GetBestBotSpellForRegularSingleTargetHeal(this);
 						if (botSpell.SpellId != 0)
 							spellType = "Regular Heal";
 					}
-					if (botSpell.SpellId == 0 && hpr <= completehealThreshold && completehealTime <= currentTime) {
-						if (completehealThreshold <= 90 && GetNumberNeedingHealedInGroup(completehealThreshold, false) >= 3 && grouphealTime <= currentTime)
+					if (botSpell.SpellId == 0 && hpr <= completehealThreshold && completehealTime <= currentTime && !GetHoldCompleteHeals()) {
+						if (completehealThreshold <= 90 && GetNumberNeedingHealedInGroup(completehealThreshold, false) >= 3 && grouphealTime <= currentTime && !GetHoldGroupHeals())
 							botSpell = GetBestBotSpellForGroupHeal(this);
 						if (botSpell.SpellId != 0)
 							spellType = "Group Regular Heal";
@@ -210,7 +210,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						//		spellType = "Regular Heal";
 						//}
 					}
-					if (botSpell.SpellId == 0 && hpr <= hothealThreshold && hothealTime <= currentTime) {
+					if (botSpell.SpellId == 0 && hpr <= hothealThreshold && hothealTime <= currentTime && !GetHoldHotHeals()) {
 						if (botSpell.SpellId == 0 && botClass == BARD)
 							botSpell = GetFirstBotSpellBySpellType(this, SpellType_Heal);
 						if (botSpell.SpellId == 0 && hothealThreshold <= 90 && GetNumberNeedingHealedInGroup(hothealThreshold, false) >= 3 && grouphealTime <= currentTime) {

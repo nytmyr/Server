@@ -144,13 +144,17 @@ public:
 	bool SaveBotPetSetTypeSetting(const uint32 bot_id, const uint8 bot_petsettype_setting);
 
 	bool SaveHoldBuffs(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value);
+	bool SaveHoldCompleteHeals(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value);
 	bool SaveHoldCures(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value);
 	bool SaveHoldDoTs(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value);
 	bool SaveHoldDebuffs(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value);
 	bool SaveHoldDispels(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value);
 	bool SaveHoldEscapes(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value);
+	bool SaveHoldFastHeals(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value);
+	bool SaveHoldGroupHeals(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value);
 	bool SaveHoldHateRedux(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value);
 	bool SaveHoldHeals(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value);
+	bool SaveHoldHotHeals(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value);
 	bool SaveHoldInCombatBuffs(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value);
 	bool SaveHoldInCombatBuffSongs(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value);
 	bool SaveHoldLifetaps(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value);
@@ -162,6 +166,7 @@ public:
 	bool SaveHoldPets(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value);
 	bool SaveHoldPreCombatBuffs(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value);
 	bool SaveHoldPreCombatBuffSongs(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value);
+	bool SaveHoldRegularHeals(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value);
 	bool SaveHoldRoots(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value);
 	bool SaveHoldSlows(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value);
 	bool SaveHoldSnares(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value);
@@ -333,13 +338,17 @@ public:
 
 		//Custom spell commands
 		static const char* SaveHoldBuffs();
+		static const char* SaveHoldCompleteHeals();
 		static const char* SaveHoldCures();
 		static const char* SaveHoldDoTs();
 		static const char* SaveHoldDebuffs();
 		static const char* SaveHoldDispels();
 		static const char* SaveHoldEscapes();
+		static const char* SaveHoldFastHeals();
+		static const char* SaveHoldGroupHeals();
 		static const char* SaveHoldHateRedux();
 		static const char* SaveHoldHeals();
+		static const char* SaveHoldHotHeals();
 		static const char* SaveHoldInCombatBuffs();
 		static const char* SaveHoldInCombatBuffSongs();
 		static const char* SaveHoldLifetaps();
@@ -351,6 +360,7 @@ public:
 		static const char* SaveHoldPets();
 		static const char* SaveHoldPreCombatBuffs();
 		static const char* SaveHoldPreCombatBuffSongs();
+		static const char* SaveHoldRegularHeals();
 		static const char* SaveHoldRoots();
 		static const char* SaveHoldSlows();
 		static const char* SaveHoldSnares();

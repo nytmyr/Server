@@ -2488,6 +2488,10 @@ void Bot::SetHoldBuffs(uint8 holdstatus) {
 	_holdBuffs = holdstatus;
 }
 
+void Bot::SetHoldCompleteHeals(uint8 holdstatus) {
+	_holdCompleteHeals = holdstatus;
+}
+
 void Bot::SetHoldCures(uint8 holdstatus) {
 	_holdCures = holdstatus;
 }
@@ -2508,12 +2512,24 @@ void Bot::SetHoldEscapes(uint8 holdstatus) {
 	_holdEscapes = holdstatus;
 }
 
+void Bot::SetHoldFastHeals(uint8 holdstatus) {
+	_holdFastHeals = holdstatus;
+}
+
+void Bot::SetHoldGroupHeals(uint8 holdstatus) {
+	_holdGroupHeals = holdstatus;
+}
+
 void Bot::SetHoldHateRedux(uint8 holdstatus) {
 	_holdHateRedux = holdstatus;
 }
 
 void Bot::SetHoldHeals(uint8 holdstatus) {
 	_holdHeals = holdstatus;
+}
+
+void Bot::SetHoldHotHeals(uint8 holdstatus) {
+	_holdHotHeals = holdstatus;
 }
 
 void Bot::SetHoldInCombatBuffs(uint8 holdstatus) {
@@ -2558,6 +2574,10 @@ void Bot::SetHoldPreCombatBuffs(uint8 holdstatus) {
 
 void Bot::SetHoldPreCombatBuffSongs(uint8 holdstatus) {
 	_holdPreCombatBuffSongs = holdstatus;
+}
+
+void Bot::SetHoldRegularHeals(uint8 holdstatus) {
+	_holdRegularHeals = holdstatus;
 }
 
 void Bot::SetHoldRoots(uint8 holdstatus) {
@@ -6153,7 +6173,7 @@ void Bot::DoClassAttacks(Mob *target, bool IsRiposte) {
 			break;
 		}
 		default:
-			break;;
+			break;
 		}
 	}
 	

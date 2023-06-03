@@ -362,13 +362,17 @@ public:
 	// Custom commands for spells
 	bool CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 spellid = 0, std::string healType = "None");
 	uint8 GetHoldBuffs() { return _holdBuffs; }
+	uint8 GetHoldCompleteHeals() { return _holdCompleteHeals; }
 	uint8 GetHoldCures() { return _holdCures; }
 	uint8 GetHoldDoTs() { return _holdDoTs; }
 	uint8 GetHoldDebuffs() { return _holdDebuffs; }
 	uint8 GetHoldDispels() { return _holdDispels; }
 	uint8 GetHoldEscapes() { return _holdEscapes; }
+	uint8 GetHoldFastHeals() { return _holdFastHeals; }
+	uint8 GetHoldGroupHeals() { return _holdGroupHeals; }
 	uint8 GetHoldHateRedux() { return _holdHateRedux; }
 	uint8 GetHoldHeals() { return _holdHeals; }
+	uint8 GetHoldHotHeals() { return _holdHotHeals; }
 	uint8 GetHoldInCombatBuffs() { return _holdInCombatBuffs; }
 	uint8 GetHoldInCombatBuffSongs() { return _holdInCombatBuffSongs; }
 	uint8 GetHoldLifetaps() { return _holdLifetaps; }
@@ -380,6 +384,7 @@ public:
 	uint8 GetHoldPets() { return _holdPets; }
 	uint8 GetHoldPreCombatBuffs() { return _holdPreCombatBuffs; }
 	uint8 GetHoldPreCombatBuffSongs() { return _holdPreCombatBuffSongs; }
+	uint8 GetHoldRegularHeals() { return _holdRegularHeals; }
 	uint8 GetHoldRoots() { return _holdRoots; }
 	uint8 GetHoldSlows() { return _holdSlows; }
 	uint8 GetHoldSnares() { return _holdSnares; }
@@ -437,13 +442,17 @@ public:
 	uint8 GetSnareThreshold() { return _snareThreshold; }
 	uint8 GetSnareMinThreshold() { return _snareminThreshold; }
 	void SetHoldBuffs(uint8 holdstatus);
+	void SetHoldCompleteHeals(uint8 holdstatus);
 	void SetHoldCures(uint8 holdstatus);
 	void SetHoldDoTs(uint8 holdstatus);
 	void SetHoldDebuffs(uint8 holdstatus);
 	void SetHoldDispels(uint8 holdstatus);
 	void SetHoldEscapes(uint8 holdstatus);
+	void SetHoldFastHeals(uint8 holdstatus);
+	void SetHoldGroupHeals(uint8 holdstatus);
 	void SetHoldHateRedux(uint8 holdstatus);
 	void SetHoldHeals(uint8 holdstatus);
+	void SetHoldHotHeals(uint8 holdstatus);
 	void SetHoldInCombatBuffs(uint8 holdstatus);
 	void SetHoldInCombatBuffSongs(uint8 holdstatus);
 	void SetHoldLifetaps(uint8 holdstatus);
@@ -455,6 +464,7 @@ public:
 	void SetHoldPets(uint8 holdstatus);
 	void SetHoldPreCombatBuffs(uint8 holdstatus);
 	void SetHoldPreCombatBuffSongs(uint8 holdstatus);
+	void SetHoldRegularHeals(uint8 holdstatus);
 	void SetHoldRoots(uint8 holdstatus);
 	void SetHoldSlows(uint8 holdstatus);
 	void SetHoldSnares(uint8 holdstatus);
@@ -1036,13 +1046,17 @@ private:
 	bool _pauseAI;
 	uint8 _stopMeleeLevel;
 	uint8 _holdBuffs;
+	uint8 _holdCompleteHeals;
 	uint8 _holdCures;
 	uint8 _holdDoTs;
 	uint8 _holdDebuffs;
 	uint8 _holdDispels;
 	uint8 _holdEscapes;
+	uint8 _holdFastHeals;
+	uint8 _holdGroupHeals;
 	uint8 _holdHateRedux;
 	uint8 _holdHeals;
+	uint8 _holdHotHeals;
 	uint8 _holdInCombatBuffs;
 	uint8 _holdInCombatBuffSongs;
 	uint8 _holdLifetaps;
@@ -1054,6 +1068,7 @@ private:
 	uint8 _holdPets;
 	uint8 _holdPreCombatBuffs;
 	uint8 _holdPreCombatBuffSongs;
+	uint8 _holdRegularHeals;
 	uint8 _holdRoots;
 	uint8 _holdSlows;
 	uint8 _holdSnares;
