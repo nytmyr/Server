@@ -1453,7 +1453,7 @@ void Client::TradeRequestFailed(const EQApplicationPacket* app) {
 
 	outtbs->AlreadySold = 0xFFFFFFFF;
 
-	outtbs->TraderID = 0xFFFFFFFF;;
+	outtbs->TraderID = 0xFFFFFFFF;
 
 	QueuePacket(outapp);
 

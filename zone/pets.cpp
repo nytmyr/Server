@@ -165,7 +165,7 @@ void GetRandPetName(char *name)
 
 	if (multiplier == 0)
 	{
-		LogFile->write(EQEMuLog::Error, "Multiplier == 0 in CalcPetHp,using Generic....");;
+		LogFile->write(EQEMuLog::Error, "Multiplier == 0 in CalcPetHp,using Generic....");
 		multiplier=12;
 	}
 

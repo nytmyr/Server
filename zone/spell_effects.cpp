@@ -10412,7 +10412,7 @@ int Mob::GetBuffStatValueBySlot(uint8 slot, const char* stat_identifier)
 
 	if (id == "caster_level") { return buffs[slot].casterlevel; }
 	else if (id == "spell_id") { return buffs[slot].spellid; }
-	else if (id == "caster_id") { return buffs[slot].spellid;; }
+	else if (id == "caster_id") { return buffs[slot].spellid; }
 	else if (id == "ticsremaining") { return buffs[slot].ticsremaining; }
 	else if (id == "counters") { return buffs[slot].counters; }
 	else if (id == "hit_number") { return  buffs[slot].hit_number; }

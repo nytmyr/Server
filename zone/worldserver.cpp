@@ -2089,7 +2089,7 @@ void WorldServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p)
 		if (!c)
 			return;
 
-		uint32 Type = pack->ReadUInt32();;
+		uint32 Type = pack->ReadUInt32();
 
 		switch (Type)
 		{

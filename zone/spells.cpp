@@ -6087,7 +6087,7 @@ bool Mob::AddProcToWeapon(uint16 spell_id, bool bPerma, uint16 iChance, uint16 b
 			if (!IsValidSpell(SpellProcs[i].spellID)) {
 				SpellProcs[i].spellID = spell_id;
 				SpellProcs[i].chance = iChance;
-				SpellProcs[i].base_spellID = base_spell_id;;
+				SpellProcs[i].base_spellID = base_spell_id;
 				SpellProcs[i].level_override = level_override;
 				SpellProcs[i].proc_reuse_time = proc_reuse_time;
 				LogSpells("Added [{}]-granted proc spell [{}] with chance [{}] to slot [{}]", (base_spell_id == POISON_PROC) ? "poison" : "spell", spell_id, iChance, i);

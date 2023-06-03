@@ -5561,7 +5561,7 @@ void Client::SuspendMinion(int value)
 			{
 				m_suspendedminion.SpellID = SpellID;
 
-				m_suspendedminion.HP = CurrentPet->GetHP();;
+				m_suspendedminion.HP = CurrentPet->GetHP();
 
 				m_suspendedminion.Mana = CurrentPet->GetMana();
 				m_suspendedminion.petpower = CurrentPet->GetPetPower();
@@ -6523,7 +6523,7 @@ void Client::SendStatsWindow(Client* client, bool use_window)
 	//Loop Variables
 	/*===========================*/
 	//first field(stat)
-	std::string		a_stat = "";;
+	std::string		a_stat = "";
 	std::string		a_stat_name = "";
 	std::string		a_stat_spacing = "";
 	//second field(heroic stat)
