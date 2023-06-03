@@ -3463,7 +3463,7 @@ void bot_command_buff_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Buff Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Buff Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -3472,7 +3472,7 @@ void bot_command_buff_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Buff Threshold is %u percent.", my_bot->GetBuffThreshold());
+		c->Message(Chat::White, "My current Buff Threshold is %u%%.", my_bot->GetBuffThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^bufftheshold help for a list of options.");
@@ -3512,7 +3512,7 @@ void bot_command_buff_min_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Minimum Buff Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Minimum Buff Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -3521,7 +3521,7 @@ void bot_command_buff_min_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum Buff Threshold is %u percent.", my_bot->GetBuffMinThreshold());
+		c->Message(Chat::White, "My current Minimum Buff Threshold is %u%%.", my_bot->GetBuffMinThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^buffmintheshold help for a list of options.");
@@ -3716,7 +3716,7 @@ void bot_command_complete_heal_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Complete Heal Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Complete Heal Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -3725,7 +3725,7 @@ void bot_command_complete_heal_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Complete Heal Threshold is %u percent.", my_bot->GetCompleteHealThreshold());
+		c->Message(Chat::White, "My current Complete Heal Threshold is %u%%.", my_bot->GetCompleteHealThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^completehealthreshold help for a list of options.");
@@ -3889,7 +3889,7 @@ void bot_command_cure_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Cure Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Cure Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -3898,7 +3898,7 @@ void bot_command_cure_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Cure Threshold is %u percent.", my_bot->GetCureThreshold());
+		c->Message(Chat::White, "My current Cure Threshold is %u%%.", my_bot->GetCureThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^curethreshold help for a list of options.");
@@ -3934,7 +3934,7 @@ void bot_command_cure_min_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Minimum Cure Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Minimum Cure Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -3943,7 +3943,7 @@ void bot_command_cure_min_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum Cure Threshold is %u percent.", my_bot->GetCureMinThreshold());
+		c->Message(Chat::White, "My current Minimum Cure Threshold is %u%%.", my_bot->GetCureMinThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^cureminthreshold help for a list of options.");
@@ -4203,7 +4203,7 @@ void bot_command_dispel_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Dispel Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Dispel Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -4212,7 +4212,7 @@ void bot_command_dispel_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Dispel Threshold is %u percent.", my_bot->GetDispelThreshold());
+		c->Message(Chat::White, "My current Dispel Threshold is %u%%.", my_bot->GetDispelThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^dispelthreshold help for a list of options.");
@@ -4252,7 +4252,7 @@ void bot_command_dispel_min_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Minimum Dispel Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Minimum Dispel Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -4261,7 +4261,7 @@ void bot_command_dispel_min_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum Dispel Threshold is %u percent.", my_bot->GetDispelMinThreshold());
+		c->Message(Chat::White, "My current Minimum Dispel Threshold is %u%%.", my_bot->GetDispelMinThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^dispelminthreshold help for a list of options.");
@@ -4302,7 +4302,7 @@ void bot_command_debuff_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Debuff Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Debuff Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -4311,7 +4311,7 @@ void bot_command_debuff_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Debuff Threshold is %u percent.", my_bot->GetDebuffThreshold());
+		c->Message(Chat::White, "My current Debuff Threshold is %u%%.", my_bot->GetDebuffThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^debuffthreshold help for a list of options.");
@@ -4351,7 +4351,7 @@ void bot_command_debuff_min_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Minimum Debuff Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Minimum Debuff Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -4360,7 +4360,7 @@ void bot_command_debuff_min_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum Debuff Threshold is %u percent.", my_bot->GetDebuffMinThreshold());
+		c->Message(Chat::White, "My current Minimum Debuff Threshold is %u%%.", my_bot->GetDebuffMinThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^debuffminthreshold help for a list of options.");
@@ -4450,7 +4450,7 @@ void bot_command_dot_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a DoT Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a DoT Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -4459,7 +4459,7 @@ void bot_command_dot_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current DoT Threshold is %u percent.", my_bot->GetDotThreshold());
+		c->Message(Chat::White, "My current DoT Threshold is %u%%.", my_bot->GetDotThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^dotthreshold help for a list of options.");
@@ -4499,7 +4499,7 @@ void bot_command_dot_min_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Minimum DoT Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Minimum DoT Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -4508,7 +4508,7 @@ void bot_command_dot_min_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum DoT Threshold is %u percent.", my_bot->GetDotMinThreshold());
+		c->Message(Chat::White, "My current Minimum DoT Threshold is %u%%.", my_bot->GetDotMinThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^dotminthreshold help for a list of options.");
@@ -4648,7 +4648,7 @@ void bot_command_escape_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Escape Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Escape Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -4657,7 +4657,7 @@ void bot_command_escape_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Escape Threshold is %u percent.", my_bot->GetEscapeThreshold());
+		c->Message(Chat::White, "My current Escape Threshold is %u%%.", my_bot->GetEscapeThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^escapethreshold help for a list of options.");
@@ -4697,7 +4697,7 @@ void bot_command_escape_min_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Minimum Escape Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Minimum Escape Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -4706,7 +4706,7 @@ void bot_command_escape_min_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum Escape Threshold is %u percent.", my_bot->GetEscapeMinThreshold());
+		c->Message(Chat::White, "My current Minimum Escape Threshold is %u%%.", my_bot->GetEscapeMinThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^escapeminthreshold help for a list of options.");
@@ -4788,7 +4788,7 @@ void bot_command_fast_heal_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Fast Heal Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Fast Heal Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -4797,7 +4797,7 @@ void bot_command_fast_heal_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Fast Heal Threshold is %u percent.", my_bot->GetFastHealThreshold());
+		c->Message(Chat::White, "My current Fast Heal Threshold is %u%%.", my_bot->GetFastHealThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^fasthealthreshold help for a list of options.");
@@ -5086,7 +5086,7 @@ void bot_command_hateredux_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Hate Reduction Spell Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Hate Reduction Spell Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -5095,7 +5095,7 @@ void bot_command_hateredux_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hate Reduction Spell Threshold is %u percent.", my_bot->GetHateReduxThreshold());
+		c->Message(Chat::White, "My current Hate Reduction Spell Threshold is %u%%.", my_bot->GetHateReduxThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^hatereduxthreshold help for a list of options.");
@@ -5135,7 +5135,7 @@ void bot_command_hateredux_min_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Minimum Hate Reduction Spell Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Minimum Hate Reduction Spell Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -5144,7 +5144,7 @@ void bot_command_hateredux_min_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum Hate Reduction Spell Threshold is %u percent.", my_bot->GetHateReduxMinThreshold());
+		c->Message(Chat::White, "My current Minimum Hate Reduction Spell Threshold is %u%%.", my_bot->GetHateReduxMinThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^hatereduxminthreshold help for a list of options.");
@@ -5282,7 +5282,7 @@ void bot_command_heal_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Heal Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Heal Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -5291,7 +5291,7 @@ void bot_command_heal_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Heal Threshold is %u percent.", my_bot->GetHealThreshold());
+		c->Message(Chat::White, "My current Heal Threshold is %u%%.", my_bot->GetHealThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^healthreshold help for a list of options.");
@@ -6590,7 +6590,7 @@ void bot_command_hot_heal_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a HoT Heal Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a HoT Heal Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -6599,7 +6599,7 @@ void bot_command_hot_heal_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current HoT Heal Threshold is %u percent.", my_bot->GetHotHealThreshold());
+		c->Message(Chat::White, "My current HoT Heal Threshold is %u%%.", my_bot->GetHotHealThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^hothealthreshold help for a list of options.");
@@ -6639,7 +6639,7 @@ void bot_command_incombatbuff_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a In-Combat Buff Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a In-Combat Buff Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -6648,7 +6648,7 @@ void bot_command_incombatbuff_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current In-Combat Buff Threshold is %u percent.", my_bot->GetInCombatBuffThreshold());
+		c->Message(Chat::White, "My current In-Combat Buff Threshold is %u%%.", my_bot->GetInCombatBuffThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^incombatbuffthreshold help for a list of options.");
@@ -6688,7 +6688,7 @@ void bot_command_incombatbuff_min_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Minimum In-Combat Buff Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Minimum In-Combat Buff Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -6697,7 +6697,7 @@ void bot_command_incombatbuff_min_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum In-Combat Buff Threshold is %u percent.", my_bot->GetInCombatBuffMinThreshold());
+		c->Message(Chat::White, "My current Minimum In-Combat Buff Threshold is %u%%.", my_bot->GetInCombatBuffMinThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^incombatbuffminthreshold help for a list of options.");
@@ -6737,7 +6737,7 @@ void bot_command_lifetap_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Lifetap Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Lifetap Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -6746,7 +6746,7 @@ void bot_command_lifetap_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Lifetap Threshold is %u percent.", my_bot->GetLifetapThreshold());
+		c->Message(Chat::White, "My current Lifetap Threshold is %u%%.", my_bot->GetLifetapThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^lifetapthreshold help for a list of options.");
@@ -6786,7 +6786,7 @@ void bot_command_lifetap_min_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Minimum Lifetap Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Minimum Lifetap Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -6795,7 +6795,7 @@ void bot_command_lifetap_min_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum Lifetap Threshold is %u percent.", my_bot->GetLifetapMinThreshold());
+		c->Message(Chat::White, "My current Minimum Lifetap Threshold is %u%%.", my_bot->GetLifetapMinThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^lifetapminthreshold help for a list of options.");
@@ -7515,7 +7515,7 @@ void bot_command_mez_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Mesmerization Spell Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Mesmerization Spell Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -7524,7 +7524,7 @@ void bot_command_mez_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Mesmerization Spell Threshold is %u percent.", my_bot->GetMezThreshold());
+		c->Message(Chat::White, "My current Mesmerization Spell Threshold is %u%%.", my_bot->GetMezThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^mezthreshold help for a list of options.");
@@ -7564,7 +7564,7 @@ void bot_command_mez_min_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Minimum Mesmerization Spell Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Minimum Mesmerization Spell Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -7573,7 +7573,7 @@ void bot_command_mez_min_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum Mesmerization Spell Threshold is %u percent.", my_bot->GetMezMinThreshold());
+		c->Message(Chat::White, "My current Minimum Mesmerization Spell Threshold is %u%%.", my_bot->GetMezMinThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^mezminthreshold help for a list of options.");
@@ -7719,7 +7719,7 @@ void bot_command_nuke_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Nuke Spell Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Nuke Spell Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -7728,7 +7728,7 @@ void bot_command_nuke_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Nuke Spell Threshold is %u percent.", my_bot->GetNukeThreshold());
+		c->Message(Chat::White, "My current Nuke Spell Threshold is %u%%.", my_bot->GetNukeThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^nukethreshold help for a list of options.");
@@ -7768,7 +7768,7 @@ void bot_command_nuke_min_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Minimum Nuke Spell Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Minimum Nuke Spell Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -7777,7 +7777,7 @@ void bot_command_nuke_min_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum Nuke Spell Threshold is %u percent.", my_bot->GetNukeMinThreshold());
+		c->Message(Chat::White, "My current Minimum Nuke Spell Threshold is %u%%.", my_bot->GetNukeMinThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^nukeminthreshold help for a list of options.");
@@ -8685,7 +8685,7 @@ void bot_command_root_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Root Spell Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Root Spell Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -8694,7 +8694,7 @@ void bot_command_root_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Root Spell Threshold is %u percent.", my_bot->GetRootThreshold());
+		c->Message(Chat::White, "My current Root Spell Threshold is %u%%.", my_bot->GetRootThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^rootthreshold help for a list of options.");
@@ -8734,7 +8734,7 @@ void bot_command_root_min_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Minimum Root Spell Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Minimum Root Spell Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -8743,7 +8743,7 @@ void bot_command_root_min_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum Root Spell Threshold is %u percent.", my_bot->GetRootMinThreshold());
+		c->Message(Chat::White, "My current Minimum Root Spell Threshold is %u%%.", my_bot->GetRootMinThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^rootminthreshold help for a list of options.");
@@ -8990,7 +8990,7 @@ void bot_command_slow_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Slow Spell Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Slow Spell Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -8999,7 +8999,7 @@ void bot_command_slow_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Slow Spell Threshold is %u percent.", my_bot->GetSlowThreshold());
+		c->Message(Chat::White, "My current Slow Spell Threshold is %u%%.", my_bot->GetSlowThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^slowthreshold help for a list of options.");
@@ -9039,7 +9039,7 @@ void bot_command_slow_min_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Minimum Slow Spell Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Minimum Slow Spell Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -9048,7 +9048,7 @@ void bot_command_slow_min_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum Slow Spell Threshold is %u percent.", my_bot->GetSlowMinThreshold());
+		c->Message(Chat::White, "My current Minimum Slow Spell Threshold is %u%%.", my_bot->GetSlowMinThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^slowminthreshold help for a list of options.");
@@ -9184,7 +9184,7 @@ void bot_command_snare_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Snare Spell Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Snare Spell Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -9193,7 +9193,7 @@ void bot_command_snare_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Snare Spell Threshold is %u percent.", my_bot->GetSnareThreshold());
+		c->Message(Chat::White, "My current Snare Spell Threshold is %u%%.", my_bot->GetSnareThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^snarethreshold help for a list of options.");
@@ -9233,7 +9233,7 @@ void bot_command_snare_min_threshold(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set a Minimum Snare Spell Threshold for %s to %u percent.", my_bot->GetCleanName(), thresholddata);
+				c->Message(Chat::White, "Successfully set a Minimum Snare Spell Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
 			}
 		}
 		else {
@@ -9242,7 +9242,7 @@ void bot_command_snare_min_threshold(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum Snare Spell Threshold is %u percent.", my_bot->GetSnareMinThreshold());
+		c->Message(Chat::White, "My current Minimum Snare Spell Threshold is %u%%.", my_bot->GetSnareMinThreshold());
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^snareminthreshold help for a list of options.");
