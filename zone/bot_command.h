@@ -535,6 +535,14 @@ typedef std::map<BCEnum::SpType, bcst_levels> bcst_levels_map;
 
 #define	BOT_COMMAND_CHAR '^'
 
+//option types for CopySettings command
+#define COPY_ALL 0
+#define COPY_HOLDS 1
+#define COPY_DELAYS 2
+#define COPY_MIN_THRESHOLDS 3
+#define COPY_MAX_THRESHOLDS 4
+#define COPY_MISC 5
+
 typedef void (*BotCmdFuncPtr)(Client *,const Seperator *);
 
 typedef struct {
@@ -695,6 +703,18 @@ void bot_command_max_melee_range(Client* c, const Seperator* sep);
 void bot_command_remove_from_raid(Client* c, const Seperator* sep);
 void bot_command_use_epic(Client* c, const Seperator* sep);
 
+void ListBotHoldSettings(Bot* b, bool show_options = false);
+void bot_command_hold_settings(Client* c, const Seperator* sep);
+void ListBotDelaySettings(Bot* b, bool show_options = false);
+void bot_command_delay_settings(Client* c, const Seperator* sep);
+void ListBotMinThresholdSettings(Bot* b, bool show_options = false);
+void bot_command_min_threshold_settings(Client* c, const Seperator* sep);
+void ListBotThresholdSettings(Bot* b, bool show_options = false);
+void bot_command_threshold_settings(Client* c, const Seperator* sep);
+
+void CopyBotSettings(Bot* from, Bot* to, uint8 copy_type = 0);
+
+
 // bot subcommands
 void bot_subcommand_bot_appearance(Client *c, const Seperator *sep);
 void bot_subcommand_bot_beard_color(Client *c, const Seperator *sep);
@@ -735,6 +755,7 @@ void bot_subcommand_botgroup_list(Client *c, const Seperator *sep);
 void bot_subcommand_botgroup_load(Client *c, const Seperator *sep);
 void bot_subcommand_botgroup_remove_member(Client *c, const Seperator *sep);
 void bot_subcommand_circle(Client *c, const Seperator *sep);
+void bot_subcommand_copy_settings(Client* c, const Seperator* sep);
 void bot_subcommand_heal_rotation_adaptive_targeting(Client *c, const Seperator *sep);
 void bot_subcommand_heal_rotation_add_member(Client *c, const Seperator *sep);
 void bot_subcommand_heal_rotation_add_target(Client *c, const Seperator *sep);

@@ -1413,6 +1413,7 @@ int bot_command_init(void)
 		bot_command_add("botwoad", "Changes the Barbarian woad of a bot", AccountStatus::Player, bot_subcommand_bot_woad) ||
 		bot_command_add("charm", "Attempts to have a bot charm your target", AccountStatus::Player, bot_command_charm) ||
 		bot_command_add("circle", "Orders a Druid bot to open a magical doorway to a specified destination", AccountStatus::Player, bot_subcommand_circle) ||
+		bot_command_add("copysettings", "Will copy the targeted bots settings to the named bot.", AccountStatus::Player, bot_subcommand_copy_settings) ||
 		bot_command_add("cure", "Orders a bot to remove any ailments", AccountStatus::Player, bot_command_cure) ||
 		bot_command_add("defensive", "Orders a bot to use a defensive discipline", AccountStatus::Player, bot_command_defensive) ||
 		bot_command_add("depart", "Orders a bot to open a magical doorway to a specified destination", AccountStatus::Player, bot_command_depart) ||
@@ -1571,7 +1572,12 @@ int bot_command_init(void)
 		bot_command_add("snareminthreshold", "Sets a threshold to stop casting snares", AccountStatus::Player, bot_command_snare_min_threshold) ||
 		bot_command_add("maxmeleerange", "Toggles whether your bot is at max melee range or not. This will disable all special abilities, including taunt.", AccountStatus::Player, bot_command_max_melee_range) ||
 		bot_command_add("removefromraid", "This will remove a bot from a raid, can be used for stuck bots.", AccountStatus::Player, bot_command_remove_from_raid) ||
-		bot_command_add("useepic", "Orders your targeted bot to use their epic if it is equipped", AccountStatus::Player, bot_command_use_epic)
+		bot_command_add("useepic", "Orders your targeted bot to use their epic if it is equipped", AccountStatus::Player, bot_command_use_epic) ||
+
+		bot_command_add("holdsettings", "Displays all the hold settings on the targeted bot", AccountStatus::Player, bot_command_hold_settings) ||
+		bot_command_add("delaysettings", "Displays all the delay settings on the targeted bot", AccountStatus::Player, bot_command_delay_settings) ||
+		bot_command_add("minthresholdsettings", "Displays all the minimum threshold settings on the targeted bot", AccountStatus::Player, bot_command_min_threshold_settings) ||
+		bot_command_add("thresholdsettings", "Displays all the threshold settings on the targeted bot", AccountStatus::Player, bot_command_threshold_settings)
 	) {
 		bot_command_deinit();
 		return -1;
@@ -4124,6 +4130,32 @@ void bot_command_depart(Client *c, const Seperator *sep)
 	helper_no_available_bots(c, my_bot);
 }
 
+void bot_command_delay_settings(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_threshold_settings_list", sep->arg[0], "delaysettings")) {
+		return;
+	}
+
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [options].", sep->arg[0]);
+		c->Message(Chat::White, "note: options argument will add links to adjust settings.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must target a bot that you own to use this command.");
+		return;
+	}
+
+	bool show_options = false;
+	if (!strcasecmp(sep->arg[1], "options")) {
+		show_options = true;
+	}
+
+	ListBotDelaySettings(my_bot, show_options);
+}
+
 void bot_command_dispel_delay(Client* c, const Seperator* sep)
 {
 	if (helper_command_alias_fail(c, "bot_command_dispel_delay", sep->arg[0], "dispeldelay"))
@@ -6673,6 +6705,31 @@ void bot_command_hold_roots(Client* c, const Seperator* sep)
 	}
 }
 
+void bot_command_hold_settings(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_settings_list", sep->arg[0], "holdsettings")) {
+		return;
+	}
+
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s.", sep->arg[0]);
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must target a bot that you own to use this command.");
+		return;
+	}
+
+	bool show_options = false;
+	if (!strcasecmp(sep->arg[1], "options")) {
+		show_options = true;
+	}
+
+	ListBotHoldSettings(my_bot, show_options);
+}
+
 void bot_command_hold_slows(Client* c, const Seperator* sep)
 {
 	if (helper_command_alias_fail(c, "bot_command_hold_slows", sep->arg[0], "holdslows"))
@@ -7838,6 +7895,32 @@ void bot_command_mez_min_threshold(Client* c, const Seperator* sep)
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^mezminthreshold help for a list of options.");
 	}
+}
+
+void bot_command_min_threshold_settings(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_min_threshold_settings_list", sep->arg[0], "minthresholdsettings")) {
+		return;
+	}
+
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [options].", sep->arg[0]);
+		c->Message(Chat::White, "note: options argument will add links to adjust settings.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must target a bot that you own to use this command.");
+		return;
+	}
+
+	bool show_options = false;
+	if (!strcasecmp(sep->arg[1], "options")) {
+		show_options = true;
+	}
+
+	ListBotMinThresholdSettings(my_bot, show_options);
 }
 
 void bot_command_movement_speed(Client *c, const Seperator *sep)
@@ -9694,6 +9777,32 @@ void bot_command_taunt(Client *c, const Seperator *sep)
 	else {
 		c->Message(Chat::White, "None of your bots are capable of taunting");
 	}
+}
+
+void bot_command_threshold_settings(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_threshold_settings_list", sep->arg[0], "thresholdsettings")) {
+		return;
+	}
+
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [options].", sep->arg[0]);
+		c->Message(Chat::White, "note: options argument will add links to adjust settings.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must target a bot that you own to use this command.");
+		return;
+	}
+
+	bool show_options = false;
+	if (!strcasecmp(sep->arg[1], "options")) {
+		show_options = true;
+	}
+
+	ListBotThresholdSettings(my_bot, show_options);
 }
 
 void bot_command_track(Client *c, const Seperator *sep)
@@ -13176,6 +13285,57 @@ void bot_subcommand_circle(Client *c, const Seperator *sep)
 	helper_no_available_bots(c, my_bot);
 }
 
+void bot_subcommand_copy_settings(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_copy_settings", sep->arg[0], "copysettings")) {
+		return;
+	}
+
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: (<target_member>) %s ([member_name]) ([option: all | misc | holds | delays | minimumthresholds | maximumthresholds] [default: all])", sep->arg[0]);
+		c->Message(Chat::White, "example: target the bot you want to copy from and then type %s [name of bot to copy to] (ie target Clericbotone and type %s Clericbottwo.", sep->arg[0], sep->arg[0]);
+		c->Message(Chat::White, "note: optional argument 'misc' will copy show helm, follow distance, stop melee level, archery settings, pet type, auto DS, auto resist, behind mob status and caster range.");
+		c->Message(Chat::White, "note: optional argument 'holds' will copy all hold settings by spell type.");
+		c->Message(Chat::White, "note: optional argument 'delays' will copy all delay settings by spell type.");
+		c->Message(Chat::White, "note: optional argument 'minimumthresholds' will copy all minimum threshold settings by spell type.");
+		c->Message(Chat::White, "note: optional argument 'maximumthresholds' will copy all maximum threshold settings by spell type.");
+		return;
+	}
+
+	auto from = ActionableBots::AsTarget_ByBot(c);
+	if (!from) {
+		c->Message(Chat::White, "You must target a bot that you own to use this command.");
+		return;
+	}
+
+	auto to = ActionableBots::AsNamed_ByBot(c, sep->arg[1]);
+	if (!to) {
+		c->Message(Chat::White, "You must name a spawned bot that you own to use this command.");
+		return;
+	}
+
+	uint8 copy_type = 0;
+
+	if (!strcasecmp(sep->arg[2], "Holds")) {
+		copy_type = 1;
+	}
+	else if (!strcasecmp(sep->arg[2], "Delays")) {
+		copy_type = 2;
+	}
+	else if (!strcasecmp(sep->arg[2], "MinimumThresholds")) {
+		copy_type = 3;
+	}
+	else if (!strcasecmp(sep->arg[2], "MaximumThresholds")) {
+		copy_type = 4;
+	}
+	else if (!strcasecmp(sep->arg[2], "Misc")) {
+		copy_type = 5;
+	}
+
+	CopyBotSettings(from, to, copy_type);
+	c->Message(Chat::White, "%s settings have been copied from %s to %s.", copy_type == 1 ? "Hold" : copy_type == 2 ? "Delay" : copy_type == 3 ? "Minimum Threshold" : copy_type == 4 ? "Maximum Threshold" : copy_type == 5 ? "Miscellaneous" : "All", from->GetCleanName(), to->GetCleanName());
+}
+
 void bot_subcommand_heal_rotation_adaptive_targeting(Client *c, const Seperator *sep)
 {
 	if (helper_command_alias_fail(c, "bot_subcommand_heal_rotation_adaptive_targeting", sep->arg[0], "healrotationadaptivetargeting"))
@@ -16083,4 +16243,417 @@ void bot_command_enforce_spell_list(Client* c, const Seperator *sep)
 			my_bot->GetBotEnforceSpellSetting() ? "enforced" : "optional"
 		).c_str()
 	);
+}
+
+void ListBotHoldSettings(Bot* b, bool show_options)
+{
+	auto bot_owner = b->GetOwner();
+	if (!bot_owner) {
+		return;
+	}
+
+	std::vector<std::tuple<std::string, std::string, bool>> Types;
+	Types.emplace_back("Buff", "^holdbuffs", b->GetHoldBuffs());
+	Types.emplace_back("Complete Heal", "^holdcompleteheals", b->GetHoldCompleteHeals());
+	Types.emplace_back("Cure", "^holdcures", b->GetHoldCures());
+	Types.emplace_back("Debuff", "^holddebuffs", b->GetHoldDebuffs());
+	Types.emplace_back("Dispel", "^holddispels", b->GetHoldDispels());
+	Types.emplace_back("DoT", "^holddots", b->GetHoldDoTs());
+	Types.emplace_back("Escape", "^holdescapes", b->GetHoldEscapes());
+	Types.emplace_back("Fast Heal", "^holdfastheals", b->GetHoldFastHeals());
+	Types.emplace_back("Group Heal", "^holdgroupheals", b->GetHoldGroupHeals());
+	Types.emplace_back("Hate Reduction", "^holdhateredux", b->GetHoldHateRedux());
+	Types.emplace_back("Healing", "^holdheals", b->GetHoldHeals());
+	Types.emplace_back("HoT Heal", "^holdhotheals", b->GetHoldHotHeals());
+	Types.emplace_back("In-Combat Buff", "^holdincombatbuff", b->GetHoldInCombatBuffs());
+	Types.emplace_back("In-Combat Buff Song", "^holdincombatbuffsongs", b->GetHoldInCombatBuffSongs());
+	Types.emplace_back("Lifetap", "^holdlifetaps", b->GetHoldLifetaps());
+	Types.emplace_back("Mesmerization", "^holdmez", b->GetHoldMez());
+	Types.emplace_back("Nuke", "^holdnukes", b->GetHoldNukes());
+	Types.emplace_back("Out-of-Combat Buff Song", "^holdoutofcombatbuffsongs", b->GetHoldOutOfCombatBuffSongs());
+	Types.emplace_back("Pet", "^holdpets", b->GetHoldPets());
+	Types.emplace_back("Pet Buff", "^holdpetbuffs", b->GetHoldPetBuffs());
+	Types.emplace_back("Pet Heal", "^holdpetheals", b->GetHoldPetHeals());
+	Types.emplace_back("Pre-Combat Buff", "^holdprecombatbuffs", b->GetHoldPreCombatBuffs());
+	Types.emplace_back("Pre-Combat Buff Song", "^holdprecombatbuffsongs", b->GetHoldPreCombatBuffSongs());
+	Types.emplace_back("Regular Heal", "^holdregularheals", b->GetHoldRegularHeals());
+	Types.emplace_back("Root", "^holdroots", b->GetHoldRoots());
+	Types.emplace_back("Slow", "^holdslows", b->GetHoldSlows());
+	Types.emplace_back("Snare", "^holdsnares", b->GetHoldSnares());
+
+	for (auto type : Types) {
+		bot_owner->Message(
+			Chat::White,
+			fmt::format(
+				"{} says, 'My {} spells are currently {} | {}'",
+				b->GetCleanName(),
+				std::get<0>(type),
+				std::get<2>(type) ? "HELD" : "NOT held",
+				Saylink::Silent(fmt::format("{} {}", std::get<1>(type), std::get<2>(type) ? "0" : "1"), std::get<2>(type) ? "Unhold" : "Hold")
+			).c_str()
+		);
+	}
+}
+
+void ListBotDelaySettings(Bot* b, bool show_options)
+{
+	auto bot_owner = b->GetOwner();
+	if (!bot_owner) {
+		return;
+	}
+
+	std::vector<std::tuple<std::string, std::string, float>> Types;
+	Types.emplace_back("Buff", "^buffdelay", b->GetBuffDelay());
+	Types.emplace_back("Complete Heal", "^completehealdelay", b->GetCompleteHealDelay());
+	Types.emplace_back("Cure", "^curedelay", b->GetCureDelay());
+	Types.emplace_back("Debuff", "^debuffdelay", b->GetDebuffDelay());
+	Types.emplace_back("Dispel", "^dispeldelay", b->GetDispelDelay());
+	Types.emplace_back("DoT", "^dotdelay", b->GetDotDelay());
+	Types.emplace_back("Escape", "^escapedelay", b->GetEscapeDelay());
+	Types.emplace_back("Fast Heal", "^fasthealdelay", b->GetFastHealDelay());
+	Types.emplace_back("Hate Reduction", "^hatereduxdelay", b->GetHateReduxDelay());
+	Types.emplace_back("Heal", "^healdelay", b->GetHealDelay());
+	Types.emplace_back("HoT Heal", "^hothealdelay", b->GetHotHealDelay());
+	Types.emplace_back("In-Combat Buff", "^incombatbuffdelay", b->GetInCombatBuffDelay());
+	Types.emplace_back("Lifetap", "^lifetapdelay", b->GetLifetapDelay());
+	Types.emplace_back("Mesmerization", "^mezdelay", b->GetMezDelay());
+	Types.emplace_back("Nuke", "^nukedelay", b->GetNukeDelay());
+	Types.emplace_back("Root", "^rootdelay", b->GetRootDelay());
+	Types.emplace_back("Slow", "^slowdelay", b->GetSlowDelay());
+	Types.emplace_back("Snare", "^snaredelay", b->GetSnareDelay());
+
+	for (auto type : Types) {
+		if (show_options) {
+			bot_owner->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My {} spells currently have a {} second delay.' | {}, {}, {}/{}, {}, {}",
+					b->GetCleanName(),
+					std::get<0>(type),
+					double(std::get<2>(type) / 1000.00),
+					Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) + 3000)), "+3s"),
+					Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) + 1000)), "+1s"),
+					Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) + 500)), "+.5s"),
+					Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) - 500)), "-.5s"),
+					Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) - 1000)), "-1s"),
+					Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) - 3000)), "-3s")
+				).c_str()
+			);
+		}
+		else {
+			bot_owner->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My {} spells currently have a {} second delay.'",
+					b->GetCleanName(),
+					std::get<0>(type),
+					double(std::get<2>(type) / 1000.00)
+				).c_str()
+			);
+		}
+	} 
+}
+
+void ListBotMinThresholdSettings(Bot* b, bool show_options)
+{
+	auto bot_owner = b->GetOwner();
+	if (!bot_owner) {
+		return;
+	}
+
+	std::vector<std::tuple<std::string, std::string, int>> Types;
+	Types.emplace_back("Buff", "^buffminthreshold", b->GetBuffMinThreshold());
+	Types.emplace_back("Cure", "^cureminthreshold", b->GetCureMinThreshold());
+	Types.emplace_back("Debuff", "^debuffminthreshold", b->GetDebuffMinThreshold());
+	Types.emplace_back("Dispel", "^dispelminthreshold", b->GetDispelMinThreshold());
+	Types.emplace_back("DoT", "^dotminthreshold", b->GetDotMinThreshold());
+	Types.emplace_back("Escape", "^escapeminthreshold", b->GetEscapeMinThreshold());
+	Types.emplace_back("Hate Reduction", "^hatereduxminthreshold", b->GetHateReduxMinThreshold());
+	Types.emplace_back("In-Combat Buff", "^incombatbuffminthreshold", b->GetInCombatBuffMinThreshold());
+	Types.emplace_back("Lifetap", "^lifetapminthreshold", b->GetLifetapMinThreshold());
+	Types.emplace_back("Mesmerization", "^mezminthreshold", b->GetMezMinThreshold());
+	Types.emplace_back("Nuke", "^nukeminthreshold", b->GetNukeMinThreshold());
+	Types.emplace_back("Root", "^rootminthreshold", b->GetRootMinThreshold());
+	Types.emplace_back("Slow", "^slowminthreshold", b->GetSlowMinThreshold());
+	Types.emplace_back("Snare", "^snareminthreshold", b->GetSnareMinThreshold());
+
+	for (auto type : Types) {
+		auto target_option = "my target's";
+		// escape, hateredux, (ICB if shaman and not ((mana > 90% or maxthreshold) or health) < 50%, lifetap,
+		if (std::get<0>(type) == "Escape" || std::get<0>(type) == "Hate Reduction" || std::get<0>(type) == "Lifetap" || (std::get<0>(type) == "In-Combat Buff" && b->GetClass() == SHAMAN)) {
+			target_option = "my";
+		}
+
+		if (show_options) {
+			if (std::get<0>(type) == "Buff" || std::get<0>(type) == "Cure") {
+				bot_owner->Message(
+					Chat::White,
+					fmt::format(
+						"{} says, 'I will stop receiving {} spells when my health reaches {}%%.' | {}, {}, {}/{}, {}, {}",
+						b->GetCleanName(),
+						std::get<0>(type),
+						std::get<2>(type),
+						Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) + 10)), "+10%%"),
+						Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) + 5)), "+5%%"),
+						Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) + 1)), "+1%%"),
+						Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) - 10)), "-10%%"),
+						Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) - 5)), "-5%%"),
+						Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) - 1)), "-1%%")
+					).c_str()
+				);
+			}
+			else {
+				bot_owner->Message(
+					Chat::White,
+					fmt::format(
+						"{} says, 'I will stop casting {} spells when {} health reaches {}%%.' | {}, {}, {}/{}, {}, {}",
+						b->GetCleanName(),
+						std::get<0>(type),
+						target_option,
+						std::get<2>(type),
+						Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) + 10)), "+10%%"),
+						Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) + 5)), "+5%%"),
+						Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) + 1)), "+1%%"),
+						Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) - 10)), "-10%%"),
+						Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) - 5)), "-5%%"),
+						Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) - 1)), "-1%%")
+					).c_str()
+				);
+			}
+		}
+		else {
+			if (std::get<0>(type) == "Buff" || std::get<0>(type) == "Cure") {
+				bot_owner->Message(
+					Chat::White,
+					fmt::format(
+						"{} says, 'I will stop receiving {} spells when my health reaches {}%%.'",
+						b->GetCleanName(),
+						std::get<0>(type),
+						std::get<2>(type)
+					).c_str()
+				);
+			}
+			else {
+				bot_owner->Message(
+					Chat::White,
+					fmt::format(
+						"{} says, 'I will stop casting {} spells when {} health reaches {}%%.'",
+						b->GetCleanName(),
+						std::get<0>(type),
+						target_option,
+						std::get<2>(type)
+					).c_str()
+				);
+			}
+		}
+	}
+}
+
+void ListBotThresholdSettings(Bot* b, bool show_options)
+{
+	auto bot_owner = b->GetOwner();
+	if (!bot_owner) {
+		return;
+	}
+
+	std::vector<std::tuple<std::string, std::string, int>> Types;
+	Types.emplace_back("Buff", "^buffthreshold", b->GetBuffThreshold());
+	Types.emplace_back("Cure", "^curethreshold", b->GetCureThreshold());
+	Types.emplace_back("Complete Heal", "^completehealthreshold", b->GetCompleteHealThreshold());
+	Types.emplace_back("Debuff", "^debuffthreshold", b->GetDebuffThreshold());
+	Types.emplace_back("Dispel", "^dispelthreshold", b->GetDispelThreshold());
+	Types.emplace_back("DoT", "^dotthreshold", b->GetDotThreshold());
+	Types.emplace_back("Escape", "^escapethreshold", b->GetEscapeThreshold());
+	Types.emplace_back("Fast Heal", "^fasthealthreshold", b->GetFastHealThreshold());
+	Types.emplace_back("Hate Reduction", "^hatereduxthreshold", b->GetHateReduxThreshold());
+	Types.emplace_back("Heal", "^healthreshold", b->GetHealThreshold());
+	Types.emplace_back("HoT Heal", "^hothealthreshold", b->GetHotHealThreshold());
+	Types.emplace_back("In-Combat Buff", "^incombatbuffthreshold", b->GetInCombatBuffThreshold());
+	Types.emplace_back("Lifetap", "^lifetapthreshold", b->GetLifetapThreshold());
+	Types.emplace_back("Mesmerization", "^mezthreshold", b->GetMezThreshold());
+	Types.emplace_back("Nuke", "^nukethreshold", b->GetNukeThreshold());
+	Types.emplace_back("Root", "^rootthreshold", b->GetRootThreshold());
+	Types.emplace_back("Slow", "^slowthreshold", b->GetSlowThreshold());
+	Types.emplace_back("Snare", "^snarethreshold", b->GetSnareThreshold());
+
+	for (auto type : Types) {
+		auto target_option = "my target's";
+		// escape, hateredux, (ICB if shaman and not ((mana > 90% or maxthreshold) or health) < 50%, lifetap,
+		if (
+			std::get<0>(type) == "Escape" || std::get<0>(type) == "Hate Reduction" || std::get<0>(type) == "Lifetap" || (std::get<0>(type) == "In-Combat Buff" && b->GetClass() == SHAMAN) ||
+			std::get<0>(type) == "Complete Heal" || std::get<0>(type) == "Fast Heal" || std::get<0>(type) == "Heal" || std::get<0>(type) == "HoT Heal"
+			) {
+			target_option = "my";
+		}
+
+		if (show_options) {
+			if (std::get<0>(type) == "Buff" || std::get<0>(type) == "Cure" || std::get<0>(type) == "Complete Heal" || std::get<0>(type) == "Fast Heal" || std::get<0>(type) == "Heal" || std::get<0>(type) == "HoT Heal") {
+				bot_owner->Message(
+					Chat::White,
+					fmt::format(
+						"{} says, 'I will start receiving {} spells when my health reaches {}%%.' | {}, {}, {}/{}, {}, {}",
+						b->GetCleanName(),
+						std::get<0>(type),
+						std::get<2>(type),
+						Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) + 10)), "+10%%"),
+						Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) + 5)), "+5%%"),
+						Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) + 1)), "+1%%"),
+						Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) - 10)), "-10%%"),
+						Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) - 5)), "-5%%"),
+						Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) - 1)), "-1%%")
+					).c_str()
+				);
+			}
+			else {
+				bot_owner->Message(
+					Chat::White,
+					fmt::format(
+						"{} says, 'I will start casting {} spells when {} health reaches {}%%.' | {}, {}, {}/{}, {}, {}",
+						b->GetCleanName(),
+						std::get<0>(type),
+						target_option,
+						std::get<2>(type),
+						Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) + 10)), "+10%%"),
+						Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) + 5)), "+5%%"),
+						Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) + 1)), "+1%%"),
+						Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) - 10)), "-10%%"),
+						Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) - 5)), "-5%%"),
+						Saylink::Silent(fmt::format("{} {}", std::get<1>(type), (std::get<2>(type) - 1)), "-1%%")
+					).c_str()
+				);
+			}
+		}
+		else {
+			if (std::get<0>(type) == "Buff" || std::get<0>(type) == "Cure" || std::get<0>(type) == "Complete Heal" || std::get<0>(type) == "Fast Heal" || std::get<0>(type) == "Heal" || std::get<0>(type) == "HoT Heal") {
+				bot_owner->Message(
+					Chat::White,
+					fmt::format(
+						"{} says, 'I will start receiving {} spells when my health reaches {}%%.'",
+						b->GetCleanName(),
+						std::get<0>(type),
+						std::get<2>(type)
+					).c_str()
+				);
+			}
+			else {
+				bot_owner->Message(
+					Chat::White,
+					fmt::format(
+						"{} says, 'I will start casting {} spells when {} health reaches {}%%.'",
+						b->GetCleanName(),
+						std::get<0>(type),
+						target_option,
+						std::get<2>(type)
+					).c_str()
+				);
+			}
+		}
+	}
+}
+
+void CopyBotSettings(Bot* from, Bot* to, uint8 copy_type)
+{
+	auto bot_owner_from = from->GetOwner();
+	auto bot_owner_to = to->GetOwner();
+	if (!bot_owner_from || !bot_owner_to) {
+		return;
+	}
+
+	std::vector<std::tuple<std::string, std::string, std::any>> Types;
+	if (copy_type == COPY_MISC || copy_type == COPY_ALL) {
+		to->SetShowHelm(from->GetShowHelm());
+		to->SetFollowDistance(from->GetFollowDistance());
+		to->SetStopMeleeLevel(from->GetStopMeleeLevel());
+		to->SetBotArcherySetting(from->IsBotArcher(), true);
+		to->SetBotPetSetTypeSetting(from->GetBotPetSetTypeSetting());
+		to->SetAutoDS(from->GetAutoDS());
+		to->SetAutoResist(from->GetAutoResist());
+		to->SetBehindMob(from->GetBehindMob());
+		to->SetBotCasterRange(from->GetBotCasterRange());
+	}
+	if (copy_type == COPY_HOLDS || copy_type == COPY_ALL) {
+		to->SetHoldBuffs(from->GetHoldBuffs());
+		to->SetHoldCompleteHeals(from->GetHoldCompleteHeals());
+		to->SetHoldCures(from->GetHoldCures());
+		to->SetHoldDebuffs(from->GetHoldDebuffs());
+		to->SetHoldDispels(from->GetHoldDispels());
+		to->SetHoldDoTs(from->GetHoldDoTs());
+		to->SetHoldEscapes(from->GetHoldEscapes());
+		to->SetHoldFastHeals(from->GetHoldFastHeals());
+		to->SetHoldGroupHeals(from->GetHoldGroupHeals());
+		to->SetHoldHateRedux(from->GetHoldHateRedux());
+		to->SetHoldHeals(from->GetHoldHeals());
+		to->SetHoldHotHeals(from->GetHoldHotHeals());
+		to->SetHoldInCombatBuffs(from->GetHoldInCombatBuffs());
+		to->SetHoldInCombatBuffSongs(from->GetHoldInCombatBuffSongs());
+		to->SetHoldLifetaps(from->GetHoldLifetaps());
+		to->SetHoldMez(from->GetHoldMez());
+		to->SetHoldNukes(from->GetHoldNukes());
+		to->SetHoldOutOfCombatBuffSongs(from->GetHoldOutOfCombatBuffSongs());
+		to->SetHoldPets(from->GetHoldPets());
+		to->SetHoldPetBuffs(from->GetHoldPetBuffs());
+		to->SetHoldPetHeals(from->GetHoldPetHeals());
+		to->SetHoldPreCombatBuffs(from->GetHoldPreCombatBuffs());
+		to->SetHoldPreCombatBuffSongs(from->GetHoldPreCombatBuffSongs());
+		to->SetHoldRegularHeals(from->GetHoldRegularHeals());
+		to->SetHoldRoots(from->GetHoldRoots());
+		to->SetHoldSlows(from->GetHoldSlows());
+		to->SetHoldSnares(from->GetHoldSnares());
+	}
+	if (copy_type == COPY_DELAYS || copy_type == COPY_ALL) {
+		to->SetBuffDelay(from->GetBuffDelay());
+		to->SetCompleteHealDelay(from->GetCompleteHealDelay());
+		to->SetCureDelay(from->GetCureDelay());
+		to->SetDebuffDelay(from->GetDebuffDelay());
+		to->SetDispelDelay(from->GetDispelDelay());
+		to->SetDotDelay(from->GetDotDelay());
+		to->SetEscapeDelay(from->GetEscapeDelay());
+		to->SetFastHealDelay(from->GetFastHealDelay());
+		to->SetHateReduxDelay(from->GetHateReduxDelay());
+		to->SetHealDelay(from->GetHealDelay());
+		to->SetHotHealDelay(from->GetHotHealDelay());
+		to->SetInCombatBuffDelay(from->GetInCombatBuffDelay());
+		to->SetLifetapDelay(from->GetLifetapDelay());
+		to->SetMezDelay(from->GetMezDelay());
+		to->SetNukeDelay(from->GetNukeDelay());
+		to->SetRootDelay(from->GetRootDelay());
+		to->SetSlowDelay(from->GetSlowDelay());
+		to->SetSnareDelay(from->GetSnareDelay());
+	}
+	if (copy_type == COPY_MIN_THRESHOLDS || copy_type == COPY_ALL) {
+		to->SetBuffMinThreshold(from->GetBuffMinThreshold());
+		to->SetCureMinThreshold(from->GetCureMinThreshold());
+		to->SetDebuffMinThreshold(from->GetDebuffMinThreshold());
+		to->SetDispelMinThreshold(from->GetDispelMinThreshold());
+		to->SetDotMinThreshold(from->GetDotMinThreshold());
+		to->SetEscapeMinThreshold(from->GetEscapeMinThreshold());
+		to->SetHateReduxMinThreshold(from->GetHateReduxMinThreshold());
+		to->SetInCombatBuffMinThreshold(from->GetInCombatBuffMinThreshold());
+		to->SetLifetapMinThreshold(from->GetLifetapMinThreshold());
+		to->SetMezMinThreshold(from->GetMezMinThreshold());
+		to->SetNukeMinThreshold(from->GetNukeMinThreshold());
+		to->SetRootMinThreshold(from->GetRootMinThreshold());
+		to->SetSlowMinThreshold(from->GetSlowMinThreshold());
+		to->SetSnareMinThreshold(from->GetSnareMinThreshold());
+	}
+	if (copy_type == COPY_MAX_THRESHOLDS || copy_type == COPY_ALL) {
+		to->SetBuffThreshold(from->GetBuffThreshold());
+		to->SetCureThreshold(from->GetCureThreshold());
+		to->SetCompleteHealThreshold(from->GetCompleteHealThreshold());
+		to->SetDebuffThreshold(from->GetDebuffThreshold());
+		to->SetDispelThreshold(from->GetDispelThreshold());
+		to->SetDotThreshold(from->GetDotThreshold());
+		to->SetEscapeThreshold(from->GetEscapeThreshold());
+		to->SetFastHealThreshold(from->GetFastHealThreshold());
+		to->SetHateReduxThreshold(from->GetHateReduxThreshold());
+		to->SetHealThreshold(from->GetHealThreshold());
+		to->SetHotHealThreshold(from->GetHotHealThreshold());
+		to->SetInCombatBuffThreshold(from->GetInCombatBuffThreshold());
+		to->SetLifetapThreshold(from->GetLifetapThreshold());
+		to->SetMezThreshold(from->GetMezThreshold());
+		to->SetNukeThreshold(from->GetNukeThreshold());
+		to->SetRootThreshold(from->GetRootThreshold());
+		to->SetSlowThreshold(from->GetSlowThreshold());
+		to->SetSnareThreshold(from->GetSnareThreshold());
+	}
 }
