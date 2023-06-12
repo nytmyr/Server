@@ -8611,7 +8611,7 @@ void bot_command_pull(Client *c, const Seperator *sep)
 	}
 	if (helper_is_help_or_usage(sep->arg[1])) {
 
-		c->Message(Chat::White, "usage: <enemy_target> %s", sep->arg[0]);
+		c->Message(Chat::White, "usage: <enemy_target> %s ([actionable: ownergroup | ownerraid] ([actionable_name]))", sep->arg[0]);
 		return;
 	}
 
