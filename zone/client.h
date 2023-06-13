@@ -1673,6 +1673,8 @@ public:
 
 	PlayerEvent::PlayerEvent GetPlayerEvent();
 	void RecordKilledNPCEvent(NPC *n);
+
+	uint32 GetEXPForLevel(uint16 check_level);
 protected:
 	friend class Mob;
 	void CalcItemBonuses(StatBonuses* newbon);
@@ -1853,7 +1855,6 @@ private:
 	bool temp_pvp;
 
 	void NPCSpawn(const Seperator* sep);
-	uint32 GetEXPForLevel(uint16 level);
 
 	void SendLogoutPackets();
 	void SendZoneInPackets();
