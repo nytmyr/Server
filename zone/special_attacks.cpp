@@ -182,7 +182,7 @@ void Mob::DoSpecialAttackDamage(Mob *who, EQ::skills::SkillType skill, int32 bas
 					hate += item->GetItem()->AC;
 				}
 				const EQ::ItemData *itm = item->GetItem();
-				auto fbash = GetFuriousBash(itm->Focus.Effect);
+				auto fbash = GetSpellFuriousBash(itm->Focus.Effect);
 				hate = hate * (100 + fbash) / 100;
 				if (fbash)
 					MessageString(Chat::FocusEffect, GLOWS_RED, itm->Name);
@@ -2276,17 +2276,15 @@ void Mob::DoMeleeSkillAttackDmg(Mob *other, uint16 weapon_damage, EQ::skills::Sk
 			weapon_damage += weapon_damage * focus / 100;
 		}
 
-		if (skillinuse == EQ::skills::SkillBash) {
-			if (IsClient()) {
-				EQ::ItemInstance *item =
-				    CastToClient()->GetInv().GetItem(EQ::invslot::slotSecondary);
-				if (item) {
-					if (item->GetItem()->ItemType == EQ::item::ItemTypeShield) {
-						hate += item->GetItem()->AC;
-					}
-					const EQ::ItemData *itm = item->GetItem();
-					hate = hate * (100 + GetFuriousBash(itm->Focus.Effect)) / 100;
+		if (skillinuse == EQ::skills::SkillBash && IsClient()) {
+			EQ::ItemInstance *item =
+				CastToClient()->GetInv().GetItem(EQ::invslot::slotSecondary);
+			if (item) {
+				if (item->GetItem()->ItemType == EQ::item::ItemTypeShield) {
+					hate += item->GetItem()->AC;
 				}
+				const EQ::ItemData *itm = item->GetItem();
+				hate = hate * (100 + GetSpellFuriousBash(itm->Focus.Effect)) / 100;
 			}
 		}
 

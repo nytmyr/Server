@@ -2205,7 +2205,7 @@ std::list<BotSpell> Bot::GetBotSpellsForSpellEffect(Bot* botCaster, int spellEff
 				continue;
 			}
 
-			if (IsEffectInSpell(botSpellList[i].spellid, spellEffect) || GetTriggerSpellID(botSpellList[i].spellid, spellEffect)) {
+			if (IsEffectInSpell(botSpellList[i].spellid, spellEffect) || GetSpellTriggerSpellID(botSpellList[i].spellid, spellEffect)) {
 				BotSpell botSpell;
 				botSpell.SpellId = botSpellList[i].spellid;
 				botSpell.SpellIndex = i;
@@ -2237,15 +2237,18 @@ std::list<BotSpell> Bot::GetBotSpellsForSpellEffectAndTargetType(Bot* botCaster,
 				continue;
 			}
 
-			if (IsEffectInSpell(botSpellList[i].spellid, spellEffect) || GetTriggerSpellID(botSpellList[i].spellid, spellEffect)) {
-				if (spells[botSpellList[i].spellid].target_type == targetType) {
-					BotSpell botSpell;
-					botSpell.SpellId = botSpellList[i].spellid;
-					botSpell.SpellIndex = i;
-					botSpell.ManaCost = botSpellList[i].manacost;
-
-					result.push_back(botSpell);
-				}
+			if (
+				(
+					IsEffectInSpell(botSpellList[i].spellid, spellEffect) ||
+					GetSpellTriggerSpellID(botSpellList[i].spellid, spellEffect)
+				) &&
+				spells[botSpellList[i].spellid].target_type == targetType
+			) {
+				BotSpell botSpell;
+				botSpell.SpellId = botSpellList[i].spellid;
+				botSpell.SpellIndex = i;
+				botSpell.ManaCost = botSpellList[i].manacost;
+				result.push_back(botSpell);
 			}
 		}
 	}
@@ -2611,7 +2614,7 @@ BotSpell Bot::GetBestBotSpellForMez(Bot* botCaster) {
 		for (std::list<BotSpell>::iterator botSpellListItr = botSpellList.begin(); botSpellListItr != botSpellList.end(); ++botSpellListItr) {
 			// Assuming all the spells have been loaded into this list by level and in descending order
 			if (
-				IsMezSpell(botSpellListItr->SpellId) &&
+				IsMesmerizeSpell(botSpellListItr->SpellId) &&
 				CheckSpellRecastTimers(botCaster, botSpellListItr->SpellIndex)
 			) {
 				result.SpellId = botSpellListItr->SpellId;
@@ -2687,7 +2690,7 @@ Mob* Bot::GetFirstIncomingMobToMez(Bot* botCaster, BotSpell botSpell) {
 	Mob* result = 0;
 	bool go_next = false;
 
-	if (botCaster && IsMezSpell(botSpell.SpellId)) {
+	if (botCaster && IsMesmerizeSpell(botSpell.SpellId)) {
 
 		std::list<NPC*> npc_list;
 		entity_list.GetNPCList(npc_list);
