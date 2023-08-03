@@ -4044,7 +4044,6 @@ bool Bot::IsTargetAlreadyReceivingSpell(Mob* tar, uint16 spellid, std::string he
 	Mob* ultimate_tar = tar;
 
 	if (IsNPC() && CastToNPC()->GetSwarmOwner()) {
-		TestDebug("[{}] says, 'Swarm pet detected.'", GetCleanName()); //deleteme
 		return true;
 	}
 	if (tar->IsPet()) {
@@ -4089,7 +4088,6 @@ bool Bot::IsTargetAlreadyReceivingSpell(Mob* tar, uint16 spellid, std::string he
 		}
 	}
 	else {
-		TestDebug("[{}] says, 'Found a different type of target?.'", ultimate_tar->GetCleanName()); //deleteme
 		return true;
 	}
 	return false;
