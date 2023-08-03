@@ -3949,6 +3949,17 @@ bool Mob::HateSummon() {
 					new_pos.w
 				);
 				parse->EventPlayer(EVENT_SUMMON_PC, target->CastToClient(), export_string, 0);
+				export_string = fmt::format(
+					"{} {} {} {} {} {} {}",
+					GetX(),
+					GetY(),
+					GetZ(),
+					new_pos.x,
+					new_pos.y,
+					new_pos.z,
+					99
+				);
+				parse->EventPlayer(EVENT_WARP, target->CastToClient(), export_string, 0);
 
 				target->CastToClient()->MovePC(
 					zone->GetZoneID(),
