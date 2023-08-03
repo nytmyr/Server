@@ -4584,9 +4584,9 @@ void Bot::LevelBotWithClient(Client* client, uint8 level, bool sendlvlapp) {
 				}
 				else {
 					bot->SetHP(bot->CalcMaxHP()); // Why not, lets give them a free heal
+					bot->SetMana(bot->CalcMaxMana());
 				}
 				bot->SendHPUpdate();
-				bot->SetMana(bot->CalcMaxMana());
 			}
 		}
 

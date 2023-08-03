@@ -963,6 +963,7 @@ void Client::SetLevel(uint8 set_level, bool command)
 		}
 	} else {
 		SetHP(CalcMaxHP()); // Why not, lets give them a free heal
+		SetMana(CalcMaxMana());
 	}
 
 	if (RuleI(World, PVPMinLevel) > 0 && level >= RuleI(World, PVPMinLevel) && m_pp.pvp == 0) {
@@ -971,7 +972,6 @@ void Client::SetLevel(uint8 set_level, bool command)
 
 	DoTributeUpdate();
 	SendHPUpdate();
-	SetMana(CalcMaxMana());
 	UpdateWho();
 
 	UpdateMercLevel();
