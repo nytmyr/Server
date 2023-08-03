@@ -532,6 +532,7 @@ namespace EQ
 		char	ScrollName[65];
 		//Custom Vegas
 		float GearScore;
+		float ShardScore;
 		uint16 MinDropLevel;
 		double difficulty;
 		uint32 lowest_drop_npc_id;

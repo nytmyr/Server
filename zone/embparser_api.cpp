@@ -4108,6 +4108,10 @@ float Perl__getitemgearscore(uint32 item_id) {
 	return quest_manager.getitemgearscore(item_id);
 }
 
+float Perl__getitemshardscore(uint32 item_id) {
+	return quest_manager.getitemshardscore(item_id);
+}
+
 uint32 Perl__getitemlowestdropnpcid(uint32 item_id) {
 	return quest_manager.getitemlowestdropnpcid(item_id);
 }
@@ -4854,6 +4858,7 @@ void perl_register_quest()
 	package.add("getitemlowestdropnpcid", &Perl__getitemlowestdropnpcid);
 	package.add("getitemmaxcharges", &Perl__getitemmaxcharges);
 	package.add("getitemmindroplevel", &Perl__getitemmindroplevel);
+	package.add("getitemshardscore", &Perl__getitemshardscore);
 	package.add("getloottablemaxcash", &Perl__getloottablemaxcash);
 	package.add("getloottablemincash", &Perl__getloottablemincash);
 	package.add("getvegasitem", &Perl__getvegasitem);

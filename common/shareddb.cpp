@@ -1283,6 +1283,7 @@ void SharedDatabase::LoadItems(void *data, uint32 size, int32 items, uint32 max_
 
 		// Custom Vegas
 		item.GearScore = static_cast<float>(std::stoi(row[ItemField::GearScore]));
+		item.ShardScore = static_cast<float>(std::stoi(row[ItemField::ShardScore]));
 		item.MinDropLevel = static_cast<uint16>(std::stoul(row[ItemField::MinDropLevel]));
 		item.difficulty = static_cast<double>(std::stoul(row[ItemField::difficulty]));
 		item.lowest_drop_npc_id = static_cast<uint32>(std::stoul(row[ItemField::lowest_drop_npc_id]));

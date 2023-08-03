@@ -3998,6 +3998,10 @@ float lua_getitemgearscore(uint32 item_id) {
 	return quest_manager.getitemgearscore(item_id);
 }
 
+float lua_getitemshardscore(uint32 item_id) {
+	return quest_manager.getitemshardscore(item_id);
+}
+
 uint32 lua_getitemlowestdropnpcid(uint32 item_id) {
 	return quest_manager.getitemlowestdropnpcid(item_id);
 }
@@ -4677,6 +4681,7 @@ luabind::scope lua_register_general() {
 		luabind::def("getitemlowestdropnpcid", &lua_getitemlowestdropnpcid),
 		luabind::def("getitemmaxcharges", &lua_getitemmaxcharges),
 		luabind::def("getitemmindroplevel", &lua_getitemmindroplevel),
+		luabind::def("getitemshardscore", &lua_getitemshardscore),
 		luabind::def("getloottablemaxcash", &lua_getloottablemaxcash),
 		luabind::def("getloottablemincash", &lua_getloottablemincash),
 		luabind::def("getvegasitem", &lua_getvegasitem),

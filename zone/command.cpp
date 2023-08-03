@@ -163,7 +163,9 @@ int command_init(void)
 		command_add("gassign", "[Grid ID] - Assign targetted NPC to predefined wandering grid id", AccountStatus::GMAdmin, command_gassign) ||
 		command_add("gearup", "Developer tool to quickly equip yourself or your target", AccountStatus::GMMgmt, command_gearup) ||
 		command_add("gender", "[0/1/2] - Change your or your target's gender to male/female/neuter", AccountStatus::Guide, command_gender) ||
+		command_add("getgearscore", "Returns the GearScore of the item currently on your cursor.", AccountStatus::Player, command_getgearscore) ||
 		command_add("getplayerburiedcorpsecount", "Get your or your target's total number of buried player corpses.", AccountStatus::GMAdmin, command_getplayerburiedcorpsecount) ||
+		command_add("getshardscore", "Returns the GearScore of the item currently on your cursor.", AccountStatus::Player, command_getshardscore) ||
 		command_add("getvariable", "[Variable Name] - Get the value of a variable from the database", AccountStatus::GMMgmt, command_getvariable) ||
 		command_add("ginfo", "get group info on target.", AccountStatus::ApprenticeGuide, command_ginfo) ||
 		command_add("giveitem", "[itemid] [charges] - Summon an item onto your target's cursor. Charges are optional.", AccountStatus::GMMgmt, command_giveitem) ||
@@ -1023,7 +1025,9 @@ void command_bot(Client *c, const Seperator *sep)
 #include "gm_commands/gassign.cpp"
 #include "gm_commands/gearup.cpp"
 #include "gm_commands/gender.cpp"
+#include "gm_commands/getgearscore.cpp"
 #include "gm_commands/getplayerburiedcorpsecount.cpp"
+#include "gm_commands/getshardscore.cpp"
 #include "gm_commands/getvariable.cpp"
 #include "gm_commands/ginfo.cpp"
 #include "gm_commands/giveitem.cpp"

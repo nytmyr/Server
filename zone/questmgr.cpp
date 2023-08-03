@@ -4217,6 +4217,16 @@ float QuestManager::getitemgearscore(uint32 item_id) {
 	return GearScore;
 }
 
+float QuestManager::getitemshardscore(uint32 item_id) {
+	const EQ::ItemData* item_data = database.GetItem(item_id);
+	if (!item_data) {
+		return 0;
+	}
+
+	float ShardScore = item_data->ShardScore;
+	return ShardScore;
+}
+
 uint32 QuestManager::getitemlowestdropnpcid(uint32 item_id) {
 	const EQ::ItemData* item_data = database.GetItem(item_id);
 	if (!item_data) {

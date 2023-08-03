@@ -362,6 +362,7 @@ public:
 
 	double getitemdifficulty(uint32 item_id);
 	float getitemgearscore(uint32 item_id);
+	float getitemshardscore(uint32 item_id);
 	uint32 getitemlowestdropnpcid(uint32 item_id);
 	int16 getitemmaxcharges(uint32 item_id);
 	uint16 getitemmindroplevel(uint32 item_id);
