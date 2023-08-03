@@ -857,8 +857,14 @@ bool Mob::DoCastingChecksOnTarget(bool check_on_casting, int32 spell_id, Mob *sp
 	/*
 		Max level of target for harmony to take hold
 	*/
-	if (IsClient() && IsHarmonySpell(spell_id) && !HarmonySpellLevelCheck(spell_id, spell_target)) {
-		MessageString(Chat::SpellFailure, SPELL_NO_EFFECT);
+	if ((IsClient() || IsBot()) && IsHarmonySpell(spell_id) && !HarmonySpellLevelCheck(spell_id, spell_target)) {
+		if (IsBot()) {
+			Bot::BotGroupSay(this, "%s looks unaffected.", spell_target->GetCleanName());
+			GetOwner()->Message(Chat::SpellFailure, fmt::format("{} looks unaffected by {}'s spell [{}].", spell_target->GetCleanName(), GetCleanName(), spells[spell_id].name).c_str());
+		}
+		else {
+			MessageString(Chat::SpellFailure, SPELL_NO_EFFECT);
+		}
 		LogSpells("Spell casting canceled [{}] : can not use harmony on this target.", spell_id);
 		return false;
 	}
@@ -3994,11 +4000,17 @@ bool Mob::SpellOnTarget(
 
 	//Need this to account for special AOE cases.
 	if (
-		IsClient() &&
+		(IsClient() || IsBot()) &&
 		IsHarmonySpell(spell_id) &&
 		!HarmonySpellLevelCheck(spell_id, spelltar)
 	) {
-		MessageString(Chat::SpellFailure, SPELL_NO_EFFECT);
+		if (IsBot()) {
+			Bot::BotGroupSay(this, "%s looks unaffected.", spelltar->GetCleanName());
+			GetOwner()->Message(Chat::SpellFailure, fmt::format("{} looks unaffected by {}'s spell [{}].", spelltar->GetCleanName(), GetCleanName(), spells[spell_id].name).c_str());
+		}
+		else {
+			MessageString(Chat::SpellFailure, SPELL_NO_EFFECT);
+		}
 		safe_delete(action_packet);
 		return false;
 	}
@@ -4183,21 +4195,14 @@ bool Mob::SpellOnTarget(
 						spelltar->MessageString(Chat::SpellFailure, YOU_RESIST, spells[spell_id].name);
 					}
 					else {
-						if (this->IsBot() && IsHarmonySpell(spell_id)) {
-							if (IsGrouped() && this->GetGroup()->GetLeader()->IsClient()) {
-								Bot::BotGroupSay(this, "Your target RESISTED %s", spells[spell_id].name);
-							}
-							else {
-								this->CastToBot()->GetBotOwner()->MessageString(Chat::SpellFailure, TARGET_RESISTED, spells[spell_id].name);
-							}
+						if (this->IsBot()) {
+							Bot::BotGroupSay(this, "%s resisted %s's spell [%s].", spelltar->GetCleanName(), this->GetCleanName(), spells[spell_id].name);
+							GetOwner()->Message(Chat::SpellFailure, fmt::format("{} resisted {}'s spell [{}].", spelltar->GetCleanName(), GetCleanName(), spells[spell_id].name).c_str());
 						}
 						else {
-							if (this->IsBot()) {
-								this->CastToBot()->GetBotOwner()->Message(Chat::SpellFailure, "%s resisted %s's spell: %s", spelltar->GetCleanName(), this->GetCleanName(), spells[spell_id].name);
-							}
 							MessageString(Chat::SpellFailure, TARGET_RESISTED, spells[spell_id].name);
-							spelltar->MessageString(Chat::SpellFailure, YOU_RESIST, spells[spell_id].name);
 						}
+						spelltar->MessageString(Chat::SpellFailure, YOU_RESIST, spells[spell_id].name);
 					}
 				}
 
@@ -4227,16 +4232,6 @@ bool Mob::SpellOnTarget(
 
 				safe_delete(action_packet);
 				return false;
-			}
-		}
-		if (RuleB(Bots, Enabled)) {
-			if (this->IsBot() && IsHarmonySpell(spell_id)) {
-				if (IsGrouped() && this->GetGroup()->GetLeader()->IsClient()) {
-					Bot::BotGroupSay(this, "Your spell was mostly successful.");
-				}
-				else {
-					this->CastToBot()->GetBotOwner()->MessageString(Chat::SpellFailure, SLOW_MOSTLY_SUCCESSFUL);
-				}
 			}
 		}
 		if (spelltar->IsClient()){
@@ -4740,6 +4735,13 @@ bool Mob::IsImmuneToSpell(uint16 spell_id, Mob *caster)
 	{
 		if(GetSpecialAbility(UNMEZABLE)) {
 			LogSpells("We are immune to Mez spells");
+			if (caster->IsBot()) {
+				Bot::BotGroupSay(caster, "%s cannot be mesmerized.", GetCleanName());
+				caster->GetOwner()->Message(Chat::SpellFailure, fmt::format("{} cannot be mesmerized.", GetCleanName()).c_str());
+			}
+			else {
+				caster->MessageString(Chat::SpellFailure, CANNOT_MEZ);
+			}
 			caster->MessageString(Chat::SpellFailure, CANNOT_MEZ);
 			int32 aggro = caster->CheckAggroAmount(spell_id, this);
 			if(aggro > 0) {
@@ -4758,7 +4760,13 @@ bool Mob::IsImmuneToSpell(uint16 spell_id, Mob *caster)
 			(!caster->IsNPC() || (caster->IsNPC() && !RuleB(Spells, NPCIgnoreBaseImmunity))))
 		{
 			LogSpells("Our level ([{}]) is higher than the limit of this Mez spell ([{}])", GetLevel(), spells[spell_id].max_value[effect_index]);
-			caster->MessageString(Chat::SpellFailure, CANNOT_MEZ_WITH_SPELL);
+			if (caster->IsBot()) {
+				Bot::BotGroupSay(caster, "%s cannot be mesmerized (with %s's spell [%s]).", GetCleanName(), caster->GetCleanName(), spells[spell_id].name);
+				caster->GetOwner()->Message(Chat::SpellFailure, fmt::format("{} cannot be mesmerized (with {}'s spell [{}]).", GetCleanName(), caster->GetCleanName(), spells[spell_id].name).c_str());
+			}
+			else {
+				caster->MessageString(Chat::SpellFailure, CANNOT_MEZ_WITH_SPELL);
+			}
 			AddToHateList(caster, 1,0,true,false,false,spell_id);
 			return true;
 		}
@@ -4784,7 +4792,13 @@ bool Mob::IsImmuneToSpell(uint16 spell_id, Mob *caster)
 		effect_index = GetSpellEffectIndex(spell_id, SE_Fear);
 		if(GetSpecialAbility(UNFEARABLE)) {
 			LogSpells("We are immune to Fear spells");
-			caster->MessageString(Chat::Red, IMMUNE_FEAR);	// need to verify message type, not in MQ2Cast for easy look up
+			if (caster->IsBot()) {
+				Bot::BotGroupSay(caster, "%s is immune to fear spells.", GetCleanName());
+				caster->GetOwner()->Message(Chat::SpellFailure, fmt::format("{} is immune to fear spells.", GetCleanName()).c_str());
+			}
+			else {
+				caster->MessageString(Chat::Red, IMMUNE_FEAR);	// need to verify message type, not in MQ2Cast for easy look up
+			}
 			int32 aggro = caster->CheckAggroAmount(spell_id, this);
 			if(aggro > 0) {
 				AddToHateList(caster, aggro);
@@ -4801,7 +4815,13 @@ bool Mob::IsImmuneToSpell(uint16 spell_id, Mob *caster)
 		else if(GetLevel() > spells[spell_id].max_value[effect_index] && spells[spell_id].max_value[effect_index] != 0)
 		{
 			LogSpells("Level is [{}], cannot be feared by this spell", GetLevel());
-			caster->MessageString(Chat::Shout, FEAR_TOO_HIGH);
+			if (caster->IsBot()) {
+				Bot::BotGroupSay(caster, "%s is too high of a level for %s's fear spell [%s].", GetCleanName(), caster->GetCleanName(), spells[spell_id].name);
+				caster->GetOwner()->Message(Chat::SpellFailure, fmt::format("{} is too high of a level for {}'s fear spell [{}].", GetCleanName(), caster->GetCleanName(), spells[spell_id].name).c_str());
+			}
+			else {
+				caster->MessageString(Chat::Shout, FEAR_TOO_HIGH);
+			}
 			int32 aggro = caster->CheckAggroAmount(spell_id, this);
 			if (aggro > 0) {
 				AddToHateList(caster, aggro);
@@ -4814,7 +4834,13 @@ bool Mob::IsImmuneToSpell(uint16 spell_id, Mob *caster)
 		{
 			Message(Chat::Red, "Your are immune to fear.");
 			LogSpells("Clients has WarCry effect, immune to fear!");
-			caster->MessageString(Chat::Red, IMMUNE_FEAR);	// need to verify message type, not in MQ2Cast for easy look up
+			if (caster->IsBot()) {
+				Bot::BotGroupSay(caster, "%s is immune to fear spells.", GetCleanName());
+				caster->GetOwner()->Message(Chat::SpellFailure, fmt::format("{} is immune to fear spells.", GetCleanName()).c_str());
+			}
+			else {
+				caster->MessageString(Chat::Red, IMMUNE_FEAR);	// need to verify message type, not in MQ2Cast for easy look up
+			}
 			return true;
 		}
 	}
@@ -4824,7 +4850,13 @@ bool Mob::IsImmuneToSpell(uint16 spell_id, Mob *caster)
 		if(GetSpecialAbility(UNCHARMABLE))
 		{
 			LogSpells("We are immune to Charm spells");
-			caster->MessageString(Chat::Red, CANNOT_CHARM);	// need to verify message type, not in MQ2Cast for easy look up
+			if (caster->IsBot()) {
+				Bot::BotGroupSay(caster, "%s cannot be charmed.", GetCleanName());
+				caster->GetOwner()->Message(Chat::SpellFailure, fmt::format("{} cannot be charmed.", GetCleanName()).c_str());
+			}
+			else {
+				caster->MessageString(Chat::Red, CANNOT_CHARM);	// need to verify message type, not in MQ2Cast for easy look up
+			}
 			int32 aggro = caster->CheckAggroAmount(spell_id, this);
 			if(aggro > 0) {
 				AddToHateList(caster, aggro);
@@ -4850,7 +4882,13 @@ bool Mob::IsImmuneToSpell(uint16 spell_id, Mob *caster)
 			if(GetLevel() > spells[spell_id].max_value[effect_index] && spells[spell_id].max_value[effect_index] != 0)
 			{
 				LogSpells("Our level ([{}]) is higher than the limit of this Charm spell ([{}])", GetLevel(), spells[spell_id].max_value[effect_index]);
-				caster->MessageString(Chat::Red, CANNOT_CHARM_YET);	// need to verify message type, not in MQ2Cast for easy look up<Paste>
+				if (caster->IsBot()) {
+					Bot::BotGroupSay(caster, "%s is too high of a level for %s's charm spell [%s]).", GetCleanName(), caster->GetCleanName(), spells[spell_id].name);
+					caster->GetOwner()->Message(Chat::SpellFailure, fmt::format("{} is too high of a level for {}'s charm spell [{}]).", GetCleanName(), caster->GetCleanName(), spells[spell_id].name).c_str());
+				}
+				else {
+					caster->MessageString(Chat::Red, CANNOT_CHARM_YET);	// need to verify message type, not in MQ2Cast for easy look up<Paste>
+				}
 				AddToHateList(caster, 1,0,true,false,false,spell_id);
 				return true;
 			}
@@ -4865,7 +4903,13 @@ bool Mob::IsImmuneToSpell(uint16 spell_id, Mob *caster)
 	{
 		if(GetSpecialAbility(UNSNAREABLE)) {
 			LogSpells("We are immune to Snare spells");
-			caster->MessageString(Chat::Red, IMMUNE_MOVEMENT);
+			if (caster->IsBot()) {
+				Bot::BotGroupSay(caster, "%s is immune to changes in its run speed.", GetCleanName());
+				caster->GetOwner()->Message(Chat::SpellFailure, fmt::format("{} is immune to changes in its run speed.", GetCleanName()).c_str());
+			}
+			else {
+				caster->MessageString(Chat::Red, IMMUNE_MOVEMENT);
+			}
 			int32 aggro = caster->CheckAggroAmount(spell_id, this);
 			if(aggro > 0) {
 				AddToHateList(caster, aggro);
@@ -7147,4 +7191,124 @@ bool Mob::CheckWaterLoS(Mob* los_attacker, Mob* los_target) // checks if both at
 		return true;
 	}
 	return zone->watermap->InLiquid(los_attacker->GetPosition()) == zone->watermap->InLiquid(los_target->GetPosition());
+}
+
+bool Mob::IsImmuneToBotSpell(uint16 spell_id, Mob* caster)
+{
+	int effect_index;
+
+	if (caster == nullptr)
+		return(false);
+
+	//TODO: this function loops through the effect list for
+	//this spell like 10 times, this could easily be consolidated
+	//into one loop through with a switch statement.
+
+	LogSpells("Checking to see if we are immune to spell [{}] cast by [{}]", spell_id, caster->GetName());
+
+	if (!IsValidSpell(spell_id))
+		return true;
+
+	if (IsBeneficialSpell(spell_id) && (caster->GetNPCTypeID())) //then skip the rest, stop NPCs aggroing each other with buff spells. 2013-03-05
+		return false;
+
+	if (IsMezSpell(spell_id))
+	{
+		if (GetSpecialAbility(UNMEZABLE)) {
+			return true;
+		}
+
+		// check max level for spell
+		effect_index = GetSpellEffectIndex(spell_id, SE_Mez);
+		assert(effect_index >= 0);
+		// NPCs get to ignore the max level
+		if ((GetLevel() > spells[spell_id].max_value[effect_index]) &&
+			(!caster->IsNPC() || (caster->IsNPC() && !RuleB(Spells, NPCIgnoreBaseImmunity))))
+		{
+			return true;
+		}
+	}
+
+	// slow and haste spells
+	if (GetSpecialAbility(UNSLOWABLE) && IsEffectInSpell(spell_id, SE_AttackSpeed))
+	{
+		return true;
+	}
+
+	// client vs client fear
+	if (IsEffectInSpell(spell_id, SE_Fear))
+	{
+		effect_index = GetSpellEffectIndex(spell_id, SE_Fear);
+		if (GetSpecialAbility(UNFEARABLE)) {
+			return true;
+		}
+		else if (IsClient() && caster->IsClient() && (caster->CastToClient()->GetGM() == false))
+		{
+			LogSpells("Clients cannot fear eachother!");
+			caster->MessageString(Chat::Red, IMMUNE_FEAR);	// need to verify message type, not in MQ2Cast for easy look up
+			return true;
+		}
+		else if (GetLevel() > spells[spell_id].max_value[effect_index] && spells[spell_id].max_value[effect_index] != 0)
+		{
+			return true;
+		}
+		else if (CheckAATimer(aaTimerWarcry))
+		{
+			return true;
+		}
+	}
+
+	if (IsCharmSpell(spell_id))
+	{
+		if (GetSpecialAbility(UNCHARMABLE))
+		{
+			return true;
+		}
+
+		if (this == caster)
+		{
+			return true;
+		}
+
+		//let npcs cast whatever charm on anyone
+		if (!caster->IsNPC())
+		{
+			// check level limit of charm spell
+			effect_index = GetSpellEffectIndex(spell_id, SE_Charm);
+			assert(effect_index >= 0);
+			if (GetLevel() > spells[spell_id].max_value[effect_index] && spells[spell_id].max_value[effect_index] != 0)
+			{
+				return true;
+			}
+		}
+	}
+
+	if
+		(
+			IsEffectInSpell(spell_id, SE_Root) ||
+			IsEffectInSpell(spell_id, SE_MovementSpeed)
+			)
+	{
+		if (GetSpecialAbility(UNSNAREABLE)) {
+			return true;
+		}
+	}
+
+	if (IsLifetapSpell(spell_id))
+	{
+		if (this == caster)
+		{
+			return true;
+		}
+	}
+
+	if (IsSacrificeSpell(spell_id))
+	{
+		if (this == caster)
+		{
+			return true;
+		}
+	}
+
+	return false;
 }

@@ -9443,6 +9443,7 @@ void Bot::BotGroupSay(Mob *speaker, const char *msg, ...) {
 bool Bot::UseDiscipline(uint32 spell_id, uint32 target) {
 	if(!IsValidSpell(spell_id)) {
 		BotGroupSay(this, "Not a valid spell.");
+		GetOwner()->Message(Chat::SpellFailure, fmt::format("{}: Not a valid spell.", GetCleanName()).c_str());
 		return false;
 	}
 

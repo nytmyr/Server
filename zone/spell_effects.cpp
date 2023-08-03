@@ -9705,8 +9705,14 @@ bool Mob::PassCharmTargetRestriction(Mob *target) {
 		LogSpells("Spell casting canceled: Can not cast charm on a corpse.");
 		return false;
 	}
-	else if (GetPet() && IsClient()) {
-		MessageString(Chat::Red, ONLY_ONE_PET);
+	else if (GetPet() && (IsClient() || IsBot())) {
+		if (IsBot()) {
+			Bot::BotGroupSay(this, "I cannot have more than one pet at a time.");
+			GetOwner()->Message(Chat::SpellFailure, fmt::format("{} cannot have more than one pet at a time.", GetCleanName()).c_str());
+		}
+		else {
+			MessageString(Chat::Red, ONLY_ONE_PET);
+		}
 		LogSpells("Spell casting canceled: Can not cast charm if you have a pet.");
 		return false;
 	}

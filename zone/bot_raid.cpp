@@ -1502,7 +1502,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					break;
 				}
 
-				if (!(!addMob->IsImmuneToSpell(botSpell.SpellId, this) && addMob->CanBuffStack(botSpell.SpellId, botLevel, true) >= 0))
+				if (!(!addMob->IsImmuneToBotSpell(botSpell.SpellId, this) && addMob->CanBuffStack(botSpell.SpellId, botLevel, true) >= 0))
 					break;
 
 
@@ -1720,7 +1720,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					if (!CheckSpellRecastTimers(this, botSpell.SpellIndex))
 						continue;
 
-					if (!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
+					if (!(!tar->IsImmuneToBotSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
 						continue;
 					if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, RootResistLimit)))
 						continue;
@@ -1788,7 +1788,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 							spells[selectedBotSpell.SpellId].target_type == ST_GroupTeleport ||
 							(botClass == BARD && spells[selectedBotSpell.SpellId].target_type == ST_AEBard)
 							) &&
-						!tar->IsImmuneToSpell(selectedBotSpell.SpellId, this) &&
+						!tar->IsImmuneToBotSpell(selectedBotSpell.SpellId, this) &&
 						tar->CanBuffStack(selectedBotSpell.SpellId, botLevel, true) >= 0
 						)
 					) {
@@ -2028,7 +2028,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 			}
 
 			if (botSpell.SpellId != 0) {
-				if (!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
+				if (!(!tar->IsImmuneToBotSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
 					botSpell.SpellId = 0;
 
 				if (IsFearSpell(botSpell.SpellId)) {
@@ -2072,7 +2072,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					if (GetSpellTargetType(botSpell.SpellId) == ST_Dragon && tar->GetBodyType() != BT_Dragon)
 						continue;
 
-					if (!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
+					if (!(!tar->IsImmuneToBotSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
 						continue;
 					if (IsFearSpell(botSpell.SpellId)) {
 						// don't let fear cast if the npc isn't snared or rooted
@@ -2110,7 +2110,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 			if (tar->CountDispellableBuffs() > 0) {
 				botSpell = GetFirstBotSpellBySpellType(this, SpellType_Dispel);
-				if (!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
+				if (!(!tar->IsImmuneToBotSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
 					break;
 
 				if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, DispelResistLimit)))
@@ -2202,7 +2202,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					if (!CheckSpellRecastTimers(this, botSpell.SpellIndex))
 						continue;
 
-					if (!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
+					if (!(!tar->IsImmuneToBotSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
 						continue;
 					if ((botClass == SHADOWKNIGHT) && !DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, InCombatBuffResistLimit)))
 						continue;
@@ -2253,7 +2253,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						if (!((spells[selectedBotSpell.SpellId].target_type == ST_Target || spells[selectedBotSpell.SpellId].target_type == ST_Pet || tar == this ||
 							spells[selectedBotSpell.SpellId].target_type == ST_Group || spells[selectedBotSpell.SpellId].target_type == ST_GroupTeleport ||
 							(botClass == BARD && spells[selectedBotSpell.SpellId].target_type == ST_AEBard))
-							&& !tar->IsImmuneToSpell(selectedBotSpell.SpellId, this)
+							&& !tar->IsImmuneToBotSpell(selectedBotSpell.SpellId, this)
 							&& (tar->CanBuffStack(selectedBotSpell.SpellId, botLevel, true) >= 0))) {
 							continue;
 						}
@@ -2343,7 +2343,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				if (!CheckSpellRecastTimers(this, botSpell.SpellIndex))
 					continue;
 
-				if (!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
+				if (!(!tar->IsImmuneToBotSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
 					continue;
 				if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, LifetapResistLimit)))
 					continue;
@@ -2405,7 +2405,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				if (!CheckSpellRecastTimers(this, botSpell.SpellIndex))
 					continue;
 
-				if (!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
+				if (!(!tar->IsImmuneToBotSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
 					continue;
 				if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, SnareResistLimit)))
 					continue;
@@ -2453,7 +2453,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					if (!CheckSpellRecastTimers(this, selectedBotSpell.SpellIndex))
 						continue;
 
-					if (!(!tar->IsImmuneToSpell(selectedBotSpell.SpellId, this) && tar->CanBuffStack(selectedBotSpell.SpellId, botLevel, true) >= 0))
+					if (!(!tar->IsImmuneToBotSpell(selectedBotSpell.SpellId, this) && tar->CanBuffStack(selectedBotSpell.SpellId, botLevel, true) >= 0))
 						continue;
 
 					//uint32 TempDontDotMeBefore = tar->DontDotMeBefore();
@@ -2530,7 +2530,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					if (!CheckSpellRecastTimers(this, botSpell.SpellIndex))
 						continue;
 
-					if (!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
+					if (!(!tar->IsImmuneToBotSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
 						continue;
 					if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, DoTResistLimit)))
 						continue;
@@ -2630,7 +2630,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 			if (!CheckSpellRecastTimers(this, botSpell.SpellIndex))
 				break;
 
-			if (!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
+			if (!(!tar->IsImmuneToBotSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
 				break;
 
 			if (IsValidSpellRange(botSpell.SpellId, tar)) {
@@ -2688,7 +2688,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				if (!CheckSpellRecastTimers(this, botSpell.SpellIndex))
 					continue;
 
-				if (!(!tar->IsImmuneToSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
+				if (!(!tar->IsImmuneToBotSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
 					continue;
 				if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, DebuffResistLimit)))
 					continue;

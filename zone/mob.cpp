@@ -6115,19 +6115,44 @@ void Mob::CastOnNumHitFade(uint32 spell_id)
 
 void Mob::SlowMitigation(Mob* caster)
 {
-	if (GetSlowMitigation() && caster && caster->IsClient())
+	if (GetSlowMitigation() && caster && (caster->IsClient() || caster->IsBot()))
 	{
-		if ((GetSlowMitigation() > 0) && (GetSlowMitigation() < 26))
-			caster->MessageString(Chat::SpellFailure, SLOW_MOSTLY_SUCCESSFUL);
-
-		else if ((GetSlowMitigation() >= 26) && (GetSlowMitigation() < 74))
-			caster->MessageString(Chat::SpellFailure, SLOW_PARTIALLY_SUCCESSFUL);
-
-		else if ((GetSlowMitigation() >= 74) && (GetSlowMitigation() < 101))
-			caster->MessageString(Chat::SpellFailure, SLOW_SLIGHTLY_SUCCESSFUL);
-
-		else if (GetSlowMitigation() > 100)
-			caster->MessageString(Chat::SpellFailure, SPELL_OPPOSITE_EFFECT);
+		if ((GetSlowMitigation() > 0) && (GetSlowMitigation() < 26)) {
+			if (caster->IsBot()) {
+				Bot::BotGroupSay(caster, "%s was mostly successful on %s.", spells[caster->CastingSpellID()].name, GetCleanName());
+				caster->GetOwner()->Message(Chat::SpellFailure, fmt::format("{}'s spell [{}] was mostly successful on {}.", caster->GetCleanName(), spells[caster->CastingSpellID()].name, GetCleanName()).c_str());
+			}
+			else {
+				caster->MessageString(Chat::SpellFailure, SLOW_MOSTLY_SUCCESSFUL);
+			}
+		}
+		else if ((GetSlowMitigation() >= 26) && (GetSlowMitigation() < 74)) {
+			if (caster->IsBot()) {
+				Bot::BotGroupSay(caster, "%s was partially successful on %s.", spells[caster->CastingSpellID()].name, GetCleanName());
+				caster->GetOwner()->Message(Chat::SpellFailure, fmt::format("{}'s spell [{}] was partially successful on {}.", caster->GetCleanName(), spells[caster->CastingSpellID()].name, GetCleanName()).c_str());
+			}
+			else {
+				caster->MessageString(Chat::SpellFailure, SLOW_PARTIALLY_SUCCESSFUL);
+			}
+		}
+		else if ((GetSlowMitigation() >= 74) && (GetSlowMitigation() < 101)) {
+			if (caster->IsBot()) {
+				Bot::BotGroupSay(caster, "%s was slightly successful on %s.", spells[caster->CastingSpellID()].name, GetCleanName());
+				caster->GetOwner()->Message(Chat::SpellFailure, fmt::format("{}'s spell [{}] was slightly successful on {}.", caster->GetCleanName(), spells[caster->CastingSpellID()].name, GetCleanName()).c_str());
+			}
+			else {
+				caster->MessageString(Chat::SpellFailure, SLOW_SLIGHTLY_SUCCESSFUL);
+			}
+		}
+		else if (GetSlowMitigation() > 100) {
+			if (caster->IsBot()) {
+				Bot::BotGroupSay(caster, "%s may have had the opposite affect of what I desired on %s.", spells[caster->CastingSpellID()].name, GetCleanName());
+				caster->GetOwner()->Message(Chat::SpellFailure, fmt::format("{}'s spell [{}] may have had the opposite affect of what I desired on {}.", caster->GetCleanName(), spells[caster->CastingSpellID()].name, GetCleanName()).c_str());
+			}
+			else {
+				caster->MessageString(Chat::SpellFailure, SPELL_OPPOSITE_EFFECT);
+			}
+		}
 	}
 }
 
