@@ -2,7 +2,6 @@ void command_clearxtargets(Client* c, const Seperator* sep)
 {
 	auto reuse_timer = RuleI(Character, ClearXTargetDelay);
 
-	int arguments = sep->argnum;
 	if (!strcasecmp(sep->arg[1], "help")) {
 		c->Message(Chat::White, "usage: #resetxtargets.");
 		c->Message(Chat::White, "note: Use this if your Extended Target window is bugged or has lingering targets that are invalid.");
