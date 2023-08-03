@@ -4587,6 +4587,7 @@ void Bot::LevelBotWithClient(Client* client, uint8 level, bool sendlvlapp) {
 					bot->SetMana(bot->CalcMaxMana());
 				}
 				bot->SendHPUpdate();
+				bot->AI_AddBotSpells(bot->GetBotSpellID());
 			}
 		}
 
