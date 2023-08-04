@@ -4027,6 +4027,14 @@ uint32 lua_getloottablemincash(uint32 loottable_id) {
 	return quest_manager.getloottablemincash(loottable_id);
 }
 
+Mob* lua_gettophateclient(Mob* npc) {
+	return npc ? npc->CastToNPC()->GetTopHateClient() : 0;
+}
+
+bool lua_isvegaslooteligible(Mob* npc, Mob* top_client) {
+	return npc ? npc->CastToNPC()->IsVegasLootEligible(top_client) : false;
+}
+
 int lua_getvegasitem(uint32 id_min, uint32 id_max, float difficulty_min, float difficulty_max, bool raidonly, uint32 lowest_drop_npc_id, uint32 max_drop_npc_id) {
 	return quest_manager.getvegasitem(id_min, id_max, difficulty_min, difficulty_max, raidonly, lowest_drop_npc_id, max_drop_npc_id);
 }
@@ -4689,6 +4697,8 @@ luabind::scope lua_register_general() {
 		luabind::def("getitemshardscore", &lua_getitemshardscore),
 		luabind::def("getloottablemaxcash", &lua_getloottablemaxcash),
 		luabind::def("getloottablemincash", &lua_getloottablemincash),
+		luabind::def("gettophateclient", &lua_gettophateclient),
+		luabind::def("isvegaslooteligible", &lua_isvegaslooteligible),
 		luabind::def("getvegasitem", &lua_getvegasitem),
 		luabind::def("isitemlore", &lua_isitemlore),
 		luabind::def("isitemraidonly", &lua_isitemraidonly)

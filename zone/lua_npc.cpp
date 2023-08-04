@@ -782,6 +782,8 @@ bool Lua_NPC::HasSpecialAbilities() {
 	return self->HasSpecialAbilities();
 }
 
+//Vegas custom
+
 float Lua_NPC::GetDifficulty() {
 	Lua_Safe_Call_Int();
 	return self->GetDifficulty();
@@ -790,6 +792,16 @@ float Lua_NPC::GetDifficulty() {
 int16 Lua_NPC::GetRaidPoints() {
 	Lua_Safe_Call_Int();
 	return self->GetRaidPoints();
+}
+
+int Lua_NPC::GetShardAmount() {
+	Lua_Safe_Call_Int();
+	return self->GetShardAmount();
+}
+
+void Lua_NPC::SetDifficulty(float difficulty_) {
+	Lua_Safe_Call_Void();
+	self->SetDifficulty(difficulty_);
 }
 
 luabind::scope lua_register_npc() {
@@ -944,7 +956,11 @@ luabind::scope lua_register_npc() {
 	.def("Signal", (void(Lua_NPC::*)(int))&Lua_NPC::Signal)
 	.def("StartSwarmTimer", (void(Lua_NPC::*)(uint32))&Lua_NPC::StartSwarmTimer)
 	.def("StopWandering", (void(Lua_NPC::*)(void))&Lua_NPC::StopWandering)
-	.def("UpdateWaypoint", (void(Lua_NPC::*)(int))&Lua_NPC::UpdateWaypoint);
+	.def("UpdateWaypoint", (void(Lua_NPC::*)(int))&Lua_NPC::UpdateWaypoint)
+
+	//Vegas custom
+	.def("GetShardAmount", (void(Lua_NPC::*)(int))&Lua_NPC::GetShardAmount)
+	.def("SetDifficulty", (void(Lua_NPC::*)(float))& Lua_NPC::SetDifficulty);
 }
 
 luabind::scope lua_register_npc_loot_list() {

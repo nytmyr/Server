@@ -41,6 +41,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 #include "bot.h"
 
+#include "data_bucket.h"
+
 extern QueryServ* QServ;
 extern WorldServer worldserver;
 extern FastMath g_Math;
@@ -2707,6 +2709,26 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 			if (killer->IsClient() && !killer->CastToClient()->GetGM())
 				CheckTrivialMinMaxLevelDrop(killer);
 		}
+		//Vegas loot stuff
+		if (RuleB(Vegas, EnableVegasDrops) || RuleB(Vegas, EnableVegasKillAchievements)) {
+			Mob* top_client = GetTopHateClient();
+			if (top_client && entity_list.GetClientByCharID(top_client->CastToClient()->CharacterID())) {
+				if (RuleB(Vegas, EnableVegasDrops)) {
+					bool kill_eligible = IsVegasLootEligible(top_client);
+					if (kill_eligible) {
+						AddVegasItemLoot(top_client);
+					}
+				}
+				if (RuleB(Vegas, EnableVegasKillAchievements) && top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasKillAchievements)) {
+					DoFirstKillChecks(top_client);
+				}
+			}
+			else
+			{
+				VegasLoot("Failed top_client check on [{}] for [{}]", GetCleanName(), top_client ? top_client->GetCleanName() : "UNKNOWN"); //deleteme
+			}
+		}
+		//Vegas loot stuff
 
 		entity_list.RemoveFromAutoXTargets(this);
 
@@ -2833,6 +2855,25 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 		}
 
 		killer_mob->TrySpellOnKill(killed_level, spell);
+	}
+
+	if (!HasOwner() && !IsMerc() && !GetSwarmInfo() && (!is_merchant || allow_merchant_corpse) &&
+		((killer && (killer->IsClient() || (killer->HasOwner() && killer->GetUltimateOwner()->IsClient()) ||
+			(killer->IsNPC() && killer->CastToNPC()->GetSwarmInfo() && killer->CastToNPC()->GetSwarmInfo()->GetOwner() && killer->CastToNPC()->GetSwarmInfo()->GetOwner()->IsClient())))
+			|| (killer_mob && IsLdonTreasure)))
+	{
+		Mob* top_client = GetTopHateClient();
+		if (top_client && top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasLootLogging)) {
+			auto cash = copper + (silver * 10) + (gold * 100) + (platinum * 1000);
+			std::string key = "TotalCashDropped";
+			std::string bucket_value = DataBucket::GetData(key);
+			if (Strings::IsNumber(bucket_value) && Strings::ToUnsignedInt(bucket_value) > 0) {
+				DataBucket::SetData(key, std::to_string(Strings::ToUnsignedInt(bucket_value) + cash));
+			}
+			else {
+				DataBucket::SetData(key, std::to_string(1));
+			}
+		}
 	}
 
 	WipeHateList();

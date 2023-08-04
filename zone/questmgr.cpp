@@ -4292,7 +4292,7 @@ uint32 QuestManager::getvegasitem(uint32 id_min, uint32 id_max, float difficulty
 		return 0;
 	}
 	BenchTimer benchmark;
-	VegasLoot("We are looking for item IDs between [{}] and [{}], with a difficulty between [{}] and [{}] and lowest_drop_ids between [{}] and [{}] - that [{}] raid_only.", id_min, id_max, difficulty_min, difficulty_max, lowest_drop_npc_id, max_drop_npc_id, raidonly == 1 ? "are" : "are not"); //deleteme
+	VegasLootDetail("We are looking for item IDs between [{}] and [{}], with a difficulty between [{}] and [{}] and lowest_drop_ids between [{}] and [{}] - that [{}] raid_only.", id_min, id_max, difficulty_min, difficulty_max, lowest_drop_npc_id, max_drop_npc_id, raidonly == 1 ? "are" : "are not"); //deleteme
 	std::vector<VegasItem> vitems;
 	VegasItem vitem;
 	const EQ::ItemData* item;
@@ -4316,15 +4316,15 @@ uint32 QuestManager::getvegasitem(uint32 id_min, uint32 id_max, float difficulty
 	}
 
 	if (vitems.size() > 0) {
-		VegasLoot("Found [{}] items matching the criteria.", vitems.size()); //deleteme
+		VegasLootDetail("Found [{}] items matching the criteria.", vitems.size()); //deleteme
 		uint32 chosen_item_id = vitems[std::rand() % vitems.size()].id;
 		VegasLoot("Item [{}]-[{}] was chosen.", getitemname(chosen_item_id), chosen_item_id); //deleteme
-		VegasLoot("Vegas Loot Operation took [{}]", benchmark.elapsed());
+		VegasLootDetail("Vegas Loot Operation took [{}]", benchmark.elapsed());
 		return chosen_item_id;
 	}
 	else {
-		VegasLoot("Didn't find any items matching that criteria"); //deleteme
-		VegasLoot("Vegas Loot Operation took [{}]", benchmark.elapsed());
+		VegasLootDetail("Didn't find any items matching that criteria"); //deleteme
+		VegasLootDetail("Vegas Loot Operation took [{}]", benchmark.elapsed());
 		return 0;
 	}
 }

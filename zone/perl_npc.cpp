@@ -791,6 +791,18 @@ bool Perl_NPC_HasSpecialAbilities(NPC* self) // @categories Script Utility
 	return self->HasSpecialAbilities();
 }
 
+//Vegas custom
+
+int Perl_NPC_GetShardAmount(NPC* self) // @categories Script Utility
+{
+	return self->GetShardAmount();
+}
+
+void Perl_NPC_SetDifficulty(NPC* self, float difficulty_) // @categories Script Utility
+{
+	return self->SetDifficulty(difficulty_);
+}
+
 void perl_register_npc()
 {
 	perl::interpreter perl(PERL_GET_THX);
@@ -952,6 +964,10 @@ void perl_register_npc()
 	package.add("StartSwarmTimer", &Perl_NPC_StartSwarmTimer);
 	package.add("StopWandering", &Perl_NPC_StopWandering);
 	package.add("UpdateWaypoint", &Perl_NPC_UpdateWaypoint);
+
+	//Vegas custom
+	package.add("GetShardAmount", &Perl_NPC_GetShardAmount);
+	package.add("SetDifficulty", &Perl_NPC_SetDifficulty);
 }
 
 #endif //EMBPERL_XS_CLASSES

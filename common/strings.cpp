@@ -861,3 +861,16 @@ std::string Strings::RemoveNumbers(std::string s)
 
 	return s.substr(0, current);
 }
+
+std::string Strings::replace_whitespaces(std::string s) {
+	std::string new_string = "";          // Our new string.
+	for (int i = 0; i < s.length(); i++) {      // Iterate the original string.
+		if (s[i] == ' ') {                  // If the character at position 'i' is a whitespace, append '%20' instead. 
+			new_string += "%20";
+		}
+		else {
+			new_string += s[i];          // Else append the original character to the new string.
+		}
+	}
+	return new_string;                // Return your new string.
+}

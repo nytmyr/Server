@@ -93,6 +93,13 @@ struct Roambox {
 	uint32 min_delay;
 };
 
+struct VegasItem {
+	uint32 id;
+	std::string name;
+	float difficulty;
+	int16 maxcharges;
+};
+
 class SwarmPet;
 class Client;
 class Group;
@@ -201,6 +208,38 @@ public:
 	void	AddItem(uint32 itemid, uint16 charges, bool equipitem = true, uint32 aug1 = 0, uint32 aug2 = 0, uint32 aug3 = 0, uint32 aug4 = 0, uint32 aug5 = 0, uint32 aug6 = 0);
 	void	AddLootTable();
 	void	AddLootTable(uint32 ldid);
+
+	//Vegas Stuff
+	bool	IsVegasLootEligible(Mob* top_client);
+	virtual Mob* GetTopHateClient();
+	bool	IsOnVegasCoolDown(Mob* top_client);
+	void	AddVegasItemLoot(Mob* top_client);
+	const EQ::ItemData* GetVegasItems(uint32 id_min, uint32 id_max, float difficulty_min, float difficulty_max, uint32 zone_range_min, uint32 zone_range_max, bool raidonly);
+	bool	NPCBypassesVegasLoot();
+	bool	NPCBypassesVegasRaidLoot();
+	bool	SpecialNPCPassesVegasLoot();
+	int		GetRollCount(float npc_diff);
+	int		GetRaidRollCount(float npc_diff);
+	int		GetBonusRollCount(float npc_diff);
+	int		GetRollMax();
+	int		GetRollToHit(auto roll_max, auto random_drop_multiplier);
+	int		GetBonusRollMax();
+	int		GetBonusRollToHit(auto roll_max, auto random_drop_multiplier);
+	int		GetRaidRollMax();
+	int		GetRaidRollToHit(auto roll_max, auto random_drop_multiplier);
+	void	AddVegasSpellLoot(Mob* top_client);
+	void	AddVegasBagLoot(Mob* top_client);
+	void	AddVegasBridleLoot(Mob* top_client);
+	void	AddVegasEpicTokenLoot(Mob* top_client);
+	void	AddVegasShardLoot(Mob* top_client, float shard_multiplier, bool guaranteed_shard_drop);
+	int		GetShardAmount();
+	void	GetVegasZoneRange(uint16 zoneid, uint8* zone_era, uint32* zone_range_min, uint32* zone_range_max);
+	void	GetVegasDifficultyRange(uint16 zoneid, float* difficulty_min, float* difficulty_max, float* difficulty_bonus_min, float* difficulty_bonus_max);
+	void	DoFirstKillChecks(Mob* top_client);
+	void	DoFirstKillAchievements(Mob* top_client, std::string key);
+	void	QueryVegasLoot(std::string query, std::string killer_name, std::string killed_name);
+	//Vegas Stuff
+
 	void	CheckGlobalLootTables();
 	void	DescribeAggro(Client *to_who, Mob *mob, bool verbose);
 	void	RemoveItem(uint32 item_id, uint16 quantity = 0, uint16 slot = 0);
@@ -245,6 +284,7 @@ public:
 	uint32 GetSpawnPointID() const;
 	uint32 GetRespawnTime() const;
 	float GetDifficulty() const { return difficulty; }
+	void SetDifficulty(float difficulty_) { difficulty = difficulty_; }
 	int16 GetRaidPoints() const { return raid_points; }
 
 	glm::vec4 const GetSpawnPoint() const { return m_SpawnPoint; }

@@ -179,6 +179,8 @@ public:
 	bool HasSpecialAbilities();
 	float GetDifficulty();
 	int16 GetRaidPoints();
+	int GetShardAmount();
+	void SetDifficulty(float difficulty_);
 };
 
 #endif

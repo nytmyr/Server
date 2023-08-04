@@ -38,6 +38,10 @@
 #define snprintf	_snprintf
 #endif
 
+#include "data_bucket.h"
+#include "raids.h"
+#include "groups.h"
+
 // Queries the loottable: adds item & coin to the npc
 void ZoneDatabase::AddLootTableToNPC(NPC* npc, uint32 loottable_id, ItemList* itemlist, uint32* copper, uint32* silver, uint32* gold, uint32* plat) {
 	const LootTable_Struct* lts = nullptr;
@@ -84,6 +88,9 @@ void ZoneDatabase::AddLootTableToNPC(NPC* npc, uint32 loottable_id, ItemList* it
 	}
 
 	if(cash != 0) {
+		if (RuleB(Vegas, EnableVegasDrops)) {
+			cash *= RuleR(Vegas, CashMultiplier);
+		}
 		*plat = cash / 1000;
 		cash -= *plat * 1000;
 
@@ -94,6 +101,31 @@ void ZoneDatabase::AddLootTableToNPC(NPC* npc, uint32 loottable_id, ItemList* it
 		cash -= *silver * 10;
 
 		*copper = cash;
+
+		/*
+		//Discord send
+		if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasDiscordLogging)) {
+			std::ostringstream output;
+			output <<
+				"Cash: Added " << *plat << "p " << *gold << "g " << *silver << "s " << *copper << "c "
+				" to [" << npc->GetCleanName() << "](http://vegaseq.com/Allaclone/?a=npc&id=" << npc->GetNPCTypeID() << ") [ID: " << npc->GetNPCTypeID() << "] [Level: " << int(GetLevel()) << "]"
+				" in [" << zone->GetLongName() << "](http://vegaseq.com/Allaclone/?a=zone&name=" << zone->GetShortName() << ") [Instance: " << zone->GetInstanceID() << "]"
+				;
+			std::string out_final = output.str();
+			zone->SendDiscordMessage("rngcash", out_final);
+		}
+		//Database Logging NEEDS WORK
+		if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasLootLogging)) {
+			raid_target && !NPCBypassesVegasRaidLoot() ? vegas_loot_type = "Raid-Bonus" : rare_spawn ? vegas_loot_type = "Rare-Bonus" : vegas_loot_type = "Common-Bonus";
+			item_name = chosen_item->Name;
+			//std::replace(item_name.begin(), item_name.end(), "\`", "\'");
+			query = StringFormat(
+				"INSERT INTO rng_cash "
+				"SET `npc_id` = '%i', `npc_name` = '%s', `npc_level` = '%i', `type` = '%s', `npc_diff` = '%f', `item_id` = '%i', `raid_item` = '%i', `item` = '%s', `item_diff` = '%f', `zone_id` = '%i', `zone` = '%s', `zone_instance_id` = '%i', `time` = NOW(), `charid` = '%i', `char` = '%s', `char_level` = '%i' ",
+				GetNPCTypeID(), Strings::Escape(GetCleanName()).c_str(), GetLevel(), vegas_loot_type, double(difficulty), chosen_item->ID, raid_only, Strings::Escape(chosen_item->Name).c_str(), double(chosen_item->difficulty), GetZoneID(), zone->GetShortName(), zone->GetInstanceID(), top_client->CastToClient()->CharacterID(), top_client->CastToClient()->GetCleanName(), top_client->CastToClient()->GetLevel());
+			QueryVegasLoot(query, top_client->CastToClient()->GetCleanName(), GetCleanName());
+		}
+		*/
 	}
 
 	uint32 global_loot_multiplier = RuleI(Zone, GlobalLootMultiplier);
@@ -682,5 +714,988 @@ void ZoneDatabase::LoadGlobalLoot()
 		}
 
 		zone->AddGlobalLootEntry(e);
+	}
+}
+
+void NPC::AddVegasItemLoot(Mob* top_client) {
+
+	BenchTimer benchmark;
+
+	uint16 zoneid = zone->GetZoneID();
+	uint8 zone_era; // 0 = Classic, 1 = Kunark, 2 = Velious, 3 = Luclin, 4 = PoP
+	uint32 id_min = RuleI(Vegas, MinVegasItemID);
+	uint32 id_max = RuleI(Vegas, MaxVegasItemID);
+	bool raid_only = (IsRaidTarget() && !NPCBypassesVegasRaidLoot()) ? true : false;
+	uint32 zone_range_min, zone_range_max;
+	GetVegasZoneRange(zoneid, &zone_era, &zone_range_min, &zone_range_max);
+	float difficulty_min, difficulty_max, difficulty_bonus_min, difficulty_bonus_max;
+	GetVegasDifficultyRange(zoneid, &difficulty_min, &difficulty_max, &difficulty_bonus_min, &difficulty_bonus_max);
+	auto random_drop_multiplier_scale = 0;
+	bool guaranteed_shard_drop = false;
+	float shard_rolled;
+	float shard_multiplier = 1.00;
+
+	if (top_client->CastToClient()->GetLevel() < RuleI(Vegas, RandomDropScaleLevelLimit)) {
+		random_drop_multiplier_scale = RuleR(Vegas, RandomDropMultiplierScaling) - (top_client->CastToClient()->GetLevel() / (RuleI(Vegas, RandomDropScaleLevelLimit) / RuleR(Vegas, RandomDropMultiplierScaling)));
+	}
+
+	if (random_drop_multiplier_scale < 0) {
+		random_drop_multiplier_scale = 0;
+	}
+
+	auto random_drop_multiplier = RuleR(Vegas, RandomDropMultiplier) + random_drop_multiplier_scale; //1.428571428571 multiplier for drop rate - 10 ||| Normally set to 1.75
+	auto roll_count = GetRollCount(difficulty);
+	auto raid_roll_count = GetRaidRollCount(difficulty);
+	auto bonus_roll_count = GetBonusRollCount(difficulty);
+	auto roll_max = GetRollMax();
+	auto roll_to_hit = GetRollToHit(roll_max, random_drop_multiplier);
+	auto bonus_roll_max = GetBonusRollMax();
+	auto bonus_roll_to_hit = GetBonusRollToHit(bonus_roll_max, random_drop_multiplier);
+	auto raid_roll_max = GetRaidRollMax();
+	auto raid_roll_to_hit = GetRaidRollToHit(raid_roll_max, random_drop_multiplier);
+	int rolled;
+	std::string query;
+	std::string vegas_loot_type;
+	std::string npc_name = GetCleanName();
+	//std::replace(npc_name.begin(), npc_name.end(), "\`", "\'");
+	std::string item_name;
+	
+	VegasLoot("Attempting Vegas Loot for [{}] on [{}] - [{}].", top_client->GetCleanName(), GetCleanName(), IsRaidTarget() && NPCBypassesVegasRaidLoot() ? "Raid-Bypass" : IsRaidTarget() ? "Raid" : IsRareSpawn() ? "Rare" : "Normal"); //deleteme
+	VegasLootDetail(
+		"We are looking for item IDs in ZoneID [{}] between [{}] and [{}], with a difficulty between [{}] and [{}], a bonus difficulty between [{}] and [{}], lowest_drop_ids between [{}] and [{}], with a loot drop modifier of [{}] and a scale modifier of [{}] - that [{}] raid_only."
+		, zoneid, id_min, id_max, difficulty_min, difficulty_max, difficulty_bonus_min, difficulty_bonus_max, zone_range_min, zone_range_max, random_drop_multiplier, random_drop_multiplier_scale, raid_only ? "are" : "are not"
+	); //deleteme
+	VegasLootDetail("Roll count is [{}], bonus roll count is [{}], raid roll count is [{}], roll max is [{}], bonus roll max is [{}], raid roll max is [{}], roll to hit is [{}], bonus roll to hit is [{}] and raid roll to hit is [{}]"
+		, roll_count, bonus_roll_count, raid_roll_count, roll_max, bonus_roll_max, raid_roll_max, roll_to_hit, bonus_roll_to_hit, raid_roll_to_hit
+	); //deleteme
+
+	while (bonus_roll_count >= 1) {
+		rolled = zone->random.Int(1, std::min(bonus_roll_max, bonus_roll_to_hit));
+		VegasLootDetail("Rolled a [{}]", rolled); //deleteme
+		if (rolled >= std::min(bonus_roll_max, bonus_roll_to_hit)) {
+			VegasLoot("Bonus Roll hit on [{}] for [{}].", GetCleanName(), top_client->GetCleanName()); //deleteme
+			shard_multiplier = RuleR(Vegas, ShardBonusLootMultiplier);
+			guaranteed_shard_drop = true;
+			const EQ::ItemData* chosen_item = GetVegasItems(id_min, id_max, difficulty_bonus_min, difficulty_bonus_max, zone_range_min, zone_range_max, raid_only);
+			if (chosen_item) {
+				AddItem(chosen_item, chosen_item->MaxCharges, RuleB(Vegas, EquipVegasDrops));
+				VegasLoot("Added [{}] to [{}] for [{}]", database.CreateItemLink(chosen_item->ID), GetCleanName(), top_client->GetCleanName()); //deleteme
+
+				if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasLootLogging)) {
+					std::string key = "TotalRandomDrops";
+					std::string bucket_value = DataBucket::GetData(key);
+					if (Strings::IsNumber(bucket_value) && Strings::ToUnsignedInt(bucket_value) > 0) {
+						DataBucket::SetData(key, std::to_string(Strings::ToUnsignedInt(bucket_value) + 1));
+					}
+					else {
+						DataBucket::SetData(key, std::to_string(1));
+					}
+				}
+
+				//Discord send
+				if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasDiscordLogging)) {
+					std::ostringstream output;
+					output <<
+						"Added [Bonus] [" << chosen_item->Name << "](http://vegaseq.com/Allaclone/?a=item&id=" << chosen_item->ID << ") [ID: " << chosen_item->ID << "] [GS:" << int(chosen_item->GearScore) << "] [" << (GetNPCTypeID(), IsRaidTarget() ? "Raid-Bonus" : IsRareSpawn() ? "Rare-Bonus" : "Common-Bonus") << "]"
+						" to [" << GetCleanName() << "](http://vegaseq.com/Allaclone/?a=npc&id=" << GetNPCTypeID() << ") [ID: " << GetNPCTypeID() << "] [Level: " << int(GetLevel()) << "] [MobDiff: " << int(difficulty) << "]"
+						" For [" << top_client->GetCleanName() << "](http://vegaseq.com/charbrowser/index.php?page=character&char=" << top_client->GetCleanName() << ") [ID: " << top_client->CastToClient()->CharacterID() << "] [Level: " << int(top_client->CastToClient()->GetLevel()) << "]"
+						" in [" << zone->GetLongName() << "](http://vegaseq.com/Allaclone/?a=zone&name=" << zone->GetShortName() << ") [Instance: " << zone->GetInstanceID() << "]"
+						;
+					std::string out_final = output.str();
+					zone->SendDiscordMessage("rngitems", out_final);
+				}
+				//Database Logging
+				if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasLootLogging)) {
+					raid_target && !NPCBypassesVegasRaidLoot() ? vegas_loot_type = "Raid-Bonus" : rare_spawn ? vegas_loot_type = "Rare-Bonus" : vegas_loot_type = "Common-Bonus";
+					item_name = chosen_item->Name;
+					//std::replace(item_name.begin(), item_name.end(), "\`", "\'");
+					query = StringFormat(
+						"INSERT INTO rng_items "
+						"SET `npc_id` = '%i', `npc_name` = '%s', `npc_level` = '%i', `type` = '%s', `npc_diff` = '%f', `item_id` = '%i', `raid_item` = '%i', `item` = '%s', `item_diff` = '%f', `item_gearscore` = '%f', `zone_id` = '%i', `zone` = '%s', `zone_instance_id` = '%i', `time` = NOW(), `charid` = '%i', `char` = '%s', `char_level` = '%i' ",
+						GetNPCTypeID(), Strings::Escape(GetCleanName()).c_str(), GetLevel(), vegas_loot_type, double(difficulty), chosen_item->ID, raid_only, Strings::Escape(chosen_item->Name).c_str(), double(chosen_item->difficulty), double(chosen_item->GearScore), GetZoneID(), zone->GetShortName(), zone->GetInstanceID(), top_client->CastToClient()->CharacterID(), top_client->CastToClient()->GetCleanName(), top_client->CastToClient()->GetLevel());
+					QueryVegasLoot(query, top_client->CastToClient()->GetCleanName(), GetCleanName());
+				}
+			}
+		}
+		--bonus_roll_count;
+	}
+	while (roll_count >= 1) {
+		raid_only = false;
+		rolled = zone->random.Int(1, std::min(roll_max, roll_to_hit));
+		VegasLootDetail("Rolled a [{}]", rolled); //deleteme
+		if (rolled >= std::min(roll_max, roll_to_hit)) {
+			VegasLoot("Normal Roll hit on [{}] for [{}].", GetCleanName(), top_client->GetCleanName()); //deleteme
+			const EQ::ItemData* chosen_item = GetVegasItems(id_min, id_max, difficulty_min, difficulty_max, zone_range_min, zone_range_max, raid_only);
+			if (chosen_item) {
+				AddItem(chosen_item, chosen_item->MaxCharges, RuleB(Vegas, EquipVegasDrops));
+				VegasLoot("Added [{}] to [{}] for [{}]", database.CreateItemLink(chosen_item->ID), GetCleanName(), top_client->GetCleanName()); //deleteme
+
+				if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasLootLogging)) {
+					std::string key = "TotalRandomDrops";
+					std::string bucket_value = DataBucket::GetData(key);
+					if (Strings::IsNumber(bucket_value) && Strings::ToUnsignedInt(bucket_value) > 0) {
+						DataBucket::SetData(key, std::to_string(Strings::ToUnsignedInt(bucket_value) + 1));
+					}
+					else {
+						DataBucket::SetData(key, std::to_string(1));
+					}
+				}
+
+				//Discord send
+				if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasDiscordLogging)) {
+					std::ostringstream output;
+					output <<
+						"Added [" << chosen_item->Name << "](http://vegaseq.com/Allaclone/?a=item&id=" << chosen_item->ID << ") [ID: " << chosen_item->ID << "] [GS:" << int(chosen_item->GearScore) << "] [" << (GetNPCTypeID(), IsRaidTarget() ? "Raid" : IsRareSpawn() ? "Rare" : "Common") << "]"
+						" to [" << GetCleanName() << "](http://vegaseq.com/Allaclone/?a=npc&id=" << GetNPCTypeID() << ") [ID: " << GetNPCTypeID() << "] [Level: " << int(GetLevel()) << "] [MobDiff: " << int(difficulty) << "]"
+						" For [" << top_client->GetCleanName() << "](http://vegaseq.com/charbrowser/index.php?page=character&char=" << top_client->GetCleanName() << ") [ID: " << top_client->CastToClient()->CharacterID() << "] [Level: " << int(top_client->CastToClient()->GetLevel()) << "]"
+						" in [" << zone->GetLongName() << "](http://vegaseq.com/Allaclone/?a=zone&name=" << zone->GetShortName() << ") [Instance: " << zone->GetInstanceID() << "]"
+						;
+					std::string out_final = output.str();
+					zone->SendDiscordMessage("rngitems", out_final);
+				}
+				//Database Logging
+				if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasLootLogging)) {
+					raid_target && !NPCBypassesVegasRaidLoot() ? vegas_loot_type = "Raid" : rare_spawn ? vegas_loot_type = "Rare" : vegas_loot_type = "Common";
+					item_name = chosen_item->Name;
+					//std::replace(item_name.begin(), item_name.end(), "\`", "\'");
+					query = StringFormat(
+						"INSERT INTO rng_items "
+						"SET `npc_id` = '%i', `npc_name` = '%s', `npc_level` = '%i', `type` = '%s', `npc_diff` = '%f', `item_id` = '%i', `raid_item` = '%i', `item` = '%s', `item_diff` = '%f', `item_gearscore` = '%f', `zone_id` = '%i', `zone` = '%s', `zone_instance_id` = '%i', `time` = NOW(), `charid` = '%i', `char` = '%s', `char_level` = '%i' ",
+						GetNPCTypeID(), Strings::Escape(GetCleanName()).c_str(), GetLevel(), vegas_loot_type, double(difficulty), chosen_item->ID, raid_only, Strings::Escape(chosen_item->Name).c_str(), double(chosen_item->difficulty), double(chosen_item->GearScore), GetZoneID(), zone->GetShortName(), zone->GetInstanceID(), top_client->CastToClient()->CharacterID(), top_client->CastToClient()->GetCleanName(), top_client->CastToClient()->GetLevel());
+					QueryVegasLoot(query, top_client->CastToClient()->GetCleanName(), GetCleanName());
+				}
+			}
+		}
+		--roll_count;
+	}
+	while (raid_roll_count >= 1) {
+		raid_only = true;
+		rolled = zone->random.Int(1, std::min(raid_roll_max, raid_roll_to_hit));
+		VegasLootDetail("Rolled a [{}]", rolled); //deleteme
+		if (rolled >= std::min(raid_roll_max, raid_roll_to_hit)) {
+			VegasLoot("Raid Roll hit on [{}] for [{}].", GetCleanName(), top_client->GetCleanName()); //deleteme
+			const EQ::ItemData* chosen_item = GetVegasItems(id_min, id_max, difficulty_min, difficulty_max, zone_range_min, zone_range_max, raid_only);
+			if (chosen_item) {
+				AddItem(chosen_item, chosen_item->MaxCharges, RuleB(Vegas, EquipVegasDrops));
+				VegasLoot("Added [{}] to [{}] for [{}]", database.CreateItemLink(chosen_item->ID), GetCleanName(), top_client->GetCleanName()); //deleteme
+
+				if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasLootLogging)) {
+					std::string key = "TotalRandomDrops";
+					std::string bucket_value = DataBucket::GetData(key);
+					if (Strings::IsNumber(bucket_value) && Strings::ToUnsignedInt(bucket_value) > 0) {
+						DataBucket::SetData(key, std::to_string(Strings::ToUnsignedInt(bucket_value) + 1));
+					}
+					else {
+						DataBucket::SetData(key, std::to_string(1));
+					}
+				}
+
+				//Discord send
+				if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasDiscordLogging)) {
+					std::ostringstream output;
+					output <<
+						"Added [Raid Item] [" << chosen_item->Name << "](http://vegaseq.com/Allaclone/?a=item&id=" << chosen_item->ID << ") [ID: " << chosen_item->ID << "] [GS:" << int(chosen_item->GearScore) << "] [" << (GetNPCTypeID(), IsRaidTarget() ? "Raid" : IsRareSpawn() ? "Rare" : "Common") << "]"
+						" to [" << GetCleanName() << "](http://vegaseq.com/Allaclone/?a=npc&id=" << GetNPCTypeID() << ") [ID: " << GetNPCTypeID() << "] [Level: " << int(GetLevel()) << "] [MobDiff: " << int(difficulty) << "]"
+						" For [" << top_client->GetCleanName() << "](http://vegaseq.com/charbrowser/index.php?page=character&char=" << top_client->GetCleanName() << ") [ID: " << top_client->CastToClient()->CharacterID() << "] [Level: " << int(top_client->CastToClient()->GetLevel()) << "]"
+						" in [" << zone->GetLongName() << "](http://vegaseq.com/Allaclone/?a=zone&name=" << zone->GetShortName() << ") [Instance: " << zone->GetInstanceID() << "]"
+						;
+					std::string out_final = output.str();
+					zone->SendDiscordMessage("rngitems", out_final);
+				}
+				//Database Logging
+				if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasLootLogging)) {
+					vegas_loot_type = "Raid";
+					item_name = chosen_item->Name;
+					//std::replace(item_name.begin(), item_name.end(), "\`", "\'");
+					query = StringFormat(
+						"INSERT INTO rng_items "
+						"SET `npc_id` = '%i', `npc_name` = '%s', `npc_level` = '%i', `type` = '%s', `npc_diff` = '%f', `item_id` = '%i', `raid_item` = '%i', `item` = '%s', `item_diff` = '%f', `item_gearscore` = '%f', `zone_id` = '%i', `zone` = '%s', `zone_instance_id` = '%i', `time` = NOW(), `charid` = '%i', `char` = '%s', `char_level` = '%i' ",
+						GetNPCTypeID(), Strings::Escape(GetCleanName()).c_str(), GetLevel(), vegas_loot_type, double(difficulty), chosen_item->ID, raid_only, Strings::Escape(chosen_item->Name).c_str(), double(chosen_item->difficulty), double(chosen_item->GearScore), GetZoneID(), zone->GetShortName(), zone->GetInstanceID(), top_client->CastToClient()->CharacterID(), top_client->CastToClient()->GetCleanName(), top_client->CastToClient()->GetLevel());
+					QueryVegasLoot(query, top_client->CastToClient()->GetCleanName(), GetCleanName());
+				}
+			}
+		}
+		--raid_roll_count;
+	}
+
+	AddVegasShardLoot(top_client, shard_multiplier, guaranteed_shard_drop);
+	AddVegasSpellLoot(top_client);
+	AddVegasBagLoot(top_client);
+	AddVegasBridleLoot(top_client);
+
+	if (GetLevel() >= RuleI(Vegas, MinLevelForEpicToken)) {
+		AddVegasEpicTokenLoot(top_client);
+	}
+
+	VegasLootDetail("Vegas Loot Operation took [{}]", benchmark.elapsed());
+}
+
+const EQ::ItemData* NPC::GetVegasItems(uint32 id_min, uint32 id_max, float difficulty_min, float difficulty_max, uint32 zone_range_min, uint32 zone_range_max, bool raid_only) {
+	std::vector<VegasItem> vitems;
+	VegasItem vitem;
+	const EQ::ItemData* item;
+
+	for (int i = id_min; i <= id_max; i++) {
+		item = database.GetItem(i);
+		if (!item) {
+			continue;
+		}
+		if (
+			item->ID >= id_min && item->ID <= id_max
+			&& item->difficulty >= difficulty_min && item->difficulty <= difficulty_max
+			&& item->lowest_drop_npc_id >= zone_range_min && item->lowest_drop_npc_id <= zone_range_max
+			&& (raid_only ? item->raid_only : !item->raid_only)
+			) {
+			vitem.id = item->ID;
+			vitem.name = item->Name;
+			vitem.difficulty = item->difficulty;
+			vitem.maxcharges = item->MaxCharges;
+			vitems.push_back(vitem);
+		}
+	}
+
+	if (vitems.size() > 0) {
+		VegasLootDetail("Found [{}] items matching the criteria.", vitems.size()); //deleteme
+		const EQ::ItemData* chosen_item = database.GetItem(vitems[std::rand() % vitems.size()].id);
+		VegasLootDetail("Item [{}]-[{}] was chosen.", chosen_item->Name, chosen_item->ID); //deleteme
+		return chosen_item;
+	}
+	else {
+		return 0;
+		VegasLootDetail("Didn't find any items matching that criteria"); //deleteme
+	}
+}
+
+void NPC::GetVegasZoneRange(uint16 zoneid, uint8* zone_era, uint32* zone_range_min, uint32* zone_range_max) {
+	if ((zoneid < 78 || zoneid == 187 || zoneid == 407) && (zoneid != 28 && zoneid != 43 && zoneid != 53)) { //Classic
+		*zone_era = 0;
+		*zone_range_min = RuleI(Vegas, ClassicZoneNPCIDMin);
+		*zone_range_max = RuleI(Vegas, ClassicZoneNPCIDMax);
+	}
+	else if (zoneid >= 78 && zoneid < 109) { //Kunark
+		*zone_era = 1;
+		*zone_range_min = RuleI(Vegas, KunarkZoneNPCIDMin);
+		*zone_range_max = RuleI(Vegas, KunarkZoneNPCIDMax);
+	}
+	else if (zoneid >= 110 && zoneid < 130) { //Velious
+		*zone_era = 2;
+		*zone_range_min = RuleI(Vegas, VeliousZoneNPCIDMin);
+		*zone_range_max = RuleI(Vegas, VeliousZoneNPCIDMax);
+	}
+	else if (zoneid >= 150 && zoneid <= 181) { //Luclin
+		*zone_era = 3;
+		*zone_range_min = RuleI(Vegas, LuclinZoneNPCIDMin);
+		*zone_range_max = RuleI(Vegas, LuclinZoneNPCIDMax);
+	}
+	else if (zoneid >= 200 && zoneid < 224) { //PoP
+		*zone_era = 4;
+		*zone_range_min = RuleI(Vegas, PoPZoneNPCIDMin);
+		*zone_range_max = RuleI(Vegas, PoPZoneNPCIDMax);
+	}
+}
+
+void NPC::GetVegasDifficultyRange(uint16 zoneid, float* difficulty_min, float* difficulty_max, float* difficulty_bonus_min, float* difficulty_bonus_max) {
+	float npc_diff = difficulty;
+	float diff_min;
+	float diff_max;
+	float diff_bonus_min;
+	float diff_bonus_max;
+
+	if (npc_diff < RuleR(Vegas, DifficultyFloor)) {
+		diff_min = npc_diff * RuleR(Vegas, DifficultyFloorBonusMinMultiplier);
+		diff_max = RuleR(Vegas, DifficultyFloorMax);
+		diff_bonus_min = RuleR(Vegas, DifficultyFloorBonusMin);
+		diff_bonus_max = RuleR(Vegas, DifficultyFloorBonusMax);
+	}
+	else if(IsRaidTarget() && !NPCBypassesVegasRaidLoot()) {
+		diff_min = npc_diff * RuleR(Vegas, RaidMinDifficultyMultiplier);
+		diff_max = npc_diff * RuleR(Vegas, RaidMaxDifficultyMultiplier);
+		diff_bonus_min = npc_diff * RuleR(Vegas, RaidMinDifficultyBonusMultiplier);
+		diff_bonus_max = npc_diff * RuleR(Vegas, RaidMaxDifficultyBonusMultiplier);
+	}
+	else if(IsRareSpawn()) {
+		diff_min = npc_diff * RuleR(Vegas, RareMinDifficultyMultiplier);
+		diff_max = npc_diff * RuleR(Vegas, RareMaxDifficultyMultiplier);
+		diff_bonus_min = npc_diff * RuleR(Vegas, RareMinDifficultyBonusMultiplier);
+		diff_bonus_max = npc_diff * RuleR(Vegas, RareMaxDifficultyBonusMultiplier);
+	}
+	else {
+		diff_min = npc_diff * RuleR(Vegas, NormalMinDifficultyMultiplier);
+		diff_max = npc_diff * RuleR(Vegas, NormalMaxDifficultyMultiplier);
+		diff_bonus_min = npc_diff * RuleR(Vegas, NormalMinDifficultyBonusMultiplier);
+		diff_bonus_max = npc_diff * RuleR(Vegas, NormalMaxDifficultyBonusMultiplier);
+	}
+	diff_min > RuleR(Vegas, MinDifficultyCap) ? *difficulty_min = RuleR(Vegas, MinDifficultyCap) : *difficulty_min = diff_min;
+	diff_max > RuleR(Vegas, MaxDifficultyCap) ? *difficulty_max = RuleR(Vegas, MaxDifficultyCap) : *difficulty_max = diff_max;
+	diff_bonus_min > RuleR(Vegas, MinBonusDifficultyCap) ? *difficulty_bonus_min = RuleR(Vegas, MinBonusDifficultyCap) : *difficulty_bonus_min = diff_bonus_min;
+	diff_bonus_max > RuleR(Vegas, MaxBonusDifficultyCap) ? *difficulty_bonus_max = RuleR(Vegas, MaxBonusDifficultyCap) : *difficulty_bonus_max = diff_bonus_max;
+}
+
+bool NPC::IsVegasLootEligible(Mob* top_client) {
+
+	if (SpecialNPCPassesVegasLoot()) {
+		return true;
+	}
+
+	if (NPCBypassesVegasLoot()) {
+		return false;
+	}
+
+	if (NPCBypassesVegasRaidLoot()) {
+		return false;
+	}
+
+	if (difficulty <= RuleR(Vegas, MinDifficultyToTriggerVegasLoot)) {
+		return false;
+	}
+
+	if (GetNPCTypeID() < RuleI(Vegas, MinNPCIDToTriggerVegasLoot) || GetNPCTypeID() > RuleI(Vegas, MaxNPCIDToTriggerVegasLoot)) {
+		return false;
+	}
+
+	if (RuleB(Vegas, RequireLoottableForVegasLoot) && GetLoottableID() < 1) {
+		return false;
+	}
+
+	if (!IsOnVegasCoolDown(top_client)) {
+		int top_hate_char_id = top_client->CastToClient()->CharacterID();
+		Raid* raid = entity_list.GetRaidByClient(top_client->CastToClient());
+		Group* group = top_client->GetGroup();
+		int level_diff = 999;
+
+		if (top_hate_char_id) {
+			raid ? level_diff = raid->GetHighestLevel() - GetLevel() : group ? level_diff = group->GetHighestLevel() - GetLevel() : level_diff = top_client->CastToClient()->GetLevel() - GetLevel();
+			if (level_diff <= RuleI(Vegas, LevelDifferenceForVegasDrops)) {
+				return true;
+			}
+			else {
+				VegasLootDetail("[{}] on [{}]:::Failed level checks [{}] - [{}] - [{} - {} = {}]", top_client->GetCleanName(), GetCleanName(), raid ? "has raid" : "no raid", group ? "has group" : "no group", raid ? raid->GetHighestLevel() : group ? group->GetHighestLevel() : top_client->CastToClient()->GetLevel(), GetLevel(), raid ? raid->GetHighestLevel() - GetLevel() : group ? group->GetHighestLevel() - GetLevel() : top_client->CastToClient()->GetLevel() - GetLevel());
+				Emote("'s fortunes decay away.");
+			}
+		}
+	}
+	return false;
+}
+
+bool NPC::IsOnVegasCoolDown(Mob* top_client) {
+	if (top_client->CastToClient()->Admin() >= RuleI(Vegas, MinStatusToBypassVegasLootCooldown)) {
+		return false;
+	}
+
+	uint32 nid = GetNPCTypeID();
+	uint32 s2 = GetSpawnPointID();
+
+	uint32 top_hate_character_id = top_client->CastToClient()->CharacterID();
+	uint32 npc_instance = zone->GetInstanceID();
+	uint64 respawn_time = GetRespawnTime();
+	std::string key;
+	std::string bucket_value;
+
+	//if (respawn_time < RuleI(Vegas, QuickRespawnMaxToTriggerLockout)) {
+		key = "" + std::to_string(top_hate_character_id) + "_" + std::to_string(s2) + "_" + std::to_string(nid) + "_" + std::to_string(npc_instance) + "_respawnrnghold";
+		VegasLootDetail("Respawn Key Check [{}]", key); //deleteme
+		bucket_value = DataBucket::GetData(key);
+		if (Strings::IsNumber(bucket_value) && Strings::ToUnsignedInt(bucket_value) == 2) {
+			VegasLoot("Failed respawnrnghold check for [{}]", GetCleanName()); //deleteme
+			Emote("'s fortunes poof.");
+			return true;
+		}
+		//else {
+		//	DataBucket::SetData(key, "1", std::to_string(RuleI(Vegas, QuickRespawnVegasLootLockoutPeriod)));
+		//}
+	//}
+
+	std::string zone_name = zone->GetShortName();
+	key = "" + std::to_string(top_hate_character_id) + "_" + (zone_name) + "_" + std::to_string(nid) + "_" + std::to_string(npc_instance);
+	VegasLootDetail("Respawn Key Check [{}]", key); //deleteme
+	bucket_value = DataBucket::GetData(key);
+	if (!bucket_value.empty()) {
+		VegasLoot("Failed lockout check for [{}]", GetCleanName()); //deleteme
+		Emote("'s fortunes poof.");
+		return true;
+	}
+	return false;
+}
+
+bool NPC::NPCBypassesVegasLoot() {
+	uint32 NPCIDChecks[] = { RuleI(Vegas, NPCNotCountAsVegasLootOne), RuleI(Vegas, NPCNotCountAsVegasLootTwo), RuleI(Vegas, NPCNotCountAsVegasLootThree), RuleI(Vegas, NPCNotCountAsVegasLootFour), RuleI(Vegas, NPCNotCountAsVegasLootFive) };
+	for (int i : NPCIDChecks) {
+		if (i == GetNPCTypeID()) {
+			return true;
+		}
+	}
+	return false;
+}
+
+
+bool NPC::NPCBypassesVegasRaidLoot() {
+	uint32 NPCIDChecks[] = { RuleI(Vegas, RaidTargetNotCountAsRaidOne), RuleI(Vegas, RaidTargetNotCountAsRaidTwo), RuleI(Vegas, RaidTargetNotCountAsRaidThree), RuleI(Vegas, RaidTargetNotCountAsRaidFour), RuleI(Vegas, RaidTargetNotCountAsRaidFive) };
+	for (int i : NPCIDChecks) {
+		if (i == GetNPCTypeID()) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool NPC::SpecialNPCPassesVegasLoot() {
+	uint32 NPCIDChecks[] = { RuleI(Vegas, NPCSpecialIDPassesLootCheckOne), RuleI(Vegas, NPCSpecialIDPassesLootCheckTwo), RuleI(Vegas, NPCSpecialIDPassesLootCheckThree), RuleI(Vegas, NPCSpecialIDPassesLootCheckFour), RuleI(Vegas, NPCSpecialIDPassesLootCheckFive) };
+	for (int i : NPCIDChecks) {
+		if (i == GetNPCTypeID()) {
+			return true;
+		}
+	}
+	return false;
+}
+
+int NPC::GetRollCount(float npc_diff) {
+	if (IsRaidTarget() && !NPCBypassesVegasRaidLoot()) {
+		if (npc_diff < RuleR(Vegas, RaidTargetNormalRollMaxDifficulty)) {
+			return RuleI(Vegas, RaidTargetNormalRollsCount);
+		}
+		else {
+			return 0;
+		}
+	}
+	else if (IsRareSpawn()) {
+		return RuleI(Vegas, RareTargetRollsCount);
+	}
+	else {
+		return RuleI(Vegas, NormalTargetRollsCount);
+	}
+	return 0;
+}
+
+int NPC::GetRaidRollCount(float npc_diff) {
+	if (IsRaidTarget() && !NPCBypassesVegasRaidLoot()) {
+		if (npc_diff < RuleR(Vegas, RaidTargetTierOneThreshold)) {
+			return RuleI(Vegas, RaidTargetBaseRaidRollsCount);
+		}
+		else if (npc_diff >= RuleR(Vegas, RaidTargetTierThreeThreshold)) {
+			return RuleI(Vegas, RaidTargetTierThreeRaidRollsCount);
+		}
+		else if (npc_diff >= RuleR(Vegas, RaidTargetTierTwoThreshold)) {
+			return RuleI(Vegas, RaidTargetTierTwoRaidRollsCount);
+		}
+		else if (npc_diff >= RuleR(Vegas, RaidTargetTierOneThreshold)) {
+			return RuleI(Vegas, RaidTargetTierOneRaidRollsCount);
+		}
+	}
+	return 0;
+}
+
+int NPC::GetRollMax() {
+	if (IsRaidTarget() && !NPCBypassesVegasRaidLoot()) {
+		return RuleI(Vegas, RaidVegasRollUpperLimit);
+	}
+	else if (IsRareSpawn()) {
+		return RuleI(Vegas, RareVegasRollUpperLimit);
+	}
+	else {
+		return RuleI(Vegas, NormalVegasRollUpperLimit);
+	}
+	return 0;
+}
+
+int NPC::GetRollToHit(auto roll_max, auto random_drop_multiplier) {
+	if (IsRaidTarget() && !NPCBypassesVegasRaidLoot()) {
+		return int((roll_max * RuleR(Vegas, RaidTargetRollMultiplier) / random_drop_multiplier));
+	}
+	else if (IsRareSpawn()) {
+		return int((roll_max * RuleR(Vegas, RareTargetRollMultiplier) / random_drop_multiplier));
+	}
+	else {
+		return int((roll_max * RuleR(Vegas, NormalTargetRollMultiplier) / random_drop_multiplier));
+	}
+	return 0;
+}
+
+int NPC::GetBonusRollCount(float npc_diff) {
+	if (IsRaidTarget() && !NPCBypassesVegasRaidLoot()) {
+		return RuleI(Vegas, RaidBonusVegasRollCount);
+	}
+	else if (IsRareSpawn()) {
+		return RuleI(Vegas, RareBonusVegasRollCount);
+	}
+	else {
+		return RuleI(Vegas, NormalBonusVegasRollCount);
+	}
+	return 0;
+}
+
+int NPC::GetBonusRollMax() {
+	if (IsRaidTarget() && !NPCBypassesVegasRaidLoot()) {
+		return RuleI(Vegas, RaidBonusVegasRollUpperLimit);
+	}
+	else if (IsRareSpawn()) {
+		return RuleI(Vegas, RareBonusVegasRollUpperLimit);
+	}
+	else {
+		return RuleI(Vegas, NormalBonusVegasRollUpperLimit);
+	}
+
+	return 0;
+}
+
+int NPC::GetBonusRollToHit(auto roll_max, auto random_drop_multiplier) {
+	if (IsRaidTarget() && !NPCBypassesVegasRaidLoot()) {
+		return int((roll_max / RuleR(Vegas, RaidTargetBonusRollMultiplier)) / random_drop_multiplier);
+	}
+	else if (IsRareSpawn()) {
+		return int((roll_max / RuleR(Vegas, RareTargetBonusRollMultiplier)) / random_drop_multiplier);
+	}
+	else {
+		return int((roll_max / RuleR(Vegas, NormalTargetBonusRollMultiplier)) / random_drop_multiplier);
+	}
+	return 0;
+}
+
+int NPC::GetRaidRollMax() {
+	if (IsRaidTarget() && !NPCBypassesVegasRaidLoot()) {
+		return RuleI(Vegas, RaidTargetRaidVegasRollUpperLimit);
+	}
+	else if (IsRareSpawn()) {
+		return RuleI(Vegas, RareTargetRaidVegasRollUpperLimit);
+	}
+	else {
+		return RuleI(Vegas, NormalTargetRaidVegasRollUpperLimit);
+	}
+	return 0;
+}
+
+int NPC::GetRaidRollToHit(auto roll_max, auto random_drop_multiplier) {
+	if (IsRaidTarget() && !NPCBypassesVegasRaidLoot()) {
+		return int((roll_max / RuleR(Vegas, RaidTargetRaidRollMultiplier)) / random_drop_multiplier);
+	}
+	else if (IsRareSpawn()) {
+		return int((roll_max / RuleR(Vegas, RareTargetRaidRollMultiplier)) / random_drop_multiplier);
+	}
+	else {
+		return int((roll_max / RuleR(Vegas, NormalTargetRaidRollMultiplier)) / random_drop_multiplier);
+	}
+	return 0;
+}
+
+void NPC::AddVegasShardLoot(Mob* top_client, float shard_multiplier, bool guaranteed_shard_drop) {
+	if (guaranteed_shard_drop || (zone->random.Int(1, RuleI(Vegas, ShardRollUpperLimit)) >= RuleI(Vegas, ShardRollUpperLimit))) {
+		uint32 npc_id = GetNPCTypeID();
+		int shard_amount = GetShardAmount();
+		uint8 shard_add_counter = 0;
+		float npc_diff = GetDifficulty();
+		std::string query;
+		std::string npc_name = GetCleanName();
+		std::string vegas_loot_type;
+
+		shard_amount *= shard_multiplier;
+
+		if (!shard_amount) {
+			return;
+		}
+
+		if (zone->IsHotzone()) {
+			shard_amount *= RuleR(Vegas, ShardHotZoneMultiplier);
+		}
+
+		if (guaranteed_shard_drop) {
+			raid_target && !NPCBypassesVegasRaidLoot() ? vegas_loot_type = "Raid-Bonus" : rare_spawn ? vegas_loot_type = "Rare-Bonus" : vegas_loot_type = "Common-Bonus";
+			if (zone->IsHotzone()) {
+				raid_target && !NPCBypassesVegasRaidLoot() ? shard_amount = EQ::Clamp(shard_amount, 1, int((RuleI(Vegas, RaidTargetBonusShardDropCap) * RuleR(Vegas, ShardHotZoneCapMultiplier)))) : rare_spawn ? shard_amount = EQ::Clamp(shard_amount, 1, int((RuleI(Vegas, RareTargetBonusShardDropCap) * RuleR(Vegas, ShardHotZoneCapMultiplier)))) : shard_amount = EQ::Clamp(shard_amount, 1, int((RuleI(Vegas, NormalTargetBonusShardDropCap) * RuleR(Vegas, ShardHotZoneCapMultiplier))));
+			}
+			else {
+				raid_target && !NPCBypassesVegasRaidLoot() ? shard_amount = EQ::Clamp(shard_amount, 1, RuleI(Vegas, RaidTargetBonusShardDropCap)) : rare_spawn ? shard_amount = EQ::Clamp(shard_amount, 1, RuleI(Vegas, RareTargetBonusShardDropCap)) : shard_amount = EQ::Clamp(shard_amount, 1, RuleI(Vegas, NormalTargetBonusShardDropCap));
+			}
+		}
+		else {
+			raid_target && !NPCBypassesVegasRaidLoot() ? vegas_loot_type = "Raid" : rare_spawn ? vegas_loot_type = "Rare" : vegas_loot_type = "Common";
+			if (zone->IsHotzone()) {
+				raid_target && !NPCBypassesVegasRaidLoot() ? shard_amount = EQ::Clamp(shard_amount, 1, int((RuleI(Vegas, RaidTargetShardDropCap) * RuleR(Vegas, ShardHotZoneCapMultiplier)))) : rare_spawn ? shard_amount = EQ::Clamp(shard_amount, 1, int((RuleI(Vegas, RareTargetShardDropCap) * RuleR(Vegas, ShardHotZoneCapMultiplier)))) : shard_amount = EQ::Clamp(shard_amount, 1, int((RuleI(Vegas, NormalTargetShardDropCap) * RuleR(Vegas, ShardHotZoneCapMultiplier))));
+			}
+			else {
+				raid_target && !NPCBypassesVegasRaidLoot() ? shard_amount = EQ::Clamp(shard_amount, 1, RuleI(Vegas, RaidTargetShardDropCap)) : rare_spawn ? shard_amount = EQ::Clamp(shard_amount, 1, RuleI(Vegas, RareTargetShardDropCap)) : shard_amount = EQ::Clamp(shard_amount, 1, RuleI(Vegas, NormalTargetShardDropCap));
+			}
+		}
+
+		shard_amount = int(shard_amount);
+		
+		if (shard_amount >= 1000) {
+			shard_add_counter = int(shard_amount / 1000);
+		}
+
+		if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasLootLogging)) {
+			std::string key = "ShardsDropped";
+			std::string bucket_value = DataBucket::GetData(key);
+			if (Strings::IsNumber(bucket_value) && Strings::ToUnsignedInt(bucket_value) > 0) {
+				DataBucket::SetData(key, std::to_string(Strings::ToUnsignedInt(bucket_value) + shard_amount));
+			}
+			else {
+				DataBucket::SetData(key, std::to_string(1));
+			}
+		}
+		//Discord send
+		if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasDiscordLogging)) {
+			std::ostringstream output;
+			output <<
+				"Added " << shard_amount << " [Shard](http://vegaseq.com/allaclone/?a=item&id=" << RuleI(Vegas, ShardItemID) << ")"
+				" to [" << GetCleanName() << "](http://vegaseq.com/Allaclone/?a=npc&id=" << GetNPCTypeID() << ") [ID: " << GetNPCTypeID() << "] [Level: " << int(GetLevel()) << "] [" << vegas_loot_type << "] [MobDiff: " << int(difficulty) << "]"
+				" For [" << top_client->GetCleanName() << "](http://vegaseq.com/charbrowser/index.php?page=character&char=" << top_client->GetCleanName() << ") [ID: " << top_client->CastToClient()->CharacterID() << "] [Level: " << int(top_client->CastToClient()->GetLevel()) << "]"
+				" in [" << zone->GetLongName() << "](http://vegaseq.com/Allaclone/?a=zone&name=" << zone->GetShortName() << ") [Instance: " << zone->GetInstanceID() << "]"
+				;
+			std::string out_final = output.str();
+			zone->SendDiscordMessage("rngshards", out_final);
+		}
+		//Database Logging
+		if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasLootLogging)) {
+			query = StringFormat(
+				"INSERT INTO rng_shards "
+				"SET `npc_id` = '%i', `npc_name` = '%s', `npc_level` = '%i', `type` = '%s', `npc_diff` = '%f', `shard_amount` = '%i', `zone_id` = '%i', `zone` = '%s', `zone_instance_id` = '%i', `time` = NOW(), `charid` = '%i', `char` = '%s', `char_level` = '%i' ",
+				GetNPCTypeID(), Strings::Escape(GetCleanName()).c_str(), GetLevel(), vegas_loot_type, double(difficulty), shard_amount, zone->GetZoneID(), zone->GetShortName(), zone->GetInstanceID(), top_client->CastToClient()->CharacterID(), top_client->CastToClient()->GetCleanName(), top_client->CastToClient()->GetLevel());
+			QueryVegasLoot(query, top_client->CastToClient()->GetCleanName(), GetCleanName());
+		}
+
+		if (shard_amount < 1000) {
+			AddItem(RuleI(Vegas, ShardItemID), shard_amount, RuleB(Vegas, EquipVegasDrops));
+			VegasLoot("Added [{}x] [{}] to [{}] for [{}]", shard_amount, database.CreateItemLink(RuleI(Vegas, ShardItemID)), GetCleanName(), top_client->GetCleanName()); //deleteme
+		}
+		else {
+			while (shard_add_counter >= 1) {
+				if (shard_amount >= 1000) {
+					AddItem(RuleI(Vegas, ShardItemID), 1000, RuleB(Vegas, EquipVegasDrops));
+					VegasLoot("Added [1000]x [{}] to [{}] for [{}]", database.CreateItemLink(RuleI(Vegas, ShardItemID)), GetCleanName(), top_client->GetCleanName()); //deleteme
+					shard_amount = shard_amount - 1000;
+				}
+				if (shard_amount < 1000) {
+					AddItem(RuleI(Vegas, ShardItemID), shard_amount, RuleB(Vegas, EquipVegasDrops));
+					VegasLoot("Added [{}x] [{}] to [{}] for [{}]", shard_amount, database.CreateItemLink(RuleI(Vegas, ShardItemID)), GetCleanName(), top_client->GetCleanName()); //deleteme
+				}
+				--shard_add_counter;
+			}
+		}
+	}
+}
+
+int NPC::GetShardAmount() {
+	int shard_amount;
+	uint8 shard_add_counter = 1;
+	float npc_diff = GetDifficulty();
+
+	if ((npc_diff / sqrt(npc_diff)) <= 75) {
+		shard_amount = npc_diff / sqrt(npc_diff);
+	}
+	else {
+		shard_amount = (((npc_diff / sqrt(npc_diff)) / 10) + 75);
+	}
+	shard_amount *= RuleR(Vegas, ShardMultiplier);
+
+	return shard_amount;
+}
+
+void NPC::AddVegasEpicTokenLoot(Mob* top_client) {
+	int roll_count;
+	int roll_max = RuleI(Vegas, EpicTokenRollMax);
+	int roll_to_hit = int(roll_max / RuleR(Vegas, TokenMultiplier));
+	std::string query;
+	std::string vegas_loot_type;
+	std::string npc_name = GetCleanName();
+	//std::replace(npc_name.begin(), npc_name.end(), "\`", "\'");
+
+	if (IsRaidTarget() && !NPCBypassesVegasRaidLoot()) {
+		roll_to_hit = int(roll_to_hit - (GetShardAmount() / RuleR(Vegas, TokenMultiplier)));
+		roll_count = RuleI(Vegas, RaidTargetEpicTokenRollCount);
+	}
+	else {
+		if (IsRareSpawn()) {
+			roll_count = RuleI(Vegas, RareTargetEpicTokenRollCount);
+		}
+		else {
+			roll_count = RuleI(Vegas, NormalTargetEpicTokenRollCount);
+		}
+	}
+
+	int rolled = zone->random.Int(1, roll_max);
+	int to_hit = std::min(roll_max, roll_to_hit);
+	while (roll_count >= 1) {
+		VegasLoot("[Tries left: {}] Roll was [{}] To Hit [{}] on [{}] [ID: {}] For [{}] [ID: {}]", (roll_count - 1), rolled, to_hit, GetCleanName(), GetNPCTypeID(), top_client->GetCleanName(), top_client->CastToClient()->CharacterID()); //deleteme
+		if (rolled >= to_hit) {
+			AddItem(RuleI(Vegas, EpicTokenItemID), 1, false);
+			VegasLoot("Epic Token hit! Added an [{}] to [{}] [ID: {}] For [{}] [ID: {}] Roll was [{}] To Hit [{}]", database.CreateItemLink(RuleI(Vegas, EpicTokenItemID)), GetCleanName(), GetNPCTypeID(), top_client->GetCleanName(), top_client->CastToClient()->CharacterID(), rolled, to_hit); //deleteme
+
+			if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasLootLogging)) {
+				std::string key = "EpicTokenCount";
+				std::string bucket_value = DataBucket::GetData(key);
+				if (Strings::IsNumber(bucket_value) && Strings::ToUnsignedInt(bucket_value) > 0) {
+					DataBucket::SetData(key, std::to_string(Strings::ToUnsignedInt(bucket_value) + 1));
+				}
+				else {
+					DataBucket::SetData(key, std::to_string(1));
+				}
+			}
+
+			//Discord send
+			if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasDiscordLogging)) {
+				std::ostringstream output;
+				output <<
+					"[" << (IsRaidTarget() ? "Raid Target" : "Non-Raid") << "] Epic Token WIN on [" << GetCleanName() << "](http://vegaseq.com/Allaclone/?a=npc&id=" << GetNPCTypeID() << ") [ID: " << GetNPCTypeID() << "] [Level: " << int(GetLevel()) << "] MobDiff: [" << int(difficulty) << "]"
+					" For [" << top_client->GetCleanName() << "](http://vegaseq.com/charbrowser/index.php?page=character&char=" << top_client->GetCleanName() << ") [ID: " << top_client->CastToClient()->CharacterID() << "] [Level: " << int(top_client->CastToClient()->GetLevel()) << "]"
+					" in [" << zone->GetLongName() << "](http://vegaseq.com/Allaclone/?a=zone&name=" << zone->GetShortName() << ") [Instance: " << zone->GetInstanceID() << "]"
+					" Roll was [" << rolled << "] To Hit [" << to_hit << "] [Tries left : " << (roll_count - 1) << "]"
+					;
+				std::string out_final = output.str();
+				zone->SendDiscordMessage("rngtokens", out_final);
+			}
+			//Database Logging
+			if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasLootLogging)) {
+				raid_target && !NPCBypassesVegasRaidLoot() ? vegas_loot_type = "Raid" : vegas_loot_type = "Non-Raid";
+				query = StringFormat(
+					"INSERT INTO rng_tokens "
+					"SET `npc_id` = '%i', `npc_name` = '%s', `npc_level` = '%i', `type` = '%s', `npc_diff` = '%f', `roll` = '%i', `tohit` = '%i', `zone_id` = '%i', `zone` = '%s', `zone_instance_id` = '%i', `time` = NOW(), `charid` = '%i', `char` = '%s', `char_level` = '%i' ",
+					GetNPCTypeID(), Strings::Escape(GetCleanName()).c_str(), GetLevel(), vegas_loot_type, double(difficulty), rolled, to_hit, zone->GetZoneID(), zone->GetShortName(), zone->GetInstanceID(), top_client->CastToClient()->CharacterID(), top_client->CastToClient()->GetCleanName(), top_client->CastToClient()->GetLevel());
+				QueryVegasLoot(query, top_client->CastToClient()->GetCleanName(), GetCleanName());
+			}
+		}
+		else {
+			if (IsRaidTarget() && !NPCBypassesVegasRaidLoot()) {
+				//Discord send
+				if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasDiscordLogging)) {
+					std::ostringstream output;
+					output <<
+						"[Tries left: " << (roll_count - 1) << "] Roll was [" << rolled << "] To Hit [" << to_hit << "]"
+						" on [" << GetCleanName() << "](http://vegaseq.com/Allaclone/?a=npc&id=" << GetNPCTypeID() << ") [ID: " << GetNPCTypeID() << "] [Level: " << int(GetLevel()) << "] MobDiff: [" << int(difficulty) << "]"
+						" For [" << top_client->GetCleanName() << "](http://vegaseq.com/charbrowser/index.php?page=character&char=" << top_client->GetCleanName() << ") [ID: " << top_client->CastToClient()->CharacterID() << "] [Level: " << int(top_client->CastToClient()->GetLevel()) << "]"
+						" in [" << zone->GetLongName() << "](http://vegaseq.com/Allaclone/?a=zone&name=" << zone->GetShortName() << ") [Instance: " << zone->GetInstanceID() << "]"
+						;
+					std::string out_final = output.str();
+					zone->SendDiscordMessage("rngtokens", out_final);
+				}
+			}
+		}
+		--roll_count;
+	}
+}
+
+void NPC::AddVegasSpellLoot(Mob* top_client) {
+
+	int LootdropID[] = { RuleI(Vegas, VegasSpellTierOneLootDropID), RuleI(Vegas, VegasSpellTierTwoLootDropID), RuleI(Vegas, VegasSpellTierThreeLootDropID), RuleI(Vegas, VegasSpellTierFourLootDropID), RuleI(Vegas, VegasSpellTierFiveLootDropID), RuleI(Vegas, VegasSpellTierSixLootDropID), RuleI(Vegas, VegasSpellTierSevenLootDropID), RuleI(Vegas, VegasSpellTierEightLootDropID) };
+	int MinLevel[] = { RuleI(Vegas, VegasSpellTierOneMinLevel), RuleI(Vegas, VegasSpellTierTwoMinLevel), RuleI(Vegas, VegasSpellTierThreeMinLevel), RuleI(Vegas, VegasSpellTierFourMinLevel), RuleI(Vegas, VegasSpellTierFiveMinLevel), RuleI(Vegas, VegasSpellTierSixMinLevel), RuleI(Vegas, VegasSpellTierSevenMinLevel), RuleI(Vegas, VegasSpellTierEightMinLevel) };
+	int MaxLevel[] = { RuleI(Vegas, VegasSpellTierOneMaxLevel), RuleI(Vegas, VegasSpellTierTwoMaxLevel), RuleI(Vegas, VegasSpellTierThreeMaxLevel), RuleI(Vegas, VegasSpellTierFourMaxLevel), RuleI(Vegas, VegasSpellTierFiveMaxLevel), RuleI(Vegas, VegasSpellTierSixMaxLevel), RuleI(Vegas, VegasSpellTierSevenMaxLevel), RuleI(Vegas, VegasSpellTierEightMaxLevel) };
+	int BonusLowLootdropID[] = { RuleI(Vegas, VegasSpellTierOneBonusLowLootDropID), RuleI(Vegas, VegasSpellTierTwoBonusLowLootDropID), RuleI(Vegas, VegasSpellTierThreeBonusLowLootDropID), RuleI(Vegas, VegasSpellTierFourBonusLowLootDropID), RuleI(Vegas, VegasSpellTierFiveBonusLowLootDropID), RuleI(Vegas, VegasSpellTierSixBonusLowLootDropID), RuleI(Vegas, VegasSpellTierSevenBonusLowLootDropID), RuleI(Vegas, VegasSpellTierEightBonusLowLootDropID) };
+	int BonusHighLootdropID[] = { RuleI(Vegas, VegasSpellTierOneBonusHighLootDropID), RuleI(Vegas, VegasSpellTierTwoBonusHighLootDropID), RuleI(Vegas, VegasSpellTierThreeBonusHighLootDropID), RuleI(Vegas, VegasSpellTierFourBonusHighLootDropID), RuleI(Vegas, VegasSpellTierFiveBonusHighLootDropID), RuleI(Vegas, VegasSpellTierSixBonusHighLootDropID), RuleI(Vegas, VegasSpellTierSevenBonusHighLootDropID), RuleI(Vegas, VegasSpellTierEightBonusHighLootDropID) };
+	int roll_count = RuleI(Vegas, VegasSpellRollCount);
+	int roll_max = int(RuleI(Vegas, VegasSpellRollMax) * RuleR(Vegas, SpellMultiplier));
+	int rolled;
+	int chosen_type[sizeof(LootdropID) / sizeof(int)];
+	std::string vegas_loot_type;
+
+	while (roll_count >= 1) {
+		rolled = zone->random.Int(1, roll_max);
+		if (rolled >= RuleI(Vegas, VegasSpellRollMaxHit)) {
+			VegasLoot("Max Spell Roll hit on [{}] for [{}]. Roll [{}] | To Hit [{}].", GetCleanName(), top_client->GetCleanName(), rolled, RuleI(Vegas, VegasSpellRollMaxHit)); //deleteme
+			raid_target && !NPCBypassesVegasRaidLoot() ? vegas_loot_type = "Raid-Max" : rare_spawn ? vegas_loot_type = "Rare-Max" : vegas_loot_type = "Common-Max";
+			std::copy(std::begin(BonusHighLootdropID), std::end(BonusHighLootdropID), std::begin(chosen_type));
+		}
+		else if (rolled >= RuleI(Vegas, VegasSpellRollNormalHit)) {
+			VegasLoot("Normal Spell Roll hit on [{}] for [{}]. Roll [{}] | To Hit [{}].", GetCleanName(), top_client->GetCleanName(), rolled, RuleI(Vegas, VegasSpellRollNormalHit)); //deleteme
+			raid_target && !NPCBypassesVegasRaidLoot() ? vegas_loot_type = "Raid-Normal" : rare_spawn ? vegas_loot_type = "Rare-Normal" : vegas_loot_type = "Common-Normal";
+			std::copy(std::begin(LootdropID), std::end(LootdropID), std::begin(chosen_type));
+		}
+		else if (rolled >= RuleI(Vegas, VegasSpellRollMinHit)) {
+			VegasLoot("Min Spell Roll hit on [{}] for [{}]. Roll [{}] | To Hit [{}].", GetCleanName(), top_client->GetCleanName(), rolled, RuleI(Vegas, VegasSpellRollMinHit)); //deleteme
+			raid_target && !NPCBypassesVegasRaidLoot() ? vegas_loot_type = "Raid-Min" : rare_spawn ? vegas_loot_type = "Rare-Min" : vegas_loot_type = "Common-Min";
+			std::copy(std::begin(BonusLowLootdropID), std::end(BonusLowLootdropID), std::begin(chosen_type));
+		}
+		else {
+			--roll_count;
+			continue;
+		}
+		for (int i = 0; i < sizeof(chosen_type) / sizeof(int); i++) {
+			if (chosen_type[i] > 0) {
+				if (MinLevel[i] > 0 && MaxLevel[i] > 0 && GetLevel() >= MinLevel[i] && GetLevel() <= MaxLevel[i]) {
+					const LootDrop_Struct* chosen_loot_drop = nullptr;
+					const EQ::ItemData* chosen_item = nullptr;
+					chosen_loot_drop = database.GetLootDrop(chosen_type[i]);
+					if (!chosen_loot_drop) {
+						VegasLoot("No spell loot drop found on [{}] for [{}].", GetCleanName(), top_client->GetCleanName()); //deleteme
+						break;
+					}
+					chosen_item = database.GetItem(chosen_loot_drop->Entries[zone->random.Int(0, chosen_loot_drop->NumEntries)].item_id);
+					if (!chosen_item) {
+						VegasLoot("No spell item found on [{}] for [{}].", GetCleanName(), top_client->GetCleanName()); //deleteme
+						break;
+					}
+					AddItem(chosen_item->ID, 1, RuleB(Vegas, EquipVegasDrops));
+					VegasLoot("Added spell [{}] to [{}] for [{}].", chosen_item->Name, GetCleanName(), top_client->GetCleanName()); //deleteme
+					//Discord send
+					if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasDiscordLogging)) {
+						std::ostringstream output;
+						output <<
+							"Added [" << vegas_loot_type  << "] [" << chosen_item->Name << "](http://vegaseq.com/Allaclone/?a=item&id=" << chosen_item->ID << ") [ID: " << chosen_item->ID << "] [" << (GetNPCTypeID(), IsRaidTarget() ? "Raid" : IsRareSpawn() ? "Rare" : "Common") << "]"
+							" to [" << GetCleanName() << "](http://vegaseq.com/Allaclone/?a=npc&id=" << GetNPCTypeID() << ") [ID: " << GetNPCTypeID() << "] [Level: " << int(GetLevel()) << "] [MobDiff: " << int(difficulty) << "]"
+							" For [" << top_client->GetCleanName() << "](http://vegaseq.com/charbrowser/index.php?page=character&char=" << top_client->GetCleanName() << ") [ID: " << top_client->CastToClient()->CharacterID() << "] [Level: " << int(top_client->CastToClient()->GetLevel()) << "]"
+							" in [" << zone->GetLongName() << "](http://vegaseq.com/Allaclone/?a=zone&name=" << zone->GetShortName() << ") [Instance: " << zone->GetInstanceID() << "]"
+							;
+						std::string out_final = output.str();
+						zone->SendDiscordMessage("rngspells", out_final);
+					}
+					//Database Logging
+					if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasLootLogging)) {
+						std::string query;
+						std::string item_name;
+						item_name = chosen_item->Name;
+						//std::replace(item_name.begin(), item_name.end(), "\`", "\'");
+						query = StringFormat(
+							"INSERT INTO rng_spells "
+							"SET `npc_id` = '%i', `npc_name` = '%s', `npc_level` = '%i', `type` = '%s', `npc_diff` = '%f', `item_id` = '%i', `raid_item` = '%i', `item` = '%s', `item_diff` = '%f', `zone_id` = '%i', `zone` = '%s', `zone_instance_id` = '%i', `time` = NOW(), `charid` = '%i', `char` = '%s', `char_level` = '%i' ",
+							GetNPCTypeID(), Strings::Escape(GetCleanName()).c_str(), GetLevel(), vegas_loot_type, double(difficulty), chosen_item->ID, 0, Strings::Escape(chosen_item->Name).c_str(), double(chosen_item->difficulty), GetZoneID(), zone->GetShortName(), zone->GetInstanceID(), top_client->CastToClient()->CharacterID(), top_client->CastToClient()->GetCleanName(), top_client->CastToClient()->GetLevel());
+						QueryVegasLoot(query, top_client->CastToClient()->GetCleanName(), GetCleanName());
+					}
+					break;
+				}
+			}
+		}
+		--roll_count;
+	}
+}
+
+void NPC::AddVegasBagLoot(Mob* top_client) {
+
+	int LootdropID[] = { RuleI(Vegas, VegasBagTierOneLootDropID), RuleI(Vegas, VegasBagTierTwoLootDropID), RuleI(Vegas, VegasBagTierThreeLootDropID), RuleI(Vegas, VegasBagTierFourLootDropID), RuleI(Vegas, VegasBagTierFiveLootDropID), RuleI(Vegas, VegasBagTierSixLootDropID), RuleI(Vegas, VegasBagTierSevenLootDropID) };
+	int MinLevel[] = { RuleI(Vegas, VegasBagTierOneMinLevel), RuleI(Vegas, VegasBagTierTwoMinLevel), RuleI(Vegas, VegasBagTierThreeMinLevel), RuleI(Vegas, VegasBagTierFourMinLevel), RuleI(Vegas, VegasBagTierFiveMinLevel), RuleI(Vegas, VegasBagTierSixMinLevel), RuleI(Vegas, VegasBagTierSevenMinLevel) };
+	int MaxLevel[] = { RuleI(Vegas, VegasBagTierOneMaxLevel), RuleI(Vegas, VegasBagTierTwoMaxLevel), RuleI(Vegas, VegasBagTierThreeMaxLevel), RuleI(Vegas, VegasBagTierFourMaxLevel), RuleI(Vegas, VegasBagTierFiveMaxLevel), RuleI(Vegas, VegasBagTierSixMaxLevel), RuleI(Vegas, VegasBagTierSevenMaxLevel) };
+	int roll_count = RuleI(Vegas, VegasBagRollCount);
+	int roll_max = int(RuleI(Vegas, VegasBagRollMax) * RuleR(Vegas, BagMultiplier));
+	int rolled;
+	std::string vegas_loot_type;
+	raid_target && !NPCBypassesVegasRaidLoot() ? vegas_loot_type = "Raid-Bag" : rare_spawn ? vegas_loot_type = "Rare-Bag" : vegas_loot_type = "Common-Bag";
+
+	while (roll_count >= 1) {
+		rolled = zone->random.Int(1, roll_max);
+		if (rolled >= roll_max) {
+			for (int i = 0; i < sizeof(LootdropID) / sizeof(int); i++) {
+				if (LootdropID[i] > 0) {
+					if (MinLevel[i] > 0 && MaxLevel[i] > 0 && GetLevel() >= MinLevel[i] && GetLevel() <= MaxLevel[i]) {
+						const LootDrop_Struct* chosen_loot_drop = nullptr;
+						const EQ::ItemData* chosen_item = nullptr;
+						VegasLoot("Bag Roll hit on [{}] for [{}]. Roll [{}] | To Hit [{}].", GetCleanName(), top_client->GetCleanName(), rolled, roll_max); //deleteme
+						chosen_loot_drop = database.GetLootDrop(LootdropID[i]);
+						if (!chosen_loot_drop) {
+							VegasLoot("No bag loot drop found on [{}] for [{}].", GetCleanName(), top_client->GetCleanName()); //deleteme
+							continue;
+						}
+						VegasLoot("Bag loot using lootdrop [{}] on [{}] for [{}].", LootdropID[i], GetCleanName(), top_client->GetCleanName()); //deleteme
+						chosen_item = database.GetItem(chosen_loot_drop->Entries[zone->random.Int(0, chosen_loot_drop->NumEntries)].item_id);
+						if (!chosen_item) {
+							VegasLoot("No bag item found on [{}] for [{}].", GetCleanName(), top_client->GetCleanName()); //deleteme
+							continue;
+						}
+						AddItem(chosen_item->ID, 1, RuleB(Vegas, EquipVegasDrops));
+						VegasLoot("Added bag [{}] to [{}] for [{}].", chosen_item->Name, GetCleanName(), top_client->GetCleanName()); //deleteme
+						//Discord send
+						if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasDiscordLogging)) {
+							std::ostringstream output;
+							output <<
+								"Added [" << chosen_item->Name << "](http://vegaseq.com/Allaclone/?a=item&id=" << chosen_item->ID << ") [ID: " << chosen_item->ID << "] [" << (GetNPCTypeID(), IsRaidTarget() ? "Raid" : IsRareSpawn() ? "Rare" : "Common") << "]"
+								" to [" << GetCleanName() << "](http://vegaseq.com/Allaclone/?a=npc&id=" << GetNPCTypeID() << ") [ID: " << GetNPCTypeID() << "] [Level: " << int(GetLevel()) << "] [MobDiff: " << int(difficulty) << "]"
+								" For [" << top_client->GetCleanName() << "](http://vegaseq.com/charbrowser/index.php?page=character&char=" << top_client->GetCleanName() << ") [ID: " << top_client->CastToClient()->CharacterID() << "] [Level: " << int(top_client->CastToClient()->GetLevel()) << "]"
+								" in [" << zone->GetLongName() << "](http://vegaseq.com/Allaclone/?a=zone&name=" << zone->GetShortName() << ") [Instance: " << zone->GetInstanceID() << "]"
+								;
+							std::string out_final = output.str();
+							zone->SendDiscordMessage("rngbags", out_final);
+						}
+						//Database Logging
+						if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasLootLogging)) {
+							std::string query;
+							std::string item_name;
+							item_name = chosen_item->Name;
+							//std::replace(item_name.begin(), item_name.end(), "\`", "\'");
+							query = StringFormat(
+								"INSERT INTO rng_bags "
+								"SET `npc_id` = '%i', `npc_name` = '%s', `npc_level` = '%i', `type` = '%s', `npc_diff` = '%f', `item_id` = '%i', `raid_item` = '%i', `item` = '%s', `item_diff` = '%f', `zone_id` = '%i', `zone` = '%s', `zone_instance_id` = '%i', `time` = NOW(), `charid` = '%i', `char` = '%s', `char_level` = '%i' ",
+								GetNPCTypeID(), Strings::Escape(GetCleanName()).c_str(), GetLevel(), vegas_loot_type, double(difficulty), chosen_item->ID, 0, Strings::Escape(chosen_item->Name).c_str(), double(chosen_item->difficulty), GetZoneID(), zone->GetShortName(), zone->GetInstanceID(), top_client->CastToClient()->CharacterID(), top_client->CastToClient()->GetCleanName(), top_client->CastToClient()->GetLevel());
+							QueryVegasLoot(query, top_client->CastToClient()->GetCleanName(), GetCleanName());
+						}
+						break;
+					}
+				}
+			}
+		}
+		--roll_count;
+	}
+}
+
+void NPC::AddVegasBridleLoot(Mob* top_client) {
+
+	int LootdropID[] = { RuleI(Vegas, VegasBridleTierOneLootDropID), RuleI(Vegas, VegasBridleTierTwoLootDropID), RuleI(Vegas, VegasBridleTierThreeLootDropID), RuleI(Vegas, VegasBridleTierFourLootDropID) };
+	int MinLevel[] = { RuleI(Vegas, VegasBridleTierOneMinLevel), RuleI(Vegas, VegasBridleTierTwoMinLevel), RuleI(Vegas, VegasBridleTierThreeMinLevel), RuleI(Vegas, VegasBridleTierFourMinLevel) };
+	int MaxLevel[] = { RuleI(Vegas, VegasBridleTierOneMaxLevel), RuleI(Vegas, VegasBridleTierTwoMaxLevel), RuleI(Vegas, VegasBridleTierThreeMaxLevel), RuleI(Vegas, VegasBridleTierFourMaxLevel) };
+	int roll_count = RuleI(Vegas, VegasBridleRollCount);
+	int roll_max = int(RuleI(Vegas, VegasBridleRollMax) * RuleR(Vegas, BridleMultiplier));
+	int rolled;
+	std::string vegas_loot_type;
+	raid_target && !NPCBypassesVegasRaidLoot() ? vegas_loot_type = "Raid-Bridle" : rare_spawn ? vegas_loot_type = "Rare-Bridle" : vegas_loot_type = "Common-Bridle";
+
+	while (roll_count >= 1) {
+		rolled = zone->random.Int(1, roll_max);
+		if (rolled >= roll_max) {
+			for (int i = 0; i < sizeof(LootdropID) / sizeof(int); i++) {
+				if (LootdropID[i] > 0) {
+					if (MinLevel[i] > 0 && MaxLevel[i] > 0 && GetLevel() >= MinLevel[i] && GetLevel() <= MaxLevel[i]) {
+						const LootDrop_Struct* chosen_loot_drop = nullptr;
+						const EQ::ItemData* chosen_item = nullptr;
+						VegasLoot("Bridle Roll hit on [{}] for [{}]. Roll [{}] | To Hit [{}].", GetCleanName(), top_client->GetCleanName(), rolled, roll_max); //deleteme
+						chosen_loot_drop = database.GetLootDrop(LootdropID[i]);
+						if (!chosen_loot_drop) {
+							VegasLoot("No bridle loot drop found on [{}] for [{}].", GetCleanName(), top_client->GetCleanName()); //deleteme
+							continue;
+						}
+						VegasLoot("Bridle loot using lootdrop [{}] on [{}] for [{}].", LootdropID[i], GetCleanName(), top_client->GetCleanName()); //deleteme
+						chosen_item = database.GetItem(chosen_loot_drop->Entries[zone->random.Int(0, chosen_loot_drop->NumEntries)].item_id);
+						if (!chosen_item) {
+							VegasLoot("No bridle item found on [{}] for [{}].", GetCleanName(), top_client->GetCleanName()); //deleteme
+							continue;
+						}
+						AddItem(chosen_item->ID, 1, RuleB(Vegas, EquipVegasDrops));
+						VegasLoot("Added bridle [{}] to [{}] for [{}].", chosen_item->Name, GetCleanName(), top_client->GetCleanName()); //deleteme
+						//Discord send
+						if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasDiscordLogging)) {
+							std::ostringstream output;
+							output <<
+								"Added [" << chosen_item->Name << "](http://vegaseq.com/Allaclone/?a=item&id=" << chosen_item->ID << ") [ID: " << chosen_item->ID << "] [" << (GetNPCTypeID(), IsRaidTarget() ? "Raid" : IsRareSpawn() ? "Rare" : "Common") << "]"
+								" to [" << GetCleanName() << "](http://vegaseq.com/Allaclone/?a=npc&id=" << GetNPCTypeID() << ") [ID: " << GetNPCTypeID() << "] [Level: " << int(GetLevel()) << "] [MobDiff: " << int(difficulty) << "]"
+								" For [" << top_client->GetCleanName() << "](http://vegaseq.com/charbrowser/index.php?page=character&char=" << top_client->GetCleanName() << ") [ID: " << top_client->CastToClient()->CharacterID() << "] [Level: " << int(top_client->CastToClient()->GetLevel()) << "]"
+								" in [" << zone->GetLongName() << "](http://vegaseq.com/Allaclone/?a=zone&name=" << zone->GetShortName() << ") [Instance: " << zone->GetInstanceID() << "]"
+								;
+							std::string out_final = output.str();
+							zone->SendDiscordMessage("rngbridles", out_final);
+						}
+						//Database Logging
+						if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasLootLogging)) {
+							std::string query;
+							std::string item_name;
+							item_name = chosen_item->Name;
+							//std::replace(item_name.begin(), item_name.end(), "\`", "\'");
+							query = StringFormat(
+								"INSERT INTO rng_bridles "
+								"SET `npc_id` = '%i', `npc_name` = '%s', `npc_level` = '%i', `type` = '%s', `npc_diff` = '%f', `item_id` = '%i', `raid_item` = '%i', `item` = '%s', `item_diff` = '%f', `zone_id` = '%i', `zone` = '%s', `zone_instance_id` = '%i', `time` = NOW(), `charid` = '%i', `char` = '%s', `char_level` = '%i' ",
+								GetNPCTypeID(), Strings::Escape(GetCleanName()).c_str(), GetLevel(), vegas_loot_type, double(difficulty), chosen_item->ID, 0, Strings::Escape(chosen_item->Name).c_str(), double(chosen_item->difficulty), GetZoneID(), zone->GetShortName(), zone->GetInstanceID(), top_client->CastToClient()->CharacterID(), top_client->CastToClient()->GetCleanName(), top_client->CastToClient()->GetLevel());
+							QueryVegasLoot(query, top_client->CastToClient()->GetCleanName(), GetCleanName());
+						}
+						break;
+					}
+				}
+			}
+		}
+		--roll_count;
+	}
+}
+
+void NPC::QueryVegasLoot(std::string query, std::string killer_name, std::string killed_name)
+{
+	if (query.empty()) {
+		Logs::MySQLError, "Failed to save Vegas loot database information. Query was empty.";
+		return;
+	}
+	VegasLootDetail("VegasQueryLoot::[{}]", query); //deleteme
+	auto results = database.QueryDatabase(query);
+	if (!results.Success()) {
+		Logs::MySQLError, "Failed to save database information for [{}] on killing [{}]", killer_name, killed_name;
 	}
 }

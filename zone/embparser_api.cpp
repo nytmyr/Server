@@ -4137,6 +4137,14 @@ uint32 Perl__getloottablemincash(uint32 loottable_id) {
 	return quest_manager.getloottablemincash(loottable_id);
 }
 
+Mob* Perl__gettophateclient(Mob* npc) {
+	return npc ? npc->CastToNPC()->GetTopHateClient() : 0;
+}
+
+bool Perl__isvegaslooteligible(Mob* npc, Mob* top_client) {
+	return npc ? npc->CastToNPC()->IsVegasLootEligible(top_client) : false;
+}
+
 uint32 Perl__getvegasitem(uint32 id_min, uint32 id_max, float difficulty_min, float difficulty_max, bool raidonly, uint32 lowest_drop_npc_id, uint32 max_drop_npc_id) {
 	return quest_manager.getvegasitem(id_min, id_max, difficulty_min, difficulty_max, raidonly, lowest_drop_npc_id, max_drop_npc_id);
 }
@@ -4867,6 +4875,8 @@ void perl_register_quest()
 	package.add("getitemshardscore", &Perl__getitemshardscore);
 	package.add("getloottablemaxcash", &Perl__getloottablemaxcash);
 	package.add("getloottablemincash", &Perl__getloottablemincash);
+	package.add("gettophateclient", &Perl__gettophateclient);
+	package.add("isvegaslooteligible", &Perl__isvegaslooteligible);
 	package.add("getvegasitem", &Perl__getvegasitem);
 	package.add("isitemlore", &Perl__isitemlore);
 	package.add("isitemraidonly", &Perl__isitemraidonly);
