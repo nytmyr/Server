@@ -2488,6 +2488,10 @@ void Bot::SetHoldBuffs(uint8 holdstatus) {
 	_holdBuffs = holdstatus;
 }
 
+void Bot::SetHoldCharms(uint8 holdstatus) {
+	_holdCharms = holdstatus;
+}
+
 void Bot::SetHoldCompleteHeals(uint8 holdstatus) {
 	_holdCompleteHeals = holdstatus;
 }
@@ -2544,6 +2548,10 @@ void Bot::SetHoldLifetaps(uint8 holdstatus) {
 	_holdLifetaps = holdstatus;
 }
 
+void Bot::SetHoldLulls(uint8 holdstatus) {
+	_holdLulls = holdstatus;
+}
+
 void Bot::SetHoldMez(uint8 holdstatus) {
 	_holdMez = holdstatus;
 }
@@ -2578,6 +2586,10 @@ void Bot::SetHoldPreCombatBuffSongs(uint8 holdstatus) {
 
 void Bot::SetHoldRegularHeals(uint8 holdstatus) {
 	_holdRegularHeals = holdstatus;
+}
+
+void Bot::SetHoldRez(uint8 holdstatus) {
+	_holdRez = holdstatus;
 }
 
 void Bot::SetHoldRoots(uint8 holdstatus) {
@@ -11053,6 +11065,9 @@ bool Bot::CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 
 			return true;
 			break;
 		case SpellType_Charm:
+			if (GetHoldCharms()) {
+				return false;
+			}
 			return true;
 			break;
 		case SpellType_Cure:
@@ -11157,10 +11172,19 @@ bool Bot::CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 
 			}
 			return true;
 			break;
+		case SpellType_Lull:
+			if (GetHoldLulls()) {
+				return false;
+			}
+			return true;
+			break;
 		case SpellType_Mez:
 			if (GetHoldMez() || targetHP < GetMezMinThreshold() || targetHP > GetMezThreshold() || (m_mez_delay_timer.Enabled() && !m_mez_delay_timer.Check())) {
 				return false;
 			}
+			return true;
+			break;
+		case SpellType_Misc:
 			return true;
 			break;
 		case SpellType_Nuke:
@@ -11194,6 +11218,9 @@ bool Bot::CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 
 			return true;
 			break;
 		case SpellType_Resurrect:
+			if (GetHoldRez()) {
+				return false;
+			}
 			return true;
 			break;
 		case SpellType_Root:
@@ -11216,6 +11243,163 @@ bool Bot::CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 
 			break;
 		default:
 			return true;
+	}
+}
+
+bool Bot::CanCommandCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 spellid, std::string healType) {
+
+	if (!botCaster || !spellType || !tar)
+		return false;
+
+	if (tar->GetSpecialAbility(IMMUNE_CASTING_FROM_RANGE) && !CombatRange(tar)) {
+		return false;
+	}
+
+	switch (spellType) {
+	case SpellType_Buff:
+		if ((!tar->IsPet() && GetHoldBuffs()) || (tar->IsPet() && GetHoldPetBuffs())) {
+			return false;
+		}
+		return true;
+		break;
+	case SpellType_Charm:
+		if (GetHoldCharms()) {
+			return false;
+		}
+		return true;
+		break;
+	case SpellType_Cure:
+		if (GetHoldCures() || tar->IsPet() && GetHoldPetHeals()) {
+			return false;
+		}
+		return true;
+		break;
+	case SpellType_Debuff:
+		if (GetHoldDebuffs()) {
+			return false;
+		}
+		return true;
+		break;
+	case SpellType_Dispel:
+		if (GetHoldDispels()) {
+			return false;
+		}
+		return true;
+		break;
+	case SpellType_DOT:
+		if (GetHoldDoTs()) {
+			return false;
+		}
+		return true;
+		break;
+	case SpellType_Escape:
+		if (GetHoldEscapes()) {
+			return false;
+		}
+		return true;
+		break;
+	case SpellType_HateRedux:
+		if (GetHoldHateRedux()) {
+			return false;
+		}
+		return true;
+		break;
+	case SpellType_Heal:
+	{
+		if ((!tar->IsPet() && GetHoldHeals()) || (tar->IsPet() && GetHoldPetHeals())) {
+			return false;
+		}
+		return true;
+		break;
+	}
+	case SpellType_InCombatBuff:
+		if (GetHoldInCombatBuffs()) {
+		}
+		return true;
+		break;
+	case SpellType_InCombatBuffSong:
+		if (GetHoldInCombatBuffSongs()) {
+			return false;
+		}
+		return true;
+		break;
+	case SpellType_Lifetap:
+		if (GetHoldLifetaps()) {
+			return false;
+		}
+		return true;
+		break;
+	case SpellType_Lull:
+		if (GetHoldLulls()) {
+			return false;
+		}
+		return true;
+		break;
+	case SpellType_Mez:
+		if (GetHoldMez()) {
+			return false;
+		}
+		return true;
+		break;
+	case SpellType_Misc:
+		return true;
+		break;
+	case SpellType_Nuke:
+		if (GetHoldNukes()) {
+			return false;
+		}
+		return true;
+		break;
+	case SpellType_OutOfCombatBuffSong:
+		if (GetHoldOutOfCombatBuffSongs()) {
+			return false;
+		}
+		return true;
+		break;
+	case SpellType_Pet:
+		if (GetHoldPets()) {
+			return false;
+		}
+		return true;
+		break;
+	case SpellType_PreCombatBuff:
+		if (GetHoldPreCombatBuffs()) {
+			return false;
+		}
+		return true;
+		break;
+	case SpellType_PreCombatBuffSong:
+		if (GetHoldPreCombatBuffSongs()) {
+			return false;
+		}
+		return true;
+		break;
+	case SpellType_Resurrect:
+		if (GetHoldRez()) {
+			return false;
+		}
+		return true;
+		break;
+	case SpellType_Root:
+		if (GetHoldRoots()) {
+			return false;
+		}
+		return true;
+		break;
+	case SpellType_Slow:
+		if (GetHoldSlows()) {
+			return false;
+		}
+		return true;
+		break;
+	case SpellType_Snare:
+		if (GetHoldSnares()) {
+			return false;
+		}
+		return true;
+		break;
+	default:
+		return true;
 	}
 }
 
@@ -11361,4 +11545,14 @@ void Bot::RunToGoalWithJitter(glm::vec3 Goal) {
 	RunTo(Goal.x, Goal.y, Goal.z);
 	SetCombatJitter();
 	return;
+}
+
+bool Bot::IsBotInGroupOrRaidGroup(bool bypassAlert) {
+	if (!((entity_list.GetGroupByClient(GetOwner()->CastToClient()) && entity_list.GetGroupByClient(GetOwner()->CastToClient())->IsGroupMember(this)) || (entity_list.GetRaidByClient(GetOwner()->CastToClient()) && entity_list.GetRaidByClient(GetOwner()->CastToClient())->IsRaidMember(this->GetName())))) {
+		if (!bypassAlert) {
+			GetOwner()->CastToClient()->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no usable bots are outside of your group or raid.");
+		}
+		return false;
+	}
+	return true;
 }

@@ -308,6 +308,8 @@ public:
 					entry_prototype = new STBaseEntry(BCEnum::SpT_SummonCorpse);
 					break;
 				case SE_WaterBreathing:
+					if (spells[spell_id].spell_affect_index != 14)
+						break;
 					entry_prototype = new STBaseEntry(BCEnum::SpT_WaterBreathing);
 					break;
 				default:
@@ -323,7 +325,7 @@ public:
 					entry_prototype = new STBaseEntry(BCEnum::SpT_Root);
 					break;
 				case SE_MovementSpeed:
-					if (spells[spell_id].spell_affect_index != 16)
+					if (spells[spell_id].spell_affect_index != 16 && spells[spell_id].spell_affect_index != 22)
 						break;
 					entry_prototype = new STBaseEntry(BCEnum::SpT_Snare);
 					break;
@@ -451,6 +453,7 @@ public:
 				}
 				case 7:
 				case 10:
+				case 43:
 					if (spells[spell_id].effect_description_id != 65)
 						break;
 					if (IsEffectInSpell(spell_id, SE_NegateIfCombat))
@@ -1494,6 +1497,7 @@ int bot_command_init(void)
 		bot_command_add("casterrange", "Controls the range casters will try to stay away from a mob (if too far, they will skip spells that are out-of-range)", AccountStatus::Player, bot_command_caster_range) ||
 		bot_command_add("behindmob", "Toggles whether or not your bot tries to stay behind a mob", AccountStatus::Player, bot_command_behind_mob) ||
 		bot_command_add("holdbuffs", "Toggles a bot's ability to cast buffs", AccountStatus::Player, bot_command_hold_buffs) ||
+		bot_command_add("holdcharms", "Toggles a bot's ability to cast charms", AccountStatus::Player, bot_command_hold_charms) ||
 		bot_command_add("holdcompleteheals", "Toggles a bot's ability to cast Complete heals", AccountStatus::Player, bot_command_hold_complete_heals) ||
 		bot_command_add("holdcures", "Toggles a bot's ability to cast cures", AccountStatus::Player, bot_command_hold_cures) ||
 		bot_command_add("holddots", "Toggles a bot's ability to cast DoTs", AccountStatus::Player, bot_command_hold_dots) ||
@@ -1508,6 +1512,7 @@ int bot_command_init(void)
 		bot_command_add("holdincombatbuffs", "Toggles a bot's ability to cast in-combat buffs", AccountStatus::Player, bot_command_hold_incombatbuffs) ||
 		bot_command_add("holdincombatbuffsongs", "Toggles a bot's ability to cast in-combat buff songs", AccountStatus::Player, bot_command_hold_incombatbuffsongs) ||
 		bot_command_add("holdlifetaps", "Toggles a bot's ability to cast lifetaps", AccountStatus::Player, bot_command_hold_lifetaps) ||
+		bot_command_add("holdlulls", "Toggles a bot's ability to cast lulls", AccountStatus::Player, bot_command_hold_lulls) ||
 		bot_command_add("holdmez", "Toggles a bot's ability to cast mesmerization spells", AccountStatus::Player, bot_command_hold_mez) ||
 		bot_command_add("holdnukes", "Toggles a bot's ability to cast nukes", AccountStatus::Player, bot_command_hold_nukes) ||
 		bot_command_add("holdoutofcombatbuffsongs", "Toggles a bot's ability to cast out-of-combat buff songs", AccountStatus::Player, bot_command_hold_outofcombatbuffsongs) ||
@@ -1517,6 +1522,7 @@ int bot_command_init(void)
 		bot_command_add("holdprecombatbuffs", "Toggles a bot's ability to cast pre-combat buffs", AccountStatus::Player, bot_command_hold_precombatbuffs) ||
 		bot_command_add("holdprecombatbuffsongs", "Toggles a bot's ability to cast pre-combat buff songs", AccountStatus::Player, bot_command_hold_precombatbuffsongs) ||
 		bot_command_add("holdregularheals", "Toggles a bot's ability to cast Regular heals", AccountStatus::Player, bot_command_hold_regular_heals) ||
+		bot_command_add("holdrez", "Toggles a bot's ability to cast rez", AccountStatus::Player, bot_command_hold_rez) ||
 		bot_command_add("holdroots", "Toggles a bot's ability to cast roots", AccountStatus::Player, bot_command_hold_roots) ||
 		bot_command_add("holdslows", "Toggles a bot's ability to cast slows", AccountStatus::Player, bot_command_hold_slows) ||
 		bot_command_add("holdsnares", "Toggles a bot's ability to cast snares", AccountStatus::Player, bot_command_hold_snares) ||
@@ -2067,6 +2073,29 @@ namespace MyBots
 
 		sbl = entity_list.GetBotsByBotOwnerCharacterID(bot_owner->CharacterID());
 		sbl.remove(nullptr);
+	}
+
+	static void PopulateSBL_BySpawnedBotsClassAndMinLevel(std::list<Bot*>& sbl, std::list<Bot*>& filtered_sbl, uint8 minlvl, uint8 cls, bool petless = false, bool IsInGroupOrRaid = false, bool CanCommandCastBySpellType = false, uint32 SpellType = 0, bool IgnoreCurrentlyCasting = false) {
+		filtered_sbl.clear();
+		filtered_sbl.remove(nullptr);
+		for (auto bot_iter : sbl) {
+			if (bot_iter->GetLevel() < minlvl || bot_iter->GetClass() != cls) {
+				continue;
+			}
+			if (petless && bot_iter->GetPet()) {
+				continue;
+			}
+			if (IsInGroupOrRaid && !bot_iter->IsBotInGroupOrRaidGroup(true)) {
+				continue;
+			}
+			if (CanCommandCastBySpellType && (!bot_iter->GetOwner()->GetTarget() || !bot_iter->CanCommandCastBySpellType(bot_iter, bot_iter->GetOwner()->GetTarget(), SpellType))) {
+				continue;
+			}
+			if (IgnoreCurrentlyCasting && bot_iter->IsCasting()) {
+				continue;
+			}
+			filtered_sbl.push_back(bot_iter);
+		}
 	}
 
 	static void PopulateSBL_ByBotGroup(Client *bot_owner, std::list<Bot*> &sbl, const char* name, bool clear_list = true) {
@@ -2868,10 +2897,12 @@ void bot_command_aggressive(Client *c, const Seperator *sep)
 				continue;
 			}
 
-			if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+			if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
+				continue;
 			}
-			else {
-				c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+
+			if (!my_bot) {
+				c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
 				return;
 			}
 
@@ -3009,10 +3040,7 @@ void bot_command_apply_potion(Client* c, const Seperator* sep)
 		return;
 	}
 
-	if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
-	}
-	else {
-		c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+	if (!my_bot->IsBotInGroupOrRaidGroup()) {
 		return;
 	}
 
@@ -3316,13 +3344,21 @@ void bot_command_bind_affinity(Client *c, const Seperator *sep)
 		if (!my_bot)
 			continue;
 
-		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		//if (!my_bot->HasBotSpellEntry(local_entry->spell_id)) {
+		//	continue;
+		//}
+
+		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
+			continue;
 		}
-		else {
-			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+		if (!my_bot) {
+			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
 			return;
 		}
-
+		if (local_entry->spell_id != 0 && my_bot->GetMana() < spells[local_entry->spell_id].mana) {
+			c->Message(Chat::White, "%s does not have enough mana.", my_bot->GetCleanName());
+			return;
+		}
 		// Cast effect message is not being generated
 		if (helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id)) {
 			//c->Message(Chat::White, "Successfully bound %s to this location", target_mob->GetCleanName());
@@ -3598,58 +3634,295 @@ void bot_command_charm(Client *c, const Seperator *sep)
 	if (helper_spell_list_fail(c, local_list, BCEnum::SpT_Charm) || helper_command_alias_fail(c, "bot_command_charm", sep->arg[0], "charm"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <enemy_target> %s ([option: dire])", sep->arg[0]);
+		c->Message(Chat::White, "usage: target an enemy and type %s.", sep->arg[0]);
+		c->Message(Chat::White, "note: if the bot is currently casting they will be interrupted to cast unless the [nointerrupt] option is used.");
+		c->Message(Chat::White, "note: [%s] will choose the first available bot.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s byname Mybot] will choose the specified bot named Mybot.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s nointerrupt] will choose the first eligible bot that is not currently casting.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s byname nointerrupt Mybot] will choose Mybot s long as they are not currently casting.", sep->arg[0]);
 		helper_send_usage_required_bots(c, BCEnum::SpT_Charm);
 		return;
 	}
 
-	bool dire = false;
-	std::string dire_arg = sep->arg[1];
-	if (!dire_arg.compare("dire"))
-		dire = true;
-
-	ActionableTarget::Types actionable_targets;
-	Bot* my_bot = nullptr;
-	std::list<Bot*> sbl;
-	MyBots::PopulateSBL_BySpawnedBots(c, sbl);
-
-	for (auto list_iter : *local_list) {
-		auto local_entry = list_iter->SafeCastToCharm();
-		if (helper_spell_check_fail(local_entry))
-			continue;
-		if (local_entry->dire != dire)
-			continue;
-
-		auto target_mob = actionable_targets.Select(c, local_entry->target_type, ENEMY);
-		if (!target_mob)
-			continue;
-		if (target_mob->IsCharmed()) {
-			c->Message(Chat::White, "Your <target> is already charmed");
-			return;
-		}
-
-		if (spells[local_entry->spell_id].max_value[EFFECTIDTOINDEX(1)] < target_mob->GetLevel())
-			continue;
-
-		my_bot = ActionableBots::Select_ByMinLevelAndClass(c, local_entry->target_type, sbl, local_entry->spell_level, local_entry->caster_class, target_mob, true);
-		if (!my_bot)
-			continue;
-
-		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
-		}
-		else {
-			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
-			return;
-		}
-
-		uint32 dont_root_before = 0;
-		if (helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id, true, &dont_root_before))
-			target_mob->SetDontRootMeBefore(dont_root_before);
-
-		break;
+	if (!c->GetTarget() || !c->GetTarget()->IsNPC()) {
+		c->Message(Chat::Yellow, "You must target an NPC for %s.", sep->arg[0]);
+		return;
+	}
+	if (c->GetTarget()->IsCharmed()) {
+		c->Message(Chat::Yellow, "%s is already charmed by %s.", c->GetTarget()->GetCleanName(), c->GetTarget()->GetOwner()->GetCleanName());
+		return;
 	}
 
-	helper_no_available_bots(c, my_bot);
+	Mob* my_target = c->GetTarget();
+	Bot* my_bot = nullptr;
+	std::list<Bot*> sbl;
+	std::string arg_one = sep->arg[1];
+	std::string arg_two = sep->arg[2];
+	std::string byname_check = "byname";
+	std::string nointerrupt_check = "nointerrupt";
+	bool byname_pass = false;
+	bool nointerrupt_bypass = false;
+
+	if (arg_one.find(byname_check) != std::string::npos) {
+		byname_pass = true;
+		if (arg_two.find(nointerrupt_check) != std::string::npos) {
+			MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[3]);
+			nointerrupt_bypass = true;
+		}
+		else {
+			MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[2]);
+		}
+		if (sbl.empty()) {
+			c->Message(Chat::White, "Could not find bot (%s).", sep->arg[2]);
+			return;
+		}
+		my_bot = sbl.front();
+	}
+	else if (arg_one.find(nointerrupt_check) != std::string::npos) {
+		nointerrupt_bypass = true;
+	}
+
+	BotSpell botSpell;
+	botSpell.SpellId = 0;
+	botSpell.SpellIndex = 0;
+	botSpell.ManaCost = 0;
+
+	if (byname_pass) {
+		if (my_bot) {
+			if (!my_bot->GetPet()) {
+				if (my_bot->CanCommandCastBySpellType(my_bot, my_target, SpellType_Charm)) {
+					if (my_bot->IsCasting() && nointerrupt_bypass) {
+						c->Message(Chat::White, "%s is currently casting.", my_bot->GetCleanName());
+						return;
+					}
+					botSpell = Bot::GetFirstBotSpellBySpellType(my_bot, SpellType_Charm);
+				}
+				else {
+					c->Message(Chat::White, "%s currently has that type of spell held.", my_bot->GetCleanName());
+					return;
+				}
+			}
+			else {
+				Bot::BotGroupSay(my_bot, "I cannot have more than one pet at a time.");
+				c->Message(Chat::SpellFailure, fmt::format("{} cannot have more than one pet at a time.", my_bot->GetCleanName()).c_str());
+				return;
+			}
+		}
+	}
+	else {
+		MyBots::PopulateSBL_BySpawnedBots(c, sbl);
+		std::list<Bot*> filtered_sbl;
+		bool bot_found = false;
+		if (my_target->GetBodyType() == BT_Undead || my_target->GetBodyType() == BT_SummonedUndead || my_target->GetBodyType() == BT_Vampire) {
+			MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 20, NECROMANCER, true, true, true, SpellType_Charm, nointerrupt_bypass);
+			for (auto bot_check : filtered_sbl) {
+				botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Charm);
+				if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+					my_bot = bot_check;
+					bot_found = true;
+					break;
+				}
+				else {
+					continue;
+				}
+			}
+			if (!bot_found) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 1, ENCHANTER, true, true, true, SpellType_Charm, nointerrupt_bypass);
+				for (auto bot_check : filtered_sbl) {
+					botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Charm);
+					if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+						my_bot = bot_check;
+						bot_found = true;
+						break;
+					}
+					else {
+						continue;
+					}
+				}
+			}
+			if (!bot_found) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 27, BARD, true, true, true, SpellType_Charm, nointerrupt_bypass);
+				for (auto bot_check : filtered_sbl) {
+					botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Charm);
+					if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+						my_bot = bot_check;
+						bot_found = true;
+						break;
+					}
+					else {
+						continue;
+					}
+				}
+			}
+		}
+		else if (my_target->GetBodyType() == BT_Animal) {
+			MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 1, ENCHANTER, true, true, true, SpellType_Charm, nointerrupt_bypass);
+			for (auto bot_check : filtered_sbl) {
+				botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Charm);
+				if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+					my_bot = bot_check;
+					bot_found = true;
+					break;
+				}
+				else {
+					continue;
+				}
+			}
+			if (!bot_found) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 14, DRUID, true, true, true, SpellType_Charm, nointerrupt_bypass);
+				for (auto bot_check : filtered_sbl) {
+					botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Charm);
+					if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+						my_bot = bot_check;
+						bot_found = true;
+						break;
+					}
+					else {
+						continue;
+					}
+				}
+			}
+			if (!bot_found) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 29, SHAMAN, true, true, true, SpellType_Charm, nointerrupt_bypass);
+				for (auto bot_check : filtered_sbl) {
+					botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Charm);
+					if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+						my_bot = bot_check;
+						bot_found = true;
+						break;
+					}
+					else {
+						continue;
+					}
+				}
+			}
+			if (!bot_found) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 27, BARD, true, true, true, SpellType_Charm, nointerrupt_bypass);
+				for (auto bot_check : filtered_sbl) {
+					botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Charm);
+					if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+						my_bot = bot_check;
+						bot_found = true;
+						break;
+					}
+					else {
+						continue;
+					}
+				}
+			}
+		}
+		else if (my_target->GetBodyType() == BT_Summoned || my_target->GetBodyType() == BT_Summoned2 || my_target->GetBodyType() == BT_Summoned3) {
+			if (my_target->GetLevel() <= 60) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 65, MAGICIAN, true, true, true, SpellType_Charm, nointerrupt_bypass);
+				for (auto bot_check : filtered_sbl) {
+					botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Charm);
+					if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+						my_bot = bot_check;
+						bot_found = true;
+						break;
+					}
+					else {
+						continue;
+					}
+				}
+			}
+			if (!bot_found) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 1, ENCHANTER, true, true, true, SpellType_Charm, nointerrupt_bypass);
+				for (auto bot_check : filtered_sbl) {
+					botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Charm);
+					if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+						my_bot = bot_check;
+						bot_found = true;
+						break;
+					}
+					else {
+						continue;
+					}
+				}
+			}
+			if (!bot_found) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 65, MAGICIAN, true, true, true, SpellType_Charm, nointerrupt_bypass);
+				for (auto bot_check : filtered_sbl) {
+					botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Charm);
+					if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+						my_bot = bot_check;
+						bot_found = true;
+						break;
+					}
+					else {
+						continue;
+					}
+				}
+			}
+			if (!bot_found) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 27, BARD, true, true, true, SpellType_Charm, nointerrupt_bypass);
+				for (auto bot_check : filtered_sbl) {
+					botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Charm);
+					if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+						my_bot = bot_check;
+						bot_found = true;
+						break;
+					}
+					else {
+						continue;
+					}
+				}
+			}
+		}
+		else {
+			MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 1, ENCHANTER, true, true, true, SpellType_Charm, nointerrupt_bypass);
+			for (auto bot_check : filtered_sbl) {
+				botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Charm);
+				if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+					my_bot = bot_check;
+					bot_found = true;
+					break;
+				}
+				else {
+					continue;
+				}
+			}
+			if (!bot_found) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 27, BARD, true, true, true, SpellType_Charm, nointerrupt_bypass);
+				for (auto bot_check : filtered_sbl) {
+					botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Charm);
+					if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+						my_bot = bot_check;
+						bot_found = true;
+						break;
+					}
+					else {
+						continue;
+					}
+				}
+			}
+		}
+	}
+	if (!my_bot) {
+		c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
+		return;
+	}
+	if (my_bot->HasPet()) {
+		Bot::BotGroupSay(my_bot, "I cannot have more than one pet at a time.");
+		c->Message(Chat::SpellFailure, fmt::format("{} cannot have more than one pet at a time.", my_bot->GetCleanName()).c_str());
+		return;
+	}
+	if (!my_bot->IsBotInGroupOrRaidGroup()) {
+		return;
+	}
+	if (botSpell.SpellId == 0) {
+		c->Message(Chat::White, "Could not find a spell for (%s).", sep->arg[0]);
+		return;
+	}
+	if (botSpell.SpellId != 0 && my_bot->GetMana() < spells[botSpell.SpellId].mana) {
+		c->Message(Chat::White, "%s does not have enough mana.", my_bot->GetCleanName());
+		return;
+	}
+	uint32 dont_root_before = 0;
+	if (helper_cast_standard_spell(my_bot, my_target, botSpell.SpellId, true, &dont_root_before)) {
+		my_target->SetDontRootMeBefore(dont_root_before);
+	}
+	return;
 }
 
 void bot_command_complete_heal_delay(Client* c, const Seperator* sep)
@@ -3750,6 +4023,11 @@ void bot_command_cure(Client *c, const Seperator *sep)
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
 		c->Message(Chat::White, "usage: (<friendly_target>) %s [ailment: blindness | disease | poison | curse | corruption]", sep->arg[0]);
+		c->Message(Chat::White, "note: if the bot is currently casting they will be interrupted to cast unless the [nointerrupt] option is used.");
+		c->Message(Chat::White, "note: [%s] will choose the first available bot.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s poison byname Mybot] will choose the specified bot named Mybot.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s poison nointerrupt] will choose the first eligible bot that is not currently casting.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s poison byname nointerrupt Mybot] will choose Mybot s long as they are not currently casting.", sep->arg[0]);
 		helper_send_usage_required_bots(c, BCEnum::SpT_Cure);
 		return;
 	}
@@ -3773,6 +4051,13 @@ void bot_command_cure(Client *c, const Seperator *sep)
 		return;
 	}
 
+	if (!c->GetTarget() || (!c->GetTarget()->IsClient() && !c->GetTarget()->IsBot() && c->GetTarget()->IsPet() && !c->GetTarget()->GetUltimateOwner()->IsClient())) {
+		c->Message(Chat::Yellow, "You must have a friendly target for %s.", sep->arg[0]);
+		return;
+	}
+
+	Mob* my_target = c->GetTarget();
+
 	local_list->sort([ailment_type](STBaseEntry* l, STBaseEntry* r) {
 		auto _l = l->SafeCastToCure(), _r = r->SafeCastToCure();
 		if (_l->cure_value[AILMENTIDTOINDEX(ailment_type)] < _r->cure_value[AILMENTIDTOINDEX(ailment_type)])
@@ -3788,7 +4073,49 @@ void bot_command_cure(Client *c, const Seperator *sep)
 	ActionableTarget::Types actionable_targets;
 	Bot* my_bot = nullptr;
 	std::list<Bot*> sbl;
-	MyBots::PopulateSBL_BySpawnedBots(c, sbl);
+	std::string arg_one = sep->arg[2];
+	std::string arg_two = sep->arg[3];
+	std::string byname_check = "byname";
+	std::string nointerrupt_check = "nointerrupt";
+	bool byname_pass = false;
+	bool nointerrupt_bypass = false;
+
+	if (arg_one.find(byname_check) != std::string::npos) {
+		byname_pass = true;
+		if (arg_two.find(nointerrupt_check) != std::string::npos) {
+			MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[4]);
+			nointerrupt_bypass = true;
+		}
+		else {
+			MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[3]);
+		}
+		if (sbl.empty()) {
+			c->Message(Chat::White, "Could not find bot (%s).", sep->arg[3]);
+			return;
+		}
+		my_bot = sbl.front();
+	}
+	else if (arg_one.find(nointerrupt_check) != std::string::npos) {
+		nointerrupt_bypass = true;
+	}
+
+	if (byname_pass) {
+		if (my_bot) {
+			if (my_bot->CanCommandCastBySpellType(my_bot, my_target, SpellType_Cure)) {
+				if (my_bot->IsCasting() && nointerrupt_bypass) {
+					c->Message(Chat::White, "%s is currently casting.", my_bot->GetCleanName());
+					return;
+				}
+			}
+			else {
+				c->Message(Chat::White, "%s currently has that type of spell held.", my_bot->GetCleanName());
+				return;
+			}
+		}
+	}
+	else {
+		MyBots::PopulateSBL_BySpawnedBots(c, sbl);
+	}
 
 	bool cast_success = false;
 	for (auto list_iter : *local_list) {
@@ -3799,17 +4126,39 @@ void bot_command_cure(Client *c, const Seperator *sep)
 			continue;
 
 		auto target_mob = actionable_targets.Select(c, local_entry->target_type, FRIENDLY);
-		if (!target_mob)
+		if (!target_mob) {
 			continue;
-
-		my_bot = ActionableBots::Select_ByMinLevelAndClass(c, local_entry->target_type, sbl, local_entry->spell_level, local_entry->caster_class, target_mob);
-		if (!my_bot)
-			continue;
-
-		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
 		}
-		else {
-			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+		if (!byname_pass) {
+			std::list<Bot*> filtered_sbl;
+			bool bot_found = false;
+			MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, local_entry->spell_level, local_entry->caster_class, false, true, true, SpellType_Cure, nointerrupt_bypass);
+			for (auto bot_check : filtered_sbl) {
+				if (!bot_check->IsCommandedSpellAllowedByBotSpellList(local_entry->spell_id, target_mob)) {
+					continue;
+				}
+				if (local_entry->spell_id != 0 && bot_check->GetMana() < spells[local_entry->spell_id].mana) {
+					continue;
+				}
+				my_bot = bot_check;
+			}
+		}
+
+		if (!my_bot) {
+			continue;
+		}
+		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
+			continue;
+		}
+		if (!my_bot->IsCommandedSpellAllowedByBotSpellList(local_entry->spell_id, target_mob)) {
+			continue;
+		}
+		if (!my_bot) {
+			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
+			return;
+		}
+		if (local_entry->spell_id != 0 && my_bot->GetMana() < spells[local_entry->spell_id].mana) {
+			c->Message(Chat::White, "%s does not have enough mana.", my_bot->GetCleanName());
 			return;
 		}
 
@@ -3817,7 +4166,9 @@ void bot_command_cure(Client *c, const Seperator *sep)
 		break;
 	}
 
-	helper_no_available_bots(c, my_bot);
+	if (!cast_success) {
+		helper_no_available_bots(c, my_bot);
+	}
 }
 
 void bot_command_cure_delay(Client* c, const Seperator* sep)
@@ -4127,7 +4478,9 @@ void bot_command_depart(Client *c, const Seperator *sep)
 		break;
 	}
 
-	helper_no_available_bots(c, my_bot);
+	if (!cast_success) {
+		helper_no_available_bots(c, my_bot);
+	}
 }
 
 void bot_command_delay_settings(Client* c, const Seperator* sep)
@@ -4588,10 +4941,19 @@ void bot_command_escape(Client *c, const Seperator *sep)
 		if (!my_bot)
 			continue;
 
-		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		//if (!my_bot->HasBotSpellEntry(local_entry->spell_id)) {
+		//	continue;
+		//}
+
+		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
+			continue;
 		}
-		else {
-			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+		if (!my_bot) {
+			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
+			return;
+		}
+		if (local_entry->spell_id != 0 && my_bot->GetMana() < spells[local_entry->spell_id].mana) {
+			c->Message(Chat::White, "%s does not have enough mana.", my_bot->GetCleanName());
 			return;
 		}
 
@@ -4599,7 +4961,9 @@ void bot_command_escape(Client *c, const Seperator *sep)
 		break;
 	}
 
-	helper_no_available_bots(c, my_bot);
+	if (!cast_success) {
+		helper_no_available_bots(c, my_bot);
+	}
 }
 
 void bot_command_escape_delay(Client* c, const Seperator* sep)
@@ -5481,6 +5845,57 @@ void bot_command_hold_buffs(Client* c, const Seperator* sep)
 	}
 }
 
+void bot_command_hold_charms(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_charms", sep->arg[0], "holdcharms"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Charm Spells.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Charm Spells.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 holdstatus = 0;
+	if (sep->IsNumber(1)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldCharms(holdstatus);
+			if (!database.botdb.SaveHoldCharms(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldCharms(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold Charm Spells for %s to %u.", my_bot->GetCleanName(), holdstatus);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold Charm Spells status is %s.", my_bot->GetHoldCharms() ? "enabled" : "disabled");
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^holdcharms help for a list of options.");
+	}
+}
+
 void bot_command_hold_complete_heals(Client* c, const Seperator* sep)
 {
 	if (helper_command_alias_fail(c, "bot_command_hold_complete_heals", sep->arg[0], "holdcompleteheals"))
@@ -6195,6 +6610,57 @@ void bot_command_hold_lifetaps(Client* c, const Seperator* sep)
 	}
 }
 
+void bot_command_hold_lulls(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_lull", sep->arg[0], "holdlulls"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Lull Spells.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Lull Spells.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 holdstatus = 0;
+	if (sep->IsNumber(1)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldLulls(holdstatus);
+			if (!database.botdb.SaveHoldLulls(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldLulls(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold Lull Spells for %s to %u.", my_bot->GetCleanName(), holdstatus);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold Lull Spells status is %s.", my_bot->GetHoldLulls() ? "enabled" : "disabled");
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^holdlulls help for a list of options.");
+	}
+}
+
 void bot_command_hold_mez(Client* c, const Seperator* sep)
 {
 	if (helper_command_alias_fail(c, "bot_command_hold_mez", sep->arg[0], "holdmez"))
@@ -6651,6 +7117,57 @@ void bot_command_hold_regular_heals(Client* c, const Seperator* sep)
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^holdregularheals help for a list of options.");
+	}
+}
+
+void bot_command_hold_rez(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_rez", sep->arg[0], "holdrez"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Rez Spells.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting Rez Spells.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 holdstatus = 0;
+	if (sep->IsNumber(1)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldRez(holdstatus);
+			if (!database.botdb.SaveHoldRez(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldRez(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold Rez Spells for %s to %u.", my_bot->GetCleanName(), holdstatus);
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold Rez Spells status is %s.", my_bot->GetHoldRez() ? "enabled" : "disabled");
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^holdrez help for a list of options.");
 	}
 }
 
@@ -7149,10 +7666,19 @@ void bot_command_identify(Client *c, const Seperator *sep)
 		if (!my_bot)
 			continue;
 
-		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		//if (!my_bot->HasBotSpellEntry(local_entry->spell_id)) {
+		//	continue;
+		//}
+
+		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
+			continue;
 		}
-		else {
-			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+		if (!my_bot) {
+			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
+			return;
+		}
+		if (local_entry->spell_id != 0 && my_bot->GetMana() < spells[local_entry->spell_id].mana) {
+			c->Message(Chat::White, "%s does not have enough mana.", my_bot->GetCleanName());
 			return;
 		}
 
@@ -7160,7 +7686,9 @@ void bot_command_identify(Client *c, const Seperator *sep)
 		break;
 	}
 
-	helper_no_available_bots(c, my_bot);
+	if (!cast_success) {
+		helper_no_available_bots(c, my_bot);
+	}
 }
 
 void bot_command_inventory(Client *c, const Seperator *sep)
@@ -7232,10 +7760,19 @@ void bot_command_invisibility(Client *c, const Seperator *sep)
 		if (!my_bot)
 			continue;
 
-		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		//if (!my_bot->HasBotSpellEntry(local_entry->spell_id)) {
+		//	continue;
+		//}
+
+		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
+			continue;
 		}
-		else {
-			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+		if (!my_bot) {
+			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
+			return;
+		}
+		if (local_entry->spell_id != 0 && my_bot->GetMana() < spells[local_entry->spell_id].mana) {
+			c->Message(Chat::White, "%s does not have enough mana.", my_bot->GetCleanName());
 			return;
 		}
 
@@ -7243,7 +7780,9 @@ void bot_command_invisibility(Client *c, const Seperator *sep)
 		break;
 	}
 
-	helper_no_available_bots(c, my_bot);
+	if (!cast_success) {
+		helper_no_available_bots(c, my_bot);
+	}
 }
 
 void bot_command_item_use(Client* c, const Seperator* sep)
@@ -7452,15 +7991,68 @@ void bot_command_levitation(Client *c, const Seperator *sep)
 	if (helper_spell_list_fail(c, local_list, BCEnum::SpT_Levitation) || helper_command_alias_fail(c, "bot_command_levitation", sep->arg[0], "levitation"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: (<friendly_target>) %s", sep->arg[0]);
+		c->Message(Chat::White, "usage: target a friendly target and type %s.", sep->arg[0]);
+		c->Message(Chat::White, "note: if the bot is currently casting they will be interrupted to cast unless the [nointerrupt] option is used.");
+		c->Message(Chat::White, "note: [%s] will choose the first available bot.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s byname Mybot] will choose the specified bot named Mybot.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s nointerrupt] will choose the first eligible bot that is not currently casting.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s byname nointerrupt Mybot] will choose Mybot s long as they are not currently casting.", sep->arg[0]);
 		helper_send_usage_required_bots(c, BCEnum::SpT_Levitation);
 		return;
 	}
 
+	if (!c->GetTarget()) {
+		c->Message(Chat::Yellow, "You must have a friendly target for %s.", sep->arg[0]);
+		return;
+	}
+
+	Mob* my_target = c->GetTarget();
 	ActionableTarget::Types actionable_targets;
 	Bot* my_bot = nullptr;
 	std::list<Bot*> sbl;
-	MyBots::PopulateSBL_BySpawnedBots(c, sbl);
+	std::string arg_one = sep->arg[1];
+	std::string arg_two = sep->arg[2];
+	std::string byname_check = "byname";
+	std::string nointerrupt_check = "nointerrupt";
+	bool byname_pass = false;
+	bool nointerrupt_bypass = false;
+
+	if (arg_one.find(byname_check) != std::string::npos) {
+		byname_pass = true;
+		if (arg_two.find(nointerrupt_check) != std::string::npos) {
+			MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[3]);
+			nointerrupt_bypass = true;
+		}
+		else {
+			MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[2]);
+		}
+		if (sbl.empty()) {
+			c->Message(Chat::White, "Could not find bot (%s).", sep->arg[2]);
+			return;
+		}
+		my_bot = sbl.front();
+	}
+	else if (arg_one.find(nointerrupt_check) != std::string::npos) {
+		nointerrupt_bypass = true;
+	}
+
+	if (byname_pass) {
+		if (my_bot) {
+			if (my_bot->CanCommandCastBySpellType(my_bot, my_target, SpellType_Misc)) {
+				if (my_bot->IsCasting() && nointerrupt_bypass) {
+					c->Message(Chat::White, "%s is currently casting.", my_bot->GetCleanName());
+					return;
+				}
+			}
+			else {
+				c->Message(Chat::White, "%s currently has that type of spell held.", my_bot->GetCleanName());
+				return;
+			}
+		}
+	}
+	else {
+		MyBots::PopulateSBL_BySpawnedBots(c, sbl);
+	}
 
 	bool cast_success = false;
 	for (auto list_iter : *local_list) {
@@ -7469,17 +8061,39 @@ void bot_command_levitation(Client *c, const Seperator *sep)
 			continue;
 
 		auto target_mob = actionable_targets.Select(c, local_entry->target_type, FRIENDLY);
-		if (!target_mob)
+		if (!target_mob) {
 			continue;
-
-		my_bot = ActionableBots::Select_ByMinLevelAndClass(c, local_entry->target_type, sbl, local_entry->spell_level, local_entry->caster_class, target_mob);
-		if (!my_bot)
-			continue;
-
-		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
 		}
-		else {
-			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+		if (!byname_pass) {
+			std::list<Bot*> filtered_sbl;
+			bool bot_found = false;
+			MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, local_entry->spell_level, local_entry->caster_class, false, true, true, SpellType_Misc, nointerrupt_bypass);
+			for (auto bot_check : filtered_sbl) {
+				if (!bot_check->IsCommandedSpellAllowedByBotSpellList(local_entry->spell_id, target_mob)) {
+					continue;
+				}
+				if (local_entry->spell_id != 0 && bot_check->GetMana() < spells[local_entry->spell_id].mana) {
+					continue;
+				}
+				my_bot = bot_check;
+			}
+		}
+
+		if (!my_bot) {
+			continue;
+		}
+		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
+			continue;
+		}
+		if (!my_bot->IsCommandedSpellAllowedByBotSpellList(local_entry->spell_id, target_mob)) {
+			continue;
+		}
+		if (!my_bot) {
+			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
+			return;
+		}
+		if (local_entry->spell_id != 0 && my_bot->GetMana() < spells[local_entry->spell_id].mana) {
+			c->Message(Chat::White, "%s does not have enough mana.", my_bot->GetCleanName());
 			return;
 		}
 
@@ -7487,7 +8101,9 @@ void bot_command_levitation(Client *c, const Seperator *sep)
 		break;
 	}
 
-	helper_no_available_bots(c, my_bot);
+	if (!cast_success) {
+		helper_no_available_bots(c, my_bot);
+	}
 }
 
 void bot_command_incombatbuff_delay(Client* c, const Seperator* sep)
@@ -7590,53 +8206,399 @@ void bot_command_lifetap_delay(Client* c, const Seperator* sep)
 	}
 }
 
-void bot_command_lull(Client *c, const Seperator *sep)
+void bot_command_lull(Client* c, const Seperator* sep)
 {
-	bcst_list* local_list = &bot_command_spells[BCEnum::SpT_Lull];
+	auto local_list = &bot_command_spells[BCEnum::SpT_Lull];
 	if (helper_spell_list_fail(c, local_list, BCEnum::SpT_Lull) || helper_command_alias_fail(c, "bot_command_lull", sep->arg[0], "lull"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <enemy_target> %s", sep->arg[0]);
+		c->Message(Chat::White, "usage: target an enemy and type %s.", sep->arg[0]);
+		c->Message(Chat::White, "note: if the bot is currently casting they will be interrupted to cast unless the [nointerrupt] option is used.");
+		c->Message(Chat::White, "note: [%s] will choose the first available bot.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s byname Mybot] will choose the specified bot named Mybot.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s nointerrupt] will choose the first eligible bot that is not currently casting.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s byname nointerrupt Mybot] will choose Mybot s long as they are not currently casting.", sep->arg[0]);
 		helper_send_usage_required_bots(c, BCEnum::SpT_Lull);
 		return;
 	}
 
-	ActionableTarget::Types actionable_targets;
-	Bot* my_bot = nullptr;
-	std::list<Bot*> sbl;
-	MyBots::PopulateSBL_BySpawnedBots(c, sbl);
-
-	for (auto list_iter : *local_list) {
-		auto local_entry = list_iter;
-		if (helper_spell_check_fail(local_entry))
-			continue;
-
-		auto target_mob = actionable_targets.Select(c, local_entry->target_type, ENEMY);
-		if (!target_mob)
-			continue;
-
-		//if (spells[local_entry->spell_id].max[EFFECTIDTOINDEX(3)] && spells[local_entry->spell_id].max[EFFECTIDTOINDEX(3)] < target_mob->GetLevel())
-		//	continue;
-
-		my_bot = ActionableBots::Select_ByMinLevelAndClass(c, local_entry->target_type, sbl, local_entry->spell_level, local_entry->caster_class, target_mob);
-		if (!my_bot)
-			continue;
-
-		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
-		}
-		else {
-			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
-			return;
-		}
-
-		uint32 dont_root_before = 0;
-		if (helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id, true, &dont_root_before))
-			target_mob->SetDontRootMeBefore(dont_root_before);
-
-		break;
+	if (!c->GetTarget() || !c->GetTarget()->IsNPC()) {
+		c->Message(Chat::Yellow, "You must target an NPC for %s.", sep->arg[0]);
+		return;
 	}
 
-	helper_no_available_bots(c, my_bot);
+	Mob* my_target = c->GetTarget();
+	Bot* my_bot = nullptr;
+	std::list<Bot*> sbl;
+	std::string arg_one = sep->arg[1];
+	std::string arg_two = sep->arg[2];
+	std::string byname_check = "byname";
+	std::string nointerrupt_check = "nointerrupt";
+	bool byname_pass = false;
+	bool nointerrupt_bypass = false;
+
+	if (arg_one.find(byname_check) != std::string::npos) {
+		byname_pass = true;
+		if (arg_two.find(nointerrupt_check) != std::string::npos) {
+			MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[3]);
+			nointerrupt_bypass = true;
+		}
+		else {
+			MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[2]);
+		}
+		if (sbl.empty()) {
+			c->Message(Chat::White, "Could not find bot (%s).", sep->arg[2]);
+			return;
+		}
+		my_bot = sbl.front();
+	}
+	else if (arg_one.find(nointerrupt_check) != std::string::npos) {
+		nointerrupt_bypass = true;
+	}
+
+	BotSpell botSpell;
+	botSpell.SpellId = 0;
+	botSpell.SpellIndex = 0;
+	botSpell.ManaCost = 0;
+
+	if (byname_pass) {
+		if (my_bot) {
+			if (my_bot->CanCommandCastBySpellType(my_bot, my_target, SpellType_Lull)) {
+				if (my_bot->IsCasting() && nointerrupt_bypass) {
+					c->Message(Chat::White, "%s is currently casting.", my_bot->GetCleanName());
+					return;
+				}
+				botSpell = Bot::GetFirstBotSpellBySpellType(my_bot, SpellType_Lull);
+			}
+			else {
+				c->Message(Chat::White, "%s currently has that type of spell held.", my_bot->GetCleanName());
+				return;
+			}
+		}
+	}
+	else {
+		MyBots::PopulateSBL_BySpawnedBots(c, sbl);
+		std::list<Bot*> filtered_sbl;
+		bool bot_found = false;
+		if (my_target->GetBodyType() == BT_Undead || my_target->GetBodyType() == BT_SummonedUndead || my_target->GetBodyType() == BT_Vampire) {
+			if (my_target->GetLevel() <= 45) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 24, NECROMANCER, false, true, true, SpellType_Lull, nointerrupt_bypass);
+				for (auto bot_check : filtered_sbl) {
+					botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Lull);
+					if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+						my_bot = bot_check;
+						bot_found = true;
+						break;
+					}
+					else {
+						continue;
+					}
+				}
+				if (!bot_found) {
+					MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 52, SHADOWKNIGHT, false, true, true, SpellType_Lull, nointerrupt_bypass);
+					for (auto bot_check : filtered_sbl) {
+						botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Lull);
+						if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+							my_bot = bot_check;
+							bot_found = true;
+							break;
+						}
+						else {
+							continue;
+						}
+					}
+				}
+			}
+			if (!bot_found) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 20, ENCHANTER, false, true, true, SpellType_Lull, nointerrupt_bypass);
+				for (auto bot_check : filtered_sbl) {
+					botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Lull);
+					if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+						my_bot = bot_check;
+						bot_found = true;
+						break;
+					}
+					else {
+						continue;
+					}
+				}
+			}
+			if (!bot_found) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 1, CLERIC, false, true, true, SpellType_Lull, nointerrupt_bypass);
+				for (auto bot_check : filtered_sbl) {
+					botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Lull);
+					if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+						my_bot = bot_check;
+						bot_found = true;
+						break;
+					}
+					else {
+						continue;
+					}
+				}
+			}
+			if (!bot_found) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 1, ENCHANTER, false, true, true, SpellType_Lull, nointerrupt_bypass);
+				for (auto bot_check : filtered_sbl) {
+					botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Lull);
+					if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+						my_bot = bot_check;
+						bot_found = true;
+						break;
+					}
+					else {
+						continue;
+					}
+				}
+			}
+			if (my_target->GetLevel() <= 30) {
+				if (!bot_found) {
+					MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 4, NECROMANCER, false, true, true, SpellType_Lull, nointerrupt_bypass);
+					for (auto bot_check : filtered_sbl) {
+						botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Lull);
+						if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+							my_bot = bot_check;
+							bot_found = true;
+							break;
+						}
+						else {
+							continue;
+						}
+					}
+				}
+				if (!bot_found) {
+					MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 15, SHADOWKNIGHT, false, true, true, SpellType_Lull, nointerrupt_bypass);
+					for (auto bot_check : filtered_sbl) {
+						botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Lull);
+						if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+							my_bot = bot_check;
+							bot_found = true;
+							break;
+						}
+						else {
+							continue;
+						}
+					}
+				}
+			}
+			if (!bot_found) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 9, PALADIN, false, true, true, SpellType_Lull, nointerrupt_bypass);
+				for (auto bot_check : filtered_sbl) {
+					botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Lull);
+					if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+						my_bot = bot_check;
+						bot_found = true;
+						break;
+					}
+					else {
+						continue;
+					}
+				}
+			}
+			if (!bot_found) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 8, BARD, false, true, true, SpellType_Lull, nointerrupt_bypass);
+				for (auto bot_check : filtered_sbl) {
+					botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Lull);
+					if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+						my_bot = bot_check;
+						bot_found = true;
+						break;
+					}
+					else {
+						continue;
+					}
+				}
+			}
+		}
+		else if (my_target->GetBodyType() == BT_Animal) {
+			MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 20, ENCHANTER, false, true, true, SpellType_Lull, nointerrupt_bypass);
+			for (auto bot_check : filtered_sbl) {
+				botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Lull);
+				if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+					my_bot = bot_check;
+					bot_found = true;
+					break;
+				}
+				else {
+					continue;
+				}
+			}
+			if (!bot_found) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 1, CLERIC, false, true, true, SpellType_Lull, nointerrupt_bypass);
+				for (auto bot_check : filtered_sbl) {
+					botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Lull);
+					if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+						my_bot = bot_check;
+						bot_found = true;
+						break;
+					}
+					else {
+						continue;
+					}
+				}
+			}
+			if (!bot_found) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 1, ENCHANTER, false, true, true, SpellType_Lull, nointerrupt_bypass);
+				for (auto bot_check : filtered_sbl) {
+					botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Lull);
+					if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+						my_bot = bot_check;
+						bot_found = true;
+						break;
+					}
+					else {
+						continue;
+					}
+				}
+			}
+			if (!bot_found) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 1, DRUID, false, true, true, SpellType_Lull, nointerrupt_bypass);
+				for (auto bot_check : filtered_sbl) {
+					botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Lull);
+					if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+						my_bot = bot_check;
+						bot_found = true;
+						break;
+					}
+					else {
+						continue;
+					}
+				}
+			}
+			if (!bot_found) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 9, PALADIN, false, true, true, SpellType_Lull, nointerrupt_bypass);
+				for (auto bot_check : filtered_sbl) {
+					botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Lull);
+					if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+						my_bot = bot_check;
+						bot_found = true;
+						break;
+					}
+					else {
+						continue;
+					}
+				}
+			}
+			if (!bot_found) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 9, RANGER, false, true, true, SpellType_Lull, nointerrupt_bypass);
+				for (auto bot_check : filtered_sbl) {
+					botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Lull);
+					if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+						my_bot = bot_check;
+						bot_found = true;
+						break;
+					}
+					else {
+						continue;
+					}
+				}
+			}
+			if (!bot_found) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 8, BARD, false, true, true, SpellType_Lull, nointerrupt_bypass);
+				for (auto bot_check : filtered_sbl) {
+					botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Lull);
+					if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+						my_bot = bot_check;
+						bot_found = true;
+						break;
+					}
+					else {
+						continue;
+					}
+				}
+			}
+		}
+		else {
+			MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 20, ENCHANTER, false, true, true, SpellType_Lull, nointerrupt_bypass);
+			for (auto bot_check : filtered_sbl) {
+				botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Lull);
+				if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+					my_bot = bot_check;
+					bot_found = true;
+					break;
+				}
+				else {
+					continue;
+				}
+			}
+			if (!bot_found) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 1, CLERIC, false, true, true, SpellType_Lull, nointerrupt_bypass);
+				for (auto bot_check : filtered_sbl) {
+					botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Lull);
+					if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+						my_bot = bot_check;
+						bot_found = true;
+						break;
+					}
+					else {
+						continue;
+					}
+				}
+			}
+			if (!bot_found) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 1, ENCHANTER, false, true, true, SpellType_Lull, nointerrupt_bypass);
+				for (auto bot_check : filtered_sbl) {
+					botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Lull);
+					if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+						my_bot = bot_check;
+						bot_found = true;
+						break;
+					}
+					else {
+						continue;
+					}
+				}
+			}
+			if (!bot_found) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 9, PALADIN, false, true, true, SpellType_Lull, nointerrupt_bypass);
+				for (auto bot_check : filtered_sbl) {
+					botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Lull);
+					if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+						my_bot = bot_check;
+						bot_found = true;
+						break;
+					}
+					else {
+						continue;
+					}
+				}
+			}
+			if (!bot_found) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 8, BARD, false, true, true, SpellType_Lull, nointerrupt_bypass);
+				for (auto bot_check : filtered_sbl) {
+					botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Lull);
+					if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+						my_bot = bot_check;
+						bot_found = true;
+						break;
+					}
+					else {
+						continue;
+					}
+				}
+			}
+		}
+	}
+	if (!my_bot) {
+		c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
+		return;
+	}
+	if (!my_bot->IsBotInGroupOrRaidGroup()) {
+		return;
+	}
+	if (botSpell.SpellId == 0) {
+		c->Message(Chat::White, "Could not find a spell for (%s).", sep->arg[0]);
+		return;
+	}
+	if (botSpell.SpellId != 0 && my_bot->GetMana() < spells[botSpell.SpellId].mana) {
+		c->Message(Chat::White, "%s does not have enough mana.", my_bot->GetCleanName());
+		return;
+	}
+	uint32 dont_root_before = 0;
+	if (helper_cast_standard_spell(my_bot, my_target, botSpell.SpellId, true, &dont_root_before)) {
+		my_target->SetDontRootMeBefore(dont_root_before);
+	}
+	return;
 }
 
 void bot_command_max_melee_range(Client* c, const Seperator* sep)
@@ -7702,51 +8664,161 @@ void bot_command_max_melee_range(Client* c, const Seperator* sep)
 
 void bot_command_mesmerize(Client *c, const Seperator *sep)
 {
-	bcst_list* local_list = &bot_command_spells[BCEnum::SpT_Mesmerize];
+	auto local_list = &bot_command_spells[BCEnum::SpT_Mesmerize];
 	if (helper_spell_list_fail(c, local_list, BCEnum::SpT_Mesmerize) || helper_command_alias_fail(c, "bot_command_mesmerize", sep->arg[0], "mesmerize"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <enemy_target> %s", sep->arg[0]);
+		c->Message(Chat::White, "usage: target an enemy and type %s.", sep->arg[0]);
+		c->Message(Chat::White, "note: if the bot is currently casting they will be interrupted to cast unless the [nointerrupt] option is used.");
+		c->Message(Chat::White, "note: [%s] will choose the first available bot.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s byname Mybot] will choose the specified bot named Mybot.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s nointerrupt] will choose the first eligible bot that is not currently casting.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s byname nointerrupt Mybot] will choose Mybot s long as they are not currently casting.", sep->arg[0]);
 		helper_send_usage_required_bots(c, BCEnum::SpT_Mesmerize);
 		return;
 	}
 
-	ActionableTarget::Types actionable_targets;
-	Bot* my_bot = nullptr;
-	std::list<Bot*> sbl;
-	MyBots::PopulateSBL_BySpawnedBots(c, sbl);
-
-	for (auto list_iter : *local_list) {
-		auto local_entry = list_iter;
-		if (helper_spell_check_fail(local_entry))
-			continue;
-
-		auto target_mob = actionable_targets.Select(c, local_entry->target_type, ENEMY);
-		if (!target_mob)
-			continue;
-
-		if (spells[local_entry->spell_id].max_value[EFFECTIDTOINDEX(1)] < target_mob->GetLevel())
-			continue;
-
-		my_bot = ActionableBots::Select_ByMinLevelAndClass(c, local_entry->target_type, sbl, local_entry->spell_level, local_entry->caster_class, target_mob);
-		if (!my_bot)
-			continue;
-
-		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
-		}
-		else {
-			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
-			return;
-		}
-
-		uint32 dont_root_before = 0;
-		if (helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id, true, &dont_root_before))
-			target_mob->SetDontRootMeBefore(dont_root_before);
-
-		break;
+	if (!c->GetTarget() || !c->GetTarget()->IsNPC()) {
+		c->Message(Chat::Yellow, "You must target an NPC for %s.", sep->arg[0]);
+		return;
 	}
 
-	helper_no_available_bots(c, my_bot);
+	Mob* my_target = c->GetTarget();
+	Bot* my_bot = nullptr;
+	std::list<Bot*> sbl;
+	std::string arg_one = sep->arg[1];
+	std::string arg_two = sep->arg[2];
+	std::string byname_check = "byname";
+	std::string nointerrupt_check = "nointerrupt";
+	bool byname_pass = false;
+	bool nointerrupt_bypass = false;
+
+	if (arg_one.find(byname_check) != std::string::npos) {
+		byname_pass = true;
+		if (arg_two.find(nointerrupt_check) != std::string::npos) {
+			MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[3]);
+			nointerrupt_bypass = true;
+		}
+		else {
+			MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[2]);
+		}
+		if (sbl.empty()) {
+			c->Message(Chat::White, "Could not find bot (%s).", sep->arg[2]);
+			return;
+		}
+		my_bot = sbl.front();
+	}
+	else if (arg_one.find(nointerrupt_check) != std::string::npos) {
+		nointerrupt_bypass = true;
+	}
+
+	BotSpell botSpell;
+	botSpell.SpellId = 0;
+	botSpell.SpellIndex = 0;
+	botSpell.ManaCost = 0;
+
+	if (byname_pass) {
+		if (my_bot) {
+			if (my_bot->CanCommandCastBySpellType(my_bot, my_target, SpellType_Mez)) {
+				if (my_bot->IsCasting() && nointerrupt_bypass) {
+					c->Message(Chat::White, "%s is currently casting.", my_bot->GetCleanName());
+					return;
+				}
+				botSpell = Bot::GetFirstBotSpellBySpellType(my_bot, SpellType_Mez, true);
+			}
+			else {
+				c->Message(Chat::White, "%s currently has that type of spell held.", my_bot->GetCleanName());
+				return;
+			}
+		}
+	}
+	else {
+		MyBots::PopulateSBL_BySpawnedBots(c, sbl);
+		std::list<Bot*> filtered_sbl;
+		bool bot_found = false;
+		uint16 class_mask = (PLAYER_CLASS_ENCHANTER_BIT | PLAYER_CLASS_BARD_BIT | PLAYER_CLASS_NECROMANCER_BIT | PLAYER_CLASS_MAGICIAN_BIT);
+		ActionableBots::Filter_ByClasses(c, sbl, class_mask);
+		MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 4, ENCHANTER, false, true, true, SpellType_Mez, nointerrupt_bypass);
+		for (auto bot_check : filtered_sbl) {
+			botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Mez, true);
+			if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+				my_bot = bot_check;
+				bot_found = true;
+				break;
+			}
+			else {
+				continue;
+			}
+		}
+		if (!bot_found && (my_target->GetBodyType() == BT_Summoned || my_target->GetBodyType() == BT_Summoned2 || my_target->GetBodyType() == BT_Summoned3)) {
+			MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 63, MAGICIAN, false, true, true, SpellType_Mez, nointerrupt_bypass);
+			for (auto bot_check : filtered_sbl) {
+				botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Mez, true);
+				if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+					my_bot = bot_check;
+					bot_found = true;
+					break;
+				}
+				else {
+					continue;
+				}
+			}
+		}
+		if (!bot_found && (my_target->GetBodyType() == BT_Undead || my_target->GetBodyType() == BT_SummonedUndead || my_target->GetBodyType() == BT_Vampire)) {
+			if (my_target->GetLevel() <= 55) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 24, NECROMANCER, false, true, true, SpellType_Mez, nointerrupt_bypass);
+			}
+			else {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 63, NECROMANCER, false, true, true, SpellType_Mez, nointerrupt_bypass);
+			}
+			for (auto bot_check : filtered_sbl) {
+				botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Mez, true);
+				if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+					my_bot = bot_check;
+					bot_found = true;
+					break;
+				}
+				else {
+					continue;
+				}
+			}
+		}
+		if (!bot_found) {
+			MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 15, BARD, false, true, true, SpellType_Mez, nointerrupt_bypass);
+			for (auto bot_check : filtered_sbl) {
+				botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Mez, true);
+				if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+					my_bot = bot_check;
+					bot_found = true;
+					break;
+				}
+				else {
+					continue;
+				}
+			}
+		}
+	}
+	if (!my_bot) {
+		c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
+		return;
+	}
+	if (!my_bot->IsBotInGroupOrRaidGroup()) {
+		return;
+	}
+	if (botSpell.SpellId == 0) {
+		c->Message(Chat::White, "Could not find a spell for (%s).", sep->arg[0]);
+		return;
+	}
+	if (botSpell.SpellId != 0 && my_bot->GetMana() < spells[botSpell.SpellId].mana) {
+		c->Message(Chat::White, "%s does not have enough mana.", my_bot->GetCleanName());
+		return;
+	}
+	uint32 dont_root_before = 0;
+	if (helper_cast_standard_spell(my_bot, my_target, botSpell.SpellId, true, &dont_root_before)) {
+		my_target->SetDontRootMeBefore(dont_root_before);
+	}
+
+	return;
 }
 
 void bot_command_mez_delay(Client* c, const Seperator* sep)
@@ -7929,46 +9001,162 @@ void bot_command_movement_speed(Client *c, const Seperator *sep)
 	if (helper_spell_list_fail(c, local_list, BCEnum::SpT_MovementSpeed) || helper_command_alias_fail(c, "bot_command_movement_speed", sep->arg[0], "movementspeed"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: (<friendly_target>) %s ([group | sow])", sep->arg[0]);
+		c->Message(Chat::White, "usage: (<friendly_target>) %s ([group | sow | selo])", sep->arg[0]);
+		c->Message(Chat::White, "note: if the bot is currently casting they will be interrupted to cast unless the [nointerrupt] option is used.");
+		c->Message(Chat::White, "note: [%s] will choose the first available bot.", sep->arg[0]);
+		c->Message(Chat::White, "note: group, sow and selo must be used before the [byname] and [nointerrupt] options are used.");
+		c->Message(Chat::White, "optionally: [%s byname Mybot] will choose the specified bot named Mybot.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s nointerrupt] will choose the first eligible bot that is not currently casting.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s byname nointerrupt Mybot] will choose Mybot s long as they are not currently casting.", sep->arg[0]);
 		helper_send_usage_required_bots(c, BCEnum::SpT_MovementSpeed);
 		return;
 	}
 
 	bool group = false;
 	bool sow = false;
+	bool selo = false;
 	std::string arg1 = sep->arg[1];
 	if (!arg1.compare("group"))
 		group = true;
 	else if (!arg1.compare("sow"))
 		sow = true;
+	else if (!arg1.compare("selo"))
+		selo = true;
 
+	if (!c->GetTarget()) {
+		c->Message(Chat::Yellow, "You must have a friendly target for %s.", sep->arg[0]);
+		return;
+	}
+
+	Mob* my_target = c->GetTarget();
 	ActionableTarget::Types actionable_targets;
 	Bot* my_bot = nullptr;
 	std::list<Bot*> sbl;
-	MyBots::PopulateSBL_BySpawnedBots(c, sbl);
+	std::string arg_one = sep->arg[1];
+	std::string arg_two = sep->arg[2];
+	std::string arg_three = sep->arg[3];
+	std::string byname_check = "byname";
+	std::string nointerrupt_check = "nointerrupt";
+	bool byname_pass = false;
+	bool nointerrupt_bypass = false;
+
+	if (arg_one.find(byname_check) != std::string::npos) {
+		byname_pass = true;
+		if (arg_two.find(nointerrupt_check) != std::string::npos) {
+			MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[3]);
+			nointerrupt_bypass = true;
+		}
+		else {
+			MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[2]);
+		}
+		if (sbl.empty()) {
+			c->Message(Chat::White, "Could not find bot (%s).", sep->arg[2]);
+			return;
+		}
+		my_bot = sbl.front();
+	}
+	else if (arg_two.find(byname_check) != std::string::npos) {
+		byname_pass = true;
+		if (arg_three.find(nointerrupt_check) != std::string::npos) {
+			MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[4]);
+			nointerrupt_bypass = true;
+		}
+		else {
+			MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[3]);
+		}
+		if (sbl.empty()) {
+			c->Message(Chat::White, "Could not find bot (%s).", sep->arg[3]);
+			return;
+		}
+		my_bot = sbl.front();
+	}
+	else if (arg_one.find(nointerrupt_check) != std::string::npos) {
+		nointerrupt_bypass = true;
+	}
+	else if (arg_two.find(nointerrupt_check) != std::string::npos) {
+		nointerrupt_bypass = true;
+	}
+	uint32 spellType = SpellType_Buff;
+	if (byname_pass) {
+		if (my_bot) {
+			if (my_bot->GetClass() == BARD) {
+				spellType = SpellType_OutOfCombatBuffSong;
+			}
+			if (my_bot->CanCommandCastBySpellType(my_bot, my_target, spellType)) {
+				if (my_bot->IsCasting() && nointerrupt_bypass) {
+					c->Message(Chat::White, "%s is currently casting.", my_bot->GetCleanName());
+					return;
+				}
+			}
+			else {
+				c->Message(Chat::White, "%s currently has that type of spell held.", my_bot->GetCleanName());
+				return;
+			}
+		}
+	}
+	else {
+		MyBots::PopulateSBL_BySpawnedBots(c, sbl);
+	}
 
 	bool cast_success = false;
 	for (auto list_iter : *local_list) {
 		auto local_entry = list_iter->SafeCastToMovementSpeed();
 		if (helper_spell_check_fail(local_entry))
 			continue;
-		if (!sow && (local_entry->group != group))
+		if (group && local_entry->group != true)
+			continue;
+		if ((sow || !selo) && local_entry->group == true)
 			continue;
 		if (sow && (local_entry->spell_id != 278)) // '278' = single-target "Spirit of Wolf"
 			continue;
+		if (selo && (local_entry->spell_id != 717 && local_entry->spell_id != 2605)) // '717' = group "Selo`s Accelerando" // '2605' = group "Selo`s Accelerating Chorus"
+			continue;
+		if (!selo && (local_entry->spell_id == 717 && local_entry->spell_id == 2605)) // '717' = group "Selo`s Accelerando" // '2605' = group "Selo`s Accelerating Chorus"
+			continue;
 
 		auto target_mob = actionable_targets.Select(c, local_entry->target_type, FRIENDLY);
-		if (!target_mob)
+		if (!target_mob) {
 			continue;
-
-		my_bot = ActionableBots::Select_ByMinLevelAndClass(c, local_entry->target_type, sbl, local_entry->spell_level, local_entry->caster_class, target_mob);
-		if (!my_bot)
-			continue;
-
-		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
 		}
-		else {
-			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+		if (!byname_pass) {
+			std::list<Bot*> filtered_sbl;
+			bool bot_found = false;
+			MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, local_entry->spell_level, local_entry->caster_class, false, true, true, SpellType_Buff, nointerrupt_bypass);
+			for (auto bot_check : filtered_sbl) {
+				if (!bot_check->IsCommandedSpellAllowedByBotSpellList(local_entry->spell_id, target_mob)) {
+					continue;
+				}
+				if (local_entry->spell_id != 0 && bot_check->GetMana() < spells[local_entry->spell_id].mana) {
+					continue;
+				}
+				my_bot = bot_check;
+			}
+			if (!my_bot) {
+				MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, local_entry->spell_level, local_entry->caster_class, false, true, true, SpellType_OutOfCombatBuffSong, nointerrupt_bypass);
+				for (auto bot_check : filtered_sbl) {
+					if (!bot_check->IsCommandedSpellAllowedByBotSpellList(local_entry->spell_id, target_mob)) {
+						continue;
+					}
+					if (local_entry->spell_id != 0 && bot_check->GetMana() < spells[local_entry->spell_id].mana) {
+						continue;
+					}
+					my_bot = bot_check;
+				}
+			}
+		}
+
+		if (!my_bot) {
+			continue;
+		}
+		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
+			continue;
+		}
+		if (!my_bot->IsCommandedSpellAllowedByBotSpellList(local_entry->spell_id, target_mob)) {
+			continue;
+		}
+
+		if (!my_bot) {
+			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
 			return;
 		}
 
@@ -7976,7 +9164,9 @@ void bot_command_movement_speed(Client *c, const Seperator *sep)
 		break;
 	}
 
-	helper_no_available_bots(c, my_bot);
+	if (!cast_success) {
+		helper_no_available_bots(c, my_bot);
+	}
 }
 
 void bot_command_nuke_delay(Client* c, const Seperator* sep)
@@ -8764,6 +9954,11 @@ void bot_command_resistance(Client *c, const Seperator *sep)
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
 		c->Message(Chat::White, "usage: (<friendly_target>) %s [resistance: fire | cold | poison | disease | magic | corruption]", sep->arg[0]);
+		c->Message(Chat::White, "note: if the bot is currently casting they will be interrupted to cast unless the [nointerrupt] option is used.");
+		c->Message(Chat::White, "note: [%s] will choose the first available bot.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s poison byname Mybot] will choose the specified bot named Mybot.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s poison nointerrupt] will choose the first eligible bot that is not currently casting.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s poison byname nointerrupt Mybot] will choose Mybot s long as they are not currently casting.", sep->arg[0]);
 		helper_send_usage_required_bots(c, BCEnum::SpT_Resistance);
 		return;
 	}
@@ -8801,10 +9996,59 @@ void bot_command_resistance(Client *c, const Seperator *sep)
 		return false;
 	});
 
+	if (!c->GetTarget() || (!c->GetTarget()->IsClient() && !c->GetTarget()->IsBot() && c->GetTarget()->IsPet() && !c->GetTarget()->GetUltimateOwner()->IsClient())) {
+		c->Message(Chat::Yellow, "You must have a friendly target for %s.", sep->arg[0]);
+		return;
+	}
+
+	Mob* my_target = c->GetTarget();
+
 	ActionableTarget::Types actionable_targets;
 	Bot* my_bot = nullptr;
 	std::list<Bot*> sbl;
-	MyBots::PopulateSBL_BySpawnedBots(c, sbl);
+	std::string arg_one = sep->arg[2];
+	std::string arg_two = sep->arg[3];
+	std::string byname_check = "byname";
+	std::string nointerrupt_check = "nointerrupt";
+	bool byname_pass = false;
+	bool nointerrupt_bypass = false;
+
+	if (arg_one.find(byname_check) != std::string::npos) {
+		byname_pass = true;
+		if (arg_two.find(nointerrupt_check) != std::string::npos) {
+			MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[4]);
+			nointerrupt_bypass = true;
+		}
+		else {
+			MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[3]);
+		}
+		if (sbl.empty()) {
+			c->Message(Chat::White, "Could not find bot (%s).", sep->arg[3]);
+			return;
+		}
+		my_bot = sbl.front();
+	}
+	else if (arg_one.find(nointerrupt_check) != std::string::npos) {
+		nointerrupt_bypass = true;
+	}
+
+	if (byname_pass) {
+		if (my_bot) {
+			if (my_bot->CanCommandCastBySpellType(my_bot, my_target, SpellType_Buff)) {
+				if (my_bot->IsCasting() && nointerrupt_bypass) {
+					c->Message(Chat::White, "%s is currently casting.", my_bot->GetCleanName());
+					return;
+				}
+			}
+			else {
+				c->Message(Chat::White, "%s currently has that type of spell held.", my_bot->GetCleanName());
+				return;
+			}
+		}
+	}
+	else {
+		MyBots::PopulateSBL_BySpawnedBots(c, sbl);
+	}
 
 	bool cast_success = false;
 	for (auto list_iter : *local_list) {
@@ -8815,17 +10059,36 @@ void bot_command_resistance(Client *c, const Seperator *sep)
 			continue;
 
 		auto target_mob = actionable_targets.Select(c, local_entry->target_type, FRIENDLY);
-		if (!target_mob)
+		if (!target_mob) {
 			continue;
-
-		my_bot = ActionableBots::Select_ByMinLevelAndClass(c, local_entry->target_type, sbl, local_entry->spell_level, local_entry->caster_class, target_mob);
-		if (!my_bot)
-			continue;
-
-		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
 		}
-		else {
-			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+		if (!byname_pass) {
+			std::list<Bot*> filtered_sbl;
+			bool bot_found = false;
+			MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, local_entry->spell_level, local_entry->caster_class, false, true, true, SpellType_Buff, nointerrupt_bypass);
+			for (auto bot_check : filtered_sbl) {
+				if (!bot_check->IsCommandedSpellAllowedByBotSpellList(local_entry->spell_id, target_mob)) {
+					continue;
+				}
+				if (local_entry->spell_id != 0 && bot_check->GetMana() < spells[local_entry->spell_id].mana) {
+					continue;
+				}
+				my_bot = bot_check;
+			}
+		}
+
+		if (!my_bot) {
+			continue;
+		}
+		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
+			continue;
+		}
+		if (!my_bot->IsCommandedSpellAllowedByBotSpellList(local_entry->spell_id, target_mob)) {
+			continue;
+		}
+
+		if (!my_bot) {
+			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
 			return;
 		}
 
@@ -8833,7 +10096,9 @@ void bot_command_resistance(Client *c, const Seperator *sep)
 		break;
 	}
 
-	helper_no_available_bots(c, my_bot);
+	if (!cast_success) {
+		helper_no_available_bots(c, my_bot);
+	}
 }
 
 void bot_command_resurrect(Client *c, const Seperator *sep)
@@ -8846,57 +10111,120 @@ void bot_command_resurrect(Client *c, const Seperator *sep)
 	if (helper_is_help_or_usage(sep->arg[1])) {
 		//c->Message(Chat::White, "usage: <corpse_target> %s ([option: aoe])", sep->arg[0]);
 		c->Message(Chat::White, "usage: <corpse_target> %s", sep->arg[0]);
-		helper_send_usage_required_bots(c, BCEnum::SpT_Resurrect);
+		c->Message(Chat::White, "note: if the bot is currently casting they will be interrupted to cast unless the [nointerrupt] option is used.");
+		c->Message(Chat::White, "note: [%s] will choose the first available bot.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s byname Mybot] will choose the specified bot named Mybot.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s nointerrupt] will choose the first eligible bot that is not currently casting.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s byname nointerrupt Mybot] will choose Mybot s long as they are not currently casting.", sep->arg[0]);
+		helper_send_usage_required_bots(c, BCEnum::SpT_Charm);
 		return;
 	}
 
-	bool aoe = false;
-	//std::string aoe_arg = sep->arg[1];
-	//if (!aoe_arg.compare("aoe"))
-	//	aoe = true;
-
-	ActionableTarget::Types actionable_targets;
-	Bot* my_bot = nullptr;
-	std::list<Bot*> sbl;
-	MyBots::PopulateSBL_BySpawnedBots(c, sbl);
-
-	for (auto list_iter : *local_list) {
-		auto local_entry = list_iter->SafeCastToResurrect();
-		if (helper_spell_check_fail(local_entry))
-			continue;
-		//if (local_entry->aoe != aoe)
-		//	continue;
-		if (local_entry->aoe)
-			continue;
-
-		auto target_mob = actionable_targets.Select(c, local_entry->target_type, FRIENDLY);
-		//if (!target_mob && !local_entry->aoe)
-		//	continue;
-		if (!target_mob)
-			continue;
-
-		my_bot = ActionableBots::Select_ByMinLevelAndClass(c, local_entry->target_type, sbl, local_entry->spell_level, local_entry->caster_class, target_mob);
-		if (!my_bot)
-			continue;
-
-		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
-		}
-		else {
-			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
-			return;
-		}
-
-		//if (local_entry->aoe)
-		//	target_mob = my_bot;
-
-		uint32 dont_root_before = 0;
-		if (helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id, true, &dont_root_before))
-			target_mob->SetDontRootMeBefore(dont_root_before);
-
-		break;
+	if (!c->GetTarget() || !c->GetTarget()->IsPlayerCorpse()) {
+		c->Message(Chat::Yellow, "You must target a player corpse for %s.", sep->arg[0]);
+		return;
 	}
 
-	helper_no_available_bots(c, my_bot);
+	Mob* my_target = c->GetTarget();
+	Bot* my_bot = nullptr;
+	std::list<Bot*> sbl;
+	std::string arg_one = sep->arg[1];
+	std::string arg_two = sep->arg[2];
+	std::string byname_check = "byname";
+	std::string nointerrupt_check = "nointerrupt";
+	bool byname_pass = false;
+	bool nointerrupt_bypass = false;
+
+	if (arg_one.find(byname_check) != std::string::npos) {
+		byname_pass = true;
+		if (arg_two.find(nointerrupt_check) != std::string::npos) {
+			MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[3]);
+			nointerrupt_bypass = true;
+		}
+		else {
+			MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[2]);
+		}
+		if (sbl.empty()) {
+			c->Message(Chat::White, "Could not find bot (%s).", sep->arg[2]);
+			return;
+		}
+		my_bot = sbl.front();
+	}
+	else if (arg_one.find(nointerrupt_check) != std::string::npos) {
+		nointerrupt_bypass = true;
+	}
+
+	BotSpell botSpell;
+	botSpell.SpellId = 0;
+	botSpell.SpellIndex = 0;
+	botSpell.ManaCost = 0;
+
+	if (byname_pass) {
+		if (my_bot) {
+			if (my_bot->CanCommandCastBySpellType(my_bot, my_target, SpellType_Resurrect)) {
+				if (my_bot->IsCasting() && nointerrupt_bypass) {
+					c->Message(Chat::White, "%s is currently casting.", my_bot->GetCleanName());
+					return;
+				}
+				botSpell = Bot::GetFirstBotSpellBySpellType(my_bot, SpellType_Resurrect);
+			}
+			else {
+				c->Message(Chat::White, "%s currently has that type of spell held.", my_bot->GetCleanName());
+				return;
+			}
+		}
+	}
+	else {
+		MyBots::PopulateSBL_BySpawnedBots(c, sbl);
+		std::list<Bot*> filtered_sbl;
+		bool bot_found = false;
+		MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 14, CLERIC, false, true, true, SpellType_Resurrect, nointerrupt_bypass);
+		for (auto bot_check : filtered_sbl) {
+			botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Resurrect);
+			if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+				my_bot = bot_check;
+				bot_found = true;
+				break;
+			}
+			else {
+				continue;
+			}
+		}
+		if (!bot_found) {
+			MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, 22, PALADIN, false, true, true, SpellType_Resurrect, nointerrupt_bypass);
+			for (auto bot_check : filtered_sbl) {
+				botSpell = Bot::GetFirstBotSpellBySpellType(bot_check, SpellType_Resurrect);
+				if (botSpell.SpellId != 0 && bot_check->GetMana() >= spells[botSpell.SpellId].mana) {
+					my_bot = bot_check;
+					bot_found = true;
+					break;
+				} 
+				else {
+					continue;
+				}
+			}
+		}
+	}
+	if (!my_bot) {
+		c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
+		return;
+	}
+	if (!my_bot->IsBotInGroupOrRaidGroup()) {
+		return;
+	}
+	if (botSpell.SpellId == 0) {
+		c->Message(Chat::White, "Could not find a spell for (%s).", sep->arg[0]);
+		return;
+	}
+	if (botSpell.SpellId != 0 && my_bot->GetMana() < spells[botSpell.SpellId].mana) {
+		c->Message(Chat::White, "%s does not have enough mana.", my_bot->GetCleanName());
+		return;
+	}
+	uint32 dont_root_before = 0;
+	if (helper_cast_standard_spell(my_bot, my_target, botSpell.SpellId, true, &dont_root_before)) {
+		my_target->SetDontRootMeBefore(dont_root_before);
+	}
+	return;
 }
 
 void bot_command_root(Client *c, const Seperator *sep)
@@ -8905,44 +10233,120 @@ void bot_command_root(Client *c, const Seperator *sep)
 	if (helper_spell_list_fail(c, local_list, BCEnum::SpT_Root) || helper_command_alias_fail(c, "bot_command_root", sep->arg[0], "root"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <enemy_target> %s", sep->arg[0]);
+		c->Message(Chat::White, "usage: target an enemy and type %s.", sep->arg[0]);
+		c->Message(Chat::White, "note: if the bot is currently casting they will be interrupted to cast unless the [nointerrupt] option is used.");
+		c->Message(Chat::White, "note: [%s] will choose the first available bot.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s byname Mybot] will choose the specified bot named Mybot.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s nointerrupt] will choose the first eligible bot that is not currently casting.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s byname nointerrupt Mybot] will choose Mybot s long as they are not currently casting.", sep->arg[0]);
 		helper_send_usage_required_bots(c, BCEnum::SpT_Root);
 		return;
 	}
 
+	if (!c->GetTarget()) {
+		c->Message(Chat::Yellow, "You must have an enemy target for %s.", sep->arg[0]);
+		return;
+	}
+
+	Mob* my_target = c->GetTarget();
 	ActionableTarget::Types actionable_targets;
 	Bot* my_bot = nullptr;
 	std::list<Bot*> sbl;
-	MyBots::PopulateSBL_BySpawnedBots(c, sbl);
+	std::string arg_one = sep->arg[1];
+	std::string arg_two = sep->arg[2];
+	std::string byname_check = "byname";
+	std::string nointerrupt_check = "nointerrupt";
+	bool byname_pass = false;
+	bool nointerrupt_bypass = false;
 
+	if (arg_one.find(byname_check) != std::string::npos) {
+		byname_pass = true;
+		if (arg_two.find(nointerrupt_check) != std::string::npos) {
+			MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[3]);
+			nointerrupt_bypass = true;
+		}
+		else {
+			MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[2]);
+		}
+		if (sbl.empty()) {
+			c->Message(Chat::White, "Could not find bot (%s).", sep->arg[2]);
+			return;
+		}
+		my_bot = sbl.front();
+	}
+	else if (arg_one.find(nointerrupt_check) != std::string::npos) {
+		nointerrupt_bypass = true;
+	}
+
+	if (byname_pass) {
+		if (my_bot) {
+			if (my_bot->CanCommandCastBySpellType(my_bot, my_target, SpellType_Root)) {
+				if (my_bot->IsCasting() && nointerrupt_bypass) {
+					c->Message(Chat::White, "%s is currently casting.", my_bot->GetCleanName());
+					return;
+				}
+			}
+			else {
+				c->Message(Chat::White, "%s currently has that type of spell held.", my_bot->GetCleanName());
+				return;
+			}
+		}
+	}
+	else {
+		MyBots::PopulateSBL_BySpawnedBots(c, sbl);
+	}
+
+	bool cast_success = false;
 	for (auto list_iter : *local_list) {
 		auto local_entry = list_iter;
 		if (helper_spell_check_fail(local_entry))
 			continue;
 
 		auto target_mob = actionable_targets.Select(c, local_entry->target_type, ENEMY);
-		if (!target_mob)
+		if (!target_mob) {
 			continue;
-
-		my_bot = ActionableBots::Select_ByMinLevelAndClass(c, local_entry->target_type, sbl, local_entry->spell_level, local_entry->caster_class, target_mob);
-		if (!my_bot)
-			continue;
-
-		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
 		}
-		else {
-			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+		if (!byname_pass) {
+			std::list<Bot*> filtered_sbl;
+			bool bot_found = false;
+			MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, local_entry->spell_level, local_entry->caster_class, false, true, true, SpellType_Root, nointerrupt_bypass);
+			for (auto bot_check : filtered_sbl) {
+				if (!bot_check->IsCommandedSpellAllowedByBotSpellList(local_entry->spell_id, target_mob)) {
+					continue;
+				}
+				if (local_entry->spell_id != 0 && bot_check->GetMana() < spells[local_entry->spell_id].mana) {
+					continue;
+				}
+				my_bot = bot_check;
+			}
+		}
+
+		if (!my_bot) {
+			continue;
+		}
+		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
+			continue;
+		}
+		if (!my_bot->IsCommandedSpellAllowedByBotSpellList(local_entry->spell_id, target_mob)) {
+			continue;
+		}
+
+		if (!my_bot) {
+			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
 			return;
 		}
 
 		uint32 dont_root_before = 0;
-		if (helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id, true, &dont_root_before))
+		if (helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id, true, &dont_root_before)) {
 			target_mob->SetDontRootMeBefore(dont_root_before);
-
+			cast_success = true;
+		}
 		break;
 	}
 
-	helper_no_available_bots(c, my_bot);
+	if (!cast_success) {
+		helper_no_available_bots(c, my_bot);
+	}
 }
 
 void bot_command_root_delay(Client* c, const Seperator* sep)
@@ -9127,10 +10531,16 @@ void bot_command_rune(Client *c, const Seperator *sep)
 		if (!my_bot)
 			continue;
 
-		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		if (!my_bot->HasBotSpellEntry(local_entry->spell_id)) {
+			continue;
 		}
-		else {
-			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+
+		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
+			continue;
+		}
+
+		if (!my_bot) {
+			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
 			return;
 		}
 
@@ -9138,7 +10548,9 @@ void bot_command_rune(Client *c, const Seperator *sep)
 		break;
 	}
 
-	helper_no_available_bots(c, my_bot);
+	if (!cast_success) {
+		helper_no_available_bots(c, my_bot);
+	}
 }
 
 void bot_command_send_home(Client *c, const Seperator *sep)
@@ -9180,10 +10592,16 @@ void bot_command_send_home(Client *c, const Seperator *sep)
 		if (!my_bot)
 			continue;
 
-		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		//if (!my_bot->HasBotSpellEntry(local_entry->spell_id)) {
+		//	continue;
+		//}
+
+		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
+			continue;
 		}
-		else {
-			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+
+		if (!my_bot) {
+			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
 			return;
 		}
 
@@ -9191,11 +10609,17 @@ void bot_command_send_home(Client *c, const Seperator *sep)
 		break;
 	}
 
-	helper_no_available_bots(c, my_bot);
+	if (!cast_success) {
+		helper_no_available_bots(c, my_bot);
+	}
 }
 
 void bot_command_size(Client *c, const Seperator *sep)
 {
+	// temp
+	c->Message(Chat::White, "This command is disabled...");
+	return;
+
 	bcst_list* local_list = &bot_command_spells[BCEnum::SpT_Size];
 	if (helper_spell_list_fail(c, local_list, BCEnum::SpT_Size) || helper_command_alias_fail(c, "bot_command_size", sep->arg[0], "size"))
 		return;
@@ -9236,10 +10660,16 @@ void bot_command_size(Client *c, const Seperator *sep)
 		if (!my_bot)
 			continue;
 
-		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		//if (!my_bot->HasBotSpellEntry(local_entry->spell_id)) {
+		//	continue;
+		//}
+
+		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
+			continue;
 		}
-		else {
-			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+
+		if (!my_bot) {
+			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
 			return;
 		}
 
@@ -9247,7 +10677,9 @@ void bot_command_size(Client *c, const Seperator *sep)
 		break;
 	}
 
-	helper_no_available_bots(c, my_bot);
+	if (!cast_success) {
+		helper_no_available_bots(c, my_bot);
+	}
 }
 
 void bot_command_slow_delay(Client* c, const Seperator* sep)
@@ -9404,44 +10836,123 @@ void bot_command_snare(Client* c, const Seperator* sep)
 	if (helper_spell_list_fail(c, local_list, BCEnum::SpT_Snare) || helper_command_alias_fail(c, "bot_command_snare", sep->arg[0], "snare"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <enemy_target> %s", sep->arg[0]);
+		c->Message(Chat::White, "usage: target an enemy and type %s.", sep->arg[0]);
+		c->Message(Chat::White, "note: if the bot is currently casting they will be interrupted to cast unless the [nointerrupt] option is used.");
+		c->Message(Chat::White, "note: [%s] will choose the first available bot.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s byname Mybot] will choose the specified bot named Mybot.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s nointerrupt] will choose the first eligible bot that is not currently casting.", sep->arg[0]);
+		c->Message(Chat::White, "optionally: [%s byname nointerrupt Mybot] will choose Mybot s long as they are not currently casting.", sep->arg[0]);
 		helper_send_usage_required_bots(c, BCEnum::SpT_Snare);
 		return;
 	}
 
+	if (!c->GetTarget()) {
+		c->Message(Chat::Yellow, "You must have an enemy target for %s.", sep->arg[0]);
+		return;
+	}
+
+	Mob* my_target = c->GetTarget();
 	ActionableTarget::Types actionable_targets;
 	Bot* my_bot = nullptr;
 	std::list<Bot*> sbl;
-	MyBots::PopulateSBL_BySpawnedBots(c, sbl);
+	std::string arg_one = sep->arg[1];
+	std::string arg_two = sep->arg[2];
+	std::string byname_check = "byname";
+	std::string nointerrupt_check = "nointerrupt";
+	bool byname_pass = false;
+	bool nointerrupt_bypass = false;
 
+	if (arg_one.find(byname_check) != std::string::npos) {
+		byname_pass = true;
+		if (arg_two.find(nointerrupt_check) != std::string::npos) {
+			MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[3]);
+			nointerrupt_bypass = true;
+		}
+		else {
+			MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[2]);
+		}
+		if (sbl.empty()) {
+			c->Message(Chat::White, "Could not find bot (%s).", sep->arg[2]);
+			return;
+		}
+		my_bot = sbl.front();
+	}
+	else if (arg_one.find(nointerrupt_check) != std::string::npos) {
+		nointerrupt_bypass = true;
+	}
+
+	if (byname_pass) {
+		if (my_bot) {
+			if (my_bot->CanCommandCastBySpellType(my_bot, my_target, SpellType_Snare)) {
+				if (my_bot->IsCasting() && nointerrupt_bypass) {
+					c->Message(Chat::White, "%s is currently casting.", my_bot->GetCleanName());
+					return;
+				}
+			}
+			else {
+				c->Message(Chat::White, "%s currently has that type of spell held.", my_bot->GetCleanName());
+				return;
+			}
+		}
+	}
+	else {
+		MyBots::PopulateSBL_BySpawnedBots(c, sbl);
+	}
+
+	bool cast_success = false;
 	for (auto list_iter : *local_list) {
 		auto local_entry = list_iter;
 		if (helper_spell_check_fail(local_entry))
 			continue;
 
 		auto target_mob = actionable_targets.Select(c, local_entry->target_type, ENEMY);
-		if (!target_mob)
+		if (!target_mob) {
 			continue;
-
-		my_bot = ActionableBots::Select_ByMinLevelAndClass(c, local_entry->target_type, sbl, local_entry->spell_level, local_entry->caster_class, target_mob);
-		if (!my_bot)
-			continue;
-
-		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
 		}
-		else {
-			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+		if (!byname_pass) {
+			std::list<Bot*> filtered_sbl;
+			bool bot_found = false;
+			MyBots::PopulateSBL_BySpawnedBotsClassAndMinLevel(sbl, filtered_sbl, local_entry->spell_level, local_entry->caster_class, false, true, true, SpellType_Snare, nointerrupt_bypass);
+			for (auto bot_check : filtered_sbl) {
+				if (!bot_check->IsCommandedSpellAllowedByBotSpellList(local_entry->spell_id, target_mob)) {
+					continue;
+				}
+				if (local_entry->spell_id != 0 && bot_check->GetMana() < spells[local_entry->spell_id].mana) {
+					continue;
+				}
+				my_bot = bot_check;
+			}
+		}
+
+		if (!my_bot) {
+			continue;
+		}
+		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
+			continue;
+		}
+		if (!my_bot->IsCommandedSpellAllowedByBotSpellList(local_entry->spell_id, target_mob)) {
+			continue;
+		}
+		if (!my_bot) {
+			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
+			return;
+		}
+		if (local_entry->spell_id != 0 && my_bot->GetMana() < spells[local_entry->spell_id].mana) {
+			c->Message(Chat::White, "%s does not have enough mana.", my_bot->GetCleanName());
 			return;
 		}
 
 		uint32 dont_root_before = 0;
-		if (helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id, true, &dont_root_before))
+		if (helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id, true, &dont_root_before)) {
 			target_mob->SetDontRootMeBefore(dont_root_before);
-
+			cast_success = true;
+		}
 		break;
 	}
 
-	helper_no_available_bots(c, my_bot);
+	if (!cast_success) {
+		helper_no_available_bots(c, my_bot);
+	}
 }
 
 void bot_command_snare_delay(Client* c, const Seperator* sep)
@@ -9630,19 +11141,29 @@ void bot_command_summon_corpse(Client *c, const Seperator *sep)
 		if (!my_bot)
 			continue;
 
-		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		if (!my_bot->HasBotSpellEntry(local_entry->spell_id)) {
+			continue;
 		}
-		else {
-			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+
+		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
+			continue;
+		}
+		if (!my_bot) {
+			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
+			return;
+		}
+		if (local_entry->spell_id != 0 && my_bot->GetMana() < spells[local_entry->spell_id].mana) {
+			c->Message(Chat::White, "%s does not have enough mana.", my_bot->GetCleanName());
 			return;
 		}
 
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
-
 		break;
 	}
 
-	helper_no_available_bots(c, my_bot);
+	if (!cast_success) {
+		helper_no_available_bots(c, my_bot);
+	}
 }
 
 void bot_command_suspend(Client *c, const Seperator *sep)
@@ -9836,10 +11357,8 @@ void bot_command_track(Client *c, const Seperator *sep)
 		return;
 	}
 
-	if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
-	}
-	else {
-		c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+	if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
+		c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
 		return;
 	}
 
@@ -10077,10 +11596,19 @@ void bot_command_water_breathing(Client *c, const Seperator *sep)
 		if (!my_bot)
 			continue;
 
-		if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(my_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(my_bot->GetName()))) {
+		//if (!my_bot->HasBotSpellEntry(local_entry->spell_id)) {
+		//	continue;
+		//}
+
+		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
+			continue;
 		}
-		else {
-			c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
+		if (!my_bot) {
+			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
+			return;
+		}
+		if (local_entry->spell_id != 0 && my_bot->GetMana() < spells[local_entry->spell_id].mana) {
+			c->Message(Chat::White, "%s does not have enough mana.", my_bot->GetCleanName());
 			return;
 		}
 
@@ -10088,7 +11616,9 @@ void bot_command_water_breathing(Client *c, const Seperator *sep)
 		break;
 	}
 
-	helper_no_available_bots(c, my_bot);
+	if (!cast_success) {
+		helper_no_available_bots(c, my_bot);
+	}
 }
 
 
@@ -13282,7 +14812,9 @@ void bot_subcommand_circle(Client *c, const Seperator *sep)
 		break;
 	}
 
-	helper_no_available_bots(c, my_bot);
+	if (!cast_success) {
+		helper_no_available_bots(c, my_bot);
+	}
 }
 
 void bot_subcommand_copy_settings(Client* c, const Seperator* sep)
@@ -14845,7 +16377,7 @@ void bot_subcommand_pet_remove(Client *c, const Seperator *sep)
 	if (ActionableBots::PopulateSBL(c, sep->arg[1], sbl, ab_mask, sep->arg[2]) == ActionableBots::ABT_None)
 		return;
 
-	uint16 class_mask = (PLAYER_CLASS_DRUID_BIT | PLAYER_CLASS_NECROMANCER_BIT | PLAYER_CLASS_ENCHANTER_BIT);
+	uint16 class_mask = (PLAYER_CLASS_ENCHANTER_BIT | PLAYER_CLASS_BARD_BIT | PLAYER_CLASS_NECROMANCER_BIT | PLAYER_CLASS_DRUID_BIT | PLAYER_CLASS_SHAMAN_BIT | PLAYER_CLASS_MAGICIAN_BIT);
 	ActionableBots::Filter_ByClasses(c, sbl, class_mask);
 	if (sbl.empty()) {
 		c->Message(Chat::White, "You have no spawned bots capable of charming");
@@ -15072,7 +16604,9 @@ void bot_subcommand_portal(Client *c, const Seperator *sep)
 		break;
 	}
 
-	helper_no_available_bots(c, my_bot);
+	if (!cast_success) {
+		helper_no_available_bots(c, my_bot);
+	}
 }
 
 
@@ -15446,7 +16980,7 @@ int helper_bot_follow_option_chain(Client* bot_owner)
 
 bool helper_cast_standard_spell(Bot* casting_bot, Mob* target_mob, int spell_id, bool annouce_cast, uint32* dont_root_before)
 {
-	if (!casting_bot || !target_mob)
+	if (!casting_bot || !target_mob || !spell_id)
 		return false;
 
 	casting_bot->InterruptSpell();
@@ -15613,7 +17147,7 @@ bool helper_no_available_bots(Client *bot_owner, Bot *my_bot)
 	if (!bot_owner)
 		return true;
 	if (!my_bot) {
-		bot_owner->Message(Chat::White, "No bots are capable of performing this action");
+		bot_owner->Message(Chat::White, "Could not find a usable bot. Be sure no usable bots are outside of your group or raid and that they have enough mana.");
 		return true;
 	}
 
@@ -16254,6 +17788,7 @@ void ListBotHoldSettings(Bot* b, bool show_options)
 
 	std::vector<std::tuple<std::string, std::string, bool>> Types;
 	Types.emplace_back("Buff", "^holdbuffs", b->GetHoldBuffs());
+	Types.emplace_back("Charm", "^holdroots", b->GetHoldCharms());
 	Types.emplace_back("Complete Heal", "^holdcompleteheals", b->GetHoldCompleteHeals());
 	Types.emplace_back("Cure", "^holdcures", b->GetHoldCures());
 	Types.emplace_back("Debuff", "^holddebuffs", b->GetHoldDebuffs());
@@ -16268,6 +17803,7 @@ void ListBotHoldSettings(Bot* b, bool show_options)
 	Types.emplace_back("In-Combat Buff", "^holdincombatbuff", b->GetHoldInCombatBuffs());
 	Types.emplace_back("In-Combat Buff Song", "^holdincombatbuffsongs", b->GetHoldInCombatBuffSongs());
 	Types.emplace_back("Lifetap", "^holdlifetaps", b->GetHoldLifetaps());
+	Types.emplace_back("Lull", "^holdlulls", b->GetHoldLulls());
 	Types.emplace_back("Mesmerization", "^holdmez", b->GetHoldMez());
 	Types.emplace_back("Nuke", "^holdnukes", b->GetHoldNukes());
 	Types.emplace_back("Out-of-Combat Buff Song", "^holdoutofcombatbuffsongs", b->GetHoldOutOfCombatBuffSongs());
@@ -16277,6 +17813,7 @@ void ListBotHoldSettings(Bot* b, bool show_options)
 	Types.emplace_back("Pre-Combat Buff", "^holdprecombatbuffs", b->GetHoldPreCombatBuffs());
 	Types.emplace_back("Pre-Combat Buff Song", "^holdprecombatbuffsongs", b->GetHoldPreCombatBuffSongs());
 	Types.emplace_back("Regular Heal", "^holdregularheals", b->GetHoldRegularHeals());
+	Types.emplace_back("Rez", "^holdrez", b->GetHoldRez());
 	Types.emplace_back("Root", "^holdroots", b->GetHoldRoots());
 	Types.emplace_back("Slow", "^holdslows", b->GetHoldSlows());
 	Types.emplace_back("Snare", "^holdsnares", b->GetHoldSnares());
@@ -16573,6 +18110,7 @@ void CopyBotSettings(Bot* from, Bot* to, uint8 copy_type)
 	}
 	if (copy_type == COPY_HOLDS || copy_type == COPY_ALL) {
 		to->SetHoldBuffs(from->GetHoldBuffs());
+		to->SetHoldCharms(from->GetHoldCharms());
 		to->SetHoldCompleteHeals(from->GetHoldCompleteHeals());
 		to->SetHoldCures(from->GetHoldCures());
 		to->SetHoldDebuffs(from->GetHoldDebuffs());
@@ -16587,6 +18125,7 @@ void CopyBotSettings(Bot* from, Bot* to, uint8 copy_type)
 		to->SetHoldInCombatBuffs(from->GetHoldInCombatBuffs());
 		to->SetHoldInCombatBuffSongs(from->GetHoldInCombatBuffSongs());
 		to->SetHoldLifetaps(from->GetHoldLifetaps());
+		to->SetHoldLulls(from->GetHoldLulls());
 		to->SetHoldMez(from->GetHoldMez());
 		to->SetHoldNukes(from->GetHoldNukes());
 		to->SetHoldOutOfCombatBuffSongs(from->GetHoldOutOfCombatBuffSongs());
@@ -16596,6 +18135,7 @@ void CopyBotSettings(Bot* from, Bot* to, uint8 copy_type)
 		to->SetHoldPreCombatBuffs(from->GetHoldPreCombatBuffs());
 		to->SetHoldPreCombatBuffSongs(from->GetHoldPreCombatBuffSongs());
 		to->SetHoldRegularHeals(from->GetHoldRegularHeals());
+		to->SetHoldRez(from->GetHoldRez());
 		to->SetHoldRoots(from->GetHoldRoots());
 		to->SetHoldSlows(from->GetHoldSlows());
 		to->SetHoldSnares(from->GetHoldSnares());

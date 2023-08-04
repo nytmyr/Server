@@ -358,10 +358,13 @@ public:
 	void DoFaceCheckWithJitter(Mob* tar);
 	void DoFaceCheckNoJitter(Mob* tar);
 	void RunToGoalWithJitter(glm::vec3 Goal);
+	bool IsBotInGroupOrRaidGroup(bool bypassAlert = false);
 
 	// Custom commands for spells
 	bool CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 spellid = 0, std::string healType = "None");
+	bool CanCommandCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 spellid = 0, std::string healType = "None");
 	uint8 GetHoldBuffs() { return _holdBuffs; }
+	uint8 GetHoldCharms() { return _holdCharms; }
 	uint8 GetHoldCompleteHeals() { return _holdCompleteHeals; }
 	uint8 GetHoldCures() { return _holdCures; }
 	uint8 GetHoldDoTs() { return _holdDoTs; }
@@ -376,6 +379,7 @@ public:
 	uint8 GetHoldInCombatBuffs() { return _holdInCombatBuffs; }
 	uint8 GetHoldInCombatBuffSongs() { return _holdInCombatBuffSongs; }
 	uint8 GetHoldLifetaps() { return _holdLifetaps; }
+	uint8 GetHoldLulls() { return _holdLulls; }
 	uint8 GetHoldMez() { return _holdMez; }
 	uint8 GetHoldNukes() { return _holdNukes; }
 	uint8 GetHoldOutOfCombatBuffSongs() { return _holdOutOfCombatBuffSongs; }
@@ -385,6 +389,7 @@ public:
 	uint8 GetHoldPreCombatBuffs() { return _holdPreCombatBuffs; }
 	uint8 GetHoldPreCombatBuffSongs() { return _holdPreCombatBuffSongs; }
 	uint8 GetHoldRegularHeals() { return _holdRegularHeals; }
+	uint8 GetHoldRez() { return _holdRez; }
 	uint8 GetHoldRoots() { return _holdRoots; }
 	uint8 GetHoldSlows() { return _holdSlows; }
 	uint8 GetHoldSnares() { return _holdSnares; }
@@ -442,6 +447,7 @@ public:
 	uint8 GetSnareThreshold() { return _snareThreshold; }
 	uint8 GetSnareMinThreshold() { return _snareminThreshold; }
 	void SetHoldBuffs(uint8 holdstatus);
+	void SetHoldCharms(uint8 holdstatus);
 	void SetHoldCompleteHeals(uint8 holdstatus);
 	void SetHoldCures(uint8 holdstatus);
 	void SetHoldDoTs(uint8 holdstatus);
@@ -456,6 +462,7 @@ public:
 	void SetHoldInCombatBuffs(uint8 holdstatus);
 	void SetHoldInCombatBuffSongs(uint8 holdstatus);
 	void SetHoldLifetaps(uint8 holdstatus);
+	void SetHoldLulls(uint8 holdstatus);
 	void SetHoldMez(uint8 holdstatus);
 	void SetHoldNukes(uint8 holdstatus);
 	void SetHoldOutOfCombatBuffSongs(uint8 holdstatus);
@@ -465,6 +472,7 @@ public:
 	void SetHoldPreCombatBuffs(uint8 holdstatus);
 	void SetHoldPreCombatBuffSongs(uint8 holdstatus);
 	void SetHoldRegularHeals(uint8 holdstatus);
+	void SetHoldRez(uint8 holdstatus);
 	void SetHoldRoots(uint8 holdstatus);
 	void SetHoldSlows(uint8 holdstatus);
 	void SetHoldSnares(uint8 holdstatus);
@@ -614,7 +622,7 @@ public:
 	static std::list<BotSpell> GetBotSpellsBySpellType(Bot* botCaster, uint32 spellType);
 	static std::list<BotSpell_wPriority> GetPrioritizedBotSpellsBySpellType(Bot* botCaster, uint32 spellType);
 
-	static BotSpell GetFirstBotSpellBySpellType(Bot* botCaster, uint32 spellType);
+	static BotSpell GetFirstBotSpellBySpellType(Bot* botCaster, uint32 spellType, bool skip_ae = false);
 	static BotSpell GetBestBotSpellForFastHeal(Bot* botCaster);
 	static BotSpell GetBestBotSpellForHealOverTime(Bot* botCaster);
 	static BotSpell GetBestBotSpellForPercentageHeal(Bot* botCaster);
@@ -778,6 +786,7 @@ public:
 
 	// "Quest API" Methods
 	bool HasBotSpellEntry(uint16 spellid);
+	bool IsCommandedSpellAllowedByBotSpellList(uint16 spellid, Mob* tar);
 	void ApplySpell(int spell_id, int duration = 0, ApplySpellType apply_type = ApplySpellType::Solo, bool allow_pets = false, bool is_raid_group_only = true);
 	void BreakInvis();
 	void Escape();
@@ -1046,6 +1055,7 @@ private:
 	bool _pauseAI;
 	uint8 _stopMeleeLevel;
 	uint8 _holdBuffs;
+	uint8 _holdCharms;
 	uint8 _holdCompleteHeals;
 	uint8 _holdCures;
 	uint8 _holdDoTs;
@@ -1060,6 +1070,7 @@ private:
 	uint8 _holdInCombatBuffs;
 	uint8 _holdInCombatBuffSongs;
 	uint8 _holdLifetaps;
+	uint8 _holdLulls;
 	uint8 _holdMez;
 	uint8 _holdNukes;
 	uint8 _holdOutOfCombatBuffSongs;
@@ -1069,6 +1080,7 @@ private:
 	uint8 _holdPreCombatBuffs;
 	uint8 _holdPreCombatBuffSongs;
 	uint8 _holdRegularHeals;
+	uint8 _holdRez;
 	uint8 _holdRoots;
 	uint8 _holdSlows;
 	uint8 _holdSnares;

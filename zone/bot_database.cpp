@@ -487,6 +487,7 @@ bool BotDatabase::LoadBot(const uint32 bot_id, Bot*& loaded_bot)
 		loaded_bot->SetBotArcherySetting((l.archery_setting ? true : false));
 		loaded_bot->SetBotPetSetTypeSetting((l.petsettype_setting));
 		loaded_bot->SetHoldBuffs(l.hold_buffs);
+		loaded_bot->SetHoldCharms(l.hold_charms);
 		loaded_bot->SetHoldCompleteHeals(l.hold_complete_heals);
 		loaded_bot->SetHoldCures(l.hold_cures);
 		loaded_bot->SetHoldDoTs(l.hold_dots);
@@ -501,6 +502,7 @@ bool BotDatabase::LoadBot(const uint32 bot_id, Bot*& loaded_bot)
 		loaded_bot->SetHoldInCombatBuffs(l.hold_incombatbuffs);
 		loaded_bot->SetHoldInCombatBuffSongs(l.hold_incombatbuffsongs);
 		loaded_bot->SetHoldLifetaps(l.hold_lifetaps);
+		loaded_bot->SetHoldLulls(l.hold_lulls);
 		loaded_bot->SetHoldMez(l.hold_mez);
 		loaded_bot->SetHoldNukes(l.hold_nukes);
 		loaded_bot->SetHoldOutOfCombatBuffSongs(l.hold_outofcombatbuffsongs);
@@ -510,6 +512,7 @@ bool BotDatabase::LoadBot(const uint32 bot_id, Bot*& loaded_bot)
 		loaded_bot->SetHoldPreCombatBuffs(l.hold_precombatbuffs);
 		loaded_bot->SetHoldPreCombatBuffSongs(l.hold_precombatbuffsongs);
 		loaded_bot->SetHoldRegularHeals(l.hold_regular_heals);
+		loaded_bot->SetHoldRez(l.hold_rez);
 		loaded_bot->SetHoldRoots(l.hold_roots);
 		loaded_bot->SetHoldSlows(l.hold_slows);
 		loaded_bot->SetHoldSnares(l.hold_snares);
@@ -629,6 +632,7 @@ bool BotDatabase::SaveNewBot(Bot* bot_inst, uint32& bot_id)
 	e.archery_setting				= bot_inst->IsBotArcher() ? 1 : 0;
 	e.petsettype_setting			= 255;
 	e.hold_buffs					= 0;
+	e.hold_charms					= 0;
 	e.hold_complete_heals		    = 0;
 	e.hold_cures					= 0;
 	e.hold_dots						= 0;
@@ -643,6 +647,7 @@ bool BotDatabase::SaveNewBot(Bot* bot_inst, uint32& bot_id)
 	e.hold_incombatbuffs			= 0;
 	e.hold_incombatbuffsongs		= 0;
 	e.hold_lifetaps					= 0;
+	e.hold_lulls					= 0;
 	e.hold_mez						= 0;
 	e.hold_nukes					= 0;
 	e.hold_outofcombatbuffsongs		= 0;
@@ -652,6 +657,7 @@ bool BotDatabase::SaveNewBot(Bot* bot_inst, uint32& bot_id)
 	e.hold_precombatbuffs			= 0;
 	e.hold_precombatbuffsongs		= 0;
 	e.hold_regular_heals			= 0;
+	e.hold_rez						= 0;
 	e.hold_roots					= 1;
 	e.hold_slows					= 0;
 	e.hold_snares					= 0;
@@ -779,6 +785,7 @@ bool BotDatabase::SaveBot(Bot* bot_inst)
 	l.archery_setting				= bot_inst->IsBotArcher() ? 1 : 0;
 	l.petsettype_setting			= bot_inst->GetBotPetSetTypeSetting();
 	l.hold_buffs					= bot_inst->GetHoldBuffs();
+	l.hold_charms					= bot_inst->GetHoldCharms();
 	l.hold_complete_heals		    = bot_inst->GetHoldCompleteHeals();
 	l.hold_cures					= bot_inst->GetHoldCures();
 	l.hold_dots						= bot_inst->GetHoldDoTs();
@@ -793,6 +800,7 @@ bool BotDatabase::SaveBot(Bot* bot_inst)
 	l.hold_incombatbuffs			= bot_inst->GetHoldInCombatBuffs();
 	l.hold_incombatbuffsongs		= bot_inst->GetHoldInCombatBuffSongs();
 	l.hold_lifetaps					= bot_inst->GetHoldLifetaps();
+	l.hold_lulls					= bot_inst->GetHoldLulls();
 	l.hold_mez						= bot_inst->GetHoldMez();
 	l.hold_nukes					= bot_inst->GetHoldNukes();
 	l.hold_outofcombatbuffsongs		= bot_inst->GetHoldOutOfCombatBuffSongs();
@@ -802,6 +810,7 @@ bool BotDatabase::SaveBot(Bot* bot_inst)
 	l.hold_precombatbuffs			= bot_inst->GetHoldPreCombatBuffs();
 	l.hold_precombatbuffsongs		= bot_inst->GetHoldPreCombatBuffSongs();
 	l.hold_regular_heals			= bot_inst->GetHoldRegularHeals();
+	l.hold_rez						= bot_inst->GetHoldRez();
 	l.hold_roots					= bot_inst->GetHoldRoots();
 	l.hold_slows					= bot_inst->GetHoldSlows();
 	l.hold_snares					= bot_inst->GetHoldSnares();
@@ -2225,6 +2234,7 @@ bool BotDatabase::CreateCloneBot(const uint32 owner_id, const uint32 bot_id, con
 		" `follow_distance`,"
 		" `stop_melee_level`,"
 		" `hold_buffs`,"
+		" `hold_charms`,"
 		" `hold_complete_heals`,"
 		" `hold_cures`,"
 		" `hold_dots`,"
@@ -2239,6 +2249,7 @@ bool BotDatabase::CreateCloneBot(const uint32 owner_id, const uint32 bot_id, con
 		" `hold_incombatbuffs`,"
 		" `hold_incombatbuffsongs`,"
 		" `hold_lifetaps`,"
+		" `hold_lulls`,"
 		" `hold_mez`,"
 		" `hold_nukes`,"
 		" `hold_outofcombatbuffsongs`,"
@@ -2248,6 +2259,7 @@ bool BotDatabase::CreateCloneBot(const uint32 owner_id, const uint32 bot_id, con
 		" `hold_precombatbuffs`,"
 		" `hold_precombatbuffsongs`,"
 		" `hold_regular_heals`,"
+		" `hold_rez`,"
 		" `hold_roots`,"
 		" `hold_slows`,"
 		" `hold_snares`,"
@@ -2354,6 +2366,7 @@ bool BotDatabase::CreateCloneBot(const uint32 owner_id, const uint32 bot_id, con
 		" bd.`follow_distance`,"
 		" bd.`stop_melee_level`,"
 		" bd.`hold_buffs`,"
+		" bd.`hold_charms`,"
 		" bd.`hold_complete_heals`,"
 		" bd.`hold_cures`,"
 		" bd.`hold_dots`,"
@@ -2368,6 +2381,7 @@ bool BotDatabase::CreateCloneBot(const uint32 owner_id, const uint32 bot_id, con
 		" bd.`hold_incombatbuffs`,"
 		" bd.`hold_incombatbuffsongs`,"
 		" bd.`hold_lifetaps`,"
+		" bd.`hold_lulls`,"
 		" bd.`hold_mez`,"
 		" bd.`hold_nukes`,"
 		" bd.`hold_outofcombatbuffsongs`,"
@@ -2377,6 +2391,7 @@ bool BotDatabase::CreateCloneBot(const uint32 owner_id, const uint32 bot_id, con
 		" bd.`hold_precombatbuffs`,"
 		" bd.`hold_precombatbuffsongs`,"
 		" bd.`hold_regular_heals`,"
+		" bd.`hold_rez`,"
 		" bd.`hold_roots`,"
 		" bd.`hold_slows`,"
 		" bd.`hold_snares`,"
@@ -2543,6 +2558,27 @@ bool BotDatabase::SaveHoldBuffs(const uint32 owner_id, const uint32 bot_id, cons
 	query = StringFormat(
 		"UPDATE `bot_data`"
 		" SET `hold_buffs` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		hold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveHoldCharms(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hold_charms` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
 		hold_value,
@@ -2850,6 +2886,27 @@ bool BotDatabase::SaveHoldLifetaps(const uint32 owner_id, const uint32 bot_id, c
 	return true;
 }
 
+bool BotDatabase::SaveHoldLulls(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hold_lulls` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		hold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
 bool BotDatabase::SaveHoldMez(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
 {
 	if (!owner_id || !bot_id)
@@ -3027,6 +3084,27 @@ bool BotDatabase::SaveHoldRegularHeals(const uint32 owner_id, const uint32 bot_i
 	query = StringFormat(
 		"UPDATE `bot_data`"
 		" SET `hold_regular_heals` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		hold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveHoldRez(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hold_rez` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
 		hold_value,
@@ -5359,6 +5437,7 @@ const char* BotDatabase::fail::SaveStopMeleeLevel() { return "Failed to save sto
 
 //Custom spell commands
 const char* BotDatabase::fail::SaveHoldBuffs() { return "Failed to save hold buffs status"; }
+const char* BotDatabase::fail::SaveHoldCharms() { return "Failed to save hold charms status"; }
 const char* BotDatabase::fail::SaveHoldCompleteHeals() { return "Failed to save hold Complete Heals status"; }
 const char* BotDatabase::fail::SaveHoldCures() { return "Failed to save hold cures status"; }
 const char* BotDatabase::fail::SaveHoldDoTs() { return "Failed to save hold DoTs status"; }
@@ -5373,6 +5452,7 @@ const char* BotDatabase::fail::SaveHoldHotHeals() { return "Failed to save hold 
 const char* BotDatabase::fail::SaveHoldInCombatBuffs() { return "Failed to save hold in-combat buffs status"; }
 const char* BotDatabase::fail::SaveHoldInCombatBuffSongs() { return "Failed to save hold in-combat buff songs status"; }
 const char* BotDatabase::fail::SaveHoldLifetaps() { return "Failed to save hold lifetaps status"; }
+const char* BotDatabase::fail::SaveHoldLulls() { return "Failed to save hold lulls status"; }
 const char* BotDatabase::fail::SaveHoldMez() { return "Failed to save hold mez status"; }
 const char* BotDatabase::fail::SaveHoldNukes() { return "Failed to save hold nukes status"; }
 const char* BotDatabase::fail::SaveHoldOutOfCombatBuffSongs() { return "Failed to save hold out-of-combat buff songs status"; }
@@ -5382,6 +5462,7 @@ const char* BotDatabase::fail::SaveHoldPets() { return "Failed to save hold pets
 const char* BotDatabase::fail::SaveHoldPreCombatBuffs() { return "Failed to save hold pre-combat buffs status"; }
 const char* BotDatabase::fail::SaveHoldPreCombatBuffSongs() { return "Failed to save pre-combat buff songs status"; }
 const char* BotDatabase::fail::SaveHoldRegularHeals() { return "Failed to save hold Regular Heals status"; }
+const char* BotDatabase::fail::SaveHoldRez() { return "Failed to save hold rez status"; }
 const char* BotDatabase::fail::SaveHoldRoots() { return "Failed to save hold roots status"; }
 const char* BotDatabase::fail::SaveHoldSlows() { return "Failed to save hold slows status"; }
 const char* BotDatabase::fail::SaveHoldSnares() { return "Failed to save hold snares status"; }

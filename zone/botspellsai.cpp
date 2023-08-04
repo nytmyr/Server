@@ -4244,3 +4244,41 @@ void Bot::SetBotSpellDelay(Bot* botCaster, uint32 spellid, Mob* tar) {
 			break;
 	}
 }
+
+bool Bot::IsCommandedSpellAllowedByBotSpellList(uint16 spellid, Mob* tar) {
+	if (!tar) {
+		return false;
+	}
+
+	std::list<BotSpell_wPriority> spell_list = GetPrioritizedBotSpellsBySpellType(this, GetBotSpellType(this, spellid));
+
+	for (std::list<BotSpell_wPriority>::iterator itr = spell_list.begin(); itr != spell_list.end(); ++itr) {
+		BotSpell_wPriority botSpell = *itr;
+		if (botSpell.SpellId == 0) {
+			continue;
+		}
+		if (botSpell.SpellId != spellid) {
+			continue;
+		}
+		if (!CheckSpellRecastTimers(this, botSpell.SpellIndex)) {
+			continue;
+		}
+		//if (tar->CanBuffStack(botSpell.SpellId, GetLevel(), false) < 0) {
+		//	continue;
+		//}
+		if (!IsValidSpellRange(botSpell.SpellId, tar)) {
+			continue;
+		}
+		if (tar->IsImmuneToBotSpell(botSpell.SpellId, this)) {
+			continue;
+		}
+		if (tar->IsBlockedBuff(botSpell.SpellId)) {
+			continue;
+		}
+		if (tar->IsBlockedPetBuff(botSpell.SpellId)) {
+			continue;
+		}
+		return true;
+	}
+	return false;
+}

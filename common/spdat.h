@@ -591,7 +591,10 @@ enum SpellTypes : uint32
 	SpellType_InCombatBuffSong = (1 << 18), // bard in-combat group/ae buffs
 	SpellType_OutOfCombatBuffSong = (1 << 19), // bard out-of-combat group/ae buffs
 	SpellType_PreCombatBuff = (1 << 20),
-	SpellType_PreCombatBuffSong = (1 << 21)
+	SpellType_PreCombatBuffSong = (1 << 21),
+	SpellType_Ports = (1 << 22),
+	SpellType_Lull = (1 << 23),
+	SpellType_Misc = (1 << 24)
 };
 
 const uint32 SPELL_TYPE_MIN = (SpellType_Nuke << 1) - 1;
