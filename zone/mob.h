@@ -1428,6 +1428,7 @@ public:
 	int64 GetHPRegen() const;
 	int64 GetHPRegenPerSecond() const;
 	int64 GetManaRegen() const;
+	int64 GetEnduranceRegen() const;
 
 	bool CanOpenDoors() const;
 	void SetCanOpenDoors(bool can_open);
