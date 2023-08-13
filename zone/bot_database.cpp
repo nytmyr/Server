@@ -469,7 +469,8 @@ bool BotDatabase::LoadBot(const uint32 bot_id, Bot*& loaded_bot)
 		l.spells_id,
 		l.time_spawned,
 		l.zone_id,
-		t
+		t,
+		l.expansion_bitmask
 	);
 
 	if (loaded_bot) {
@@ -482,7 +483,7 @@ bool BotDatabase::LoadBot(const uint32 bot_id, Bot*& loaded_bot)
 		auto bfd = EQ::Clamp(l.follow_distance, static_cast<uint32>(1), BOT_FOLLOW_DISTANCE_DEFAULT_MAX);
 		loaded_bot->SetFollowDistance(bfd);
 		loaded_bot->SetStopMeleeLevel(l.stop_melee_level);
-		loaded_bot->SetExpansionBitmask(l.expansion_bitmask, false);
+
 		loaded_bot->SetBotEnforceSpellSetting((l.enforce_spell_settings ? true : false));
 		loaded_bot->SetBotArcherySetting((l.archery_setting ? true : false));
 		loaded_bot->SetBotPetSetTypeSetting((l.petsettype_setting));
