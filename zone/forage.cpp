@@ -522,6 +522,9 @@ void Client::ForageItem(bool guarantee) {
 					std::vector<std::any> args = { inst };
 					parse->EventPlayer(EVENT_FORAGE_SUCCESS, this, "", inst->GetID(), &args);
 				}
+				if (RuleB(Character, EnableDiscoveredItems) && Admin() < minStatusToBeGM && !IsDiscovered(inst->GetItem()->ID)) {
+					DiscoverItem(inst->GetItem()->ID);
+				}
 			}
 		}
 
