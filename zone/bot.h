@@ -367,9 +367,10 @@ public:
 	uint8 GetHoldCharms() { return _holdCharms; }
 	uint8 GetHoldCompleteHeals() { return _holdCompleteHeals; }
 	uint8 GetHoldCures() { return _holdCures; }
-	uint8 GetHoldDoTs() { return _holdDoTs; }
 	uint8 GetHoldDebuffs() { return _holdDebuffs; }
 	uint8 GetHoldDispels() { return _holdDispels; }
+	uint8 GetHoldDoTs() { return _holdDoTs; }
+	uint8 GetHoldDS() { return _holdDS; }
 	uint8 GetHoldEscapes() { return _holdEscapes; }
 	uint8 GetHoldFastHeals() { return _holdFastHeals; }
 	uint8 GetHoldGroupHeals() { return _holdGroupHeals; }
@@ -389,12 +390,11 @@ public:
 	uint8 GetHoldPreCombatBuffs() { return _holdPreCombatBuffs; }
 	uint8 GetHoldPreCombatBuffSongs() { return _holdPreCombatBuffSongs; }
 	uint8 GetHoldRegularHeals() { return _holdRegularHeals; }
+	uint8 GetHoldResists() { return _holdResists; }
 	uint8 GetHoldRez() { return _holdRez; }
 	uint8 GetHoldRoots() { return _holdRoots; }
 	uint8 GetHoldSlows() { return _holdSlows; }
 	uint8 GetHoldSnares() { return _holdSnares; }
-	uint8 GetAutoDS() { return _autoDS; }
-	uint8 GetAutoResist() { return _autoResist; }
 	uint8 GetBehindMob() { return _behindMobStatus; }
 	uint32 GetBuffDelay() { return _buffDelay; }
 	uint32 GetCompleteHealDelay() { return _chealDelay; }
@@ -450,9 +450,10 @@ public:
 	void SetHoldCharms(uint8 holdstatus);
 	void SetHoldCompleteHeals(uint8 holdstatus);
 	void SetHoldCures(uint8 holdstatus);
-	void SetHoldDoTs(uint8 holdstatus);
 	void SetHoldDebuffs(uint8 holdstatus);
 	void SetHoldDispels(uint8 holdstatus);
+	void SetHoldDoTs(uint8 holdstatus);
+	void SetHoldDS(uint8 holdstatus);
 	void SetHoldEscapes(uint8 holdstatus);
 	void SetHoldFastHeals(uint8 holdstatus);
 	void SetHoldGroupHeals(uint8 holdstatus);
@@ -472,12 +473,11 @@ public:
 	void SetHoldPreCombatBuffs(uint8 holdstatus);
 	void SetHoldPreCombatBuffSongs(uint8 holdstatus);
 	void SetHoldRegularHeals(uint8 holdstatus);
+	void SetHoldResists(uint8 holdstatus);
 	void SetHoldRez(uint8 holdstatus);
 	void SetHoldRoots(uint8 holdstatus);
 	void SetHoldSlows(uint8 holdstatus);
 	void SetHoldSnares(uint8 holdstatus);
-	void SetAutoDS(uint8 autods);
-	void SetAutoResist(uint8 autoresist);
 	void SetBehindMob(uint8 behindmobstatus);
 	void SetBuffDelay(uint32 buffdelay);
 	void SetCompleteHealDelay(uint32 chealdelay);
@@ -1058,9 +1058,10 @@ private:
 	uint8 _holdCharms;
 	uint8 _holdCompleteHeals;
 	uint8 _holdCures;
-	uint8 _holdDoTs;
 	uint8 _holdDebuffs;
 	uint8 _holdDispels;
+	uint8 _holdDoTs;
+	uint8 _holdDS;
 	uint8 _holdEscapes;
 	uint8 _holdFastHeals;
 	uint8 _holdGroupHeals;
@@ -1080,12 +1081,11 @@ private:
 	uint8 _holdPreCombatBuffs;
 	uint8 _holdPreCombatBuffSongs;
 	uint8 _holdRegularHeals;
+	uint8 _holdResists;
 	uint8 _holdRez;
 	uint8 _holdRoots;
 	uint8 _holdSlows;
 	uint8 _holdSnares;
-	uint8 _autoDS;
-	uint8 _autoResist;
 	uint8 _behindMobStatus;
 	uint32 _buffDelay;
 	uint32 _cureDelay;

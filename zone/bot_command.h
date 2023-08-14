@@ -543,6 +543,14 @@ typedef std::map<BCEnum::SpType, bcst_levels> bcst_levels_map;
 #define COPY_MAX_THRESHOLDS 4
 #define COPY_MISC 5
 
+//option types for DefaultSettings command
+#define DEFAULT_ALL 6
+#define DEFAULT_HOLDS 1
+#define DEFAULT_DELAYS 2
+#define DEFAULT_MIN_THRESHOLDS 3
+#define DEFAULT_MAX_THRESHOLDS 4
+#define DEFAULT_MISC 5
+
 typedef void (*BotCmdFuncPtr)(Client *,const Seperator *);
 
 typedef struct {
@@ -618,17 +626,17 @@ void bot_command_water_breathing(Client *c, const Seperator *sep);
 
 // custom bot commands
 void bot_command_snare(Client* c, const Seperator* sep);
-void bot_command_auto_ds(Client* c, const Seperator* sep);
-void bot_command_auto_resist(Client* c, const Seperator* sep);
+
 void bot_command_behind_mob(Client* c, const Seperator* sep);
 void bot_command_caster_range(Client* c, const Seperator* sep);
 void bot_command_hold_buffs(Client* c, const Seperator* sep);
 void bot_command_hold_charms(Client* c, const Seperator* sep);
 void bot_command_hold_complete_heals(Client* c, const Seperator* sep);
 void bot_command_hold_cures(Client* c, const Seperator* sep);
-void bot_command_hold_dots(Client* c, const Seperator* sep);
 void bot_command_hold_debuffs(Client* c, const Seperator* sep);
 void bot_command_hold_dispels(Client* c, const Seperator* sep);
+void bot_command_hold_dots(Client* c, const Seperator* sep);
+void bot_command_hold_ds(Client* c, const Seperator* sep);
 void bot_command_hold_escapes(Client* c, const Seperator* sep);
 void bot_command_hold_fast_heals(Client* c, const Seperator* sep);
 void bot_command_hold_group_heals(Client* c, const Seperator* sep);
@@ -648,6 +656,7 @@ void bot_command_hold_pets(Client* c, const Seperator* sep);
 void bot_command_hold_precombatbuffs(Client* c, const Seperator* sep);
 void bot_command_hold_precombatbuffsongs(Client* c, const Seperator* sep);
 void bot_command_hold_regular_heals(Client* c, const Seperator* sep);
+void bot_command_hold_resists(Client* c, const Seperator* sep);
 void bot_command_hold_rez(Client* c, const Seperator* sep);
 void bot_command_hold_roots(Client* c, const Seperator* sep);
 void bot_command_hold_slows(Client* c, const Seperator* sep);
@@ -716,6 +725,9 @@ void ListBotThresholdSettings(Bot* b, bool show_options = false);
 void bot_command_threshold_settings(Client* c, const Seperator* sep);
 
 void CopyBotSettings(Bot* from, Bot* to, uint8 copy_type = 0);
+void bot_command_copy_settings(Client* c, const Seperator* sep);
+void DefaultBotSettings(Bot* my_bot, uint8 chosen_type = 0);
+void bot_command_default_settings(Client* c, const Seperator* sep);
 
 
 // bot subcommands
@@ -758,7 +770,6 @@ void bot_subcommand_botgroup_list(Client *c, const Seperator *sep);
 void bot_subcommand_botgroup_load(Client *c, const Seperator *sep);
 void bot_subcommand_botgroup_remove_member(Client *c, const Seperator *sep);
 void bot_subcommand_circle(Client *c, const Seperator *sep);
-void bot_subcommand_copy_settings(Client* c, const Seperator* sep);
 void bot_subcommand_heal_rotation_adaptive_targeting(Client *c, const Seperator *sep);
 void bot_subcommand_heal_rotation_add_member(Client *c, const Seperator *sep);
 void bot_subcommand_heal_rotation_add_target(Client *c, const Seperator *sep);

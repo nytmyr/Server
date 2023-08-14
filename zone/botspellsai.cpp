@@ -176,10 +176,45 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						hothealDelay = tar->CastToClient()->GetClientHotHealDelay();
 					}
 					else if (tar->IsPet()) {
-						fasthealThreshold = 35;
-						regularhealThreshold = 55;
-						completehealThreshold = 0;
-						hothealThreshold = 70;
+						switch (GetBotStance()) {
+							case EQ::constants::stanceEfficient:
+								fasthealThreshold = 35;
+								regularhealThreshold = 55;
+								completehealThreshold = 70;
+								hothealThreshold = 0;
+								break;
+							case EQ::constants::stanceReactive:
+								fasthealThreshold = 35;
+								regularhealThreshold = 55;
+								completehealThreshold = 70;
+								hothealThreshold = 85;
+								break;
+							case EQ::constants::stanceAggressive:
+								fasthealThreshold = 0;
+								regularhealThreshold = 0;
+								completehealThreshold = 0;
+								hothealThreshold = 0;
+								break;
+							case EQ::constants::stanceBurn:
+								fasthealThreshold = 35;
+								regularhealThreshold = 35;
+								completehealThreshold = 0;
+								hothealThreshold = 0;
+								break;
+							case EQ::constants::stanceBurnAE:
+								fasthealThreshold = 25;
+								regularhealThreshold = 25;
+								completehealThreshold = 0;
+								hothealThreshold = 0;
+								break;
+							case EQ::constants::stanceBalanced:
+							default:
+								fasthealThreshold = 35;
+								regularhealThreshold = 55;
+								completehealThreshold = 0;
+								hothealThreshold = 0;
+								break;
+						}
 					}
 					
 					if (hpr <= fasthealThreshold && fasthealTime <= currentTime && !GetHoldFastHeals()) {
@@ -473,12 +508,12 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 								IsEffectInSpell(selectedBotSpell.SpellId, SE_ResistDisease) ||
 								IsEffectInSpell(selectedBotSpell.SpellId, SE_ResistCorruption) ||
 								IsEffectInSpell(selectedBotSpell.SpellId, SE_ResistAll))
-								&& !GetAutoResist()) {
+								&& GetHoldResists()) {
 								continue;
 							}
 
 							if (IsEffectInSpell(selectedBotSpell.SpellId, SE_DamageShield)
-								&& !GetAutoDS()) {
+								&& GetHoldDS()) {
 								continue;
 							}
 

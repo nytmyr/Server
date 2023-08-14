@@ -1416,7 +1416,6 @@ int bot_command_init(void)
 		bot_command_add("botwoad", "Changes the Barbarian woad of a bot", AccountStatus::Player, bot_subcommand_bot_woad) ||
 		bot_command_add("charm", "Attempts to have a bot charm your target", AccountStatus::Player, bot_command_charm) ||
 		bot_command_add("circle", "Orders a Druid bot to open a magical doorway to a specified destination", AccountStatus::Player, bot_subcommand_circle) ||
-		bot_command_add("copysettings", "Will copy the targeted bots settings to the named bot.", AccountStatus::Player, bot_subcommand_copy_settings) ||
 		bot_command_add("cure", "Orders a bot to remove any ailments", AccountStatus::Player, bot_command_cure) ||
 		bot_command_add("defensive", "Orders a bot to use a defensive discipline", AccountStatus::Player, bot_command_defensive) ||
 		bot_command_add("depart", "Orders a bot to open a magical doorway to a specified destination", AccountStatus::Player, bot_command_depart) ||
@@ -1492,8 +1491,6 @@ int bot_command_init(void)
 		
 		// custom bot commands
 		bot_command_add("snare", "Orders a bot to snare the target", AccountStatus::Player, bot_command_snare) ||
-		bot_command_add("autods", "Toggles the ability for casters to automatically cast damage shield buffs", AccountStatus::Player, bot_command_auto_ds) ||
-		bot_command_add("autoresist", "Toggles the ability for casters to automatically cast resist buffs", AccountStatus::Player, bot_command_auto_resist) ||
 		bot_command_add("casterrange", "Controls the range casters will try to stay away from a mob (if too far, they will skip spells that are out-of-range)", AccountStatus::Player, bot_command_caster_range) ||
 		bot_command_add("behindmob", "Toggles whether or not your bot tries to stay behind a mob", AccountStatus::Player, bot_command_behind_mob) ||
 		bot_command_add("holdbuffs", "Toggles a bot's ability to cast buffs", AccountStatus::Player, bot_command_hold_buffs) ||
@@ -1503,6 +1500,7 @@ int bot_command_init(void)
 		bot_command_add("holddots", "Toggles a bot's ability to cast DoTs", AccountStatus::Player, bot_command_hold_dots) ||
 		bot_command_add("holddebuffs", "Toggles a bot's ability to cast debuffs", AccountStatus::Player, bot_command_hold_debuffs) ||
 		bot_command_add("holddispels", "Toggles a bot's ability to cast dispels", AccountStatus::Player, bot_command_hold_dispels) ||
+		bot_command_add("holdds", "Toggles the ability for casters to automatically cast damage shield buffs", AccountStatus::Player, bot_command_hold_ds) ||			
 		bot_command_add("holdescapes", "Toggles a bot's ability to cast escapes", AccountStatus::Player, bot_command_hold_escapes) ||
 		bot_command_add("holdfastheals", "Toggles a bot's ability to cast Fast heals", AccountStatus::Player, bot_command_hold_fast_heals) ||
 		bot_command_add("holdgroupheals", "Toggles a bot's ability to cast Group heals", AccountStatus::Player, bot_command_hold_group_heals) ||
@@ -1522,6 +1520,7 @@ int bot_command_init(void)
 		bot_command_add("holdprecombatbuffs", "Toggles a bot's ability to cast pre-combat buffs", AccountStatus::Player, bot_command_hold_precombatbuffs) ||
 		bot_command_add("holdprecombatbuffsongs", "Toggles a bot's ability to cast pre-combat buff songs", AccountStatus::Player, bot_command_hold_precombatbuffsongs) ||
 		bot_command_add("holdregularheals", "Toggles a bot's ability to cast Regular heals", AccountStatus::Player, bot_command_hold_regular_heals) ||
+		bot_command_add("holdresists", "Toggles the ability for casters to automatically cast resist buffs", AccountStatus::Player, bot_command_hold_resists) ||
 		bot_command_add("holdrez", "Toggles a bot's ability to cast rez", AccountStatus::Player, bot_command_hold_rez) ||
 		bot_command_add("holdroots", "Toggles a bot's ability to cast roots", AccountStatus::Player, bot_command_hold_roots) ||
 		bot_command_add("holdslows", "Toggles a bot's ability to cast slows", AccountStatus::Player, bot_command_hold_slows) ||
@@ -1580,8 +1579,10 @@ int bot_command_init(void)
 		bot_command_add("removefromraid", "This will remove a bot from a raid, can be used for stuck bots.", AccountStatus::Player, bot_command_remove_from_raid) ||
 		bot_command_add("useepic", "Orders your targeted bot to use their epic if it is equipped", AccountStatus::Player, bot_command_use_epic) ||
 
-		bot_command_add("holdsettings", "Displays all the hold settings on the targeted bot", AccountStatus::Player, bot_command_hold_settings) ||
+		bot_command_add("copysettings", "Will copy the targeted bots settings to the named bot.", AccountStatus::Player, bot_command_copy_settings) ||
 		bot_command_add("delaysettings", "Displays all the delay settings on the targeted bot", AccountStatus::Player, bot_command_delay_settings) ||
+		bot_command_add("defaultsettings", "Sets all settings to default for the targeted bot", AccountStatus::Player, bot_command_default_settings) ||
+		bot_command_add("holdsettings", "Displays all the hold settings on the targeted bot", AccountStatus::Player, bot_command_hold_settings) ||
 		bot_command_add("minthresholdsettings", "Displays all the minimum threshold settings on the targeted bot", AccountStatus::Player, bot_command_min_threshold_settings) ||
 		bot_command_add("thresholdsettings", "Displays all the threshold settings on the targeted bot", AccountStatus::Player, bot_command_threshold_settings)
 	) {
@@ -3166,108 +3167,6 @@ void bot_command_attack(Client *c, const Seperator *sep)
 	}
 }
 
-void bot_command_auto_ds(Client* c, const Seperator* sep)
-{
-	if (helper_command_alias_fail(c, "bot_command_auto_ds", sep->arg[0], "autods"))
-		return;
-	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
-		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
-		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: Set to 0 to prevent automatic buffing of damage shields.");
-		c->Message(Chat::White, "note: Set to 1 to resume automatic damage shield buffing.");
-		c->Message(Chat::White, "note: This is enabled by default. (1).");
-		return;
-	}
-
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
-
-	uint8 ad = 0;
-	if (sep->IsNumber(1)) {
-		ad = atoi(sep->arg[1]);
-		int adcheck = ad;
-		if (adcheck == 0 || adcheck == 1) {
-			my_bot->SetAutoDS(ad);
-			if (!database.botdb.SaveAutoDS(c->CharacterID(), my_bot->GetBotID(), ad)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveAutoDS(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Auto DS for %s to %u.", my_bot->GetCleanName(), ad);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
-			return;
-		}
-	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Auto DS status is %s.", my_bot->GetAutoDS());
-	}
-	else {
-		c->Message(Chat::White, "Incorrect argument, use ^autods help for a list of options.");
-	}
-}
-
-void bot_command_auto_resist(Client* c, const Seperator* sep)
-{
-	if (helper_command_alias_fail(c, "bot_command_auto_resist", sep->arg[0], "autoresist"))
-		return;
-	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
-		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
-		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: Set to 0 to prevent automatic buffing of resists.");
-		c->Message(Chat::White, "note: Set to 1 to resume automatic resist buffing.");
-		c->Message(Chat::White, "note: This is enabled by default. (1).");
-		return;
-	}
-
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
-
-	uint8 ar = 0;
-	if (sep->IsNumber(1)) {
-		ar = atoi(sep->arg[1]);
-		int archeck = ar;
-		if (archeck == 0 || archeck == 1) {
-			my_bot->SetAutoResist(ar);
-			if (!database.botdb.SaveAutoResist(c->CharacterID(), my_bot->GetBotID(), ar)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveAutoResist(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Auto Resist for %s to %u.", my_bot->GetCleanName(), ar);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
-			return;
-		}
-	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Auto Resist status is %s.", my_bot->GetAutoResist());
-	}
-	else {
-		c->Message(Chat::White, "Incorrect argument, use ^auroresist help for a list of options.");
-	}
-}
-
 void bot_command_behind_mob(Client* c, const Seperator* sep)
 {
 	if (helper_command_alias_fail(c, "bot_command_behind_mob", sep->arg[0], "behindmob"))
@@ -4016,6 +3915,58 @@ void bot_command_complete_heal_threshold(Client* c, const Seperator* sep)
 	}
 }
 
+void bot_command_copy_settings(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_copy_settings", sep->arg[0], "copysettings")) {
+		return;
+	}
+
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: (<target_member>) %s ([member_name]) ([option: all | misc | holds | delays | minthresholds | maxthresholds] [default: all])", sep->arg[0]);
+		c->Message(Chat::White, "example: target the bot you want to copy from and then type %s [name of bot to copy to] (ie target Clericbotone and type %s Clericbottwo.", sep->arg[0], sep->arg[0]);
+		c->Message(Chat::White, "note: optional argument 'misc' will copy show helm, follow distance, stop melee level, archery settings, pet type, hold damage shields, hold resists, behind mob status and caster range.");
+		c->Message(Chat::White, "note: optional argument 'holds' will copy all hold settings by spell type.");
+		c->Message(Chat::White, "note: optional argument 'delays' will copy all delay settings by spell type.");
+		c->Message(Chat::White, "note: optional argument 'minthresholds' will copy all minimum threshold settings by spell type.");
+		c->Message(Chat::White, "note: optional argument 'maxthresholds' will copy all maximum threshold settings by spell type.");
+		return;
+	}
+
+	auto from = ActionableBots::AsTarget_ByBot(c);
+	if (!from) {
+		c->Message(Chat::White, "You must target a bot that you own to use this command.");
+		return;
+	}
+
+	auto to = ActionableBots::AsNamed_ByBot(c, sep->arg[1]);
+	if (!to) {
+		c->Message(Chat::White, "You must name a spawned bot that you own to use this command.");
+		return;
+	}
+
+	uint8 chosen_type = COPY_ALL;
+
+	if (!strcasecmp(sep->arg[2], "Holds")) {
+		chosen_type = COPY_HOLDS;
+	}
+	else if (!strcasecmp(sep->arg[2], "Delays")) {
+		chosen_type = COPY_DELAYS;
+	}
+	else if (!strcasecmp(sep->arg[2], "MinThresholds")) {
+		chosen_type = COPY_MIN_THRESHOLDS;
+	}
+	else if (!strcasecmp(sep->arg[2], "MaxThresholds")) {
+		chosen_type = COPY_MAX_THRESHOLDS;
+	}
+	else if (!strcasecmp(sep->arg[2], "Misc")) {
+		chosen_type = COPY_MISC;
+	}
+
+	CopyBotSettings(from, to, chosen_type);
+	c->Message(Chat::White, "%s settings have been copied from %s to %s.", chosen_type == COPY_HOLDS ? "Hold" : chosen_type == COPY_DELAYS ? "Delay" : chosen_type == COPY_MIN_THRESHOLDS ? "Minimum Threshold" : chosen_type == COPY_MAX_THRESHOLDS ? "Maximum Threshold" : chosen_type == COPY_MISC ? "Miscellaneous" : "All", from->GetCleanName(), to->GetCleanName());
+}
+
+
 void bot_command_cure(Client *c, const Seperator *sep)
 {
 	bcst_list* local_list = &bot_command_spells[BCEnum::SpT_Cure];
@@ -4360,6 +4311,60 @@ void bot_command_debuff_delay(Client* c, const Seperator* sep)
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^debuffdelay help for a list of options.");
 	}
+}
+
+void bot_command_default_settings(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_default_settings", sep->arg[0], "defaultsettings")) {
+		return;
+	}
+
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: (<target_member>) %s ([member_name]) ([option: all | misc | holds | delays | minthresholds | maxthresholds] [default: all])", sep->arg[0]);
+		c->Message(Chat::White, "example: target the bot you want to set to the defaults for holds and do %s holds.", sep->arg[0]);
+		c->Message(Chat::White, "note: optional argument 'all' will reset all settings.");
+		c->Message(Chat::White, "note: optional argument 'misc' will default enforce spell settings to off, show helm, follow distance, stop melee level, archery settings, pet type, hold damage shields, hold resists, behind mob status and caster range.");
+		c->Message(Chat::White, "note: optional argument 'holds' will default all hold settings by spell type.");
+		c->Message(Chat::White, "note: optional argument 'delays' will default all delay settings by spell type.");
+		c->Message(Chat::White, "note: optional argument 'minthresholds' will default all minimum threshold settings by spell type.");
+		c->Message(Chat::White, "note: optional argument 'maxthresholds' will default all maximum threshold settings by spell type.");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must target a bot that you own to use this command.");
+		return;
+	}
+
+	uint8 chosen_type = 0;
+
+	if (!strcasecmp(sep->arg[1], "Holds")) {
+		chosen_type = DEFAULT_HOLDS;
+	}
+	else if (!strcasecmp(sep->arg[1], "Delays")) {
+		chosen_type = DEFAULT_DELAYS;
+	}
+	else if (!strcasecmp(sep->arg[1], "MinThresholds")) {
+		chosen_type = DEFAULT_MIN_THRESHOLDS;
+	}
+	else if (!strcasecmp(sep->arg[1], "MaxThresholds")) {
+		chosen_type = DEFAULT_MAX_THRESHOLDS;
+	}
+	else if (!strcasecmp(sep->arg[1], "Misc")) {
+		chosen_type = DEFAULT_MISC;
+	}
+	else if (!strcasecmp(sep->arg[1], "All")) {
+		chosen_type = DEFAULT_ALL;
+	}
+
+	if (!chosen_type) {
+		c->Message(Chat::White, "You must choose a type to reset. Use %s help for options.", sep->arg[0]);
+		return;
+	}
+
+	DefaultBotSettings(my_bot, chosen_type);
+	c->Message(Chat::White, "%s settings have been default for %s.", chosen_type == DEFAULT_HOLDS ? "Hold" : chosen_type == DEFAULT_DELAYS ? "Delay" : chosen_type == DEFAULT_MIN_THRESHOLDS ? "Minimum Threshold" : chosen_type == DEFAULT_MAX_THRESHOLDS ? "Maximum Threshold" : chosen_type == DEFAULT_MISC ? "Miscellaneous" : "All", my_bot->GetCleanName());
 }
 
 void bot_command_defensive(Client *c, const Seperator *sep)
@@ -5829,7 +5834,7 @@ void bot_command_hold_buffs(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Buffs for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold Buffs for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -5880,7 +5885,7 @@ void bot_command_hold_charms(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Charm Spells for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold Charm Spells for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -5931,7 +5936,7 @@ void bot_command_hold_complete_heals(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Complete Heals for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold Complete Heals for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -5982,7 +5987,7 @@ void bot_command_hold_cures(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Cures for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold Cures for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -5995,57 +6000,6 @@ void bot_command_hold_cures(Client* c, const Seperator* sep)
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^holdcures help for a list of options.");
-	}
-}
-
-void bot_command_hold_dots(Client* c, const Seperator* sep)
-{
-	if (helper_command_alias_fail(c, "bot_command_hold_dots", sep->arg[0], "holddots"))
-		return;
-	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
-		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
-		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast DoTs.");
-		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting DoTs.");
-		c->Message(Chat::White, "note: The default hold is disabled (0).");
-		return;
-	}
-
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
-
-	uint8 holdstatus = 0;
-	if (sep->IsNumber(1)) {
-		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldDoTs(holdstatus);
-			if (!database.botdb.SaveHoldDoTs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldDoTs(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold DoTs for %s to %u.", my_bot->GetCleanName(), holdstatus);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
-			return;
-		}
-	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold DoTs status is %s.", my_bot->GetHoldDoTs() ? "enabled" : "disabled");
-	}
-	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holddots help for a list of options.");
 	}
 }
 
@@ -6084,7 +6038,7 @@ void bot_command_hold_debuffs(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Debuffs for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold Debuffs for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -6135,7 +6089,7 @@ void bot_command_hold_dispels(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Dispels for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold Dispels for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -6151,16 +6105,16 @@ void bot_command_hold_dispels(Client* c, const Seperator* sep)
 	}
 }
 
-void bot_command_hold_escapes(Client* c, const Seperator* sep)
+void bot_command_hold_dots(Client* c, const Seperator* sep)
 {
-	if (helper_command_alias_fail(c, "bot_command_hold_escapes", sep->arg[0], "holdescapes"))
+	if (helper_command_alias_fail(c, "bot_command_hold_dots", sep->arg[0], "holddots"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
 		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast escapes.");
-		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting escapes.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast DoTs.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting DoTs.");
 		c->Message(Chat::White, "note: The default hold is disabled (0).");
 		return;
 	}
@@ -6180,13 +6134,115 @@ void bot_command_hold_escapes(Client* c, const Seperator* sep)
 		holdstatus = atoi(sep->arg[1]);
 		int holdstatuscheck = holdstatus;
 		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldDoTs(holdstatus);
+			if (!database.botdb.SaveHoldDoTs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldDoTs(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold DoTs for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold DoTs status is %s.", my_bot->GetHoldDoTs() ? "enabled" : "disabled");
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^holddots help for a list of options.");
+	}
+}
+
+void bot_command_hold_ds(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_ds", sep->arg[0], "holdds"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to resume automatic buffing of damage shields.");
+		c->Message(Chat::White, "note: Set to 1 to prevent automatic damage shield buffing.");
+		c->Message(Chat::White, "note: This is disabled by default. (0).");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 holdstatus = 0;
+	if (sep->IsNumber(1)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldDS(holdstatus);
+			if (!database.botdb.SaveHoldDS(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldDS(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold DS for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold DS status is %s.", my_bot->GetHoldDS() ? "enabled" : "disabled");
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^holdds help for a list of options.");
+	}
+}
+
+void bot_command_hold_escapes(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_escapes", sep->arg[0], "holdescapes"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters, Hybrids, Monks and Rogues.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast escapes or evading.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting escapes or evading.");
+		c->Message(Chat::White, "note: The default hold is disabled (0).");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass()) && !my_bot->GetClass() == MONK && !my_bot->GetClass() == ROGUE) {
+		c->Message(Chat::White, "You must <target> a caster, hybrid class, Monk or Rogue to use this command.");
+		return;
+	}
+
+	uint8 holdstatus = 0;
+	if (sep->IsNumber(1)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
 			my_bot->SetHoldEscapes(holdstatus);
 			if (!database.botdb.SaveHoldEscapes(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
 				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldEscapes(), my_bot->GetCleanName());
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Escapes for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold Escapes for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -6237,7 +6293,7 @@ void bot_command_hold_fast_heals(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Fast Heals for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold Fast Heals for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -6288,7 +6344,7 @@ void bot_command_hold_group_heals(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Group Heals for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold Group Heals for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -6339,7 +6395,7 @@ void bot_command_hold_hateredux(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold HateRedux for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold HateRedux for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -6390,7 +6446,7 @@ void bot_command_hold_heals(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Heal for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold Heal for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -6441,7 +6497,7 @@ void bot_command_hold_hot_heals(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold HoT Heals for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold HoT Heals for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -6492,7 +6548,7 @@ void bot_command_hold_incombatbuffs(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold InCombatBuffs for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold InCombatBuffs for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -6543,7 +6599,7 @@ void bot_command_hold_incombatbuffsongs(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold InCombatBuffSongs for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold InCombatBuffSongs for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -6594,7 +6650,7 @@ void bot_command_hold_lifetaps(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Lifetaps for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold Lifetaps for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -6645,7 +6701,7 @@ void bot_command_hold_lulls(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Lull Spells for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold Lull Spells for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -6696,7 +6752,7 @@ void bot_command_hold_mez(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Mesmerization Spells for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold Mesmerization Spells for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -6747,7 +6803,7 @@ void bot_command_hold_nukes(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Nukes for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold Nukes for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -6798,7 +6854,7 @@ void bot_command_hold_outofcombatbuffsongs(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold OutOfCombatBuffSongs for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold OutOfCombatBuffSongs for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -6849,7 +6905,7 @@ void bot_command_hold_pet_buffs(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Pet Buffs for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold Pet Buffs for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -6900,7 +6956,7 @@ void bot_command_hold_pet_heals(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Pet Heals for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold Pet Heals for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -6951,7 +7007,7 @@ void bot_command_hold_pets(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Pets for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold Pets for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -7002,7 +7058,7 @@ void bot_command_hold_precombatbuffs(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold PreCombatBuffs for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold PreCombatBuffs for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -7053,7 +7109,7 @@ void bot_command_hold_precombatbuffsongs(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold PreCombatBuffSongs for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold PreCombatBuffSongs for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -7104,7 +7160,7 @@ void bot_command_hold_regular_heals(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Regular Heals for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold Regular Heals for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -7117,6 +7173,58 @@ void bot_command_hold_regular_heals(Client* c, const Seperator* sep)
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^holdregularheals help for a list of options.");
+	}
+}
+
+
+void bot_command_hold_resists(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_resists", sep->arg[0], "holdresists"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to resume automatic buffing of resists.");
+		c->Message(Chat::White, "note: Set to 1 to prevent automatic resist buffing.");
+		c->Message(Chat::White, "note: This is disabled by default. (0).");
+		return;
+	}
+
+	auto my_bot = ActionableBots::AsTarget_ByBot(c);
+	if (!my_bot) {
+		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
+		return;
+	}
+	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
+		return;
+	}
+
+	uint8 holdstatus = 0;
+	if (sep->IsNumber(1)) {
+		holdstatus = atoi(sep->arg[1]);
+		int holdstatuscheck = holdstatus;
+		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
+			my_bot->SetHoldResists(holdstatus);
+			if (!database.botdb.SaveHoldResists(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldResists(), my_bot->GetCleanName());
+				return;
+			}
+			else {
+				c->Message(Chat::White, "Successfully set Hold Resists for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
+			}
+		}
+		else {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!strcasecmp(sep->arg[1], "current")) {
+		c->Message(Chat::White, "My current Hold Resists status is %s.", my_bot->GetHoldResists() ? "enabled" : "disabled");
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use ^holdresists help for a list of options.");
 	}
 }
 
@@ -7155,7 +7263,7 @@ void bot_command_hold_rez(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Rez Spells for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold Rez Spells for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -7206,7 +7314,7 @@ void bot_command_hold_roots(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Roots for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold Roots for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -7282,7 +7390,7 @@ void bot_command_hold_slows(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Slows for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold Slows for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -7333,7 +7441,7 @@ void bot_command_hold_snares(Client* c, const Seperator* sep)
 				return;
 			}
 			else {
-				c->Message(Chat::White, "Successfully set Hold Snares for %s to %u.", my_bot->GetCleanName(), holdstatus);
+				c->Message(Chat::White, "Successfully set Hold Snares for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
 			}
 		}
 		else {
@@ -14817,57 +14925,6 @@ void bot_subcommand_circle(Client *c, const Seperator *sep)
 	}
 }
 
-void bot_subcommand_copy_settings(Client* c, const Seperator* sep)
-{
-	if (helper_command_alias_fail(c, "bot_command_copy_settings", sep->arg[0], "copysettings")) {
-		return;
-	}
-
-	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: (<target_member>) %s ([member_name]) ([option: all | misc | holds | delays | minimumthresholds | maximumthresholds] [default: all])", sep->arg[0]);
-		c->Message(Chat::White, "example: target the bot you want to copy from and then type %s [name of bot to copy to] (ie target Clericbotone and type %s Clericbottwo.", sep->arg[0], sep->arg[0]);
-		c->Message(Chat::White, "note: optional argument 'misc' will copy show helm, follow distance, stop melee level, archery settings, pet type, auto DS, auto resist, behind mob status and caster range.");
-		c->Message(Chat::White, "note: optional argument 'holds' will copy all hold settings by spell type.");
-		c->Message(Chat::White, "note: optional argument 'delays' will copy all delay settings by spell type.");
-		c->Message(Chat::White, "note: optional argument 'minimumthresholds' will copy all minimum threshold settings by spell type.");
-		c->Message(Chat::White, "note: optional argument 'maximumthresholds' will copy all maximum threshold settings by spell type.");
-		return;
-	}
-
-	auto from = ActionableBots::AsTarget_ByBot(c);
-	if (!from) {
-		c->Message(Chat::White, "You must target a bot that you own to use this command.");
-		return;
-	}
-
-	auto to = ActionableBots::AsNamed_ByBot(c, sep->arg[1]);
-	if (!to) {
-		c->Message(Chat::White, "You must name a spawned bot that you own to use this command.");
-		return;
-	}
-
-	uint8 copy_type = 0;
-
-	if (!strcasecmp(sep->arg[2], "Holds")) {
-		copy_type = 1;
-	}
-	else if (!strcasecmp(sep->arg[2], "Delays")) {
-		copy_type = 2;
-	}
-	else if (!strcasecmp(sep->arg[2], "MinimumThresholds")) {
-		copy_type = 3;
-	}
-	else if (!strcasecmp(sep->arg[2], "MaximumThresholds")) {
-		copy_type = 4;
-	}
-	else if (!strcasecmp(sep->arg[2], "Misc")) {
-		copy_type = 5;
-	}
-
-	CopyBotSettings(from, to, copy_type);
-	c->Message(Chat::White, "%s settings have been copied from %s to %s.", copy_type == 1 ? "Hold" : copy_type == 2 ? "Delay" : copy_type == 3 ? "Minimum Threshold" : copy_type == 4 ? "Maximum Threshold" : copy_type == 5 ? "Miscellaneous" : "All", from->GetCleanName(), to->GetCleanName());
-}
-
 void bot_subcommand_heal_rotation_adaptive_targeting(Client *c, const Seperator *sep)
 {
 	if (helper_command_alias_fail(c, "bot_subcommand_heal_rotation_adaptive_targeting", sep->arg[0], "healrotationadaptivetargeting"))
@@ -18088,7 +18145,7 @@ void ListBotThresholdSettings(Bot* b, bool show_options)
 	}
 }
 
-void CopyBotSettings(Bot* from, Bot* to, uint8 copy_type)
+void CopyBotSettings(Bot* from, Bot* to, uint8 chosen_type)
 {
 	auto bot_owner_from = from->GetOwner();
 	auto bot_owner_to = to->GetOwner();
@@ -18096,19 +18153,18 @@ void CopyBotSettings(Bot* from, Bot* to, uint8 copy_type)
 		return;
 	}
 
-	std::vector<std::tuple<std::string, std::string, std::any>> Types;
-	if (copy_type == COPY_MISC || copy_type == COPY_ALL) {
+	if (chosen_type == COPY_MISC || chosen_type == COPY_ALL) {
 		to->SetShowHelm(from->GetShowHelm());
 		to->SetFollowDistance(from->GetFollowDistance());
 		to->SetStopMeleeLevel(from->GetStopMeleeLevel());
 		to->SetBotArcherySetting(from->IsBotArcher(), true);
-		to->SetBotPetSetTypeSetting(from->GetBotPetSetTypeSetting());
-		to->SetAutoDS(from->GetAutoDS());
-		to->SetAutoResist(from->GetAutoResist());
+		to->SetBotPetSetTypeSetting(from->GetBotPetSetTypeSetting(), true);
+		to->SetHoldDS(from->GetHoldDS());
+		to->SetHoldResists(from->GetHoldResists());
 		to->SetBehindMob(from->GetBehindMob());
 		to->SetBotCasterRange(from->GetBotCasterRange());
 	}
-	if (copy_type == COPY_HOLDS || copy_type == COPY_ALL) {
+	if (chosen_type == COPY_HOLDS || chosen_type == COPY_ALL) {
 		to->SetHoldBuffs(from->GetHoldBuffs());
 		to->SetHoldCharms(from->GetHoldCharms());
 		to->SetHoldCompleteHeals(from->GetHoldCompleteHeals());
@@ -18140,7 +18196,7 @@ void CopyBotSettings(Bot* from, Bot* to, uint8 copy_type)
 		to->SetHoldSlows(from->GetHoldSlows());
 		to->SetHoldSnares(from->GetHoldSnares());
 	}
-	if (copy_type == COPY_DELAYS || copy_type == COPY_ALL) {
+	if (chosen_type == COPY_DELAYS || chosen_type == COPY_ALL) {
 		to->SetBuffDelay(from->GetBuffDelay());
 		to->SetCompleteHealDelay(from->GetCompleteHealDelay());
 		to->SetCureDelay(from->GetCureDelay());
@@ -18160,7 +18216,7 @@ void CopyBotSettings(Bot* from, Bot* to, uint8 copy_type)
 		to->SetSlowDelay(from->GetSlowDelay());
 		to->SetSnareDelay(from->GetSnareDelay());
 	}
-	if (copy_type == COPY_MIN_THRESHOLDS || copy_type == COPY_ALL) {
+	if (chosen_type == COPY_MIN_THRESHOLDS || chosen_type == COPY_ALL) {
 		to->SetBuffMinThreshold(from->GetBuffMinThreshold());
 		to->SetCureMinThreshold(from->GetCureMinThreshold());
 		to->SetDebuffMinThreshold(from->GetDebuffMinThreshold());
@@ -18176,10 +18232,10 @@ void CopyBotSettings(Bot* from, Bot* to, uint8 copy_type)
 		to->SetSlowMinThreshold(from->GetSlowMinThreshold());
 		to->SetSnareMinThreshold(from->GetSnareMinThreshold());
 	}
-	if (copy_type == COPY_MAX_THRESHOLDS || copy_type == COPY_ALL) {
-		to->SetBuffThreshold(from->GetBuffThreshold());
-		to->SetCureThreshold(from->GetCureThreshold());
+	if (chosen_type == COPY_MAX_THRESHOLDS || chosen_type == COPY_ALL) {
+		to->SetBuffThreshold(from->GetBuffThreshold());		
 		to->SetCompleteHealThreshold(from->GetCompleteHealThreshold());
+		to->SetCureThreshold(from->GetCureThreshold());
 		to->SetDebuffThreshold(from->GetDebuffThreshold());
 		to->SetDispelThreshold(from->GetDispelThreshold());
 		to->SetDotThreshold(from->GetDotThreshold());
@@ -18195,5 +18251,119 @@ void CopyBotSettings(Bot* from, Bot* to, uint8 copy_type)
 		to->SetRootThreshold(from->GetRootThreshold());
 		to->SetSlowThreshold(from->GetSlowThreshold());
 		to->SetSnareThreshold(from->GetSnareThreshold());
+	}
+}
+
+void DefaultBotSettings(Bot* my_bot, uint8 chosen_type)
+{
+	auto bot_owner = my_bot->GetOwner();
+	if (!bot_owner) {
+		return;
+	}
+
+	if (chosen_type == DEFAULT_MISC || chosen_type == DEFAULT_ALL) {
+		my_bot->SetShowHelm(true);
+		my_bot->SetFollowDistance(BOT_FOLLOW_DISTANCE_DEFAULT);
+		if (IsCasterClass(my_bot->GetClass())) {
+			my_bot->SetStopMeleeLevel((uint8)RuleI(Bots, CasterStopMeleeLevel));
+		}
+		else {
+			my_bot->SetStopMeleeLevel(255);
+		}
+		my_bot->SetBotArcherySetting(0, true);
+		my_bot->SetBotPetSetTypeSetting(255, true);
+		my_bot->SetHoldDS(0);
+		my_bot->SetHoldResists(0);
+		my_bot->SetBehindMob(0);
+		my_bot->SetBotCasterRange(90);
+		my_bot->SetBotEnforceSpellSetting(false, true);
+	}
+	if (chosen_type == DEFAULT_HOLDS || chosen_type == DEFAULT_ALL) {
+		my_bot->SetHoldBuffs(0);
+		my_bot->SetHoldCharms(0);
+		my_bot->SetHoldCompleteHeals(0);
+		my_bot->SetHoldCures(0);
+		my_bot->SetHoldDebuffs(0);
+		my_bot->SetHoldDispels(1);
+		my_bot->SetHoldDoTs(0);
+		my_bot->SetHoldEscapes(0);
+		my_bot->SetHoldFastHeals(0);
+		my_bot->SetHoldGroupHeals(0);
+		my_bot->SetHoldHateRedux(0);
+		my_bot->SetHoldHeals(0);
+		my_bot->SetHoldHotHeals(0);
+		my_bot->SetHoldInCombatBuffs(0);
+		my_bot->SetHoldInCombatBuffSongs(0);
+		my_bot->SetHoldLifetaps(0);
+		my_bot->SetHoldLulls(0);
+		my_bot->SetHoldMez(0);
+		my_bot->SetHoldNukes(0);
+		my_bot->SetHoldOutOfCombatBuffSongs(0);
+		my_bot->SetHoldPets(0);
+		my_bot->SetHoldPetBuffs(0);
+		my_bot->SetHoldPetHeals(0);
+		my_bot->SetHoldPreCombatBuffs(0);
+		my_bot->SetHoldPreCombatBuffSongs(0);
+		my_bot->SetHoldRegularHeals(0);
+		my_bot->SetHoldRez(0);
+		my_bot->SetHoldRoots(1);
+		my_bot->SetHoldSlows(0);
+		my_bot->SetHoldSnares(0);
+	}
+	if (chosen_type == DEFAULT_DELAYS || chosen_type == DEFAULT_ALL) {
+		my_bot->SetBuffDelay(1);
+		my_bot->SetCompleteHealDelay(8000);
+		my_bot->SetCureDelay(1);
+		my_bot->SetDebuffDelay(12000);
+		my_bot->SetDispelDelay(1);
+		my_bot->SetDotDelay(12000);
+		my_bot->SetEscapeDelay(1);
+		my_bot->SetFastHealDelay(2500);
+		my_bot->SetHateReduxDelay(1);
+		my_bot->SetHealDelay(4500);
+		my_bot->SetHotHealDelay(22000);
+		my_bot->SetInCombatBuffDelay(1);
+		my_bot->SetLifetapDelay(1);
+		my_bot->SetMezDelay(1);
+		my_bot->SetNukeDelay(8000);
+		my_bot->SetRootDelay(12000);
+		my_bot->SetSlowDelay(12000);
+		my_bot->SetSnareDelay(12000);
+	}
+	if (chosen_type == DEFAULT_MIN_THRESHOLDS || chosen_type == DEFAULT_ALL) {
+		my_bot->SetBuffMinThreshold(0);
+		my_bot->SetCureMinThreshold(0);
+		my_bot->SetDebuffMinThreshold(25);
+		my_bot->SetDispelMinThreshold(25);
+		my_bot->SetDotMinThreshold(35);
+		my_bot->SetEscapeMinThreshold(0);
+		my_bot->SetHateReduxMinThreshold(0);
+		my_bot->SetInCombatBuffMinThreshold(0);
+		my_bot->SetLifetapMinThreshold(0);
+		my_bot->SetMezMinThreshold(85);
+		my_bot->SetNukeMinThreshold(20);
+		my_bot->SetRootMinThreshold(15);
+		my_bot->SetSlowMinThreshold(25);
+		my_bot->SetSnareMinThreshold(0);
+	}
+	if (chosen_type == DEFAULT_MAX_THRESHOLDS || chosen_type == DEFAULT_ALL) {
+		my_bot->SetBuffThreshold(150);
+		my_bot->SetCompleteHealThreshold(70);
+		my_bot->SetCureThreshold(150);
+		my_bot->SetDebuffThreshold(95);
+		my_bot->SetDispelThreshold(99);
+		my_bot->SetDotThreshold(95);
+		my_bot->SetEscapeThreshold(35);
+		my_bot->SetFastHealThreshold(35);
+		my_bot->SetHateReduxThreshold(80);
+		my_bot->SetHealThreshold(55);
+		my_bot->SetHotHealThreshold(85);
+		my_bot->SetInCombatBuffThreshold(150);
+		my_bot->SetLifetapThreshold(60);
+		my_bot->SetMezThreshold(150);
+		my_bot->SetNukeThreshold(95);
+		my_bot->SetRootThreshold(95);
+		my_bot->SetSlowThreshold(95);
+		my_bot->SetSnareThreshold(95);
 	}
 }

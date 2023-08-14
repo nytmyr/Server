@@ -74,9 +74,10 @@ public:
 		uint8_t		hold_charms;
 		uint8_t		hold_complete_heals;
 		uint8_t		hold_cures;
-		uint8_t		hold_dots;
 		uint8_t		hold_debuffs;
 		uint8_t		hold_dispels;
+		uint8_t		hold_dots;
+		uint8_t		hold_ds;
 		uint8_t		hold_escapes;
 		uint8_t		hold_fast_heals;
 		uint8_t		hold_group_heals;
@@ -96,12 +97,11 @@ public:
 		uint8_t		hold_precombatbuffs;
 		uint8_t		hold_precombatbuffsongs;
 		uint8_t		hold_regular_heals;
+		uint8_t		hold_resists;
 		uint8_t		hold_rez;
 		uint8_t		hold_roots;
 		uint8_t		hold_slows;
 		uint8_t		hold_snares;
-		uint8_t		auto_ds;
-		uint8_t		auto_resist;
 		uint8_t		behind_mob;
 		uint32_t	caster_range;
 		uint32_t	buff_delay;
@@ -218,10 +218,11 @@ public:
 			"hold_buffs",
 			"hold_charms",
 			"hold_complete_heals",
-			"hold_cures",
-			"hold_dots",
+			"hold_cures",			
 			"hold_debuffs",
 			"hold_dispels",
+			"hold_dots",
+			"hold_ds",
 			"hold_escapes",
 			"hold_fast_heals",
 			"hold_group_heals",
@@ -240,13 +241,12 @@ public:
 			"hold_pets",
 			"hold_precombatbuffs",
 			"hold_precombatbuffsongs",
-			"hold_regular_heals",
+			"hold_regular_heals",			
+			"hold_resists",
 			"hold_rez",
 			"hold_roots",
 			"hold_slows",
-			"hold_snares",
-			"auto_ds",
-			"auto_resist",
+			"hold_snares",			
 			"behind_mob",
 			"caster_range",
 			"buff_delay",
@@ -359,10 +359,11 @@ public:
 			"hold_buffs",
 			"hold_charms",
 			"hold_complete_heals",
-			"hold_cures",
-			"hold_dots",
+			"hold_cures",			
 			"hold_debuffs",
 			"hold_dispels",
+			"hold_dots",
+			"hold_ds",
 			"hold_escapes",
 			"hold_fast_heals",
 			"hold_group_heals",
@@ -381,13 +382,12 @@ public:
 			"hold_pets",
 			"hold_precombatbuffs",
 			"hold_precombatbuffsongs",
-			"hold_regular_heals",
+			"hold_regular_heals",			
+			"hold_resists",
 			"hold_rez",
 			"hold_roots",
 			"hold_slows",
-			"hold_snares",
-			"auto_ds",
-			"auto_resist",
+			"hold_snares",			
 			"behind_mob",
 			"caster_range",
 			"buff_delay",
@@ -534,10 +534,11 @@ public:
 		e.hold_buffs				 = 0;
 		e.hold_charms				 = 0;
 		e.hold_complete_heals		 = 0;
-		e.hold_cures				 = 0;
-		e.hold_dots					 = 0;
+		e.hold_cures				 = 0;		
 		e.hold_debuffs				 = 0;
 		e.hold_dispels				 = 1;
+		e.hold_dots					 = 0;
+		e.hold_ds					 = 0;
 		e.hold_escapes				 = 0;
 		e.hold_fast_heals			 = 0;
 		e.hold_group_heals			 = 0;
@@ -556,13 +557,12 @@ public:
 		e.hold_pets					 = 0;
 		e.hold_precombatbuffs		 = 0;
 		e.hold_precombatbuffsongs	 = 0;
-		e.hold_regular_heals		 = 0;
+		e.hold_regular_heals		 = 0;		
+		e.hold_resists				 = 0;
 		e.hold_rez					 = 0;
 		e.hold_roots				 = 1;
 		e.hold_slows				 = 0;
-		e.hold_snares				 = 0;
-		e.auto_ds					 = 1;
-		e.auto_resist				 = 1;
+		e.hold_snares				 = 0;		
 		e.behind_mob				 = 0;
 		e.caster_range				 = 90;
 		e.buff_delay				 = 1;
@@ -705,35 +705,35 @@ public:
 			e.hold_buffs					= static_cast<uint8_t>(strtoul(row[51], nullptr, 10));
 			e.hold_charms					= static_cast<uint8_t>(strtoul(row[52], nullptr, 10));
 			e.hold_complete_heals		    = static_cast<uint8_t>(strtoul(row[53], nullptr, 10));
-			e.hold_cures					= static_cast<uint8_t>(strtoul(row[54], nullptr, 10));
-			e.hold_dots						= static_cast<uint8_t>(strtoul(row[55], nullptr, 10));
-			e.hold_debuffs					= static_cast<uint8_t>(strtoul(row[56], nullptr, 10));
-			e.hold_dispels					= static_cast<uint8_t>(strtoul(row[57], nullptr, 10));
-			e.hold_escapes					= static_cast<uint8_t>(strtoul(row[58], nullptr, 10));
-			e.hold_fast_heals			    = static_cast<uint8_t>(strtoul(row[59], nullptr, 10));
-			e.hold_group_heals				= static_cast<uint8_t>(strtoul(row[60], nullptr, 10));
-			e.hold_hateredux				= static_cast<uint8_t>(strtoul(row[61], nullptr, 10));
-			e.hold_heals					= static_cast<uint8_t>(strtoul(row[62], nullptr, 10));
-			e.hold_hot_heals				= static_cast<uint8_t>(strtoul(row[63], nullptr, 10));
-			e.hold_incombatbuffs			= static_cast<uint8_t>(strtoul(row[64], nullptr, 10));
-			e.hold_incombatbuffsongs		= static_cast<uint8_t>(strtoul(row[65], nullptr, 10));
-			e.hold_lifetaps					= static_cast<uint8_t>(strtoul(row[66], nullptr, 10));
-			e.hold_lulls					= static_cast<uint8_t>(strtoul(row[67], nullptr, 10));
-			e.hold_mez						= static_cast<uint8_t>(strtoul(row[68], nullptr, 10));
-			e.hold_nukes					= static_cast<uint8_t>(strtoul(row[69], nullptr, 10));
-			e.hold_outofcombatbuffsongs		= static_cast<uint8_t>(strtoul(row[70], nullptr, 10));
-			e.hold_pet_buffs				= static_cast<uint8_t>(strtoul(row[71], nullptr, 10));
-			e.hold_pet_heals				= static_cast<uint8_t>(strtoul(row[72], nullptr, 10));
-			e.hold_pets						= static_cast<uint8_t>(strtoul(row[73], nullptr, 10));
-			e.hold_precombatbuffs			= static_cast<uint8_t>(strtoul(row[74], nullptr, 10));
-			e.hold_precombatbuffsongs		= static_cast<uint8_t>(strtoul(row[75], nullptr, 10));
-			e.hold_regular_heals			= static_cast<uint8_t>(strtoul(row[76], nullptr, 10));
-			e.hold_rez						= static_cast<uint8_t>(strtoul(row[77], nullptr, 10));
-			e.hold_roots					= static_cast<uint8_t>(strtoul(row[78], nullptr, 10));
-			e.hold_slows					= static_cast<uint8_t>(strtoul(row[79], nullptr, 10));
-			e.hold_snares					= static_cast<uint8_t>(strtoul(row[80], nullptr, 10));
-			e.auto_ds						= static_cast<uint8_t>(strtoul(row[81], nullptr, 10));
-			e.auto_resist					= static_cast<uint8_t>(strtoul(row[82], nullptr, 10));
+			e.hold_cures					= static_cast<uint8_t>(strtoul(row[54], nullptr, 10));			
+			e.hold_debuffs					= static_cast<uint8_t>(strtoul(row[55], nullptr, 10));
+			e.hold_dispels					= static_cast<uint8_t>(strtoul(row[56], nullptr, 10));
+			e.hold_dots						= static_cast<uint8_t>(strtoul(row[57], nullptr, 10));
+			e.hold_ds						= static_cast<uint8_t>(strtoul(row[58], nullptr, 10));
+			e.hold_escapes					= static_cast<uint8_t>(strtoul(row[59], nullptr, 10));
+			e.hold_fast_heals			    = static_cast<uint8_t>(strtoul(row[60], nullptr, 10));
+			e.hold_group_heals				= static_cast<uint8_t>(strtoul(row[61], nullptr, 10));
+			e.hold_hateredux				= static_cast<uint8_t>(strtoul(row[62], nullptr, 10));
+			e.hold_heals					= static_cast<uint8_t>(strtoul(row[63], nullptr, 10));
+			e.hold_hot_heals				= static_cast<uint8_t>(strtoul(row[64], nullptr, 10));
+			e.hold_incombatbuffs			= static_cast<uint8_t>(strtoul(row[65], nullptr, 10));
+			e.hold_incombatbuffsongs		= static_cast<uint8_t>(strtoul(row[66], nullptr, 10));
+			e.hold_lifetaps					= static_cast<uint8_t>(strtoul(row[67], nullptr, 10));
+			e.hold_lulls					= static_cast<uint8_t>(strtoul(row[68], nullptr, 10));
+			e.hold_mez						= static_cast<uint8_t>(strtoul(row[69], nullptr, 10));
+			e.hold_nukes					= static_cast<uint8_t>(strtoul(row[70], nullptr, 10));
+			e.hold_outofcombatbuffsongs		= static_cast<uint8_t>(strtoul(row[71], nullptr, 10));
+			e.hold_pet_buffs				= static_cast<uint8_t>(strtoul(row[72], nullptr, 10));
+			e.hold_pet_heals				= static_cast<uint8_t>(strtoul(row[73], nullptr, 10));
+			e.hold_pets						= static_cast<uint8_t>(strtoul(row[74], nullptr, 10));
+			e.hold_precombatbuffs			= static_cast<uint8_t>(strtoul(row[75], nullptr, 10));
+			e.hold_precombatbuffsongs		= static_cast<uint8_t>(strtoul(row[76], nullptr, 10));
+			e.hold_regular_heals			= static_cast<uint8_t>(strtoul(row[77], nullptr, 10));
+			e.hold_resists					= static_cast<uint8_t>(strtoul(row[78], nullptr, 10));
+			e.hold_rez						= static_cast<uint8_t>(strtoul(row[79], nullptr, 10));
+			e.hold_roots					= static_cast<uint8_t>(strtoul(row[80], nullptr, 10));
+			e.hold_slows					= static_cast<uint8_t>(strtoul(row[81], nullptr, 10));
+			e.hold_snares					= static_cast<uint8_t>(strtoul(row[82], nullptr, 10));					
 			e.behind_mob					= static_cast<uint8_t>(strtoul(row[83], nullptr, 10));
 			e.caster_range					= static_cast<uint32_t>(strtoul(row[84], nullptr, 10));
 			e.buff_delay					= static_cast<uint32_t>(strtoul(row[85], nullptr, 10));
@@ -872,35 +872,35 @@ public:
 		v.push_back(columns[51] + " = " + std::to_string(e.hold_buffs));
 		v.push_back(columns[52] + " = " + std::to_string(e.hold_charms));
 		v.push_back(columns[53] + " = " + std::to_string(e.hold_complete_heals));
-		v.push_back(columns[54] + " = " + std::to_string(e.hold_cures));
-		v.push_back(columns[55] + " = " + std::to_string(e.hold_dots));
-		v.push_back(columns[56] + " = " + std::to_string(e.hold_debuffs));
-		v.push_back(columns[57] + " = " + std::to_string(e.hold_dispels));
-		v.push_back(columns[58] + " = " + std::to_string(e.hold_group_heals));
-		v.push_back(columns[59] + " = " + std::to_string(e.hold_fast_heals));
-		v.push_back(columns[60] + " = " + std::to_string(e.hold_escapes));
-		v.push_back(columns[61] + " = " + std::to_string(e.hold_hateredux));
-		v.push_back(columns[62] + " = " + std::to_string(e.hold_heals));
-		v.push_back(columns[63] + " = " + std::to_string(e.hold_hot_heals));
-		v.push_back(columns[64] + " = " + std::to_string(e.hold_incombatbuffs));
-		v.push_back(columns[65] + " = " + std::to_string(e.hold_incombatbuffsongs));
-		v.push_back(columns[66] + " = " + std::to_string(e.hold_lifetaps));
-		v.push_back(columns[67] + " = " + std::to_string(e.hold_lulls));
-		v.push_back(columns[68] + " = " + std::to_string(e.hold_mez));
-		v.push_back(columns[69] + " = " + std::to_string(e.hold_nukes));
-		v.push_back(columns[70] + " = " + std::to_string(e.hold_outofcombatbuffsongs));
-		v.push_back(columns[71] + " = " + std::to_string(e.hold_pet_buffs));
-		v.push_back(columns[72] + " = " + std::to_string(e.hold_pet_heals));
-		v.push_back(columns[73] + " = " + std::to_string(e.hold_pets));
-		v.push_back(columns[74] + " = " + std::to_string(e.hold_precombatbuffs));
-		v.push_back(columns[75] + " = " + std::to_string(e.hold_precombatbuffsongs));
-		v.push_back(columns[76] + " = " + std::to_string(e.hold_regular_heals));
-		v.push_back(columns[77] + " = " + std::to_string(e.hold_rez));
-		v.push_back(columns[78] + " = " + std::to_string(e.hold_roots));
-		v.push_back(columns[79] + " = " + std::to_string(e.hold_slows));
-		v.push_back(columns[80] + " = " + std::to_string(e.hold_snares));
-		v.push_back(columns[81] + " = " + std::to_string(e.auto_ds));
-		v.push_back(columns[82] + " = " + std::to_string(e.auto_resist));
+		v.push_back(columns[54] + " = " + std::to_string(e.hold_cures));		
+		v.push_back(columns[55] + " = " + std::to_string(e.hold_debuffs));
+		v.push_back(columns[56] + " = " + std::to_string(e.hold_dispels));
+		v.push_back(columns[57] + " = " + std::to_string(e.hold_dots));
+		v.push_back(columns[58] + " = " + std::to_string(e.hold_ds));
+		v.push_back(columns[59] + " = " + std::to_string(e.hold_group_heals));
+		v.push_back(columns[60] + " = " + std::to_string(e.hold_fast_heals));
+		v.push_back(columns[61] + " = " + std::to_string(e.hold_escapes));
+		v.push_back(columns[62] + " = " + std::to_string(e.hold_hateredux));
+		v.push_back(columns[63] + " = " + std::to_string(e.hold_heals));
+		v.push_back(columns[64] + " = " + std::to_string(e.hold_hot_heals));
+		v.push_back(columns[65] + " = " + std::to_string(e.hold_incombatbuffs));
+		v.push_back(columns[66] + " = " + std::to_string(e.hold_incombatbuffsongs));
+		v.push_back(columns[67] + " = " + std::to_string(e.hold_lifetaps));
+		v.push_back(columns[68] + " = " + std::to_string(e.hold_lulls));
+		v.push_back(columns[69] + " = " + std::to_string(e.hold_mez));
+		v.push_back(columns[70] + " = " + std::to_string(e.hold_nukes));
+		v.push_back(columns[71] + " = " + std::to_string(e.hold_outofcombatbuffsongs));
+		v.push_back(columns[72] + " = " + std::to_string(e.hold_pet_buffs));
+		v.push_back(columns[73] + " = " + std::to_string(e.hold_pet_heals));
+		v.push_back(columns[74] + " = " + std::to_string(e.hold_pets));
+		v.push_back(columns[75] + " = " + std::to_string(e.hold_precombatbuffs));
+		v.push_back(columns[76] + " = " + std::to_string(e.hold_precombatbuffsongs));
+		v.push_back(columns[77] + " = " + std::to_string(e.hold_regular_heals));		
+		v.push_back(columns[78] + " = " + std::to_string(e.hold_resists));
+		v.push_back(columns[79] + " = " + std::to_string(e.hold_rez));
+		v.push_back(columns[80] + " = " + std::to_string(e.hold_roots));
+		v.push_back(columns[81] + " = " + std::to_string(e.hold_slows));
+		v.push_back(columns[82] + " = " + std::to_string(e.hold_snares));		
 		v.push_back(columns[83] + " = " + std::to_string(e.behind_mob));
 		v.push_back(columns[84] + " = " + std::to_string(e.caster_range));
 		v.push_back(columns[85] + " = " + std::to_string(e.buff_delay));
@@ -1028,10 +1028,11 @@ public:
 		v.push_back(std::to_string(e.hold_buffs));
 		v.push_back(std::to_string(e.hold_charms));
 		v.push_back(std::to_string(e.hold_complete_heals));
-		v.push_back(std::to_string(e.hold_cures));
-		v.push_back(std::to_string(e.hold_dots));
+		v.push_back(std::to_string(e.hold_cures));		
 		v.push_back(std::to_string(e.hold_debuffs));
 		v.push_back(std::to_string(e.hold_dispels));
+		v.push_back(std::to_string(e.hold_dots));
+		v.push_back(std::to_string(e.hold_ds));
 		v.push_back(std::to_string(e.hold_escapes));
 		v.push_back(std::to_string(e.hold_fast_heals));
 		v.push_back(std::to_string(e.hold_group_heals));
@@ -1050,13 +1051,12 @@ public:
 		v.push_back(std::to_string(e.hold_pets));
 		v.push_back(std::to_string(e.hold_precombatbuffs));
 		v.push_back(std::to_string(e.hold_precombatbuffsongs));
-		v.push_back(std::to_string(e.hold_regular_heals));
+		v.push_back(std::to_string(e.hold_regular_heals));		
+		v.push_back(std::to_string(e.hold_resists));
 		v.push_back(std::to_string(e.hold_rez));
 		v.push_back(std::to_string(e.hold_roots));
 		v.push_back(std::to_string(e.hold_slows));
-		v.push_back(std::to_string(e.hold_snares));
-		v.push_back(std::to_string(e.auto_ds));
-		v.push_back(std::to_string(e.auto_resist));
+		v.push_back(std::to_string(e.hold_snares));		
 		v.push_back(std::to_string(e.behind_mob));
 		v.push_back(std::to_string(e.caster_range));
 		v.push_back(std::to_string(e.buff_delay));
@@ -1192,10 +1192,11 @@ public:
 			v.push_back(std::to_string(e.hold_buffs));
 			v.push_back(std::to_string(e.hold_charms));
 			v.push_back(std::to_string(e.hold_complete_heals));
-			v.push_back(std::to_string(e.hold_cures));
-			v.push_back(std::to_string(e.hold_dots));
+			v.push_back(std::to_string(e.hold_cures));			
 			v.push_back(std::to_string(e.hold_debuffs));
 			v.push_back(std::to_string(e.hold_dispels));
+			v.push_back(std::to_string(e.hold_dots));
+			v.push_back(std::to_string(e.hold_ds));
 			v.push_back(std::to_string(e.hold_escapes));
 			v.push_back(std::to_string(e.hold_fast_heals));
 			v.push_back(std::to_string(e.hold_group_heals));
@@ -1214,13 +1215,12 @@ public:
 			v.push_back(std::to_string(e.hold_pets));
 			v.push_back(std::to_string(e.hold_precombatbuffs));
 			v.push_back(std::to_string(e.hold_precombatbuffsongs));
-			v.push_back(std::to_string(e.hold_regular_heals));
+			v.push_back(std::to_string(e.hold_regular_heals));			
+			v.push_back(std::to_string(e.hold_resists));
 			v.push_back(std::to_string(e.hold_rez));
 			v.push_back(std::to_string(e.hold_roots));
 			v.push_back(std::to_string(e.hold_slows));
-			v.push_back(std::to_string(e.hold_snares));
-			v.push_back(std::to_string(e.auto_ds));
-			v.push_back(std::to_string(e.auto_resist));
+			v.push_back(std::to_string(e.hold_snares));			
 			v.push_back(std::to_string(e.behind_mob));
 			v.push_back(std::to_string(e.caster_range));
 			v.push_back(std::to_string(e.buff_delay));
@@ -1360,35 +1360,35 @@ public:
 			e.hold_buffs					= static_cast<uint8_t>(strtoul(row[51], nullptr, 10));
 			e.hold_charms					= static_cast<uint8_t>(strtoul(row[52], nullptr, 10));
 			e.hold_complete_heals		    = static_cast<uint8_t>(strtoul(row[53], nullptr, 10));
-			e.hold_cures					= static_cast<uint8_t>(strtoul(row[54], nullptr, 10));
-			e.hold_dots						= static_cast<uint8_t>(strtoul(row[55], nullptr, 10));
-			e.hold_debuffs					= static_cast<uint8_t>(strtoul(row[56], nullptr, 10));
-			e.hold_dispels					= static_cast<uint8_t>(strtoul(row[57], nullptr, 10));
-			e.hold_escapes					= static_cast<uint8_t>(strtoul(row[58], nullptr, 10));
-			e.hold_fast_heals			    = static_cast<uint8_t>(strtoul(row[59], nullptr, 10));
-			e.hold_group_heals				= static_cast<uint8_t>(strtoul(row[60], nullptr, 10));
-			e.hold_hateredux				= static_cast<uint8_t>(strtoul(row[61], nullptr, 10));
-			e.hold_heals					= static_cast<uint8_t>(strtoul(row[62], nullptr, 10));
-			e.hold_hot_heals				= static_cast<uint8_t>(strtoul(row[63], nullptr, 10));
-			e.hold_incombatbuffs			= static_cast<uint8_t>(strtoul(row[64], nullptr, 10));
-			e.hold_incombatbuffsongs		= static_cast<uint8_t>(strtoul(row[65], nullptr, 10));
-			e.hold_lifetaps					= static_cast<uint8_t>(strtoul(row[66], nullptr, 10));
-			e.hold_lulls					= static_cast<uint8_t>(strtoul(row[67], nullptr, 10));
-			e.hold_mez						= static_cast<uint8_t>(strtoul(row[68], nullptr, 10));
-			e.hold_nukes					= static_cast<uint8_t>(strtoul(row[69], nullptr, 10));
-			e.hold_outofcombatbuffsongs		= static_cast<uint8_t>(strtoul(row[70], nullptr, 10));
-			e.hold_pet_buffs				= static_cast<uint8_t>(strtoul(row[71], nullptr, 10));
-			e.hold_pet_heals				= static_cast<uint8_t>(strtoul(row[72], nullptr, 10));
-			e.hold_pets						= static_cast<uint8_t>(strtoul(row[73], nullptr, 10));
-			e.hold_precombatbuffs			= static_cast<uint8_t>(strtoul(row[74], nullptr, 10));
-			e.hold_precombatbuffsongs		= static_cast<uint8_t>(strtoul(row[75], nullptr, 10));
-			e.hold_regular_heals			= static_cast<uint8_t>(strtoul(row[76], nullptr, 10));
-			e.hold_rez						= static_cast<uint8_t>(strtoul(row[77], nullptr, 10));
-			e.hold_roots					= static_cast<uint8_t>(strtoul(row[78], nullptr, 10));
-			e.hold_slows					= static_cast<uint8_t>(strtoul(row[79], nullptr, 10));
-			e.hold_snares					= static_cast<uint8_t>(strtoul(row[80], nullptr, 10));
-			e.auto_ds						= static_cast<uint8_t>(strtoul(row[81], nullptr, 10));
-			e.auto_resist					= static_cast<uint8_t>(strtoul(row[82], nullptr, 10));
+			e.hold_cures					= static_cast<uint8_t>(strtoul(row[54], nullptr, 10));			
+			e.hold_debuffs					= static_cast<uint8_t>(strtoul(row[55], nullptr, 10));
+			e.hold_dispels					= static_cast<uint8_t>(strtoul(row[56], nullptr, 10));
+			e.hold_dots						= static_cast<uint8_t>(strtoul(row[57], nullptr, 10));
+			e.hold_ds						= static_cast<uint8_t>(strtoul(row[58], nullptr, 10));
+			e.hold_escapes					= static_cast<uint8_t>(strtoul(row[59], nullptr, 10));
+			e.hold_fast_heals			    = static_cast<uint8_t>(strtoul(row[60], nullptr, 10));
+			e.hold_group_heals				= static_cast<uint8_t>(strtoul(row[61], nullptr, 10));
+			e.hold_hateredux				= static_cast<uint8_t>(strtoul(row[62], nullptr, 10));
+			e.hold_heals					= static_cast<uint8_t>(strtoul(row[63], nullptr, 10));
+			e.hold_hot_heals				= static_cast<uint8_t>(strtoul(row[64], nullptr, 10));
+			e.hold_incombatbuffs			= static_cast<uint8_t>(strtoul(row[65], nullptr, 10));
+			e.hold_incombatbuffsongs		= static_cast<uint8_t>(strtoul(row[66], nullptr, 10));
+			e.hold_lifetaps					= static_cast<uint8_t>(strtoul(row[67], nullptr, 10));
+			e.hold_lulls					= static_cast<uint8_t>(strtoul(row[68], nullptr, 10));
+			e.hold_mez						= static_cast<uint8_t>(strtoul(row[69], nullptr, 10));
+			e.hold_nukes					= static_cast<uint8_t>(strtoul(row[70], nullptr, 10));
+			e.hold_outofcombatbuffsongs		= static_cast<uint8_t>(strtoul(row[71], nullptr, 10));
+			e.hold_pet_buffs				= static_cast<uint8_t>(strtoul(row[72], nullptr, 10));
+			e.hold_pet_heals				= static_cast<uint8_t>(strtoul(row[73], nullptr, 10));
+			e.hold_pets						= static_cast<uint8_t>(strtoul(row[74], nullptr, 10));
+			e.hold_precombatbuffs			= static_cast<uint8_t>(strtoul(row[75], nullptr, 10));
+			e.hold_precombatbuffsongs		= static_cast<uint8_t>(strtoul(row[76], nullptr, 10));
+			e.hold_regular_heals			= static_cast<uint8_t>(strtoul(row[77], nullptr, 10));
+			e.hold_resists					= static_cast<uint8_t>(strtoul(row[78], nullptr, 10));
+			e.hold_rez						= static_cast<uint8_t>(strtoul(row[79], nullptr, 10));
+			e.hold_roots					= static_cast<uint8_t>(strtoul(row[80], nullptr, 10));
+			e.hold_slows					= static_cast<uint8_t>(strtoul(row[81], nullptr, 10));
+			e.hold_snares					= static_cast<uint8_t>(strtoul(row[82], nullptr, 10));
 			e.behind_mob					= static_cast<uint8_t>(strtoul(row[83], nullptr, 10));
 			e.caster_range					= static_cast<uint32_t>(strtoul(row[84], nullptr, 10));
 			e.buff_delay					= static_cast<uint32_t>(strtoul(row[85], nullptr, 10));
@@ -1519,35 +1519,35 @@ public:
 			e.hold_buffs					= static_cast<uint8_t>(strtoul(row[51], nullptr, 10));
 			e.hold_charms					= static_cast<uint8_t>(strtoul(row[52], nullptr, 10));
 			e.hold_complete_heals		    = static_cast<uint8_t>(strtoul(row[53], nullptr, 10));
-			e.hold_cures					= static_cast<uint8_t>(strtoul(row[54], nullptr, 10));
-			e.hold_dots						= static_cast<uint8_t>(strtoul(row[55], nullptr, 10));
-			e.hold_debuffs					= static_cast<uint8_t>(strtoul(row[56], nullptr, 10));
-			e.hold_dispels					= static_cast<uint8_t>(strtoul(row[57], nullptr, 10));
-			e.hold_escapes					= static_cast<uint8_t>(strtoul(row[58], nullptr, 10));
-			e.hold_fast_heals			    = static_cast<uint8_t>(strtoul(row[59], nullptr, 10));
-			e.hold_group_heals				= static_cast<uint8_t>(strtoul(row[60], nullptr, 10));
-			e.hold_hateredux				= static_cast<uint8_t>(strtoul(row[61], nullptr, 10));
-			e.hold_heals					= static_cast<uint8_t>(strtoul(row[62], nullptr, 10));
-			e.hold_hot_heals				= static_cast<uint8_t>(strtoul(row[63], nullptr, 10));
-			e.hold_incombatbuffs			= static_cast<uint8_t>(strtoul(row[64], nullptr, 10));
-			e.hold_incombatbuffsongs		= static_cast<uint8_t>(strtoul(row[65], nullptr, 10));
-			e.hold_lifetaps					= static_cast<uint8_t>(strtoul(row[66], nullptr, 10));
-			e.hold_lulls					= static_cast<uint8_t>(strtoul(row[67], nullptr, 10));
-			e.hold_mez						= static_cast<uint8_t>(strtoul(row[68], nullptr, 10));
-			e.hold_nukes					= static_cast<uint8_t>(strtoul(row[69], nullptr, 10));
-			e.hold_outofcombatbuffsongs		= static_cast<uint8_t>(strtoul(row[70], nullptr, 10));
-			e.hold_pet_buffs				= static_cast<uint8_t>(strtoul(row[71], nullptr, 10));
-			e.hold_pet_heals				= static_cast<uint8_t>(strtoul(row[72], nullptr, 10));
-			e.hold_pets						= static_cast<uint8_t>(strtoul(row[73], nullptr, 10));
-			e.hold_precombatbuffs			= static_cast<uint8_t>(strtoul(row[74], nullptr, 10));
-			e.hold_precombatbuffsongs		= static_cast<uint8_t>(strtoul(row[75], nullptr, 10));
-			e.hold_regular_heals			= static_cast<uint8_t>(strtoul(row[76], nullptr, 10));
-			e.hold_rez						= static_cast<uint8_t>(strtoul(row[77], nullptr, 10));
-			e.hold_roots					= static_cast<uint8_t>(strtoul(row[78], nullptr, 10));
-			e.hold_slows					= static_cast<uint8_t>(strtoul(row[79], nullptr, 10));
-			e.hold_snares					= static_cast<uint8_t>(strtoul(row[80], nullptr, 10));
-			e.auto_ds						= static_cast<uint8_t>(strtoul(row[81], nullptr, 10));
-			e.auto_resist					= static_cast<uint8_t>(strtoul(row[82], nullptr, 10));
+			e.hold_cures					= static_cast<uint8_t>(strtoul(row[54], nullptr, 10));			
+			e.hold_debuffs					= static_cast<uint8_t>(strtoul(row[55], nullptr, 10));
+			e.hold_dispels					= static_cast<uint8_t>(strtoul(row[56], nullptr, 10));
+			e.hold_dots						= static_cast<uint8_t>(strtoul(row[57], nullptr, 10));
+			e.hold_ds						= static_cast<uint8_t>(strtoul(row[58], nullptr, 10));
+			e.hold_escapes					= static_cast<uint8_t>(strtoul(row[59], nullptr, 10));
+			e.hold_fast_heals			    = static_cast<uint8_t>(strtoul(row[60], nullptr, 10));
+			e.hold_group_heals				= static_cast<uint8_t>(strtoul(row[61], nullptr, 10));
+			e.hold_hateredux				= static_cast<uint8_t>(strtoul(row[62], nullptr, 10));
+			e.hold_heals					= static_cast<uint8_t>(strtoul(row[63], nullptr, 10));
+			e.hold_hot_heals				= static_cast<uint8_t>(strtoul(row[64], nullptr, 10));
+			e.hold_incombatbuffs			= static_cast<uint8_t>(strtoul(row[65], nullptr, 10));
+			e.hold_incombatbuffsongs		= static_cast<uint8_t>(strtoul(row[66], nullptr, 10));
+			e.hold_lifetaps					= static_cast<uint8_t>(strtoul(row[67], nullptr, 10));
+			e.hold_lulls					= static_cast<uint8_t>(strtoul(row[68], nullptr, 10));
+			e.hold_mez						= static_cast<uint8_t>(strtoul(row[69], nullptr, 10));
+			e.hold_nukes					= static_cast<uint8_t>(strtoul(row[70], nullptr, 10));
+			e.hold_outofcombatbuffsongs		= static_cast<uint8_t>(strtoul(row[71], nullptr, 10));
+			e.hold_pet_buffs				= static_cast<uint8_t>(strtoul(row[72], nullptr, 10));
+			e.hold_pet_heals				= static_cast<uint8_t>(strtoul(row[73], nullptr, 10));
+			e.hold_pets						= static_cast<uint8_t>(strtoul(row[74], nullptr, 10));
+			e.hold_precombatbuffs			= static_cast<uint8_t>(strtoul(row[75], nullptr, 10));
+			e.hold_precombatbuffsongs		= static_cast<uint8_t>(strtoul(row[76], nullptr, 10));
+			e.hold_regular_heals			= static_cast<uint8_t>(strtoul(row[77], nullptr, 10));			
+			e.hold_resists					= static_cast<uint8_t>(strtoul(row[78], nullptr, 10));
+			e.hold_rez						= static_cast<uint8_t>(strtoul(row[79], nullptr, 10));
+			e.hold_roots					= static_cast<uint8_t>(strtoul(row[80], nullptr, 10));
+			e.hold_slows					= static_cast<uint8_t>(strtoul(row[81], nullptr, 10));
+			e.hold_snares					= static_cast<uint8_t>(strtoul(row[82], nullptr, 10));			
 			e.behind_mob					= static_cast<uint8_t>(strtoul(row[83], nullptr, 10));
 			e.caster_range					= static_cast<uint32_t>(strtoul(row[84], nullptr, 10));
 			e.buff_delay					= static_cast<uint32_t>(strtoul(row[85], nullptr, 10));

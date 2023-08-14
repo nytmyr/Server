@@ -2500,16 +2500,20 @@ void Bot::SetHoldCures(uint8 holdstatus) {
 	_holdCures = holdstatus;
 }
 
-void Bot::SetHoldDoTs(uint8 holdstatus) {
-	_holdDoTs = holdstatus;
-}
-
 void Bot::SetHoldDebuffs(uint8 holdstatus) {
 	_holdDebuffs = holdstatus;
 }
 
 void Bot::SetHoldDispels(uint8 holdstatus) {
 	_holdDispels = holdstatus;
+}
+
+void Bot::SetHoldDS(uint8 holdstatus) {
+	_holdDS = holdstatus;
+}
+
+void Bot::SetHoldDoTs(uint8 holdstatus) {
+	_holdDoTs = holdstatus;
 }
 
 void Bot::SetHoldEscapes(uint8 holdstatus) {
@@ -2588,6 +2592,10 @@ void Bot::SetHoldRegularHeals(uint8 holdstatus) {
 	_holdRegularHeals = holdstatus;
 }
 
+void Bot::SetHoldResists(uint8 holdstatus) {
+	_holdResists = holdstatus;
+}
+
 void Bot::SetHoldRez(uint8 holdstatus) {
 	_holdRez = holdstatus;
 }
@@ -2602,14 +2610,6 @@ void Bot::SetHoldSlows(uint8 holdstatus) {
 
 void Bot::SetHoldSnares(uint8 holdstatus) {
 	_holdSnares = holdstatus;
-}
-
-void Bot::SetAutoDS(uint8 autods) {
-	_autoDS = autods;
-}
-
-void Bot::SetAutoResist(uint8 autoresist) {
-	_autoResist = autoresist;
 }
 
 void Bot::SetBehindMob(uint8 behindmobstatus) {
@@ -11417,7 +11417,7 @@ void Bot::SetCombatOutOfRangeJitter() {
 void Bot::DoCombatPositioning(Mob* tar, glm::vec3 Goal, bool stop_melee_level, float tar_distance, float melee_distance_min, float melee_distance, float melee_distance_max, bool behind_mob) {
 	if (HasTargetReflection()) {
 		if (!tar->IsFeared() && !tar->IsStunned()) {
-			if (GetClass() == ROGUE) {
+			if (GetClass() == ROGUE && !GetHoldEscapes()) {
 				if (m_evade_timer.Check(false)) { // Attempt to evade
 					int timer_duration = (HideReuseTime - GetSkillReuseTime(EQ::skills::SkillHide)) * 1000;
 					if (timer_duration < 0) {
@@ -11433,7 +11433,7 @@ void Bot::DoCombatPositioning(Mob* tar, glm::vec3 Goal, bool stop_melee_level, f
 					return;
 				}
 			}
-			if (GetClass() == MONK && GetLevel() >= 17) {
+			if (GetClass() == MONK && GetLevel() >= 17 && !GetHoldEscapes()) {
 				if (m_monk_evade_timer.Check(false)) { // Attempt to evade
 					int timer_duration = (FeignDeathReuseTime - GetSkillReuseTime(EQ::skills::SkillFeignDeath)) * 1000;
 					if (timer_duration < 0) {

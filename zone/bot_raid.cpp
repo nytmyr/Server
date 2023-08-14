@@ -1864,12 +1864,12 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					IsEffectInSpell(selectedBotSpell.SpellId, SE_ResistDisease) ||
 					IsEffectInSpell(selectedBotSpell.SpellId, SE_ResistCorruption) ||
 					IsEffectInSpell(selectedBotSpell.SpellId, SE_ResistAll))
-					&& !GetAutoResist()) {
+					&& GetHoldResists()) {
 					continue;
 				}
 
 				if (IsEffectInSpell(selectedBotSpell.SpellId, SE_DamageShield)
-					&& !GetAutoDS()) {
+					&& GetHoldDS()) {
 					continue;
 				}
 
