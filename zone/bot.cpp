@@ -7512,30 +7512,45 @@ int64 Bot::CalcManaRegen() {
 	uint8 level = GetLevel();
 	uint8 botclass = GetClass();
 	int32 regen = 0;
-	if (IsSitting()) {
-		BuffFadeBySitModifier();
-		if(botclass != WARRIOR && botclass != MONK && botclass != ROGUE && botclass != BERSERKER) {
-			regen = ((((GetSkill(EQ::skills::SkillMeditate) / 10) + (level - (level / 4))) / 4) + 4);
-			regen += (spellbonuses.ManaRegen + itembonuses.ManaRegen);
-		} else
+	if (GetClass() == BARD) {
+		if (IsSitting()) {
+			BuffFadeBySitModifier();
+			regen = 2;
+			regen += (itembonuses.ManaRegen + aabonuses.ManaRegen);
+		}
+		else {
+			regen = 1;
+			regen += (itembonuses.ManaRegen + aabonuses.ManaRegen);
+		}
+	}
+	else {
+		if (IsSitting()) {
+			BuffFadeBySitModifier();
+			if (botclass != WARRIOR && botclass != MONK && botclass != ROGUE && botclass != BERSERKER) {
+				regen = ((((GetSkill(EQ::skills::SkillMeditate) / 10) + (level - (level / 4))) / 4) + 4);
+				regen += (spellbonuses.ManaRegen + itembonuses.ManaRegen);
+			}
+			else
+				regen = (2 + spellbonuses.ManaRegen + itembonuses.ManaRegen);
+		}
+		else
 			regen = (2 + spellbonuses.ManaRegen + itembonuses.ManaRegen);
-	} else
-		regen = (2 + spellbonuses.ManaRegen + itembonuses.ManaRegen);
 
-	if(GetCasterClass() == 'I')
-		regen += itembonuses.HeroicINT * RuleR(Character, HeroicIntelligenceMultiplier) / 25;
-	else if(GetCasterClass() == 'W')
-		regen += itembonuses.HeroicWIS * RuleR(Character, HeroicWisdomMultiplier) / 25;
-	else
-		regen = 0;
+		if (GetCasterClass() == 'I')
+			regen += itembonuses.HeroicINT * RuleR(Character, HeroicIntelligenceMultiplier) / 25;
+		else if (GetCasterClass() == 'W')
+			regen += itembonuses.HeroicWIS * RuleR(Character, HeroicWisdomMultiplier) / 25;
+		else
+			regen = 0;
 
-	regen += aabonuses.ManaRegen;
-	regen = ((regen * RuleI(Character, ManaRegenMultiplier)) / 100);
-	float mana_regen_rate = RuleR(Bots, ManaRegen);
-	if(mana_regen_rate < 0.0f)
-		mana_regen_rate = 0.0f;
+		regen += aabonuses.ManaRegen;
+		regen = ((regen * RuleI(Character, ManaRegenMultiplier)) / 100);
+		float mana_regen_rate = RuleR(Bots, ManaRegen);
+		if (mana_regen_rate < 0.0f)
+			mana_regen_rate = 0.0f;
 
-	regen = (regen * mana_regen_rate);
+		regen = (regen * mana_regen_rate);
+	}
 	return regen;
 }
 
