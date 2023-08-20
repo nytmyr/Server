@@ -913,6 +913,14 @@ bool IsPlayerIllusionSpell(uint16 spell_id)
 	return false;
 }
 
+bool IsAnyPlayerIllusionSpell(uint16 spell_id)
+{
+	if (IsEffectInSpell(spell_id, SE_Illusion)) {
+		return true;
+	}
+	return false;
+}
+
 int GetSpellEffectDescNum(uint16 spell_id)
 {
 	if (IsValidSpell(spell_id))

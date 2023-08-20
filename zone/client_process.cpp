@@ -542,6 +542,10 @@ bool Client::Process() {
 				ItemTimerCheck();
 			}
 		}
+
+		if (illusion_fade_reset.Check() && !dead) {
+			DoIllusionWearCheck();
+		}
 	}
 
 	if (client_state == CLIENT_KICKED) {
@@ -2489,4 +2493,21 @@ bool Client::CheckWaterAutoFireLoS(Mob* los_attacker, Mob* los_target) // checks
 		return true;
 	}
 	return zone->watermap->InLiquid(los_attacker->GetPosition()) == zone->watermap->InLiquid(los_target->GetPosition());
+}
+
+void Client::DoIllusionWearCheck() {
+	if (illusion_fade_check) {
+		illusion_fade_check = false;
+		TestDebug("Moving to old coords, zone[{}] instance[{}] x[{}] y[{}] z[{}] h[{}]", zone->GetZoneID(), zone->GetInstanceID(), old_x, old_y, old_z, old_heading); //deleteme
+		MovePC(zone->GetZoneID(), zone->GetInstanceID(), old_x, old_y, old_z, old_heading, 2);
+	}
+	float old_total = old_x + old_y;
+	float new_total = GetX() + GetY();
+	float difference = (old_x + old_y) - (GetX() + GetY());
+	if (difference < (-1 * RuleR(Range, UpdateRangeForIllusionChecks)) || difference > RuleR(Range, UpdateRangeForIllusionChecks)) {
+		old_x = GetX();
+		old_y = GetY();
+		old_z = GetZ();
+		old_heading = GetHeading();
+	}
 }

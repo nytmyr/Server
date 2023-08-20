@@ -188,6 +188,7 @@ public:
 	virtual void RogueBackstab(Mob* other, bool min_damage = false, int ReuseTime = 10);
 	virtual void RogueAssassinate(Mob* other);
 	float MobAngle(Mob *other = 0, float ourx = 0.0f, float oury = 0.0f) const;
+	float MobAngleAutoFace(Mob* other = 0, float ourx = 0.0f, float oury = 0.0f, float ourh = 0.0f) const;
 	virtual bool CheckWaterLoS(Mob* attacker, Mob* target);
 	// greater than 90 is behind
 	inline bool BehindMob(Mob *other = 0, float ourx = 0.0f, float oury = 0.0f) const
@@ -195,6 +196,14 @@ public:
 	// less than 56 is in front, greater than 56 is usually where the client generates the messages
 	inline bool InFrontMob(Mob *other = 0, float ourx = 0.0f, float oury = 0.0f) const
 		{ return (!other || other == this) ? true : MobAngle(other, ourx, oury) < 56.0f; }
+	inline bool BehindMobAutoFace(Mob* other = 0, float ourx = 0.0f, float oury = 0.0f, float ourh = 0.0f, float angle = 90.0f) const
+	{
+		return (!other || other == this) ? true : MobAngleAutoFace(other, ourx, oury, ourh) > angle;
+	}
+	inline bool InFrontMobAutoFace(Mob* other = 0, float ourx = 0.0f, float oury = 0.0f, float ourh = 0.0f, float angle = 90.0f) const
+	{
+		return (!other || other == this) ? true : MobAngleAutoFace(other, ourx, oury, ourh) <= angle;
+	}
 	bool IsFacingMob(Mob *other); // kind of does the same as InFrontMob, but derived from client
 	float HeadingAngleToMob(Mob *other) { return HeadingAngleToMob(other->GetX(), other->GetY()); }
 	float HeadingAngleToMob(float other_x, float other_y); // to keep consistent with client generated messages
@@ -763,6 +772,9 @@ public:
 	std::list<struct_HateList*>& GetHateList() { return hate_list.GetHateList(); }
 	bool CheckLosFN(Mob* other);
 	bool CheckLosFN(float posX, float posY, float posZ, float mobSize);
+	bool CheckLosCheat(Mob* who, Mob* other);
+	bool CheckLosCheatExempt(Mob* who, Mob* other);
+	bool DoLosChecks(Mob* who, Mob* other);
 	static bool CheckLosFN(glm::vec3 posWatcher, float sizeWatcher, glm::vec3 posTarget, float sizeTarget);
 	inline void SetLastLosState(bool value) { last_los_check = value; }
 	inline bool CheckLastLosState() const { return last_los_check; }

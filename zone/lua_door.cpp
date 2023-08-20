@@ -181,6 +181,16 @@ uint32 Lua_Door::GetID() {
 	return self->GetID();
 }
 
+uint8 Lua_Door::GetTriggerDoorID() {
+	Lua_Safe_Call_Int();
+	return self->GetTriggerDoorID();
+}
+
+uint8 Lua_Door::GetTriggerType() {
+	Lua_Safe_Call_Int();
+	return self->GetTriggerType();
+}
+
 luabind::scope lua_register_door() {
 	return luabind::class_<Lua_Door, Lua_Entity>("Door")
 	.def(luabind::constructor<>())

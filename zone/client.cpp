@@ -180,7 +180,8 @@ Client::Client(EQStreamInterface *ieqs) : Mob(
   mob_close_scan_timer(6000),
   position_update_timer(10000),
   consent_throttle_timer(2000),
-  tmSitting(0)
+  tmSitting(0),
+  illusion_fade_reset(RuleI(Range,UpdateIntervalForIllusionChecks))
 {
 	for (auto client_filter = FilterNone; client_filter < _FilterCount; client_filter = eqFilterType(client_filter + 1)) {
 		SetFilter(client_filter, FilterShow);
@@ -301,6 +302,10 @@ Client::Client(EQStreamInterface *ieqs) : Mob(
 	m_ClientVersionBit = 0;
 	AggroCount = 0;
 	ooc_regen = false;
+
+	illusion_fade_reset.Disable();
+	illusion_fade_check = false;
+
 	AreaHPRegen = 1.0f;
 	AreaManaRegen = 1.0f;
 	AreaEndRegen = 1.0f;
@@ -377,6 +382,11 @@ Client::Client(EQStreamInterface *ieqs) : Mob(
 	bot_owner_options[booAutoDefend] = RuleB(Bots, AllowOwnerOptionAutoDefend);
 	bot_owner_options[booBuffCounter] = false;
 	bot_owner_options[booMonkWuMessage] = false;
+
+	old_x = 0;
+	old_y = 0;
+	old_z = 0;
+	old_heading = 0;
 
 	SetBotPulling(false);
 	SetBotPrecombat(false);

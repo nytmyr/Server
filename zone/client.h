@@ -586,6 +586,8 @@ public:
 	void DoEnduranceRegen(); //This Regenerates endurance
 	void DoEnduranceUpkeep(); //does the endurance upkeep
 
+	void DoIllusionWearCheck(); //Checks for illusion wears to warp back.
+
 	//This calculates total Attack Rating to match very close to what the client should show
 	uint32 GetTotalATK();
 	uint32 GetATKRating();
@@ -1917,6 +1919,9 @@ private:
 
 	Timer heroforge_wearchange_timer;
 
+	Timer illusion_fade_reset;
+	bool illusion_fade_check = false;
+
 	glm::vec3 m_Proximity;
 	glm::vec4 last_position_before_bulk_update;
 
@@ -2033,6 +2038,12 @@ private:
 	glm::vec3 m_quest_compass;
 	bool m_has_quest_compass = false;
 	std::vector<uint32_t> m_dynamic_zone_ids;
+
+	//illusion fade checks
+	float old_x = GetX();
+	float old_y = GetY();
+	float old_z = GetZ();
+	float old_heading = GetHeading();
 
 
 public:

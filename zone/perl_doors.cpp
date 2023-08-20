@@ -71,6 +71,16 @@ uint32_t Perl_Doors_GetSize(Doors* self) // @categories Doors
 	return self->GetSize();
 }
 
+uint8_t Perl_Doors_GetTriggerDoorID(Doors* self) // @categories Doors
+{
+	return self->GetTriggerDoorID();
+}
+
+uint8_t Perl_Doors_GetTriggerType(Doors* self) // @categories Doors
+{
+	return self->GetTriggerType();
+}
+
 void Perl_Doors_SetOpenType(Doors* self, uint32_t open_type) // @categories Doors
 {
 	self->SetOpenType(open_type);
@@ -201,6 +211,8 @@ void perl_register_doors()
 	package.add("GetNoKeyring", &Perl_Doors_GetNoKeyring);
 	package.add("GetOpenType", &Perl_Doors_GetOpenType);
 	package.add("GetSize", &Perl_Doors_GetSize);
+	package.add("GetTriggerDoorID", &Perl_Doors_GetTriggerDoorID);
+	package.add("GetTriggerType", &Perl_Doors_GetTriggerType);
 	package.add("GetX", &Perl_Doors_GetX);
 	package.add("GetY", &Perl_Doors_GetY);
 	package.add("GetZ", &Perl_Doors_GetZ);

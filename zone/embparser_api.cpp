@@ -1681,6 +1681,11 @@ bool Perl__IsBeneficialSpell(uint16 spell_id)
 	return BeneficialSpell(spell_id);
 }
 
+bool Perl__IsIllusionSpell(uint16 spell_id)
+{
+	return IsAnyPlayerIllusionSpell(spell_id);
+}
+
 int Perl__GetSpellResistType(uint16 spell_id)
 {
 	return GetSpellResistType(spell_id);
@@ -4194,6 +4199,7 @@ void perl_register_quest()
 	package.add("delete_data", &Perl__delete_data);
 	package.add("IsBeneficialSpell", &Perl__IsBeneficialSpell);
 	package.add("IsEffectInSpell", &Perl__IsEffectInSpell);
+	package.add("IsIllusionSpell", &Perl__IsIllusionSpell);
 	package.add("IsRaining", &Perl__IsRaining);
 	package.add("IsSnowing", &Perl__IsSnowing);
 	package.add("IsRunning", &Perl__IsRunning);

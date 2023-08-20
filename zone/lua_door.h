@@ -55,6 +55,8 @@ public:
 	uint32 GetLockPick();
 	void SetKeyItem(uint32 key);
 	uint32 GetKeyItem();
+	uint8 GetTriggerDoorID();
+	uint8 GetTriggerType();
 	void SetNoKeyring(int type);
 	int GetNoKeyring();
 	void CreateDatabaseEntry();

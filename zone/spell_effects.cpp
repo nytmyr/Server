@@ -1319,6 +1319,20 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 #ifdef SPELL_EFFECT_SPAM
 				snprintf(effect_desc, _EDLEN, "Shadow Step: %d", effect_value);
 #endif
+				if (IsClient()) {
+					auto zone_id = zone->GetZoneID();
+					if (RuleB(Range, DoChecksForIllusionGlitching) && (zone_id != 184 && zone_id != 185 && zone_id != 152 && zone_id != 151 && zone_id != 202 && zone_id != 77 && zone_id != 345 && zone_id != 203 && zone_id != 26)) {
+						auto& door_list = entity_list.GetDoorsList();
+						for (auto& itr : door_list) {
+							Doors* door = itr.second;
+							if (door && !door->IsDoorOpen() && (door->GetTriggerType() == 255 || door->GetLockpick() != 0 || door->GetKeyItem() != 0 || door->GetNoKeyring() != 0)) {
+								if (DistanceNoZ(GetPosition(), door->GetPosition()) <= 50) {
+									CastToClient()->illusion_fade_check = true;
+								}
+							}
+						}
+					}
+				}
 				if(IsNPC())	// see Song of Highsun - sends mob home
 				{
 					Gate();
@@ -1443,6 +1457,20 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 #ifdef SPELL_EFFECT_SPAM
 				snprintf(effect_desc, _EDLEN, "Illusion: race %d", effect_value);
 #endif
+				if (IsClient()) {
+					auto zone_id = zone->GetZoneID();
+					if (RuleB(Range, DoChecksForIllusionGlitching) && (zone_id != 184 && zone_id != 185 && zone_id != 152 && zone_id != 151 && zone_id != 202 && zone_id != 77 && zone_id != 345 && zone_id != 203 && zone_id != 26)) {
+						auto& door_list = entity_list.GetDoorsList();
+						for (auto& itr : door_list) {
+							Doors* door = itr.second;
+							if (door && !door->IsDoorOpen() && (door->GetTriggerType() == 255 || door->GetLockpick() != 0 || door->GetKeyItem() != 0 || door->GetNoKeyring() != 0)) {
+								if (DistanceNoZ(GetPosition(), door->GetPosition()) <= 50) {
+									CastToClient()->illusion_fade_check = true;
+								}
+							}
+						}
+					}
+				}
 				ApplySpellEffectIllusion(spell_id, caster, buffslot, spells[spell_id].base_value[i], spells[spell_id].limit_value[i], spells[spell_id].max_value[i]);
 				break;
 			}
@@ -1453,6 +1481,20 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 				snprintf(effect_desc, _EDLEN, "Illusion Copy");
 #endif
 				if(caster && caster->GetTarget()){
+					if (caster->GetTarget()->IsClient()) {
+						auto zone_id = zone->GetZoneID();
+						if (RuleB(Range, DoChecksForIllusionGlitching) && (zone_id != 184 && zone_id != 185 && zone_id != 152 && zone_id != 151 && zone_id != 202 && zone_id != 77 && zone_id != 345 && zone_id != 203 && zone_id != 26)) {
+							auto& door_list = entity_list.GetDoorsList();
+							for (auto& itr : door_list) {
+								Doors* door = itr.second;
+								if (door && !door->IsDoorOpen() && (door->GetTriggerType() == 255 || door->GetLockpick() != 0 || door->GetKeyItem() != 0 || door->GetNoKeyring() != 0)) {
+									if (DistanceNoZ(caster->GetTarget()->GetPosition(), door->GetPosition()) <= 50) {
+										caster->GetTarget()->CastToClient()->illusion_fade_check = true;
+									}
+								}
+							}
+						}
+					}
 						SendIllusionPacket
 						(
 							caster->GetTarget()->GetRace(),
@@ -1530,6 +1572,18 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 				snprintf(effect_desc, _EDLEN, "Eye of Zomm");
 #endif
 				if(caster && caster->IsClient()) {
+					auto zone_id = zone->GetZoneID();
+					if (RuleB(Range, DoChecksForIllusionGlitching) && (zone_id != 184 && zone_id != 185 && zone_id != 152 && zone_id != 151 && zone_id != 202 && zone_id != 77 && zone_id != 345 && zone_id != 203 && zone_id != 26)) {
+						auto& door_list = entity_list.GetDoorsList();
+						for (auto& itr : door_list) {
+							Doors* door = itr.second;
+							if (door && !door->IsDoorOpen() && (door->GetTriggerType() == 255 || door->GetLockpick() != 0 || door->GetKeyItem() != 0 || door->GetNoKeyring() != 0)) {
+								if (DistanceNoZ(caster->GetPosition(), door->GetPosition()) <= 50) {
+									caster->CastToClient()->illusion_fade_check = true;
+								}
+							}
+						}
+					}
 					char eye_name[64];
 					snprintf(eye_name, sizeof(eye_name), "Eye_of_%s", caster->GetCleanName());
 					int duration = CalcBuffDuration(caster, this, spell_id) * 6;
@@ -1667,6 +1721,20 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 #ifdef SPELL_EFFECT_SPAM
 				snprintf(effect_desc, _EDLEN, "Model Size: %d%%", effect_value);
 #endif
+				if (IsClient()) {
+					auto zone_id = zone->GetZoneID();
+					if (RuleB(Range, DoChecksForIllusionGlitching) && (zone_id != 184 && zone_id != 185 && zone_id != 152 && zone_id != 151 && zone_id != 202 && zone_id != 77 && zone_id != 345 && zone_id != 203 && zone_id != 26)) {
+						auto& door_list = entity_list.GetDoorsList();
+						for (auto& itr : door_list) {
+							Doors* door = itr.second;
+							if (door && !door->IsDoorOpen() && (door->GetTriggerType() == 255 || door->GetLockpick() != 0 || door->GetKeyItem() != 0 || door->GetNoKeyring() != 0)) {
+								if (DistanceNoZ(GetPosition(), door->GetPosition()) <= 50) {
+									CastToClient()->illusion_fade_check = true;
+								}
+							}
+						}
+					}
+				}
 				if (effect_value && effect_value != 100) {
 					// Only allow 2 size changes from Base Size
 					float modifyAmount = (static_cast<float>(effect_value) / 100.0f);
@@ -1710,6 +1778,18 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 #endif
 				if(IsClient())	// NPCs can't ride
 				{
+					auto zone_id = zone->GetZoneID();
+					if (RuleB(Range, DoChecksForIllusionGlitching) && (zone_id != 184 && zone_id != 185 && zone_id != 152 && zone_id != 151 && zone_id != 202 && zone_id != 77 && zone_id != 345 && zone_id != 203 && zone_id != 26)) {
+						auto& door_list = entity_list.GetDoorsList();
+						for (auto& itr : door_list) {
+							Doors* door = itr.second;
+							if (door && !door->IsDoorOpen() && (door->GetTriggerType() == 255 || door->GetLockpick() != 0 || door->GetKeyItem() != 0 || door->GetNoKeyring() != 0)) {
+								if (DistanceNoZ(GetPosition(), door->GetPosition()) <= 50) {
+									CastToClient()->illusion_fade_check = true;
+								}
+							}
+						}
+					}
 					Client *client = CastToClient();
 
 					// Prevent Feigned players from summoning horses and riding away to freedom.
@@ -4161,7 +4241,7 @@ void Mob::BuffFadeBySlot(int slot, bool iRecalcBonuses)
 
 	if(!IsValidSpell(buffs[slot].spellid))
 		return;
-
+	
 	if (IsClient() && !CastToClient()->IsDead())
 		CastToClient()->MakeBuffFadePacket(buffs[slot].spellid, slot);
 
@@ -4230,8 +4310,19 @@ void Mob::BuffFadeBySlot(int slot, bool iRecalcBonuses)
 
 			case SE_SummonHorse:
 			{
-				if(IsClient())
-				{
+				if (IsClient()) {
+					auto zone_id = zone->GetZoneID();
+					if (RuleB(Range, DoChecksForIllusionGlitching) && (zone_id != 184 && zone_id != 185 && zone_id != 152 && zone_id != 151 && zone_id != 202 && zone_id != 77 && zone_id != 345 && zone_id != 203 && zone_id != 26)) {
+						auto& door_list = entity_list.GetDoorsList();
+						for (auto& itr : door_list) {
+							Doors* door = itr.second;
+							if (door && !door->IsDoorOpen() && (door->GetTriggerType() == 255 || door->GetLockpick() != 0 || door->GetKeyItem() != 0 || door->GetNoKeyring() != 0)) {
+								if (DistanceNoZ(GetPosition(), door->GetPosition()) <= 50) {
+									CastToClient()->illusion_fade_check = true;
+								}
+							}
+						}
+					}
 					/*Mob* horse = entity_list.GetMob(CastToClient()->GetHorseId());
 					if (horse) horse->Depop();
 					CastToClient()->SetHasMount(false);*/
@@ -4243,6 +4334,20 @@ void Mob::BuffFadeBySlot(int slot, bool iRecalcBonuses)
 			case SE_IllusionCopy:
 			case SE_Illusion:
 			{
+				if (IsClient()) {
+					auto zone_id = zone->GetZoneID();
+					if (RuleB(Range, DoChecksForIllusionGlitching) && (zone_id != 184 && zone_id != 185 && zone_id != 152 && zone_id != 151 && zone_id != 202 && zone_id != 77 && zone_id != 345 && zone_id != 203 && zone_id != 26)) {
+						auto& door_list = entity_list.GetDoorsList();
+						for (auto& itr : door_list) {
+							Doors* door = itr.second;
+							if (door && !door->IsDoorOpen() && (door->GetTriggerType() == 255 || door->GetLockpick() != 0 || door->GetKeyItem() != 0 || door->GetNoKeyring() != 0)) {
+								if (DistanceNoZ(GetPosition(), door->GetPosition()) <= 50) {
+									CastToClient()->illusion_fade_check = true;
+								}
+							}
+						}
+					}
+				}
 				SendIllusionPacket(0, GetBaseGender());
 				// The GetSize below works because the above setting race to zero sets size back.
 				SendAppearancePacket(AT_Size, GetSize());

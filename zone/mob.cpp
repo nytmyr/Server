@@ -3531,6 +3531,43 @@ float Mob::MobAngle(Mob *other, float ourx, float oury) const {
 	return angle;
 }
 
+float Mob::MobAngleAutoFace(Mob* other, float ourx, float oury, float ourh) const {
+	if (!other || other == this)
+		return 0.0f;
+
+	float angle, lengthb, vectorx, vectory, dotp;
+	float mobx = -(other->GetX());	// mob xloc (inverse because eq)
+	float moby = other->GetY();		// mob yloc
+	float heading = ourh;	// convert to degrees
+	if (heading < 270)
+		heading += 90;
+	else
+		heading -= 270;
+
+	heading = heading * 3.1415f / 180.0f;	// convert to radians
+	vectorx = mobx + (10.0f * std::cos(heading));	// create a vector based on heading
+	vectory = moby + (10.0f * std::sin(heading));	// of mob length 10
+
+	// length of mob to player vector
+	lengthb = (float)std::sqrt(((-ourx - mobx) * (-ourx - mobx)) + ((oury - moby) * (oury - moby)));
+
+	// calculate dot product to get angle
+	// Handle acos domain errors due to floating point rounding errors
+	dotp = ((vectorx - mobx) * (-ourx - mobx) +
+		(vectory - moby) * (oury - moby)) / (10 * lengthb);
+	// I haven't seen any errors that  cause problems that weren't slightly
+	// larger/smaller than 1/-1, so only handle these cases for now
+	if (dotp > 1)
+		return 0.0f;
+	else if (dotp < -1)
+		return 180.0f;
+
+	angle = std::acos(dotp);
+	angle = angle * 180.0f / 3.1415f;
+
+	return angle;
+}
+
 void Mob::SetZone(uint32 zone_id, uint32 instance_id)
 {
 	if(IsClient())

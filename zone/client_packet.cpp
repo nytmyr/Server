@@ -532,6 +532,8 @@ void Client::CompleteConnect()
 	SendAllPackets();
 	hpupdate_timer.Start();
 	autosave_timer.Start();
+	illusion_fade_reset.Start();
+	illusion_fade_check = false;
 	SetDuelTarget(0);
 	SetDueling(false);
 
@@ -10765,6 +10767,10 @@ void Client::Handle_OP_PetCommands(const EQApplicationPacket *app)
 	case PET_ATTACK: {
 		if (!target)
 			break;
+		if (!DoLosChecks(this, target)) {
+			mypet->SayString(this, NOT_LEGAL_TARGET);
+			break;
+		}
 		if (target->IsMezzed()) {
 			MessageString(Chat::NPCQuestSay, CANNOT_WAKE, mypet->GetCleanName(), target->GetCleanName());
 			break;
@@ -10822,6 +10828,10 @@ void Client::Handle_OP_PetCommands(const EQApplicationPacket *app)
 
 		if (!GetTarget())
 			break;
+		if (!DoLosChecks(this, target)) {
+			mypet->SayString(this, NOT_LEGAL_TARGET);
+			break;
+		}
 		if (GetTarget()->IsMezzed()) {
 			MessageString(Chat::NPCQuestSay, CANNOT_WAKE, mypet->GetCleanName(), GetTarget()->GetCleanName());
 			break;

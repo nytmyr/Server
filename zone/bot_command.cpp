@@ -3114,8 +3114,16 @@ void bot_command_attack(Client *c, const Seperator *sep)
 
 	Mob* target_mob = ActionableTarget::AsSingle_ByAttackable(c);
 	if (!target_mob) {
-
 		c->Message(Chat::White, "You must <target> an enemy to use this command");
+		return;
+	}
+
+	if (!c->DoLosChecks(c, target_mob)) {
+		c->Message(Chat::Red, "You must have Line of Sight to use this command.");
+		return;
+	}
+	if (!c->CastToMob()->CheckLosCheat(c, target_mob)) {
+		c->Message(Chat::Red, "You must have Line of Sight or move further away from the door to use this command.");
 		return;
 	}
 
@@ -3547,6 +3555,15 @@ void bot_command_charm(Client *c, const Seperator *sep)
 		c->Message(Chat::Yellow, "You must target an NPC for %s.", sep->arg[0]);
 		return;
 	}
+	if (!c->DoLosChecks(c, c->GetTarget())) {
+		c->Message(Chat::Red, "You must have Line of Sight to use this command.");
+		return;
+	}
+	if (!c->CastToMob()->CheckLosCheat(c, c->GetTarget())) {
+		c->Message(Chat::Red, "You must have Line of Sight or move further away from the door to use this command.");
+		return;
+	}
+	
 	if (c->GetTarget()->IsCharmed()) {
 		c->Message(Chat::Yellow, "%s is already charmed by %s.", c->GetTarget()->GetCleanName(), c->GetTarget()->GetOwner()->GetCleanName());
 		return;
@@ -5604,6 +5621,10 @@ void bot_command_heal_delay(Client* c, const Seperator* sep)
 
 void bot_command_heal_rotation(Client *c, const Seperator *sep)
 {
+	c->Message(Chat::White, "This command is disabled...");
+	c->Message(Chat::White, "Use the custom heal commands to customize heal settings. Visit bot-commands on the Discord or Bot Information on the Allaclone for a list of commands and how to use them.");
+	return;
+
 	/* VS2012 code - begin */
 	std::list<const char*> subcommand_list;
 	subcommand_list.push_back("healrotationadaptivetargeting");
@@ -8334,6 +8355,14 @@ void bot_command_lull(Client* c, const Seperator* sep)
 		c->Message(Chat::Yellow, "You must target an NPC for %s.", sep->arg[0]);
 		return;
 	}
+	if (!c->DoLosChecks(c, c->GetTarget())) {
+		c->Message(Chat::Red, "You must have Line of Sight to use this command.");
+		return;
+	}
+	if (!c->CastToMob()->CheckLosCheat(c, c->GetTarget())) {
+		c->Message(Chat::Red, "You must have Line of Sight or move further away from the door to use this command.");
+		return;
+	}
 
 	Mob* my_target = c->GetTarget();
 	Bot* my_bot = nullptr;
@@ -8788,6 +8817,14 @@ void bot_command_mesmerize(Client *c, const Seperator *sep)
 
 	if (!c->GetTarget() || !c->GetTarget()->IsNPC()) {
 		c->Message(Chat::Yellow, "You must target an NPC for %s.", sep->arg[0]);
+		return;
+	}
+	if (!c->DoLosChecks(c, c->GetTarget())) {
+		c->Message(Chat::Red, "You must have Line of Sight to use this command.");
+		return;
+	}
+	if (!c->CastToMob()->CheckLosCheat(c, c->GetTarget())) {
+		c->Message(Chat::Red, "You must have Line of Sight or move further away from the door to use this command.");
 		return;
 	}
 
@@ -9885,6 +9922,14 @@ void bot_command_precombat(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "This command requires an attackable target.");
 		return;
 	}
+	if (!c->DoLosChecks(c, c->GetTarget())) {
+		c->Message(Chat::Red, "You must have Line of Sight to use this command.");
+		return;
+	}
+	if (!c->CastToMob()->CheckLosCheat(c, c->GetTarget())) {
+		c->Message(Chat::Red, "You must have Line of Sight or move further away from the door to use this command.");
+		return;
+	}
 
 	std::string argument(sep->arg[1]);
 
@@ -9944,6 +9989,15 @@ void bot_command_pull(Client *c, const Seperator *sep)
 	if (target_mob->IsNPC() && target_mob->GetHateList().size()) {
 
 		c->Message(Chat::White, "Your current target is already engaged!");
+		return;
+	}
+
+	if (!c->DoLosChecks(c, target_mob)) {
+		c->Message(Chat::Red, "You must have Line of Sight to use this command.");
+		return;
+	}
+	if (!c->CastToMob()->CheckLosCheat(c, target_mob)) {
+		c->Message(Chat::Red, "You must have Line of Sight or move further away from the door to use this command.");
 		return;
 	}
 
@@ -10353,6 +10407,14 @@ void bot_command_root(Client *c, const Seperator *sep)
 
 	if (!c->GetTarget()) {
 		c->Message(Chat::Yellow, "You must have an enemy target for %s.", sep->arg[0]);
+		return;
+	}
+	if (!c->DoLosChecks(c, c->GetTarget())) {
+		c->Message(Chat::Red, "You must have Line of Sight to use this command.");
+		return;
+	}
+	if (!c->CastToMob()->CheckLosCheat(c, c->GetTarget())) {
+		c->Message(Chat::Red, "You must have Line of Sight or move further away from the door to use this command.");
 		return;
 	}
 
@@ -10956,6 +11018,14 @@ void bot_command_snare(Client* c, const Seperator* sep)
 
 	if (!c->GetTarget()) {
 		c->Message(Chat::Yellow, "You must have an enemy target for %s.", sep->arg[0]);
+		return;
+	}
+	if (!c->DoLosChecks(c, c->GetTarget())) {
+		c->Message(Chat::Red, "You must have Line of Sight to use this command.");
+		return;
+	}
+	if (!c->CastToMob()->CheckLosCheat(c, c->GetTarget())) {
+		c->Message(Chat::Red, "You must have Line of Sight or move further away from the door to use this command.");
 		return;
 	}
 
@@ -11622,6 +11692,14 @@ void bot_command_use_epic(Client *c, const Seperator *sep)
 						}
 					auto pitem = instp->GetItem()->ID;	
 						if (pitem == 20490 || pitem == 620490) {
+							if (!c->DoLosChecks(c, target_mob)) {
+								c->Message(Chat::Red, "You must have Line of Sight to use this command.");
+								return;
+							}
+							if (!c->CastToMob()->CheckLosCheat(c, target_mob)) {
+								c->Message(Chat::Red, "You must have Line of Sight or move further away from the door to use this command.");
+								return;
+							}
 							uint32 dont_root_before = 0;
 							if (helper_cast_standard_spell(selected_bot, target_mob, 25104, true, &dont_root_before))
 								target_mob->SetDontRootMeBefore(dont_root_before);
@@ -11640,6 +11718,14 @@ void bot_command_use_epic(Client *c, const Seperator *sep)
 						}
 					auto pitem = instp->GetItem()->ID;	
 						if (pitem == 20544 || pitem == 620544) {
+							if (!c->DoLosChecks(c, target_mob)) {
+								c->Message(Chat::Red, "You must have Line of Sight to use this command.");
+								return;
+							}
+							if (!c->CastToMob()->CheckLosCheat(c, target_mob)) {
+								c->Message(Chat::Red, "You must have Line of Sight or move further away from the door to use this command.");
+								return;
+							}
 							uint32 dont_root_before = 0;
 							if (helper_cast_standard_spell(selected_bot, target_mob, 25107, true, &dont_root_before))
 								target_mob->SetDontRootMeBefore(dont_root_before);
@@ -11658,6 +11744,14 @@ void bot_command_use_epic(Client *c, const Seperator *sep)
 						}
 					auto pitem = instp->GetItem()->ID;	
 						if (pitem == 10651 || pitem == 610651) {
+							if (!c->DoLosChecks(c, target_mob)) {
+								c->Message(Chat::Red, "You must have Line of Sight to use this command.");
+								return;
+							}
+							if (!c->CastToMob()->CheckLosCheat(c, target_mob)) {
+								c->Message(Chat::Red, "You must have Line of Sight or move further away from the door to use this command.");
+								return;
+							}
 							uint32 dont_root_before = 0;
 							if (helper_cast_standard_spell(selected_bot, target_mob, 25106, true, &dont_root_before))
 								target_mob->SetDontRootMeBefore(dont_root_before);
@@ -16508,7 +16602,6 @@ void bot_subcommand_pet_set_type(Client *c, const Seperator *sep)
 		pet_type = 4;
 		level_req = 30;
 	}
-	
 	else if (!pet_arg.compare("epic")) {
 		pet_type = 5;
 		level_req = RuleI(Bots, MageEpicPetMinLvl);
@@ -16518,56 +16611,53 @@ void bot_subcommand_pet_set_type(Client *c, const Seperator *sep)
 			return;
 		}
 		else if (RuleI(Bots, MageEpicPet) == 1) {
-				std::list<Bot*> sbl;
-					if (ActionableBots::PopulateSBL(c, sep->arg[2], sbl, ab_mask, sep->arg[3]) == ActionableBots::ABT_None)
-					return;
+			std::list<Bot*> sbl;
+			if (ActionableBots::PopulateSBL(c, sep->arg[2], sbl, ab_mask, sep->arg[3]) == ActionableBots::ABT_None)
+				return;
 		
-				uint16 class_mask = PLAYER_CLASS_MAGICIAN_BIT;
-				ActionableBots::Filter_ByClasses(c, sbl, class_mask);
-					if (sbl.empty()) {
-						c->Message(Chat::White, "You have no spawned Magician bots");
-					return;
-					}
-				ActionableBots::Filter_ByMinLevel(c, sbl, level_req);
-					if (sbl.empty()) {
-						c->Message(Chat::White, "Your Mage bots must be level %i or higher to use their Epic pet", level_req);
-					return;
-					}
-				auto my_bot = sbl.front();
-				auto inst = my_bot->CastToBot()->GetBotItem(13);
-					if (!inst || !inst->GetItem()) {
-					c->Message(Chat::White, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
-					return;
-					}
-					auto botitem = inst->GetItem()->ID;	
-					if (botitem == 550005) {
-					}
-					else {
-						c->Message(Chat::White, "Your bot does not currently have their epic equipped.");
-						return;
-					}
-				}
-			else if (RuleI(Bots, MageEpicPet) == 2) {
-				std::list<Bot*> sbl;
-					if (ActionableBots::PopulateSBL(c, sep->arg[2], sbl, ab_mask, sep->arg[3]) == ActionableBots::ABT_None)
-					return;
-		
-				uint16 class_mask = PLAYER_CLASS_MAGICIAN_BIT;
-				ActionableBots::Filter_ByClasses(c, sbl, class_mask);
-					if (sbl.empty()) {
-						c->Message(Chat::White, "You have no spawned Magician bots");
-					return;
-					}
-		
-				ActionableBots::Filter_ByMinLevel(c, sbl, level_req);
-					if (sbl.empty()) {
-						c->Message(Chat::White, "Your Mage bots must be level %i or higher to use their Epic pet", level_req);
-					return;
-					}
+			uint16 class_mask = PLAYER_CLASS_MAGICIAN_BIT;
+			ActionableBots::Filter_ByClasses(c, sbl, class_mask);
+			if (sbl.empty()) {
+				c->Message(Chat::White, "You have no spawned Magician bots");
+				return;
+			}
+			ActionableBots::Filter_ByMinLevel(c, sbl, level_req);
+			if (sbl.empty()) {
+				c->Message(Chat::White, "Your Mage bots must be level %i or higher to use their Epic pet", level_req);
+				return;
+			}
+			auto my_bot = sbl.front();
+			auto inst = my_bot->CastToBot()->GetBotItem(13);
+			if (!inst || !inst->GetItem()) {
+				c->Message(Chat::White, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
+				return;
+			}
+			auto botitem = inst->GetItem()->ID;	
+			if (botitem != 550005) {
+				c->Message(Chat::White, "Your bot does not currently have their epic equipped.");
+				return;
 			}
 		}
-
-	if (pet_type == 999) {
+		else if (RuleI(Bots, MageEpicPet) == 2) {
+			std::list<Bot*> sbl;
+			if (ActionableBots::PopulateSBL(c, sep->arg[2], sbl, ab_mask, sep->arg[3]) == ActionableBots::ABT_None)
+				return;
+		
+			uint16 class_mask = PLAYER_CLASS_MAGICIAN_BIT;
+			ActionableBots::Filter_ByClasses(c, sbl, class_mask);
+			if (sbl.empty()) {
+				c->Message(Chat::White, "You have no spawned Magician bots");
+				return;
+			}
+		
+			ActionableBots::Filter_ByMinLevel(c, sbl, level_req);
+			if (sbl.empty()) {
+				c->Message(Chat::White, "Your Mage bots must be level %i or higher to use their Epic pet", level_req);
+				return;
+			}
+		}
+	}
+	else {
 		c->Message(Chat::White, "You must specify a pet [type: water | fire | air | earth | monster | epic | default]");
 		return;
 	}
@@ -17204,7 +17294,7 @@ bool helper_no_available_bots(Client *bot_owner, Bot *my_bot)
 	if (!bot_owner)
 		return true;
 	if (!my_bot) {
-		bot_owner->Message(Chat::White, "Could not find a usable bot. Be sure no usable bots are outside of your group or raid and that they have enough mana.");
+		bot_owner->Message(Chat::White, "Could not find a usable bot. Be sure no usable bots are outside of your group or raid, that they have enough mana and their target is not out of range.");
 		return true;
 	}
 

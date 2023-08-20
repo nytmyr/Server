@@ -340,6 +340,9 @@ RULE_BOOL(Map, MobZVisualDebug, false, "Displays spell effects determining wheth
 RULE_BOOL(Map, MobPathingVisualDebug, false, "Displays nodes in pathing points in realtime to help with visual debugging")
 RULE_REAL(Map, FixPathingZMaxDeltaSendTo, 20, "At runtime in SendTo: maximum change in Z to allow the BestZ code to apply")
 RULE_INT(Map, FindBestZHeightAdjust, 1, "Adds this to the current Z before seeking the best Z position")
+RULE_BOOL(Map, CheckForLoSCheat, false, "Runs predefined zone checks to check for LoS cheating through doors and such.")
+RULE_BOOL(Map, EnableLoSCheatExemptions, true, "Enables exemptions for the LoS Cheat check.")
+RULE_REAL(Map, RangeCheckForLoSCheat, 20.0, "Default 20.0. Range to check if one is within range of a door.")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(Pathing)
@@ -610,6 +613,9 @@ RULE_INT(Range, ClientPositionUpdates, 300, "Distance in which the own changed p
 RULE_INT(Range, CriticalDamage, 80, "The packet range in which critical hit messages are sent")
 RULE_INT(Range, MobCloseScanDistance, 600, "Close scan distance")
 RULE_INT(Range, MaxDistanceToClickDoors, 100, "Max distance that a client can click a door from (Client says 'You can't reach that' at roughly 25-50 for most doors)")
+RULE_BOOL(Range, DoChecksForIllusionGlitching, false, "Controls where or not coords are updating and doors are checked to see if a client is trying to illusion or horse through the door.")
+RULE_REAL(Range, UpdateRangeForIllusionChecks, 50.0, "Default 50.0. This is how far one must travel to initiate an update of the client's position for the illusion glitch check.")
+RULE_INT(Range, UpdateIntervalForIllusionChecks, 250, "Default 250ms. In ms this is how often the position is updated to revert for illusions.")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(Bots)

@@ -84,7 +84,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 			if (CanCastBySpellType(this, tar, SpellType_Mez)) {
 				if (tar->GetBodyType() != BT_Giant) {
 					if (!checked_los) {
-						if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
+						if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar)) // if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar) || !CheckLosCheat(this, tar))
 							break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
 
 						checked_los = true;
@@ -326,7 +326,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 			if (CanCastBySpellType(this, tar, SpellType_Root)) {
 				if (!tar->IsRooted()) { // && tar->DontRootMeBefore() < Timer::GetCurrentTime()) {
 					if (!checked_los) {
-						if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
+						if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar)) // if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar) || !CheckLosCheat(this, tar))
 							break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
 
 						checked_los = true;
@@ -603,7 +603,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 		case SpellType_Nuke: {
 			if (CanCastBySpellType(this, tar, SpellType_Nuke)) {
 				if (!checked_los) {
-					if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
+					if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar)) // if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar) || !CheckLosCheat(this, tar))
 						break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
 
 					checked_los = true;
@@ -747,7 +747,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 		case SpellType_Dispel: {
 			if (CanCastBySpellType(this, tar, SpellType_Dispel)) {
 				if (!checked_los) {
-					if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
+					if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar)) // if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar) || !CheckLosCheat(this, tar))
 						break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
 					checked_los = true;
 				}
@@ -828,7 +828,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 		case SpellType_InCombatBuff: {
 			if (CanCastBySpellType(this, tar, SpellType_InCombatBuff)) {
 				if (!checked_los && (botClass != BARD || botClass != CLERIC || botClass != PALADIN || botClass != SHAMAN)) {
-					if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
+					if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar)) // if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar) || !CheckLosCheat(this, tar))
 						break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
 
 					checked_los = true;
@@ -956,7 +956,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 		case SpellType_Lifetap: {
 			if (CanCastBySpellType(this, tar, SpellType_Lifetap)) {
 				if (!checked_los) {
-					if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
+					if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar)) // if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar) || !CheckLosCheat(this, tar))
 						break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
 
 					checked_los = true;
@@ -1013,7 +1013,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 			if (CanCastBySpellType(this, tar, SpellType_Snare)) {
 				//if (tar->DontSnareMeBefore() < Timer::GetCurrentTime()) {
 					if (!checked_los) {
-						if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
+						if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar)) // if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar) || !CheckLosCheat(this, tar))
 							break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
 
 						checked_los = true;
@@ -1077,7 +1077,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 			if (CanCastBySpellType(this, tar, SpellType_DOT)) {
 				//if (tar->DontDotMeBefore() < Timer::GetCurrentTime() && tar->GetHPRatio() > 15.0f) {
 					if (!checked_los) {
-						if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
+						if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar)) // if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar) || !CheckLosCheat(this, tar))
 							break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
 
 						checked_los = true;
@@ -1207,7 +1207,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 		case SpellType_Slow: {
 			if (CanCastBySpellType(this, tar, SpellType_Slow)) {
 				if (!checked_los) {
-					if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
+					if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar)) // if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar) || !CheckLosCheat(this, tar))
 						break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
 
 					checked_los = true;
@@ -1298,7 +1298,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				//if (tar->GetHPRatio() > 25.0f)
 				//{
 					if (!checked_los) {
-						if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))
+						if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar)) // if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar) || !CheckLosCheat(this, tar))
 							break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
 
 						checked_los = true;
