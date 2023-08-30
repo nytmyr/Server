@@ -1060,11 +1060,11 @@ private:
 						return true;
 					if (EQ_SPELLS(l, r, resist_difficulty) && EQ_STBASE(l, r, target_type) && GT_SPELLS(l, r, buff_duration))
 						return true;
-					if (EQ_SPELLS(l, r, resist_difficulty) && EQ_STBASE(l, r, target_type) && EQ_SPELLS(l, r, buff_duration) && LT_SPELLS_EFFECT_ID(l, r, base_value, 2))
+					if (EQ_SPELLS(l, r, resist_difficulty) && EQ_STBASE(l, r, target_type) && EQ_STBASE(l, r, buff_duration) && LT_SPELLS_EFFECT_ID(l, r, base_value, 2))
 						return true;
-					if (EQ_SPELLS(l, r, resist_difficulty) && EQ_STBASE(l, r, target_type) && EQ_SPELLS(l, r, buff_duration) && EQ_SPELLS_EFFECT_ID(l, r, base_value, 2))
-						return true;
-					if (EQ_SPELLS(l, r, resist_difficulty) && EQ_STBASE(l, r, target_type) && EQ_SPELLS(l, r, buff_duration) && EQ_SPELLS_EFFECT_ID(l, r, base_value, 2) && LT_STBASE(l, r, caster_class))
+					//if (EQ_SPELLS(l, r, resist_difficulty) && EQ_STBASE(l, r, target_type) && EQ_STBASE(l, r, buff_duration) && EQ_SPELLS_EFFECT_ID(l, r, base_value, 2))
+						//return true;
+					if (EQ_SPELLS(l, r, resist_difficulty) && EQ_STBASE(l, r, target_type) && EQ_STBASE(l, r, buff_duration) && EQ_SPELLS_EFFECT_ID(l, r, base_value, 2) && LT_STBASE(l, r, caster_class))
 						return true;
 
 					return false;
