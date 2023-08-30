@@ -3949,10 +3949,23 @@ void bot_command_copy_settings(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto from = ActionableBots::AsTarget_ByBot(c);
-	if (!from) {
-		c->Message(Chat::White, "You must target a bot that you own to use this command.");
-		return;
+	Bot* from = nullptr;
+
+	if (RuleB(Bots, CopySettingsOwnBotsOnly)) {
+		from = ActionableBots::AsTarget_ByBot(c);
+		if (!from) {
+			c->Message(Chat::White, "You must target a bot that you own to use this command.");
+			return;
+		}
+	}
+	else {
+		if (!c->GetTarget() || !c->GetTarget()->IsBot()) {
+			c->Message(Chat::White, "You must target a spawned bot to use this command.");
+			return;
+		}
+		else {
+			from = c->GetTarget()->CastToBot();
+		}
 	}
 
 	auto to = ActionableBots::AsNamed_ByBot(c, sep->arg[1]);
