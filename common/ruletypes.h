@@ -998,6 +998,23 @@ RULE_BOOL(Vegas, EnableAltCurrencySellElemental, true, "Enables the ability to r
 RULE_REAL(Vegas, AltCurrencySellElementalRate, .20, "Sellback rate for Shard bought items. .20 = 20%.")
 RULE_CATEGORY_END()
 
+RULE_CATEGORY(CharChange)
+RULE_BOOL(CharChange, CommandEnabled, false, "Is #charchange command enabled?, default false")
+RULE_INT(CharChange, ExpansionLimitForCharChange, 5, "Maximum expansion limit for #charchange to use in char_create_combinations, default 5")
+RULE_INT(CharChange, BaseCost, 10000, "Base cost for #charchange, default is 10000")
+RULE_INT(CharChange, ClassCost, 15000, "Class cost for #charchange, default is 15000")
+RULE_INT(CharChange, DeityCost, 5000, "Deity cost for #charchange, default is 5000")
+RULE_INT(CharChange, GenderCost, 2500, "Gender cost for #charchange, default is 2500")
+RULE_INT(CharChange, RaceCost, 10000, "Race cost for #charchange, default is 10000")
+RULE_INT(CharChange, LevelScaleStart, 30, "Level at which cost scaling starts for #charchange, default 30")
+RULE_REAL(CharChange, ScaleRate, 1.0175, "Scale rate for #charchange per level (each level increases by x amount), default is 1.0175")
+RULE_BOOL(CharChange, RequireSpecificZone, false, "Whether or not #charchange requires a specific zone to be used in, default false")
+RULE_INT(CharChange, RequiredZone, 202, "Zone required for #charchange if RequireSpecificZone is enabled, default = 202/PoK")
+RULE_BOOL(CharChange, RequiresAltCurrency, false, "Is Alt Currency required for #charchange, default false")
+RULE_INT(CharChange, RequiredAltCurrency, 70, "Alt Currency required for #charchange if RequiresAltCurrency is enabled, default 70")
+RULE_BOOL(CharChange, DiscordOutputEnabled, false, "Output #charchange usage to Discord, default false")
+RULE_CATEGORY_END()
+
 #undef RULE_CATEGORY
 #undef RULE_INT
 #undef RULE_REAL
