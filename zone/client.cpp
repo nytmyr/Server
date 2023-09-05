@@ -7069,6 +7069,10 @@ void Client::UpdateClientXTarget(Client *c)
 // IT IS NOT SAFE TO CALL THIS IF IT'S NOT INITIAL AGGRO
 void Client::AddAutoXTarget(Mob *m, bool send)
 {
+	if (!m) {
+		return;
+	}
+
 	m_activeautohatermgr->increment_count(m);
 
 	if (!XTargettingAvailable() || !XTargetAutoAddHaters || IsXTarget(m))
@@ -7090,6 +7094,10 @@ void Client::AddAutoXTarget(Mob *m, bool send)
 
 void Client::RemoveXTarget(Mob *m, bool OnlyAutoSlots)
 {
+	if (!m) {
+		return;
+	}
+
 	m_activeautohatermgr->decrement_count(m);
 	// now we may need to clean up our CurrentTargetNPC entries
 	for (int i = 0; i < GetMaxXTargets(); ++i) {

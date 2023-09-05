@@ -88,11 +88,9 @@ struct RaidMember{
 	bool IsGroupLeader;
 	bool IsRaidLeader;
 	bool IsLooter;
-	//if (RuleB(Bots, Enabled)) {
-		bool IsBot;
-		bool IsRaidMainAssistOne = false;
-		uint32 BotOwnerID;
-	//}
+	bool IsBot;
+	bool IsRaidMainAssistOne = false;
+	uint32 BotOwnerID;
 };
 
 struct GroupMentor {

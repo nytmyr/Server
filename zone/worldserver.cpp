@@ -1513,20 +1513,20 @@ void WorldServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p)
 		break;
 	}
 	case ServerOP_RaidSay: {
-		ServerRaidMessage_Struct* rmsg = (ServerRaidMessage_Struct*)pack->pBuffer;
-		if (zone)
-		{
-			Raid *r = entity_list.GetRaidByID(rmsg->rid);
-			if (r)
-			{
-				for (int x = 0; x < MAX_RAID_MEMBERS; x++)
-				{
-					if (r->members[x].member && !r->members[x].BotOwnerID) {
-						if (strcmp(rmsg->from, r->members[x].member->GetName()) != 0)
-						{
-							if (r->members[x].member->GetFilter(FilterGroupChat) != 0)
-							{
-								r->members[x].member->ChannelMessageSend(rmsg->from, r->members[x].member->GetName(), ChatChannel_Raid, rmsg->language, rmsg->lang_skill, rmsg->message);
+		auto rmsg = (ServerRaidMessage_Struct*)pack->pBuffer;
+		if (zone) {
+			Raid* r = entity_list.GetRaidByID(rmsg->rid);
+
+			if (r) {
+				for (const auto& m : r->members) {
+					if (m.IsBot || m.BotOwnerID) {
+						continue;
+					}
+
+					if (m.member) {
+						if (strcmp(rmsg->from, m.member->GetName()) != 0) {
+							if (!m.IsBot && !m.BotOwnerID && m.member->GetFilter(FilterGroupChat) != 0) {
+								m.member->ChannelMessageSend(rmsg->from, m.member->GetName(), ChatChannel_Raid, rmsg->language, rmsg->lang_skill, rmsg->message);
 							}
 						}
 					}
