@@ -3159,7 +3159,8 @@ void bot_command_attack(Client *c, const Seperator *sep)
 		c->Message(
 			Chat::White,
 			fmt::format(
-				"Attacking {}.",
+				"{} is attacking {}.",
+				first_attacker->GetCleanName(),
 				target_mob->GetCleanName()
 			).c_str()
 		);
@@ -5802,8 +5803,13 @@ void bot_command_hold(Client *c, const Seperator *sep)
 		return;
 	}
 
+	Bot* first_attacker = nullptr;
 	sbl.remove(nullptr);
 	for (auto bot_iter : sbl) {
+
+		if (!first_attacker) {
+			first_attacker = bot_iter;
+		}
 
 		if (clear) {
 			bot_iter->SetHoldFlag(false);
@@ -5817,8 +5823,9 @@ void bot_command_hold(Client *c, const Seperator *sep)
 		c->Message(
 			Chat::White,
 			fmt::format(
-				"{}olding my attacks.",
-				clear ? "No longer h" : "H"
+				"{} is {}olding my attacks.",
+				first_attacker->GetCleanName(),
+				clear ? "no longer h" : "h"
 			).c_str()
 		);
 	} else {
@@ -8780,9 +8787,12 @@ void bot_command_max_melee_range(Client* c, const Seperator* sep)
 		return;
 	}
 
+	Bot* first_attacker = nullptr;
 	sbl.remove(nullptr);
 	for (auto bot_iter : sbl) {
-
+		if (!first_attacker) {
+			first_attacker = bot_iter;
+		}
 		if (clear) {
 			bot_iter->SetMaxMeleeRange(false);
 		}
@@ -8795,7 +8805,8 @@ void bot_command_max_melee_range(Client* c, const Seperator* sep)
 		c->Message(
 			Chat::White,
 			fmt::format(
-				"I am {} at max melee range.",
+				"{} is {} at max melee range.",
+				first_attacker->GetCleanName(),
 				clear ? "no longer" : "now"
 			).c_str()
 		);
