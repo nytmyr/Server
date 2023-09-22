@@ -15045,6 +15045,10 @@ void bot_subcommand_circle(Client *c, const Seperator *sep)
 
 void bot_subcommand_heal_rotation_adaptive_targeting(Client *c, const Seperator *sep)
 {
+	c->Message(Chat::White, "This command is disabled...");
+	c->Message(Chat::White, "Use the custom heal commands to customize heal settings. Visit bot-commands on the Discord or Bot Information on the Allaclone for a list of commands and how to use them.");
+	return;
+
 	if (helper_command_alias_fail(c, "bot_subcommand_heal_rotation_adaptive_targeting", sep->arg[0], "healrotationadaptivetargeting"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
@@ -15097,6 +15101,10 @@ void bot_subcommand_heal_rotation_adaptive_targeting(Client *c, const Seperator 
 
 void bot_subcommand_heal_rotation_add_member(Client* c, const Seperator* sep)
 {
+	c->Message(Chat::White, "This command is disabled...");
+	c->Message(Chat::White, "Use the custom heal commands to customize heal settings. Visit bot-commands on the Discord or Bot Information on the Allaclone for a list of commands and how to use them.");
+	return;
+
 	if (helper_command_alias_fail(c, "bot_subcommand_heal_rotation_add_member", sep->arg[0], "healrotationaddmember"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
@@ -15174,6 +15182,10 @@ void bot_subcommand_heal_rotation_add_member(Client* c, const Seperator* sep)
 
 void bot_subcommand_heal_rotation_add_target(Client *c, const Seperator *sep)
 {
+	c->Message(Chat::White, "This command is disabled...");
+	c->Message(Chat::White, "Use the custom heal commands to customize heal settings. Visit bot-commands on the Discord or Bot Information on the Allaclone for a list of commands and how to use them.");
+	return;
+
 	if (helper_command_alias_fail(c, "bot_subcommand_heal_rotation_add_target", sep->arg[0], "healrotationaddtarget"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
@@ -15224,6 +15236,10 @@ void bot_subcommand_heal_rotation_add_target(Client *c, const Seperator *sep)
 
 void bot_subcommand_heal_rotation_adjust_critical(Client *c, const Seperator *sep)
 {
+	c->Message(Chat::White, "This command is disabled...");
+	c->Message(Chat::White, "Use the custom heal commands to customize heal settings. Visit bot-commands on the Discord or Bot Information on the Allaclone for a list of commands and how to use them.");
+	return;
+
 	if (helper_command_alias_fail(c, "bot_subcommand_heal_rotation_adjust_critical", sep->arg[0], "healrotationadjustcritical"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
@@ -15290,6 +15306,10 @@ void bot_subcommand_heal_rotation_adjust_critical(Client *c, const Seperator *se
 
 void bot_subcommand_heal_rotation_adjust_safe(Client *c, const Seperator *sep)
 {
+	c->Message(Chat::White, "This command is disabled...");
+	c->Message(Chat::White, "Use the custom heal commands to customize heal settings. Visit bot-commands on the Discord or Bot Information on the Allaclone for a list of commands and how to use them.");
+	return;
+
 	if (helper_command_alias_fail(c, "bot_subcommand_heal_rotation_adjust_safe", sep->arg[0], "healrotationadjustsafe"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
@@ -15356,6 +15376,10 @@ void bot_subcommand_heal_rotation_adjust_safe(Client *c, const Seperator *sep)
 
 void bot_subcommand_heal_rotation_casting_override(Client *c, const Seperator *sep)
 {
+	c->Message(Chat::White, "This command is disabled...");
+	c->Message(Chat::White, "Use the custom heal commands to customize heal settings. Visit bot-commands on the Discord or Bot Information on the Allaclone for a list of commands and how to use them.");
+	return;
+
 	if (helper_command_alias_fail(c, "bot_subcommand_heal_rotation_casting_override", sep->arg[0], "healrotationcastingoverride"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
@@ -15408,6 +15432,10 @@ void bot_subcommand_heal_rotation_casting_override(Client *c, const Seperator *s
 
 void bot_subcommand_heal_rotation_change_interval(Client *c, const Seperator *sep)
 {
+	c->Message(Chat::White, "This command is disabled...");
+	c->Message(Chat::White, "Use the custom heal commands to customize heal settings. Visit bot-commands on the Discord or Bot Information on the Allaclone for a list of commands and how to use them.");
+	return;
+
 	if (helper_command_alias_fail(c, "bot_subcommand_heal_rotation_change_interval", sep->arg[0], "healrotationchangeinterval"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
@@ -15466,6 +15494,10 @@ void bot_subcommand_heal_rotation_change_interval(Client *c, const Seperator *se
 
 void bot_subcommand_heal_rotation_clear_hot(Client *c, const Seperator *sep)
 {
+	c->Message(Chat::White, "This command is disabled...");
+	c->Message(Chat::White, "Use the custom heal commands to customize heal settings. Visit bot-commands on the Discord or Bot Information on the Allaclone for a list of commands and how to use them.");
+	return;
+
 	if (helper_command_alias_fail(c, "bot_subcommand_heal_rotation_clear_hot", sep->arg[0], "healrotationclearhot"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
@@ -15502,6 +15534,10 @@ void bot_subcommand_heal_rotation_clear_hot(Client *c, const Seperator *sep)
 
 void bot_subcommand_heal_rotation_clear_targets(Client *c, const Seperator *sep)
 {
+	c->Message(Chat::White, "This command is disabled...");
+	c->Message(Chat::White, "Use the custom heal commands to customize heal settings. Visit bot-commands on the Discord or Bot Information on the Allaclone for a list of commands and how to use them.");
+	return;
+
 	if (helper_command_alias_fail(c, "bot_subcommand_heal_rotation_clear_targets", sep->arg[0], "healrotationcleartargets"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
@@ -15539,6 +15575,10 @@ void bot_subcommand_heal_rotation_clear_targets(Client *c, const Seperator *sep)
 
 void bot_subcommand_heal_rotation_create(Client *c, const Seperator *sep)
 {
+	c->Message(Chat::White, "This command is disabled...");
+	c->Message(Chat::White, "Use the custom heal commands to customize heal settings. Visit bot-commands on the Discord or Bot Information on the Allaclone for a list of commands and how to use them.");
+	return;
+
 	if (helper_command_alias_fail(c, "bot_subcommand_heal_rotation_create", sep->arg[0], "healrotationcreate"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
@@ -15679,6 +15719,10 @@ void bot_subcommand_heal_rotation_create(Client *c, const Seperator *sep)
 
 void bot_subcommand_heal_rotation_delete(Client *c, const Seperator *sep)
 {
+	c->Message(Chat::White, "This command is disabled...");
+	c->Message(Chat::White, "Use the custom heal commands to customize heal settings. Visit bot-commands on the Discord or Bot Information on the Allaclone for a list of commands and how to use them.");
+	return;
+
 	if (helper_command_alias_fail(c, "bot_subcommand_heal_rotation_delete", sep->arg[0], "healrotationdelete"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
@@ -15727,6 +15771,10 @@ void bot_subcommand_heal_rotation_delete(Client *c, const Seperator *sep)
 
 void bot_subcommand_heal_rotation_fast_heals(Client *c, const Seperator *sep)
 {
+	c->Message(Chat::White, "This command is disabled...");
+	c->Message(Chat::White, "Use the custom heal commands to customize heal settings. Visit bot-commands on the Discord or Bot Information on the Allaclone for a list of commands and how to use them.");
+	return;
+
 	if (helper_command_alias_fail(c, "bot_subcommand_heal_rotation_fast_heals", sep->arg[0], "healrotationfastheals"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
@@ -15779,6 +15827,10 @@ void bot_subcommand_heal_rotation_fast_heals(Client *c, const Seperator *sep)
 
 void bot_subcommand_heal_rotation_list(Client *c, const Seperator *sep)
 {
+	c->Message(Chat::White, "This command is disabled...");
+	c->Message(Chat::White, "Use the custom heal commands to customize heal settings. Visit bot-commands on the Discord or Bot Information on the Allaclone for a list of commands and how to use them.");
+	return;
+
 	if (helper_command_alias_fail(c, "bot_subcommand_heal_rotation_list", sep->arg[0], "healrotationlist"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
@@ -15861,6 +15913,10 @@ void bot_subcommand_heal_rotation_list(Client *c, const Seperator *sep)
 
 void bot_subcommand_heal_rotation_remove_member(Client *c, const Seperator *sep)
 {
+	c->Message(Chat::White, "This command is disabled...");
+	c->Message(Chat::White, "Use the custom heal commands to customize heal settings. Visit bot-commands on the Discord or Bot Information on the Allaclone for a list of commands and how to use them.");
+	return;
+
 	if (helper_command_alias_fail(c, "bot_subcommand_heal_rotation_remove_member", sep->arg[0], "healrotationremovemember"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
@@ -15898,6 +15954,10 @@ void bot_subcommand_heal_rotation_remove_member(Client *c, const Seperator *sep)
 
 void bot_subcommand_heal_rotation_remove_target(Client *c, const Seperator *sep)
 {
+	c->Message(Chat::White, "This command is disabled...");
+	c->Message(Chat::White, "Use the custom heal commands to customize heal settings. Visit bot-commands on the Discord or Bot Information on the Allaclone for a list of commands and how to use them.");
+	return;
+
 	if (helper_command_alias_fail(c, "bot_subcommand_heal_rotation_remove_target", sep->arg[0], "healrotationremovetarget"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
@@ -15941,6 +16001,10 @@ void bot_subcommand_heal_rotation_remove_target(Client *c, const Seperator *sep)
 
 void bot_subcommand_heal_rotation_reset_limits(Client *c, const Seperator *sep)
 {
+	c->Message(Chat::White, "This command is disabled...");
+	c->Message(Chat::White, "Use the custom heal commands to customize heal settings. Visit bot-commands on the Discord or Bot Information on the Allaclone for a list of commands and how to use them.");
+	return;
+
 	if (helper_command_alias_fail(c, "bot_subcommand_heal_rotation_reset_limits", sep->arg[0], "healrotationresetlimits"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
@@ -15975,6 +16039,10 @@ void bot_subcommand_heal_rotation_reset_limits(Client *c, const Seperator *sep)
 
 void bot_subcommand_heal_rotation_save(Client *c, const Seperator *sep)
 {
+	c->Message(Chat::White, "This command is disabled...");
+	c->Message(Chat::White, "Use the custom heal commands to customize heal settings. Visit bot-commands on the Discord or Bot Information on the Allaclone for a list of commands and how to use them.");
+	return;
+
 	if (helper_command_alias_fail(c, "bot_subcommand_heal_rotation_save", sep->arg[0], "healrotationsave"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
@@ -16018,6 +16086,10 @@ void bot_subcommand_heal_rotation_save(Client *c, const Seperator *sep)
 
 void bot_subcommand_heal_rotation_set_hot(Client *c, const Seperator *sep)
 {
+	c->Message(Chat::White, "This command is disabled...");
+	c->Message(Chat::White, "Use the custom heal commands to customize heal settings. Visit bot-commands on the Discord or Bot Information on the Allaclone for a list of commands and how to use them.");
+	return;
+
 	if (helper_command_alias_fail(c, "bot_subcommand_heal_rotation_set_hot", sep->arg[0], "healrotationsethot"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
@@ -16066,6 +16138,10 @@ void bot_subcommand_heal_rotation_set_hot(Client *c, const Seperator *sep)
 
 void bot_subcommand_heal_rotation_start(Client *c, const Seperator *sep)
 {
+	c->Message(Chat::White, "This command is disabled...");
+	c->Message(Chat::White, "Use the custom heal commands to customize heal settings. Visit bot-commands on the Discord or Bot Information on the Allaclone for a list of commands and how to use them.");
+	return;
+
 	if (helper_command_alias_fail(c, "bot_subcommand_heal_rotation_start", sep->arg[0], "healrotationstart"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
@@ -16108,6 +16184,10 @@ void bot_subcommand_heal_rotation_start(Client *c, const Seperator *sep)
 
 void bot_subcommand_heal_rotation_stop(Client *c, const Seperator *sep)
 {
+	c->Message(Chat::White, "This command is disabled...");
+	c->Message(Chat::White, "Use the custom heal commands to customize heal settings. Visit bot-commands on the Discord or Bot Information on the Allaclone for a list of commands and how to use them.");
+	return;
+
 	if (helper_command_alias_fail(c, "bot_subcommand_heal_rotation_stop", sep->arg[0], "healrotationstop"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
