@@ -7012,7 +7012,14 @@ bool Bot::DoFinishedSpellSingleTarget(uint16 spell_id, Mob* spellTarget, EQ::spe
 
 bool Bot::DoFinishedSpellGroupTarget(uint16 spell_id, Mob* spellTarget, EQ::spells::CastingSlot slot, bool& stopLogic) {
 	bool isMainGroupMGB = false;
+	float range, distance;
+
 	Raid* raid = entity_list.GetRaidByBotName(this->GetName());
+
+	range = GetAOERange(spell_id);
+
+	float range2 = range * range;
+	float min_range2 = spells[spell_id].min_range * spells[spell_id].min_range;
 
 	if(isMainGroupMGB && (GetClass() != BARD)) {
 		BotGroupSay(
@@ -7037,10 +7044,16 @@ bool Bot::DoFinishedSpellGroupTarget(uint16 spell_id, Mob* spellTarget, EQ::spel
 			std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(raid->GetGroup(spellTarget->GetName()));
 			for (int i = 0; i < raid_group_members.size(); i++) {
 				if (raid_group_members.at(i).member && entity_list.IsMobInZone(raid_group_members.at(i).member)) {
-					SpellOnTarget(spell_id, raid_group_members.at(i).member);
-					if (raid_group_members.at(i).member && raid_group_members.at(i).member->GetPet()) {
-						SpellOnTarget(spell_id, raid_group_members.at(i).member->GetPet());
+					distance = DistanceSquared(GetPosition(), raid_group_members.at(i).member->GetPosition());
+					if (distance <= range2 && distance >= min_range2) {
+						SpellOnTarget(spell_id, raid_group_members.at(i).member);
+						if (raid_group_members.at(i).member && raid_group_members.at(i).member->GetPet()) {
+							SpellOnTarget(spell_id, raid_group_members.at(i).member->GetPet());
+						}
 					}
+				}
+				else {
+					LogSpells("Raid spell: [{}] is out of range [{}] at distance [{}] from [{}]", raid_group_members.at(i).member->GetName(), range, distance, GetName());
 				}
 			}
 		//}
@@ -7051,9 +7064,15 @@ bool Bot::DoFinishedSpellGroupTarget(uint16 spell_id, Mob* spellTarget, EQ::spel
 		if(g) {
 			for(int i = 0; i < MAX_GROUP_MEMBERS; ++i) {
 				if(g->members[i]) {
-					SpellOnTarget(spell_id, g->members[i]);
-					if(g->members[i] && g->members[i]->GetPetID())
-						SpellOnTarget(spell_id, g->members[i]->GetPet());
+					distance = DistanceSquared(GetPosition(), g->members[i]->GetPosition());
+					if (distance <= range2 && distance >= min_range2) {
+						SpellOnTarget(spell_id, g->members[i]);
+						if (g->members[i] && g->members[i]->GetPetID())
+							SpellOnTarget(spell_id, g->members[i]->GetPet());
+					}
+					else {
+						LogSpells("Group spell: [{}] is out of range [{}] at distance [{}] from [{}]", g->members[i]->GetName(), range, distance, GetName());
+					}
 				}
 			}
 		}
