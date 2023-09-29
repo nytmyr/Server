@@ -4468,14 +4468,32 @@ void Corpse::CastRezz(uint16 spellid, Mob* Caster)
 	safe_delete(outapp);
 }
 
-bool Mob::FindBuff(uint16 spell_id)
+std::vector<uint16> Mob::GetBuffSpellIDs()
 {
-	uint32 buff_count = GetMaxTotalSlots();
+	std::vector<uint16> l;
+
+	for (int i = 0; i < GetMaxTotalSlots(); i++) {
+		const auto& e = buffs[i].spellid;
+		if (IsValidSpell(e)) {
+			l.emplace_back(e);
+		}
+	}
+
+	return l;
+}
+
+bool Mob::FindBuff(uint16 spell_id, uint16 caster_id)
+{
+	const int buff_count = GetMaxTotalSlots();
 	for (int buff_slot = 0; buff_slot < buff_count; buff_slot++) {
-		auto current_spell_id = buffs[buff_slot].spellid;
+		const uint16 current_spell_id = buffs[buff_slot].spellid;
 		if (
 			IsValidSpell(current_spell_id) &&
-			current_spell_id == spell_id
+			current_spell_id == spell_id &&
+			(
+				!caster_id ||
+				buffs[buff_slot].casterid == caster_id
+			)
 		) {
 			return true;
 		}
