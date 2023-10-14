@@ -2074,3 +2074,124 @@ void Client::TogglePurchaseAlternativeAdvancementRank(int rank_id){
 	CalcBonuses();
 }
 
+void Client::AutoGrantAAPoints() {
+	int auto_grant_expansion = RuleI(Expansion, AutoGrantAAExpansion);
+
+	if (auto_grant_expansion == -1) {
+		return;
+	}
+
+	//iterate through every AA
+	for (auto& iter : zone->aa_abilities) {
+		auto ability = iter.second.get();
+
+		if (ability->grant_only) {
+			continue;
+		}
+
+		if (ability->charges > 0) {
+			continue;
+		}
+
+		if (!ability->auto_grant_enabled) {
+			continue;
+		}
+
+		auto level = GetLevel();
+		auto p = 1;
+		auto rank = ability->first;
+		while (rank != nullptr) {
+			if (CanUseAlternateAdvancementRank(rank)) {
+				if (rank->expansion <= auto_grant_expansion && rank->level_req <= level && !HasAlreadyPurchasedRank(rank)) {
+					FinishAlternateAdvancementPurchase(rank, true, false);
+
+					if (rank->prev) {
+						MessageString(
+							Chat::Yellow,
+							AA_IMPROVE,
+							std::to_string(rank->title_sid).c_str(),
+							std::to_string(rank->prev->current_value).c_str(),
+							"0",
+							std::to_string(AA_POINTS).c_str()
+						);
+					}
+					else {
+						MessageString(
+							Chat::Yellow,
+							AA_GAIN_ABILITY,
+							std::to_string(rank->title_sid).c_str(),
+							"0",
+							std::to_string(AA_POINTS).c_str()
+						);
+					}
+				}
+			}
+			else {
+				break;
+			}
+
+			p++;
+			rank = rank->next;
+		}
+	}
+
+	SendClearAA();
+	SendAlternateAdvancementTable();
+	SendAlternateAdvancementPoints();
+	SendAlternateAdvancementStats();
+}
+
+void Client::GrantAllAAPoints(uint8 unlock_level)
+{
+	//iterate through every AA
+	for (auto& aa : zone->aa_abilities) {
+		AA::Ability* ability = aa.second.get();
+
+		if (ability->charges > 0) {
+			continue;
+		}
+
+		const uint8 level = unlock_level ? unlock_level : GetLevel();
+
+		AA::Rank* rank = ability->first;
+		while (rank) {
+			if (!CanUseAlternateAdvancementRank(rank)) {
+				break;
+			}
+
+			if (rank->level_req <= level && !HasAlreadyPurchasedRank(rank)) {
+				FinishAlternateAdvancementPurchase(rank, true, false);
+			}
+
+			rank = rank->next;
+		}
+	}
+
+	SaveAA();
+	SendClearAA();
+	SendAlternateAdvancementTable();
+	SendAlternateAdvancementPoints();
+	SendAlternateAdvancementStats();
+}
+
+bool Client::HasAlreadyPurchasedRank(AA::Rank* rank) {
+	const auto& aa = aa_ranks.find(rank->base_ability->id);
+	if (aa == aa_ranks.end()) {
+		return false;
+	}
+
+	const auto& ability_rank = zone->GetAlternateAdvancementAbilityAndRank(aa->first, aa->second.first);
+
+	AA::Ability* ability = ability_rank.first;
+	AA::Rank*    current = ability_rank.second;
+
+	while (current) {
+		if (current == rank) {
+			return true;
+		}
+
+		current = current->prev;
+	}
+
+	return false;
+}
