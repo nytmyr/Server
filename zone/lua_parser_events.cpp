@@ -361,17 +361,28 @@ void handle_npc_cast(
 	uint32 extra_data,
 	std::vector<std::any> *extra_pointers
 ) {
-	int spell_id = Strings::ToInt(data);
-	if(IsValidSpell(spell_id)) {
-		Lua_Spell l_spell(&spells[spell_id]);
-		luabind::adl::object l_spell_o = luabind::adl::object(L, l_spell);
-		l_spell_o.push(L);
-		lua_setfield(L, -2, "spell");
-	} else {
-		Lua_Spell l_spell(nullptr);
-		luabind::adl::object l_spell_o = luabind::adl::object(L, l_spell);
-		l_spell_o.push(L);
-		lua_setfield(L, -2, "spell");
+	Seperator sep(data.c_str());
+
+	const uint32 spell_id = Strings::ToUnsignedInt(sep.arg[0]);
+	Lua_Spell l_spell(IsValidSpell(spell_id) ? &spells[spell_id] : nullptr);
+	luabind::adl::object l_spell_o = luabind::adl::object(L, l_spell);
+	l_spell_o.push(L);
+	lua_setfield(L, -2, "spell");
+
+	lua_pushinteger(L, Strings::ToUnsignedInt(sep.arg[1]));
+	lua_setfield(L, -2, "caster_id");
+
+	lua_pushinteger(L, Strings::ToUnsignedInt(sep.arg[2]));
+	lua_setfield(L, -2, "caster_level");
+
+	lua_pushinteger(L, Strings::ToUnsignedInt(sep.arg[3]));
+	lua_setfield(L, -2, "target_id");
+
+	if (extra_pointers && extra_pointers->size() == 1) {
+		Lua_Mob l_mob(std::any_cast<Mob*>(extra_pointers->at(0)));
+		luabind::adl::object l_mob_o = luabind::adl::object(L, l_mob);
+		l_mob_o.push(L);
+		lua_setfield(L, -2, "target");
 	}
 }
 
@@ -734,6 +745,16 @@ void handle_player_cast(
 
 	lua_pushinteger(L, Strings::ToInt(sep.arg[2]));
 	lua_setfield(L, -2, "caster_level");
+
+	lua_pushinteger(L, Strings::ToUnsignedInt(sep.arg[3]));
+	lua_setfield(L, -2, "target_id");
+
+	if (extra_pointers && extra_pointers->size() == 1) {
+		Lua_Mob l_mob(std::any_cast<Mob*>(extra_pointers->at(0)));
+		luabind::adl::object l_mob_o = luabind::adl::object(L, l_mob);
+		l_mob_o.push(L);
+		lua_setfield(L, -2, "target");
+	}
 }
 
 void handle_player_task_fail(
@@ -1967,6 +1988,16 @@ void handle_bot_cast(
 
 	lua_pushinteger(L, Strings::ToInt(sep.arg[2]));
 	lua_setfield(L, -2, "caster_level");
+
+	lua_pushinteger(L, Strings::ToUnsignedInt(sep.arg[3]));
+	lua_setfield(L, -2, "target_id");
+
+	if (extra_pointers && extra_pointers->size() == 1) {
+		Lua_Mob l_mob(std::any_cast<Mob*>(extra_pointers->at(0)));
+		luabind::adl::object l_mob_o = luabind::adl::object(L, l_mob);
+		l_mob_o.push(L);
+		lua_setfield(L, -2, "target");
+	}
 }
 
 void handle_bot_combat(
