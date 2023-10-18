@@ -3050,33 +3050,30 @@ BotSpell Bot::GetBestBotWizardNukeSpellByTargetResists(Bot* botCaster, Mob* targ
 		firstWizardMagicNukeSpellFound.SpellId = 0;
 		firstWizardMagicNukeSpellFound.SpellIndex = 0;
 		firstWizardMagicNukeSpellFound.ManaCost = 0;
+		bool spellSelected = false;
 
 		for(std::list<BotSpell>::iterator botSpellListItr = botSpellList.begin(); botSpellListItr != botSpellList.end(); ++botSpellListItr) {
 			// Assuming all the spells have been loaded into this list by level and in descending order
-			bool spellSelected = false;
 
 			if(CheckSpellRecastTimers(botCaster, botSpellListItr->SpellIndex)) {
 				if(selectLureNuke && (spells[botSpellListItr->SpellId].resist_difficulty < lureResisValue)) {
-					if (DoResistCheck(botCaster, target, botSpellListItr->SpellId, RuleI(Bots, NukeResistLimit)) && GetSpellResistType(botSpellListItr->SpellId) == RESIST_MAGIC)
+					if (DoResistCheck(botCaster, target, botSpellListItr->SpellId, RuleI(Bots, NukeResistLimit))) {
 						spellSelected = true;
-					if (DoResistCheck(botCaster, target, botSpellListItr->SpellId, RuleI(Bots, NukeResistLimit)) && GetSpellResistType(botSpellListItr->SpellId) == RESIST_FIRE)
-						spellSelected = true;
-					if (DoResistCheck(botCaster, target, botSpellListItr->SpellId, RuleI(Bots, NukeResistLimit)) && GetSpellResistType(botSpellListItr->SpellId) == RESIST_COLD)
-						spellSelected = true;
+					}
 				}
 				else if(!selectLureNuke && IsPureNukeSpell(botSpellListItr->SpellId)) {
 					if(((target->GetMR() < target->GetCR()) || (target->GetMR() < target->GetFR())) && (GetSpellResistType(botSpellListItr->SpellId) == RESIST_MAGIC)
-						&& (spells[botSpellListItr->SpellId].resist_difficulty > lureResisValue))
+						&& (spells[botSpellListItr->SpellId].resist_difficulty > lureResisValue) && DoResistCheck(botCaster, target, botSpellListItr->SpellId, RuleI(Bots, NukeResistLimit)))
 					{
 						spellSelected = true;
 					}
 					else if (((target->GetCR() < target->GetMR()) || (target->GetCR() < target->GetFR())) && (GetSpellResistType(botSpellListItr->SpellId) == RESIST_COLD)
-						&& (spells[botSpellListItr->SpellId].resist_difficulty > lureResisValue))
+						&& (spells[botSpellListItr->SpellId].resist_difficulty > lureResisValue) && DoResistCheck(botCaster, target, botSpellListItr->SpellId, RuleI(Bots, NukeResistLimit)))
 					{
 						spellSelected = true;
 					}
 					else if (((target->GetFR() < target->GetCR()) || (target->GetFR() < target->GetMR())) && (GetSpellResistType(botSpellListItr->SpellId) == RESIST_FIRE)
-						&& (spells[botSpellListItr->SpellId].resist_difficulty > lureResisValue))
+						&& (spells[botSpellListItr->SpellId].resist_difficulty > lureResisValue) && DoResistCheck(botCaster, target, botSpellListItr->SpellId, RuleI(Bots, NukeResistLimit)))
 					{
 						spellSelected = true;
 					}
@@ -3094,6 +3091,25 @@ BotSpell Bot::GetBestBotWizardNukeSpellByTargetResists(Bot* botCaster, Mob* targ
 				result.ManaCost = botSpellListItr->ManaCost;
 
 				break;
+			}
+		}
+
+		if (!spellSelected) {
+			for (std::list<BotSpell>::iterator botSpellListItr = botSpellList.begin(); botSpellListItr != botSpellList.end(); ++botSpellListItr) {
+				// Assuming all the spells have been loaded into this list by level and in descending order
+
+				if (CheckSpellRecastTimers(botCaster, botSpellListItr->SpellIndex)) {
+					if (DoResistCheck(botCaster, target, botSpellListItr->SpellId, RuleI(Bots, NukeResistLimit))) {
+						spellSelected = true;
+					}
+				}
+				if (spellSelected) {
+					result.SpellId = botSpellListItr->SpellId;
+					result.SpellIndex = botSpellListItr->SpellIndex;
+					result.ManaCost = botSpellListItr->ManaCost;
+
+					break;
+				}
 			}
 		}
 
