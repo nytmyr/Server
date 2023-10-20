@@ -448,14 +448,18 @@ Bot::Bot(
 Bot::~Bot() {
 	AI_Stop();
 	LeaveHealRotationMemberPool();
-
-	if(HasGroup())
-		Bot::RemoveBotFromGroup(this, GetGroup());
-
-	if(HasPet())
+	if (HasPet()) {
 		GetPet()->Depop();
-
+	}
 	entity_list.RemoveBot(GetID());
+
+	if (GetGroup()) {
+		GetGroup()->MemberZoned(this);
+	}
+
+	if (GetRaid()) {
+		GetRaid()->MemberZoned(CastToClient());
+	}
 }
 
 void Bot::SetBotID(uint32 botID) {
