@@ -3216,7 +3216,7 @@ void bot_command_behind_mob(Client* c, const Seperator* sep)
 		}
 	}
 	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Behind Mob status is %s.", my_bot->GetBehindMob());
+		c->Message(Chat::White, "My current Behind Mob status is %s.", my_bot->GetBehindMob() ? "enabled" : "disabled");
 	}
 	else {
 		c->Message(Chat::White, "Incorrect argument, use ^behindmob help for a list of options.");
