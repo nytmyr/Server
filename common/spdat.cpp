@@ -1022,10 +1022,10 @@ int8 GetSpellResurrectionSicknessCheck(uint16 spell_id_one, uint16 spell_id_two)
 		!IsValidSpell(spell_id_one) ||
 		!IsValidSpell(spell_id_two)
 	) {
-		return RuleI(Spells, ResurrectionEffectBlock);
+		return RuleI(Spells, ResurrectionEffectsBlock);
 	}
 
-	const int8  rule_value = RuleI(Spells, ResurrectionEffectBlock);
+	const int8  rule_value = RuleI(Spells, ResurrectionEffectsBlock);
 	const auto& spell_one  = spells[spell_id_one];
 	const auto& spell_two  = spells[spell_id_two];
 

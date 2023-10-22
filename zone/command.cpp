@@ -390,7 +390,7 @@ int command_init(void)
 		command_add("curedelay", "Sets a delay for how often you will receive Fast Heals from bots", AccountStatus::Player, command_curedelay) ||
 		command_add("cureminthreshold", "Sets a threshold to when you will stop receiving from bots", AccountStatus::Player, command_cureminthreshold) ||
 		command_add("curethreshold", "Sets a threshold to when you will start receiving Cures from bots", AccountStatus::Player, command_curethreshold) ||
-		command_add("charchange", "Change your race, class and or deity", AccountStatus::Player, command_char_change)
+		command_add("charchange", "Change your race, class and or deity", AccountStatus::Player, command_char_change) ||
 
 	) {
 		command_deinit();
@@ -1044,6 +1044,7 @@ void command_bot(Client *c, const Seperator *sep)
 #include "gm_commands/gmzone.cpp"
 #include "gm_commands/godmode.cpp"
 #include "gm_commands/goto.cpp"
+#include "gm_commands/grantaa.cpp"
 #include "gm_commands/grid.cpp"
 #include "gm_commands/guild.cpp"
 #include "gm_commands/haste.cpp"

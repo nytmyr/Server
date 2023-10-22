@@ -2907,29 +2907,9 @@ bool Perl_Client_IsAutoFireEnabled(Client* self)
 	return self->AutoFireEnabled();
 }
 
-bool Perl_Client_ReloadDataBuckets(Client* self)
-{
-	return DataBucket::GetDataBuckets(self);
-}
-
 uint32 Perl_Client_GetEXPForLevel(Client* self, uint16 check_level)
 {
 	return self->GetEXPForLevel(check_level);
-}
-
-std::string Perl_Client_GetClassAbbreviation(Client* self)
-{
-	return GetPlayerClassAbbreviation(self->GetBaseClass());
-}
-
-std::string Perl_Client_GetRaceAbbreviation(Client* self)
-{
-	return GetPlayerRaceAbbreviation(self->GetBaseRace());
-}
-
-void Perl_Client_SetLDoNPoints(Client* self, uint32 theme_id, uint32 points)
-{
-	self->SetLDoNPoints(theme_id, points);
 }
 
 void Perl_Client_GrantAllAAPoints(Client* self)

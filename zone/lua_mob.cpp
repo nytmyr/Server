@@ -2175,14 +2175,14 @@ bool Lua_Mob::IsTargetable() {
 	return self->IsTargetable();
 }
 
-bool Lua_Mob::HasShieldEquiped() {
+bool Lua_Mob::HasShieldEquipped() {
 	Lua_Safe_Call_Bool();
-	return self->HasShieldEquiped();
+	return self->HasShieldEquipped();
 }
 
-bool Lua_Mob::HasTwoHandBluntEquiped() {
+bool Lua_Mob::HasTwoHandBluntEquipped() {
 	Lua_Safe_Call_Bool();
-	return self->HasTwoHandBluntEquiped();
+	return self->HasTwoHandBluntEquipped();
 }
 
 bool Lua_Mob::HasTwoHanderEquipped() {
@@ -2942,37 +2942,37 @@ int64 Lua_Mob::GetActReflectedSpellDamage(uint16 spell_id, int64 value, int effe
 
 uint32 Lua_Mob::GetRemainingTimeMS(const char* timer_name) {
 	Lua_Safe_Call_Int();
-	return quest_manager.getremainingtimeMS(timer_name, self);
+	return quest_manager.getremainingtimeMS(timer_name);
 }
 
 uint32 Lua_Mob::GetTimerDurationMS(const char* timer_name) {
 	Lua_Safe_Call_Int();
-	return quest_manager.gettimerdurationMS(timer_name, self);
+	return quest_manager.gettimerdurationMS(timer_name);
 }
 
 bool Lua_Mob::HasTimer(const char* timer_name) {
 	Lua_Safe_Call_Bool();
-	return quest_manager.hastimer(timer_name, self);
+	return quest_manager.hastimer(timer_name);
 }
 
 bool Lua_Mob::IsPausedTimer(const char* timer_name) {
 	Lua_Safe_Call_Bool();
-	return quest_manager.ispausedtimer(timer_name, self);
+	return quest_manager.ispausedtimer(timer_name);
 }
 
 void Lua_Mob::PauseTimer(const char* timer_name) {
 	Lua_Safe_Call_Void();
-	quest_manager.pausetimer(timer_name, self);
+	quest_manager.pausetimer(timer_name);
 }
 
 void Lua_Mob::ResumeTimer(const char* timer_name) {
 	Lua_Safe_Call_Void();
-	quest_manager.resumetimer(timer_name, self);
+	quest_manager.resumetimer(timer_name);
 }
 
 void Lua_Mob::SetTimer(const char* timer_name, int seconds) {
 	Lua_Safe_Call_Void();
-	quest_manager.settimer(timer_name, seconds, self);
+	quest_manager.settimer(timer_name, seconds);
 }
 
 void Lua_Mob::SetTimerMS(const char* timer_name, int milliseconds) {

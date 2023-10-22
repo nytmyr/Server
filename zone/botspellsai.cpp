@@ -442,7 +442,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 							// Put the zone levitate and movement check here since bots are able to bypass the client casting check
 							if ((IsEffectInSpell(selectedBotSpell.SpellId, SE_Levitate) && !zone->CanLevitate())
 								|| (IsEffectInSpell(selectedBotSpell.SpellId, SE_MovementSpeed) && !zone->CanCastOutdoor())) {
-								if (botClass != BARD || !IsSpellUsableThisZoneType(selectedBotSpell.SpellId, zone->GetZoneType())) {
+								if (botClass != BARD || !IsSpellUsableInThisZoneType(selectedBotSpell.SpellId, zone->GetZoneType())) {
 									continue;
 								}
 							}
@@ -905,7 +905,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 								// Put the zone levitate and movement check here since bots are able to bypass the client casting check
 								if ((IsEffectInSpell(selectedBotSpell.SpellId, SE_Levitate) && !zone->CanLevitate())
 									|| (IsEffectInSpell(selectedBotSpell.SpellId, SE_MovementSpeed) && !zone->CanCastOutdoor())) {
-									if (!IsSpellUsableThisZoneType(selectedBotSpell.SpellId, zone->GetZoneType())) {
+									if (!IsSpellUsableInThisZoneType(selectedBotSpell.SpellId, zone->GetZoneType())) {
 										continue;
 									}
 								}

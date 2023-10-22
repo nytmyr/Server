@@ -2352,14 +2352,14 @@ bool Perl_Mob_IsTargetable(Mob* self) // @categories Stats and Attributes
 	return self->IsTargetable();
 }
 
-bool Perl_Mob_HasShieldEquiped(Mob* self) // @categories Stats and Attributes
+bool Perl_Mob_HasShieldEquipped(Mob* self) // @categories Stats and Attributes
 {
-	return self->HasShieldEquiped();
+	return self->HasShieldEquipped();
 }
 
-bool Perl_Mob_HasTwoHandBluntEquiped(Mob* self) // @categories Stats and Attributes
+bool Perl_Mob_HasTwoHandBluntEquipped(Mob* self) // @categories Stats and Attributes
 {
-	return self->HasTwoHandBluntEquiped();
+	return self->HasTwoHandBluntEquipped();
 }
 
 bool Perl_Mob_HasTwoHanderEquipped(Mob* self) // @categories Stats and Attributes
@@ -2966,49 +2966,39 @@ float Perl_Mob_GetDefaultRaceSize(Mob* self) // @categories Script Utility
 	return self->GetDefaultRaceSize();
 }
 
-float Perl_Mob_GetDefaultRaceSize(Mob* self, int race_id) // @categories Script Utility
-{
-	return self->GetDefaultRaceSize(race_id);
-}
-
-float Perl_Mob_GetDefaultRaceSize(Mob* self, int race_id, int gender_id) // @categories Script Utility
-{
-	return self->GetDefaultRaceSize(race_id, gender_id);
-}
-
 uint32 Perl_Mob_GetRemainingTimeMS(Mob* self, const char* timer_name)
 {
-	return quest_manager.getremainingtimeMS(timer_name, self);
+	return quest_manager.getremainingtimeMS(timer_name);
 }
 
 uint32 Perl_Mob_GetTimerDurationMS(Mob* self, const char* timer_name)
 {
-	return quest_manager.gettimerdurationMS(timer_name, self);
+	return quest_manager.gettimerdurationMS(timer_name);
 }
 
 bool Perl_Mob_HasTimer(Mob* self, const char* timer_name)
 {
-	return quest_manager.hastimer(timer_name, self);
+	return quest_manager.hastimer(timer_name);
 }
 
 bool Perl_Mob_IsPausedTimer(Mob* self, const char* timer_name)
 {
-	return quest_manager.ispausedtimer(timer_name, self);
+	return quest_manager.ispausedtimer(timer_name);
 }
 
 void Perl_Mob_PauseTimer(Mob* self, const char* timer_name)
 {
-	quest_manager.pausetimer(timer_name, self);
+	quest_manager.pausetimer(timer_name);
 }
 
 void Perl_Mob_ResumeTimer(Mob* self, const char* timer_name)
 {
-	quest_manager.resumetimer(timer_name, self);
+	quest_manager.resumetimer(timer_name);
 }
 
 void Perl_Mob_SetTimer(Mob* self, const char* timer_name, int seconds)
 {
-	quest_manager.settimer(timer_name, seconds, self);
+	quest_manager.settimer(timer_name, seconds);
 }
 
 void Perl_Mob_SetTimerMS(Mob* self, const char* timer_name, int milliseconds)

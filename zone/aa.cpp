@@ -1116,7 +1116,7 @@ void Client::PurchaseAlternateAdvancementRank(int rank_id) {
 		return;
 	}
 
-	FinishAlternateAdvancementPurchase(rank, false);
+	FinishAlternateAdvancementPurchase(rank, false, true);
 }
 
 bool Client::GrantAlternateAdvancementAbility(int aa_id, int points, bool ignore_cost) {
@@ -1139,13 +1139,13 @@ bool Client::GrantAlternateAdvancementAbility(int aa_id, int points, bool ignore
 		}
 
 		ret = true;
-		FinishAlternateAdvancementPurchase(rank, ignore_cost);
+		FinishAlternateAdvancementPurchase(rank, ignore_cost, true);
 	}
 
 	return ret;
 }
 
-void Client::FinishAlternateAdvancementPurchase(AA::Rank *rank, bool ignore_cost) {
+void Client::FinishAlternateAdvancementPurchase(AA::Rank *rank, bool ignore_cost, bool send_message_and_save) {
 	auto rank_id = rank->base_ability->first_rank_id;
 
 	if (rank->base_ability->charges) {

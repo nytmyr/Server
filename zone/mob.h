@@ -500,9 +500,9 @@ public:
 	void TempName(const char *newname = nullptr);
 	void SetTargetable(bool on);
 	bool IsTargetable() const { return m_targetable; }
-	bool HasShieldEquiped() const { return has_shieldequiped; }
+	bool HasShieldEquipped() const { return has_shieldequiped; }
 	inline void SetShieldEquiped(bool val) { has_shieldequiped = val; }
-	bool HasTwoHandBluntEquiped() const { return has_twohandbluntequiped; }
+	bool HasTwoHandBluntEquipped() const { return has_twohandbluntequiped; }
 	inline void SetTwoHandBluntEquiped(bool val) { has_twohandbluntequiped = val; }
 	bool HasTwoHanderEquipped() { return has_twohanderequipped; }
 	void SetTwoHanderEquipped(bool val) { has_twohanderequipped = val; }

@@ -4459,7 +4459,6 @@ bool Mob::SpellOnTarget(
 	LogSpells("Cast of [{}] by [{}] on [{}] complete successfully", spell_id, GetName(), spelltar->GetName());
 
 	if (IsBot()) {
-		LogSpells("Attempting to set a delay for [{}] with spell [{}]-[{}]", CastToBot()->GetCleanName(), spell_id, GetSpellName(spell_id)); //deleteme
 		CastToBot()->SetBotSpellDelay(CastToBot(), spell_id, spelltar);
 	}
 
@@ -7277,7 +7276,7 @@ bool Mob::IsImmuneToBotSpell(uint16 spell_id, Mob* caster)
 	if (IsBeneficialSpell(spell_id) && (caster->GetNPCTypeID())) //then skip the rest, stop NPCs aggroing each other with buff spells. 2013-03-05
 		return false;
 
-	if (IsMezSpell(spell_id))
+	if (IsMesmerizeSpell(spell_id))
 	{
 		if (GetSpecialAbility(UNMEZABLE)) {
 			return true;

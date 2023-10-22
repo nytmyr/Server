@@ -3046,33 +3046,10 @@ bool Lua_Client::IsAutoFireEnabled()
 	return self->AutoFireEnabled();
 }
 
-bool Lua_Client::ReloadDataBuckets() {
-	Lua_Safe_Call_Bool();
-	return DataBucket::GetDataBuckets(self);
-}
-
 uint32 Lua_Client::GetEXPForLevel(uint16 check_level)
 {
 	Lua_Safe_Call_Int();
 	return self->GetEXPForLevel(check_level);
-}
-
-std::string Lua_Client::GetClassAbbreviation()
-{
-	Lua_Safe_Call_String();
-	return GetPlayerClassAbbreviation(self->GetBaseClass());
-}
-
-std::string Lua_Client::GetRaceAbbreviation()
-{
-	Lua_Safe_Call_String();
-	return GetPlayerRaceAbbreviation(self->GetBaseRace());
-}
-
-void Lua_Client::SetLDoNPoints(uint32 theme_id, uint32 points)
-{
-	Lua_Safe_Call_Void();
-	self->SetLDoNPoints(theme_id, points);
 }
 
 void Lua_Client::DeleteBucket(std::string bucket_name)

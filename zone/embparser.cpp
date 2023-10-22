@@ -1912,7 +1912,6 @@ void PerlembParser::ExportEventVariables(
 		}
 
 		case EVENT_DEATH_ZONE:
-		case EVENT_DEATH:
 		case EVENT_DEATH_COMPLETE: {
 			Seperator sep(data);
 			ExportVar(package_name.c_str(), "killer_id", sep.arg[0]);
@@ -2277,21 +2276,6 @@ void PerlembParser::ExportEventVariables(
 				ExportVar(package_name.c_str(), "item_name", inst->GetItem()->Name);
 				ExportVar(package_name.c_str(), "quantity", inst->IsStackable() ? inst->GetCharges() : 1);
 				ExportVar(package_name.c_str(), "item", "QuestItem", inst);
-			}
-
-			break;
-		}
-
-		case EVENT_MEMORIZE_SPELL:
-		case EVENT_UNMEMORIZE_SPELL:
-		case EVENT_SCRIBE_SPELL:
-		case EVENT_UNSCRIBE_SPELL: {
-			Seperator sep(data);
-			ExportVar(package_name.c_str(), "slot_id", sep.arg[0]);
-			ExportVar(package_name.c_str(), "spell_id", sep.arg[1]);
-
-			if (IsValidSpell(Strings::ToUnsignedInt(sep.arg[1]))) {
-				ExportVar(package_name.c_str(), "spell", "Spell", (void*)&spells[Strings::ToUnsignedInt(sep.arg[1])]);
 			}
 
 			break;

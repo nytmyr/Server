@@ -165,6 +165,7 @@ void Client::CalcItemBonuses(StatBonuses* newbon) {
 		const EQ::ItemInstance* inst = GetInv().GetItem(i);
 		if (!inst) {
 			continue;
+		}
 		AddItemBonuses(inst, newbon, false, false, 0, (i == EQ::invslot::slotAmmo));
 
 		//These are given special flags due to how often they are checked for various spell effects.

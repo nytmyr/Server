@@ -1,6 +1,6 @@
 #include "../client.h"
 
-void command_grantaa(Client *c, const Seperator *sep)
+void command_grantaa(Client* c, const Seperator* sep)
 {
 	if (!c->GetTarget() || !c->GetTarget()->IsClient()) {
 		c->Message(Chat::White, "You must target a player to use this command.");
@@ -24,7 +24,7 @@ void command_grantaa(Client *c, const Seperator *sep)
 					unlock_level
 				) :
 				""
-			)
+				)
 		).c_str()
 	);
 }

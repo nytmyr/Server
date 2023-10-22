@@ -5894,7 +5894,7 @@ int Bot::GetBaseSkillDamage(EQ::skills::SkillType skill, Mob *target)
 		float skill_bonus = skill_level / 10.0f;
 		float ac_bonus = 0.0f;
 		const EQ::ItemInstance *inst = nullptr;
-		if (HasShieldEquiped())
+		if (HasShieldEquipped())
 			inst = GetBotItem(EQ::invslot::slotSecondary);
 		else if (HasTwoHanderEquipped())
 			inst = GetBotItem(EQ::invslot::slotPrimary);

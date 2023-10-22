@@ -426,10 +426,10 @@ std::string lua_get_skill_name(int skill_id) {
 	return quest_manager.getskillname(skill_id);
 }
 
-bool lua_is_illusion_spell(uint16 spell_id)
-{
-	return IsAnyPlayerIllusionSpell(spell_id);
-}
+//bool lua_is_illusion_spell(uint16 spell_id)
+//{
+//	return IsAnyPlayerIllusionSpell(spell_id);
+//} //deleteme
 
 void lua_safe_move() {
 	quest_manager.safemove();
