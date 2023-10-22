@@ -14769,6 +14769,11 @@ void Client::Handle_OP_TargetCommand(const EQApplicationPacket *app)
 		return;
 	}
 
+	if (GetTarget())
+	{
+		GetTarget()->IsTargeted(-1);
+	}
+
 	// Locate and cache new target
 	ClientTarget_Struct* ct = (ClientTarget_Struct*)app->pBuffer;
 	pClientSideTarget = ct->new_target;
@@ -14777,11 +14782,6 @@ void Client::Handle_OP_TargetCommand(const EQApplicationPacket *app)
 		Mob *nt = entity_list.GetMob(ct->new_target);
 		if (nt)
 		{
-			if (GetTarget())
-			{
-				GetTarget()->IsTargeted(-1);
-			}
-
 			SetTarget(nt);
 			bool inspect_buffs = false;
 			// rank 1 gives you ability to see NPC buffs in target window (SoD+)
@@ -14810,7 +14810,21 @@ void Client::Handle_OP_TargetCommand(const EQApplicationPacket *app)
 		}
 		else
 		{
-			MessageString(Chat::Red, DONT_SEE_TARGET);
+			SetTarget(nullptr);
+			SetHoTT(0);
+			UpdateXTargetType(TargetsTarget, nullptr);
+
+			Group *g = GetGroup();
+
+			if (g && g->HasRole(this, RoleAssist))
+				g->SetGroupAssistTarget(0);
+
+			if (g && g->HasRole(this, RoleTank))
+				g->SetGroupTankTarget(0);
+
+			if (g && g->HasRole(this, RolePuller))
+				g->SetGroupPullerTarget(0);
+
 			return;
 		}
 	}
