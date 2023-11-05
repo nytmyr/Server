@@ -216,8 +216,12 @@ public:
 	void	AddVegasItemLoot(Mob* top_client);
 	const EQ::ItemData* GetVegasItems(uint32 id_min, uint32 id_max, float difficulty_min, float difficulty_max, uint32 zone_range_min, uint32 zone_range_max, bool raidonly);
 	bool	NPCBypassesVegasLoot();
+	bool	GuaranteedNormalDrop();
+	bool	GuaranteedBonusDrop();
+	bool	GuaranteedRaidDrop();
 	bool	NPCBypassesVegasRaidLoot();
 	bool	SpecialNPCPassesVegasLoot();
+	bool	SpecialZonePassesVegasLoot();
 	int		GetRollCount(float npc_diff);
 	int		GetRaidRollCount(float npc_diff);
 	int		GetBonusRollCount(float npc_diff);

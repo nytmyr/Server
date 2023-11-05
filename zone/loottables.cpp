@@ -778,7 +778,7 @@ void NPC::AddVegasItemLoot(Mob* top_client) {
 	while (bonus_roll_count >= 1) {
 		rolled = zone->random.Int(1, std::min(bonus_roll_max, bonus_roll_to_hit));
 		VegasLootDetail("Rolled a [{}]", rolled); //deleteme
-		if (rolled >= std::min(bonus_roll_max, bonus_roll_to_hit)) {
+		if (rolled >= std::min(bonus_roll_max, bonus_roll_to_hit) || GuaranteedBonusDrop()) {
 			VegasLoot("Bonus Roll hit on [{}] for [{}].", GetCleanName(), top_client->GetCleanName()); //deleteme
 			shard_multiplier = RuleR(Vegas, ShardBonusLootMultiplier);
 			guaranteed_shard_drop = true;
@@ -829,7 +829,7 @@ void NPC::AddVegasItemLoot(Mob* top_client) {
 		raid_only = false;
 		rolled = zone->random.Int(1, std::min(roll_max, roll_to_hit));
 		VegasLootDetail("Rolled a [{}]", rolled); //deleteme
-		if (rolled >= std::min(roll_max, roll_to_hit)) {
+		if (rolled >= std::min(roll_max, roll_to_hit) || GuaranteedNormalDrop()) {
 			VegasLoot("Normal Roll hit on [{}] for [{}].", GetCleanName(), top_client->GetCleanName()); //deleteme
 			const EQ::ItemData* chosen_item = GetVegasItems(id_min, id_max, difficulty_min, difficulty_max, zone_range_min, zone_range_max, raid_only);
 			if (chosen_item) {
@@ -878,7 +878,7 @@ void NPC::AddVegasItemLoot(Mob* top_client) {
 		raid_only = true;
 		rolled = zone->random.Int(1, std::min(raid_roll_max, raid_roll_to_hit));
 		VegasLootDetail("Rolled a [{}]", rolled); //deleteme
-		if (rolled >= std::min(raid_roll_max, raid_roll_to_hit)) {
+		if (rolled >= std::min(raid_roll_max, raid_roll_to_hit) || GuaranteedRaidDrop()) {
 			VegasLoot("Raid Roll hit on [{}] for [{}].", GetCleanName(), top_client->GetCleanName()); //deleteme
 			const EQ::ItemData* chosen_item = GetVegasItems(id_min, id_max, difficulty_min, difficulty_max, zone_range_min, zone_range_max, raid_only);
 			if (chosen_item) {
@@ -998,6 +998,20 @@ void NPC::GetVegasZoneRange(uint16 zoneid, uint8* zone_era, uint32* zone_range_m
 		*zone_range_min = RuleI(Vegas, PoPZoneNPCIDMin);
 		*zone_range_max = RuleI(Vegas, PoPZoneNPCIDMax);
 	}
+	else if (SpecialZonePassesVegasLoot()) { //Special Zones
+		if (zoneid == RuleI(Vegas, SpecialEventZoneOne)) {
+			*zone_range_min = RuleI(Vegas, SpecialEventZoneOneIDMin);
+			*zone_range_max = RuleI(Vegas, SpecialEventZoneOneIDMax);
+		}
+		else if (zoneid == RuleI(Vegas, SpecialEventZoneTwo)) {
+			*zone_range_min = RuleI(Vegas, SpecialEventZoneTwoIDMin);
+			*zone_range_max = RuleI(Vegas, SpecialEventZoneTwoIDMax);
+		}
+		else if (zoneid == RuleI(Vegas, SpecialEventZoneThree)) {
+			*zone_range_min = RuleI(Vegas, SpecialEventZoneThreeIDMin);
+			*zone_range_max = RuleI(Vegas, SpecialEventZoneThreeIDMax);
+		}
+	}
 }
 
 void NPC::GetVegasDifficultyRange(uint16 zoneid, float* difficulty_min, float* difficulty_max, float* difficulty_bonus_min, float* difficulty_bonus_max) {
@@ -1038,8 +1052,32 @@ void NPC::GetVegasDifficultyRange(uint16 zoneid, float* difficulty_min, float* d
 }
 
 bool NPC::IsVegasLootEligible(Mob* top_client) {
+	bool check = false;
+
+	if (!IsOnVegasCoolDown(top_client)) {
+		int top_hate_char_id = top_client->CastToClient()->CharacterID();
+		Raid* raid = entity_list.GetRaidByClient(top_client->CastToClient());
+		Group* group = top_client->GetGroup();
+		int level_diff = 999;
+
+		if (top_hate_char_id) {
+			raid ? level_diff = raid->GetHighestLevel() - GetLevel() : group ? level_diff = group->GetHighestLevel() - GetLevel() : level_diff = top_client->CastToClient()->GetLevel() - GetLevel();
+			if (level_diff <= RuleI(Vegas, LevelDifferenceForVegasDrops)) {
+				check = true;
+			}
+			else {
+				VegasLootDetail("[{}] on [{}]:::Failed level checks [{}] - [{}] - [{} - {} = {}]", top_client->GetCleanName(), GetCleanName(), raid ? "has raid" : "no raid", group ? "has group" : "no group", raid ? raid->GetHighestLevel() : group ? group->GetHighestLevel() : top_client->CastToClient()->GetLevel(), GetLevel(), raid ? raid->GetHighestLevel() - GetLevel() : group ? group->GetHighestLevel() - GetLevel() : top_client->CastToClient()->GetLevel() - GetLevel());
+				Emote("'s fortunes decay away.");
+				return false;
+			}
+		}
+	}
 
 	if (SpecialNPCPassesVegasLoot()) {
+		return true;
+	}
+
+	if (SpecialZonePassesVegasLoot()) {
 		return true;
 	}
 
@@ -1063,24 +1101,7 @@ bool NPC::IsVegasLootEligible(Mob* top_client) {
 		return false;
 	}
 
-	if (!IsOnVegasCoolDown(top_client)) {
-		int top_hate_char_id = top_client->CastToClient()->CharacterID();
-		Raid* raid = entity_list.GetRaidByClient(top_client->CastToClient());
-		Group* group = top_client->GetGroup();
-		int level_diff = 999;
-
-		if (top_hate_char_id) {
-			raid ? level_diff = raid->GetHighestLevel() - GetLevel() : group ? level_diff = group->GetHighestLevel() - GetLevel() : level_diff = top_client->CastToClient()->GetLevel() - GetLevel();
-			if (level_diff <= RuleI(Vegas, LevelDifferenceForVegasDrops)) {
-				return true;
-			}
-			else {
-				VegasLootDetail("[{}] on [{}]:::Failed level checks [{}] - [{}] - [{} - {} = {}]", top_client->GetCleanName(), GetCleanName(), raid ? "has raid" : "no raid", group ? "has group" : "no group", raid ? raid->GetHighestLevel() : group ? group->GetHighestLevel() : top_client->CastToClient()->GetLevel(), GetLevel(), raid ? raid->GetHighestLevel() - GetLevel() : group ? group->GetHighestLevel() - GetLevel() : top_client->CastToClient()->GetLevel() - GetLevel());
-				Emote("'s fortunes decay away.");
-			}
-		}
-	}
-	return false;
+	return check;
 }
 
 bool NPC::IsOnVegasCoolDown(Mob* top_client) {
@@ -1133,6 +1154,35 @@ bool NPC::NPCBypassesVegasLoot() {
 	return false;
 }
 
+bool NPC::GuaranteedNormalDrop() {
+	uint32 NPCIDChecks[] = { RuleI(Vegas, GuaranteedNormalDropOne), RuleI(Vegas, GuaranteedNormalDropTwo), RuleI(Vegas, GuaranteedNormalDropThree), RuleI(Vegas, GuaranteedNormalDropFour), RuleI(Vegas, GuaranteedNormalDropFive) };
+	for (int i : NPCIDChecks) {
+		if (i == GetNPCTypeID()) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool NPC::GuaranteedBonusDrop() {
+	uint32 NPCIDChecks[] = { RuleI(Vegas, GuaranteedBonusDropOne), RuleI(Vegas, GuaranteedBonusDropTwo), RuleI(Vegas, GuaranteedBonusDropThree), RuleI(Vegas, GuaranteedBonusDropFour), RuleI(Vegas, GuaranteedBonusDropFive) };
+	for (int i : NPCIDChecks) {
+		if (i == GetNPCTypeID()) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool NPC::GuaranteedRaidDrop() {
+	uint32 NPCIDChecks[] = { RuleI(Vegas, GuaranteedRaidDropOne), RuleI(Vegas, GuaranteedRaidDropTwo), RuleI(Vegas, GuaranteedRaidDropThree), RuleI(Vegas, GuaranteedRaidDropFour), RuleI(Vegas, GuaranteedRaidDropFive) };
+	for (int i : NPCIDChecks) {
+		if (i == GetNPCTypeID()) {
+			return true;
+		}
+	}
+	return false;
+}
 
 bool NPC::NPCBypassesVegasRaidLoot() {
 	uint32 NPCIDChecks[] = { RuleI(Vegas, RaidTargetNotCountAsRaidOne), RuleI(Vegas, RaidTargetNotCountAsRaidTwo), RuleI(Vegas, RaidTargetNotCountAsRaidThree), RuleI(Vegas, RaidTargetNotCountAsRaidFour), RuleI(Vegas, RaidTargetNotCountAsRaidFive) };
@@ -1148,6 +1198,16 @@ bool NPC::SpecialNPCPassesVegasLoot() {
 	uint32 NPCIDChecks[] = { RuleI(Vegas, NPCSpecialIDPassesLootCheckOne), RuleI(Vegas, NPCSpecialIDPassesLootCheckTwo), RuleI(Vegas, NPCSpecialIDPassesLootCheckThree), RuleI(Vegas, NPCSpecialIDPassesLootCheckFour), RuleI(Vegas, NPCSpecialIDPassesLootCheckFive) };
 	for (int i : NPCIDChecks) {
 		if (i == GetNPCTypeID()) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool NPC::SpecialZonePassesVegasLoot() {
+	uint32 ZoneIDChecks[] = { RuleI(Vegas, SpecialEventZoneOne), RuleI(Vegas, SpecialEventZoneTwo), RuleI(Vegas, SpecialEventZoneThree) };
+	for (int i : ZoneIDChecks) {
+		if (i == zone->GetZoneID()) {
 			return true;
 		}
 	}
