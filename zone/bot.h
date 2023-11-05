@@ -242,7 +242,7 @@ public:
 	uint8 GetNumberNeedingHealedInGroup(uint8 hpr, bool includePets);
 	bool GetNeedsCured(Mob *tar);
 	bool GetNeedsHateRedux(Mob *tar);
-	bool HasOrMayGetAggro();
+	bool HasOrMayGetAggro(bool SitAggro = false);
 	void SetDefaultBotStance();
 	void SetSurname(std::string bot_surname);
 	void SetTitle(std::string bot_title);

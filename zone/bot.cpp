@@ -2336,7 +2336,10 @@ void Bot::SpellProcess() {
 void Bot::BotMeditate(bool isSitting) {
 	if (isSitting) {
 		if (GetManaRatio() < 99.0f || GetHPRatio() < 99.0f) {
-			if (!IsEngaged() && !IsSitting()) {
+			if (GetArchetype() == ARCHETYPE_CASTER && IsEngaged() && GetManaRatio() < RuleR(Bots, CombatRegenManaLimit) && GetHPRatio() >= RuleR(Bots, CombatRegenHealthLimit) && !HasOrMayGetAggro(true) && !IsSitting()) {
+				Sit();
+			}
+			else if (!IsEngaged() && !IsSitting()) {
 				Sit();
 			}
 		} else {
@@ -9453,7 +9456,7 @@ bool Bot::GetNeedsHateRedux(Mob *tar) {
 	return false;
 }
 
-bool Bot::HasOrMayGetAggro() {
+bool Bot::HasOrMayGetAggro(bool SitAggro) {
 	bool mayGetAggro = false;
 	if(GetTarget() && GetTarget()->GetHateTop()) {
 		Mob *topHate = GetTarget()->GetHateTop();
@@ -9462,6 +9465,9 @@ bool Bot::HasOrMayGetAggro() {
 		else {
 			uint32 myHateAmt = GetTarget()->GetHateAmount(this);
 			uint32 topHateAmt = GetTarget()->GetHateAmount(topHate);
+			if (IsSitting()) {
+				myHateAmt *= (1 + (RuleI(Aggro, SittingAggroMod) / 100));
+			}
 
 			if(myHateAmt > 0 && topHateAmt > 0 && (uint8)((myHateAmt / topHateAmt) * 100) > 90)
 				mayGetAggro = true;

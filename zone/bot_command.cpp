@@ -1578,6 +1578,7 @@ int bot_command_init(void)
 		bot_command_add("maxmeleerange", "Toggles whether your bot is at max melee range or not. This will disable all special abilities, including taunt.", AccountStatus::Player, bot_command_max_melee_range) ||
 		bot_command_add("removefromraid", "This will remove a bot from a raid, can be used for stuck bots.", AccountStatus::Player, bot_command_remove_from_raid) ||
 		bot_command_add("useepic", "Orders your targeted bot to use their epic if it is equipped", AccountStatus::Player, bot_command_use_epic) ||
+		//bot_command_add("combatmed", "Allows your bot to med in combat as long as it thinks it won't get aggro.", AccountStatus::Player, bot_command_combat_med) ||
 
 		bot_command_add("copysettings", "Will copy the targeted bots settings to the named bot.", AccountStatus::Player, bot_command_copy_settings) ||
 		bot_command_add("delaysettings", "Displays all the delay settings on the targeted bot", AccountStatus::Player, bot_command_delay_settings) ||
