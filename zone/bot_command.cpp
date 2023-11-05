@@ -5417,8 +5417,13 @@ void bot_command_guard(Client *c, const Seperator *sep)
 		return;
 	}
 
+	Bot* first_attacker = nullptr;
 	sbl.remove(nullptr);
 	for (auto bot_iter : sbl) {
+
+		if (!first_attacker) {
+			first_attacker = bot_iter;
+		}
 
 		if (clear) {
 			bot_iter->SetGuardFlag(false);
@@ -5432,8 +5437,9 @@ void bot_command_guard(Client *c, const Seperator *sep)
 		c->Message(
 			Chat::White,
 			fmt::format(
-				"{}uarding this position.",
-				clear ? "No longer g" : "G"
+				"{} says, 'I am {}uarding this position.'",
+				first_attacker->GetCleanName(),
+				clear ? "no longer g" : "now g"
 			).c_str()
 		);
 	} else {
