@@ -4277,3 +4277,125 @@ void NPC::DoFirstKillAchievements(Mob* top_client, std::string key) {
 		zone->SendDiscordMessage("achievements", "Achievement!: [" + npc_name + "](http://vegaseq.com/Allaclone/?a=npc&id=" + std::to_string(GetNPCTypeID()) + ")" + discordmsg + "!");
 	}
 }
+
+float NPC::CalcDifficulty() {
+	float base_difficulty = 0;
+	float attack_speed_difficulty = 0;
+	float special_abilities_difficulty = 0;
+	float spells_difficulty = 0;
+	float proc_difficulty = 0;
+	float difficulty_total = 0;
+
+	base_difficulty = ((GetMinDMG() + GetMaxDMG()) / 2) * (((GetMaxHP() + ((GetHPRegen() / 6) + GetHPRegenPerSecond())) / 16) / GetLevel());
+	attack_speed_difficulty = ((base_difficulty * (33 / GetAttackDelay())) - base_difficulty) / 5;
+	base_difficulty += attack_speed_difficulty;
+	special_abilities_difficulty = CalcSpecialAbilitiesDifficulty(base_difficulty);
+	//spells_difficulty = CalcSpellDifficulty();
+	//proc_difficulty = CalcProcDifficulty();
+	difficulty_total = base_difficulty + attack_speed_difficulty + special_abilities_difficulty + spells_difficulty + proc_difficulty;
+
+	return difficulty_total;
+}
+
+float NPC::CalcSpecialAbilitiesDifficulty(float base_difficulty) {
+	float difficulty = 0;
+	if (GetSpecialAbility(SPECATK_ENRAGE)) {
+		difficulty += (base_difficulty * 1.05) - base_difficulty;
+	}
+	if (GetSpecialAbility(SPECATK_RAMPAGE)) {
+		difficulty += (base_difficulty * 1.25) - base_difficulty;
+	}
+	if (GetSpecialAbility(SPECATK_AREA_RAMPAGE)) {
+		difficulty += (base_difficulty * 1.5) - base_difficulty;
+	}
+	if (GetSpecialAbility(SPECATK_FLURRY)) {
+		difficulty += (base_difficulty * 1.15) - base_difficulty;
+	}
+	if (GetSpecialAbility(SPECATK_QUAD) || GetSpecialAbility(SPECATK_INNATE_DW)) {
+		difficulty += (base_difficulty * 1.5) - base_difficulty;
+	}
+	else if (GetSpecialAbility(SPECATK_TRIPLE)) {
+		difficulty += (base_difficulty * 1.35) - base_difficulty;
+	}
+	if (GetSpecialAbility(UNSLOWABLE)) {
+		difficulty += (base_difficulty * 1.5) - base_difficulty;
+	}
+	if (GetSpecialAbility(UNSTUNABLE)) {
+		difficulty += (base_difficulty * 1.15) - base_difficulty;
+	}
+	if (GetSpecialAbility(IMMUNE_CASTING_FROM_RANGE)) {
+		difficulty += (base_difficulty * 1.5) - base_difficulty;
+	}
+	if (GetSpecialAbility(SPECATK_SUMMON)) {
+		difficulty += (base_difficulty * 1.15) - base_difficulty;
+	}
+	if (GetSpecialAbility(IMMUNE_MELEE)) {
+		difficulty += (base_difficulty * 1.75) - base_difficulty;
+	}
+	if (GetSpecialAbility(IMMUNE_MAGIC)) {
+		difficulty += (base_difficulty * 1.75) - base_difficulty;
+	}
+	if (GetSpecialAbility(IMMUNE_MELEE_EXCEPT_BANE)) {
+		difficulty += (base_difficulty * 1.5) - base_difficulty;
+	}
+	if (GetSpecialAbility(UNDISPELLABLE)) {
+		difficulty += (base_difficulty * 1.05) - base_difficulty;
+	}
+	if (GetSpecialAbility(IMMUNE_TAUNT)) {
+		difficulty += (base_difficulty * 1.5) - base_difficulty;
+	}
+	if (GetSpecialAbility(NPC_TUNNELVISION)) {
+		difficulty += (base_difficulty * .75) - base_difficulty;
+	}
+	if (GetSpecialAbility(COUNTER_AVOID_DAMAGE)) {
+		difficulty += (base_difficulty * 1.05) - base_difficulty;
+	}
+	if (GetSpecialAbility(IMMUNE_RANGED_ATTACKS)) {
+		difficulty += (base_difficulty * 1.15) - base_difficulty;
+	}
+	
+	return difficulty;
+}
+
+float NPC::CalcSpellDifficulty() {
+	float difficulty = 0;
+	if (AI_HasSpells()) {
+		for (int i = static_cast<int>(AIspells.size()) - 1; i >= 0; i--) {
+			if (!IsValidSpell(AIspells[i].spellid)) {
+				if (IsBeneficialSpell(AIspells[i].spellid)) {
+					
+				}
+				else if (IsDetrimentalSpell(AIspells[i].spellid)) {
+					for (int x = 0; x < EFFECT_COUNT; x++) {
+						if (IsBlankSpellEffect(AIspells[i].spellid, x)) {
+							continue;
+						}
+						auto effect_value = 0;
+						if (GetSpellPowerDistanceMod()) {
+							effect_value = effect_value * GetSpellPowerDistanceMod() / 100;
+						}
+
+						CalcSpellEffectValue(AIspells[i].spellid, x, GetLevel(), 10, this);
+						if (IsEffectInSpell(AIspells[i].spellid, SE_CurrentHP)) {
+
+						}
+					}
+				}
+				//for loop of spells in list
+					//switch of each spell
+						//case condition for each spell
+			}
+		}
+	}
+	return difficulty;
+}
+
+float NPC::CalcProcDifficulty() {
+	float difficulty = 0;
+	//for loop of spells in list
+		//if is a proc
+			//switch of each spell
+				//case condition for each spell
+
+	return difficulty;
+}

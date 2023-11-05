@@ -291,6 +291,11 @@ public:
 	void SetDifficulty(float difficulty_) { difficulty = difficulty_; }
 	int16 GetRaidPoints() const { return raid_points; }
 
+	float CalcDifficulty();
+	float CalcSpecialAbilitiesDifficulty(float base_difficulty);
+	float CalcSpellDifficulty();
+	float CalcProcDifficulty();
+
 	glm::vec4 const GetSpawnPoint() const { return m_SpawnPoint; }
 	glm::vec4 const GetGuardPoint() const { return m_GuardPoint; }
 	EmuAppearance GetGuardPointAnim() const { return guard_anim; }
