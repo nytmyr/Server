@@ -341,6 +341,7 @@ void command_curedelay(Client* c, const Seperator* sep);
 void command_cureminthreshold(Client* c, const Seperator* sep);
 void command_curethreshold(Client* c, const Seperator* sep);
 void command_char_change(Client* c, const Seperator* sep);
+void command_market(Client* c, const Seperator* sep);
 
 #include "bot.h"
 void command_bot(Client*c, const Seperator *sep);

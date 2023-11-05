@@ -1282,6 +1282,16 @@ RULE_INT(CharChange, RequiredAltCurrency, 70, "Alt Currency required for #charch
 RULE_BOOL(CharChange, DiscordOutputEnabled, false, "Output #charchange usage to Discord, default false")
 RULE_CATEGORY_END()
 
+RULE_CATEGORY(Market)
+RULE_BOOL(Market, MarketCommandEnabled, false, "Is #market command enabled?, default false")
+RULE_BOOL(Market, MarketRequireSpecificZone, false, "Whether or not #market requires a specific zone to be used in, default false")
+RULE_BOOL(Market, MarketAllowPoK, false, "Allow #market to be used in PoK")
+RULE_BOOL(Market, MarketAllowBazaar, true, "Allow #market to be used in The Bazaar")
+RULE_BOOL(Market, MarketRequiresAltCurrency, false, "Is Alt Currency required for #market, default false")
+RULE_INT(Market, MarketRequiredAltCurrency, 70, "Alt Currency required for #market if RequiresAltCurrency is enabled, default 70")
+RULE_BOOL(Market, MarketDiscordOutputEnabled, false, "Output #market usage to Discord, default false")
+RULE_CATEGORY_END()
+
 #undef RULE_CATEGORY
 #undef RULE_INT
 #undef RULE_REAL
