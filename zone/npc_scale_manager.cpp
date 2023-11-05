@@ -41,6 +41,11 @@ void NpcScaleManager::ScaleNPC(
 	auto zone_id          = zone->GetZoneID();
 	auto instance_version = zone->GetInstanceVersion();
 
+	bool special_zone			= SpecialZoneScaling();
+	float special_zone_max_hp	= SpecialZoneMaxHP(npc) > 0 ? SpecialZoneMaxHP(npc) : 1;
+	float special_zone_min_hit	= SpecialZoneMinHit(npc) > 0 ? SpecialZoneMinHit(npc) : 1;
+	float special_zone_max_hit	= SpecialZoneMaxHit(npc) > 0 ? SpecialZoneMaxHit(npc) : 1;
+
 	global_npc_scale scale_data = GetGlobalScaleDataForTypeLevel(
 		npc_type,
 		npc_level,
@@ -64,7 +69,8 @@ void NpcScaleManager::ScaleNPC(
 	}
 
 	if (always_scale || npc->GetMaxHP() == 0) {
-		npc->ModifyNPCStat("max_hp", std::to_string(scale_data.hp));
+		int64 hp = scale_data.hp * special_zone_max_hp;
+		npc->ModifyNPCStat("max_hp", std::to_string(hp));
 		npc->Heal();
 	}
 
@@ -140,11 +146,14 @@ void NpcScaleManager::ScaleNPC(
 		int64 min_dmg = scale_data.min_dmg;
 		if (RuleB(Combat, UseNPCDamageClassLevelMods)) {
 			uint32 class_level_damage_mod = GetClassLevelDamageMod(npc->GetLevel(), npc->GetClass());
-			min_dmg = (min_dmg * class_level_damage_mod) / 220;
+			min_dmg = (min_dmg * class_level_damage_mod) / 100;
 
 			LogNPCScaling("ClassLevelDamageMod::min_dmg base: [{}] calc: [{}]", scale_data.min_dmg, min_dmg);
 		}
-
+		min_dmg = min_dmg * special_zone_min_hit;
+		if (min_dmg < 1) {
+			min_dmg = 1;
+		}
 		npc->ModifyNPCStat("min_hit", std::to_string(min_dmg));
 	}
 
@@ -152,10 +161,11 @@ void NpcScaleManager::ScaleNPC(
 		int64 max_dmg = scale_data.max_dmg;
 		if (RuleB(Combat, UseNPCDamageClassLevelMods)) {
 			uint32 class_level_damage_mod = GetClassLevelDamageMod(npc->GetLevel(), npc->GetClass());
-			max_dmg = (scale_data.max_dmg * class_level_damage_mod) / 220;
+			max_dmg = (scale_data.max_dmg * class_level_damage_mod) / 100;
 
 			LogNPCScaling("ClassLevelDamageMod::max_dmg base: [{}] calc: [{}]", scale_data.max_dmg, max_dmg);
 		}
+		max_dmg = max_dmg * special_zone_max_hit;
 
 		npc->ModifyNPCStat("max_hit", std::to_string(max_dmg));
 	}
@@ -422,131 +432,33 @@ uint32 NpcScaleManager::GetClassLevelDamageMod(uint32 level, uint32 npc_class)
 	uint32 multiplier;
 
 	switch (npc_class) {
-		case WARRIOR: {
-			if (level < 20) {
-				multiplier = 220;
-			}
-			else if (level < 30) {
-				multiplier = 230;
-			}
-			else if (level < 40) {
-				multiplier = 250;
-			}
-			else if (level < 53) {
-				multiplier = 270;
-			}
-			else if (level < 57) {
-				multiplier = 280;
-			}
-			else if (level < 60) {
-				multiplier = 290;
-			}
-			else if (level < 70) {
-				multiplier = 300;
-			}
-			else {
-				multiplier = 311;
-			}
+		case WARRIOR: 
+		case BERSERKER:
+		case PALADIN:
+		case SHADOWKNIGHT: 
+		case MONK:
+		case BARD:
+		case ROGUE:
+		case BEASTLORD: 
+		case RANGER: {
+			multiplier = 100;
 			break;
 		}
 		case DRUID:
 		case CLERIC:
 		case SHAMAN: {
-			if (level < 70) {
-				multiplier = 150;
-			}
-			else {
-				multiplier = 157;
-			}
-			break;
-		}
-		case BERSERKER:
-		case PALADIN:
-		case SHADOWKNIGHT: {
-			if (level < 35) {
-				multiplier = 210;
-			}
-			else if (level < 45) {
-				multiplier = 220;
-			}
-			else if (level < 51) {
-				multiplier = 230;
-			}
-			else if (level < 56) {
-				multiplier = 240;
-			}
-			else if (level < 60) {
-				multiplier = 250;
-			}
-			else if (level < 68) {
-				multiplier = 260;
-			}
-			else {
-				multiplier = 270;
-			}
-			break;
-		}
-		case MONK:
-		case BARD:
-		case ROGUE:
-		case BEASTLORD: {
-			if (level < 51) {
-				multiplier = 180;
-			}
-			else if (level < 58) {
-				multiplier = 190;
-			}
-			else if (level < 70) {
-				multiplier = 200;
-			}
-			else {
-				multiplier = 210;
-			}
-			break;
-		}
-		case RANGER: {
-			if (level < 58) {
-				multiplier = 200;
-			}
-			else if (level < 70) {
-				multiplier = 210;
-			}
-			else {
-				multiplier = 220;
-			}
+			multiplier = 90;
 			break;
 		}
 		case MAGICIAN:
 		case WIZARD:
 		case NECROMANCER:
 		case ENCHANTER: {
-			if (level < 70) {
-				multiplier = 120;
-			}
-			else {
-				multiplier = 127;
-			}
+			multiplier = 80;
 			break;
 		}
 		default: {
-			if (level < 35) {
-				multiplier = 210;
-			}
-			else if (level < 45) {
-				multiplier = 220;
-			}
-			else if (level < 51) {
-				multiplier = 230;
-			}
-			else if (level < 56) {
-				multiplier = 240;
-			}
-			else if (level < 60) {
-				multiplier = 250;
-			}
-			else {
-				multiplier = 260;
-			}
+			multiplier = 100;
 			break;
 		}
 	}
@@ -753,4 +665,128 @@ bool NpcScaleManager::ApplyGlobalBaseScalingToNPCDynamically(NPC *&npc)
 	}
 
 	return false;
+}
+
+bool NpcScaleManager::SpecialZoneScaling() {
+	uint32 ZoneIDChecks[] = { RuleI(Vegas, SpecialZoneScalingOne), RuleI(Vegas, SpecialZoneScalingTwo), RuleI(Vegas, SpecialZoneScalingThree) };
+	for (int i : ZoneIDChecks) {
+		if (i == zone->GetZoneID()) {
+			return true;
+		}
+	}
+	return false;
+}
+
+float NpcScaleManager::SpecialZoneMaxHP(NPC* npc)
+{
+	if (zone->GetZoneID() == RuleI(Vegas, SpecialZoneScalingOne)) {
+		if (npc->IsRaidTarget()) {
+			return RuleR(Vegas, SpecialZoneScalingOneRaidMaxHP);
+		}
+		else if (npc->IsRareSpawn()) {
+			return RuleR(Vegas, SpecialZoneScalingOneRareMaxHP);
+		}
+		else {
+			return RuleR(Vegas, SpecialZoneScalingOneCommonMaxHP);
+		}
+	}
+	else if (zone->GetZoneID() == RuleI(Vegas, SpecialZoneScalingTwo)) {
+		if (npc->IsRaidTarget()) {
+			return RuleR(Vegas, SpecialZoneScalingTwoRaidMaxHP);
+		}
+		else if (npc->IsRareSpawn()) {
+			return RuleR(Vegas, SpecialZoneScalingTwoRareMaxHP);
+		}
+		else {
+			return RuleR(Vegas, SpecialZoneScalingTwoCommonMaxHP);
+		}
+	}
+	else if (zone->GetZoneID() == RuleI(Vegas, SpecialZoneScalingThree)) {
+		if (npc->IsRaidTarget()) {
+			return RuleR(Vegas, SpecialZoneScalingThreeRaidMaxHP);
+		}
+		else if (npc->IsRareSpawn()) {
+			return RuleR(Vegas, SpecialZoneScalingThreeRareMaxHP);
+		}
+		else {
+			return RuleR(Vegas, SpecialZoneScalingThreeCommonMaxHP);
+		}
+	}
+	return 1;
+}
+
+float NpcScaleManager::SpecialZoneMinHit(NPC* npc)
+{
+	if (zone->GetZoneID() == RuleI(Vegas, SpecialZoneScalingOne)) {
+		if (npc->IsRaidTarget()) {
+			return RuleR(Vegas, SpecialZoneScalingOneRaidMinHit);
+		}
+		else if (npc->IsRareSpawn()) {
+			return RuleR(Vegas, SpecialZoneScalingOneRareMinHit);
+		}
+		else {
+			return RuleR(Vegas, SpecialZoneScalingOneCommonMinHit);
+		}
+	}
+	else if (zone->GetZoneID() == RuleI(Vegas, SpecialZoneScalingTwo)) {
+		if (npc->IsRaidTarget()) {
+			return RuleR(Vegas, SpecialZoneScalingTwoRaidMinHit);
+		}
+		else if (npc->IsRareSpawn()) {
+			return RuleR(Vegas, SpecialZoneScalingTwoRareMinHit);
+		}
+		else {
+			return RuleR(Vegas, SpecialZoneScalingTwoCommonMinHit);
+		}
+	}
+	else if (zone->GetZoneID() == RuleI(Vegas, SpecialZoneScalingThree)) {
+		if (npc->IsRaidTarget()) {
+			return RuleR(Vegas, SpecialZoneScalingThreeRaidMinHit);
+		}
+		else if (npc->IsRareSpawn()) {
+			return RuleR(Vegas, SpecialZoneScalingThreeRareMinHit);
+		}
+		else {
+			return RuleR(Vegas, SpecialZoneScalingThreeCommonMinHit);
+		}
+	}
+	return 1;
+}
+
+float NpcScaleManager::SpecialZoneMaxHit(NPC* npc)
+{
+	if (zone->GetZoneID() == RuleI(Vegas, SpecialZoneScalingOne)) {
+		if (npc->IsRaidTarget()) {
+			return RuleR(Vegas, SpecialZoneScalingOneRaidMaxHit);
+		}
+		else if (npc->IsRareSpawn()) {
+			return RuleR(Vegas, SpecialZoneScalingOneRareMaxHit);
+		}
+		else {
+			return RuleR(Vegas, SpecialZoneScalingOneCommonMaxHit);
+		}
+	}
+	else if (zone->GetZoneID() == RuleI(Vegas, SpecialZoneScalingTwo)) {
+		if (npc->IsRaidTarget()) {
+			return RuleR(Vegas, SpecialZoneScalingTwoRaidMaxHit);
+		}
+		else if (npc->IsRareSpawn()) {
+			return RuleR(Vegas, SpecialZoneScalingTwoRareMaxHit);
+		}
+		else {
+			return RuleR(Vegas, SpecialZoneScalingTwoCommonMaxHit);
+		}
+	}
+	else if (zone->GetZoneID() == RuleI(Vegas, SpecialZoneScalingThree)) {
+		if (npc->IsRaidTarget()) {
+			return RuleR(Vegas, SpecialZoneScalingThreeRaidMaxHit);
+		}
+		else if (npc->IsRareSpawn()) {
+			return RuleR(Vegas, SpecialZoneScalingThreeRareMaxHit);
+		}
+		else {
+			return RuleR(Vegas, SpecialZoneScalingThreeCommonMaxHit);
+		}
+	}
+	return 1;
 }

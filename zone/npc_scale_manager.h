@@ -100,6 +100,10 @@ public:
 	void ResetNPCScaling(NPC* npc);
 	bool IsAutoScaled(NPC* npc);
 	bool LoadScaleData();
+	bool SpecialZoneScaling();
+	float SpecialZoneMaxHP(NPC* npc);
+	float SpecialZoneMinHit(NPC* npc);
+	float SpecialZoneMaxHit(NPC* npc);
 
 	global_npc_scale GetGlobalScaleDataForTypeLevel(
 		int8 npc_type,
