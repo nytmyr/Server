@@ -17965,7 +17965,7 @@ void bot_spell_info_dialogue_window(Client* c, const Seperator *sep)
 	auto results = database.QueryDatabase(
 		fmt::format(
 			"SELECT value FROM db_str WHERE id = {} and type = 6 LIMIT 1",
-			spells[spell_id].effect_description_id
+			spells[spell_id].description_id
 		)
 	);
 
