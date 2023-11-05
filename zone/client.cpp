@@ -810,24 +810,21 @@ bool Client::SendAllPackets() {
 }
 
 void Client::QueuePacket(const EQApplicationPacket* app, bool ack_req, CLIENT_CONN_STATUS required_state, eqFilterType filter) {
-	if (filter != FilterNone) {
-		//this is incomplete... no support for FilterShowGroupOnly or FilterShowSelfOnly
-		if (GetFilter(filter) == FilterHide)
-			return; //Client has this filter on, no need to send packet
+	if (filter != FilterNone && GetFilter(filter) == FilterHide) {
+		return;
 	}
+
 	if (client_state != CLIENT_CONNECTED && required_state == CLIENT_CONNECTED) {
 		AddPacket(app, ack_req);
 		return;
 	}
 
 	// if the program doesnt care about the status or if the status isnt what we requested
-	if (required_state != CLIENT_CONNECTINGALL && client_state != required_state)
-	{
+	if (required_state != CLIENT_CONNECTINGALL && client_state != required_state) {
 		// todo: save packets for later use
 		AddPacket(app, ack_req);
 	}
-	else if (eqs && !IsBot()) //Mitch added the BoTcheck for a fail safe on trying to send a packet to a BoT!
-	{
+	else if (eqs) {
 		eqs->QueuePacket(app, ack_req);
 	}
 }
@@ -7069,10 +7066,6 @@ void Client::UpdateClientXTarget(Client *c)
 // IT IS NOT SAFE TO CALL THIS IF IT'S NOT INITIAL AGGRO
 void Client::AddAutoXTarget(Mob *m, bool send)
 {
-	if (!m) {
-		return;
-	}
-
 	m_activeautohatermgr->increment_count(m);
 
 	if (!XTargettingAvailable() || !XTargetAutoAddHaters || IsXTarget(m))

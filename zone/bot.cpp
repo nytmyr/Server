@@ -1885,8 +1885,13 @@ bool Bot::DeleteBot()
 		return false;
 	}
 
-	if (GetGroup())
+	if (GetGroup()) {
 		RemoveBotFromGroup(this, GetGroup());
+	}
+
+	if (GetRaid()) {
+		RemoveBotFromRaid(this);
+	}
 
 	std::string error_message;
 
@@ -4289,12 +4294,29 @@ bool Bot::Spawn(Client* botCharacterOwner) {
 				}
 			}
 		}
-		Raid* raid = entity_list.GetRaidByBotName(this->GetName());
-
-		if (raid)
-		{
-			raid->VerifyRaid();
-			this->SetRaidGrouped(true);
+		if (auto raid = entity_list.GetRaidByBotName(GetName())) {
+			// Safety Check to confirm we have a valid raid
+			auto owner = GetBotOwner();
+			if (owner && !raid->IsRaidMember(owner->GetCleanName())) {
+				RemoveBotFromRaid(this);
+			}
+			else {
+				SetRaidGrouped(true);
+				raid->LearnMembers();
+				raid->VerifyRaid();
+			}
+		}
+		else if (auto group = entity_list.GetGroupByMobName(GetName())) {
+			// Safety Check to confirm we have a valid group
+			auto owner = GetBotOwner();
+			if (owner && !group->IsGroupMember(owner->GetCleanName())) {
+				Bot::RemoveBotFromGroup(this, group);
+			}
+			else {
+				SetGrouped(true);
+				group->LearnMembers();
+				group->VerifyGroup();
+			}
 		}
 		return true;
 	}
@@ -8031,6 +8053,20 @@ void Bot::ProcessBotGroupDisband(Client* c, std::string botName) {
 			tempBot = GetBotByBotClientOwnerAndBotName(c, botName);
 
 		RemoveBotFromGroup(tempBot, c->GetGroup());
+	}
+}
+
+void Bot::RemoveBotFromRaid(Bot* bot) {
+
+	Raid* bot_raid = entity_list.GetRaidByBotName(bot->GetName());
+	if (bot_raid) {
+		uint32 gid = bot_raid->GetGroup(bot->GetName());
+		bot_raid->SendRaidGroupRemove(bot->GetName(), gid);
+		bot_raid->RemoveMember(bot->GetName());
+		bot_raid->GroupUpdate(gid);
+		if (!bot_raid->RaidCount()) {
+			bot_raid->DisbandRaid();
+		}
 	}
 }
 

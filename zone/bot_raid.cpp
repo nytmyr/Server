@@ -98,7 +98,7 @@ void Bot::AI_Process_Raid()
 		SetFollowID(leash_owner->GetID());
 	}
 	
-	if (this->mana_timer.Check(false)) {
+	if (mana_timer.Check(false)) {
 		raid->SendHPManaEndPacketsFrom(this);
 	}
 	if (send_hp_update_timer.Check(false)) {
