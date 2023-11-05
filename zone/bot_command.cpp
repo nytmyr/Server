@@ -10303,7 +10303,7 @@ void bot_command_resurrect(Client *c, const Seperator *sep)
 		c->Message(Chat::White, "optionally: [%s byname Mybot] will choose the specified bot named Mybot.", sep->arg[0]);
 		c->Message(Chat::White, "optionally: [%s nointerrupt] will choose the first eligible bot that is not currently casting.", sep->arg[0]);
 		c->Message(Chat::White, "optionally: [%s byname nointerrupt Mybot] will choose Mybot s long as they are not currently casting.", sep->arg[0]);
-		helper_send_usage_required_bots(c, BCEnum::SpT_Charm);
+		helper_send_usage_required_bots(c, BCEnum::SpT_Resurrect);
 		return;
 	}
 
