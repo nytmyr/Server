@@ -1387,14 +1387,6 @@ int bot_command_init(void)
 		bot_command_add("boteyes", "Changes the eye colors of a bot", AccountStatus::Player, bot_subcommand_bot_eyes) ||
 		bot_command_add("botface", "Changes the facial appearance of your bot", AccountStatus::Player, bot_subcommand_bot_face) ||
 		bot_command_add("botfollowdistance", "Changes the follow distance(s) of a bot(s)", AccountStatus::Player, bot_subcommand_bot_follow_distance) ||
-		bot_command_add("botgroup", "Lists the available bot-group [subcommands]", AccountStatus::Player, bot_command_botgroup) ||
-		bot_command_add("botgroupaddmember", "Adds a member to a bot-group", AccountStatus::Player, bot_subcommand_botgroup_add_member) ||
-		bot_command_add("botgroupautospawn", "Toggles auto spawning for a bot-group, spawning the bot group when you zone automatically", AccountStatus::Player, bot_subcommand_botgroup_auto_spawn) ||
-		bot_command_add("botgroupcreate", "Creates a bot-group and designates a leader", AccountStatus::Player, bot_subcommand_botgroup_create) ||
-		bot_command_add("botgroupdelete", "Deletes a bot-group and releases its members", AccountStatus::Player, bot_subcommand_botgroup_delete) ||
-		bot_command_add("botgrouplist", "Lists all of your existing bot-groups", AccountStatus::Player, bot_subcommand_botgroup_list) ||
-		bot_command_add("botgroupload", "Loads all members of a bot-group", AccountStatus::Player, bot_subcommand_botgroup_load) ||
-		bot_command_add("botgroupremovemember", "Removes a bot from its bot-group", AccountStatus::Player, bot_subcommand_botgroup_remove_member) ||
 		bot_command_add("bothaircolor", "Changes the hair color of a bot", AccountStatus::Player, bot_subcommand_bot_hair_color) ||
 		bot_command_add("bothairstyle", "Changes the hairstyle of a bot", AccountStatus::Player, bot_subcommand_bot_hairstyle) ||
 		bot_command_add("botheritage", "Changes the Drakkin heritage of a bot", AccountStatus::Player, bot_subcommand_bot_heritage) ||
@@ -1890,6 +1882,9 @@ namespace MyBots
 			if (!raid)
 				return;
 			uint32 raid_group = raid->GetGroup(bot_owner);
+			if (raid_group >= MAX_RAID_GROUPS) {
+				return;
+			}
 			for (int x = 0; x < MAX_RAID_MEMBERS; x++) {
 				if (raid->members[x].member && entity_list.IsMobInZone(raid->members[x].member) && raid->members[x].GroupNumber == raid_group) {
 					if (!MyBots::IsMyBot(bot_owner, raid->members[x].member->CastToBot()))
@@ -1924,8 +1919,6 @@ namespace MyBots
 		if (!raid)
 			return;
 
-		uint32 raid_group = raid->GetGroup(bot_owner);
-
 		for (int x = 0; x < MAX_RAID_MEMBERS; x++) {
 			if (raid->members[x].member && entity_list.IsMobInZone(raid->members[x].member)) {
 				if (!MyBots::IsMyBot(bot_owner, raid->members[x].member->CastToBot()))
@@ -1945,14 +1938,34 @@ namespace MyBots
 			return;
 
 		auto target_mob = bot_owner->GetTarget();
-		if (!target_mob || !target_mob->GetGroup() || (!target_mob->IsClient() && !target_mob->IsBot()))
+		if (!target_mob || (!target_mob->GetGroup() && !target_mob->GetRaid()) || (!target_mob->IsClient() && !target_mob->IsBot()))
 			return;
 
-		std::list<Bot*> group_list;
-		target_mob->GetGroup()->GetBotList(group_list);
-		for (auto member_iter : group_list) {
-			if (IsMyBot(bot_owner, member_iter))
-				sbl.push_back(member_iter);
+		if (bot_owner->IsRaidGrouped()) {
+			Raid* raid = bot_owner->GetRaid();
+			if (!raid)
+				return;
+			if (MyBots::IsMyBot(bot_owner, target_mob)) {
+				uint32 raid_group = raid->GetGroup(target_mob->CastToClient());
+				if (raid_group >= MAX_RAID_GROUPS) {
+					return;
+				}
+				for (int x = 0; x < MAX_RAID_MEMBERS; x++) {
+					if (raid->members[x].member && entity_list.IsMobInZone(raid->members[x].member) && raid->members[x].GroupNumber == raid_group) {
+						if (!MyBots::IsMyBot(bot_owner, raid->members[x].member->CastToBot()))
+							continue;
+						sbl.push_back(raid->members[x].member->CastToBot());
+					}
+				}
+			}
+		}
+		else {
+			std::list<Bot*> group_list;
+			bot_owner->GetGroup()->GetBotList(group_list);
+			for (auto member_iter : group_list) {
+				if (IsMyBot(bot_owner, member_iter))
+					sbl.push_back(member_iter);
+			}
 		}
 
 		if (!clear_list)
@@ -1974,14 +1987,32 @@ namespace MyBots
 				break;
 			}
 		}
-		if (!named_mob || !named_mob->GetGroup() || (!named_mob->IsClient() && !named_mob->IsBot()))
+		if (!named_mob || !MyBots::IsMyBot(bot_owner, named_mob) || (!named_mob->GetGroup() && !named_mob->GetRaid()) || (!named_mob->IsClient() && !named_mob->IsBot()))
 			return;
 
-		std::list<Bot*> group_list;
-		named_mob->GetGroup()->GetBotList(group_list);
-		for (auto member_iter : group_list) {
-			if (IsMyBot(bot_owner, member_iter))
-				sbl.push_back(member_iter);
+		if (bot_owner->IsRaidGrouped()) {
+			Raid* raid = bot_owner->GetRaid();
+			if (!raid)
+				return;
+			uint32 raid_group = raid->GetGroup(named_mob->CastToClient());
+			if (raid_group >= MAX_RAID_GROUPS) {
+				return;
+			}
+			for (int x = 0; x < MAX_RAID_MEMBERS; x++) {
+				if (raid->members[x].member && entity_list.IsMobInZone(raid->members[x].member) && raid->members[x].GroupNumber == raid_group) {
+					if (!MyBots::IsMyBot(bot_owner, raid->members[x].member->CastToBot()))
+						continue;
+					sbl.push_back(raid->members[x].member->CastToBot());
+				}
+			}
+		}
+		else {
+			std::list<Bot*> group_list;
+			bot_owner->GetGroup()->GetBotList(group_list);
+			for (auto member_iter : group_list) {
+				if (IsMyBot(bot_owner, member_iter))
+					sbl.push_back(member_iter);
+			}
 		}
 
 		if (!clear_list)
@@ -2100,40 +2131,53 @@ namespace MyBots
 		}
 	}
 
-	static void PopulateSBL_ByBotGroup(Client *bot_owner, std::list<Bot*> &sbl, const char* name, bool clear_list = true) {
+	static void PopulateSBL_BySpawnedBotsClass(Client * bot_owner, std::list<Bot*> &sbl, uint16 cls, bool clear_list = true) {
 		if (clear_list)
 			sbl.clear();
-		if (!bot_owner || !name)
+		if (!bot_owner || !cls)
 			return;
 
-		std::string group_name = name;
-
-		uint32 botgroup_id = 0;
-		if (!database.botdb.LoadBotGroupIDForLoadBotGroup(bot_owner->CharacterID(), group_name, botgroup_id) || !botgroup_id)
-			return;
-
-		std::map<uint32, std::list<uint32>> botgroup_list;
-		if (!database.botdb.LoadBotGroup(group_name, botgroup_list) || botgroup_list.find(botgroup_id) == botgroup_list.end() || !botgroup_list[botgroup_id].size())
-			return;
-
-		std::list<Bot*> selectable_bot_list;
-		PopulateSBL_BySpawnedBots(bot_owner, selectable_bot_list);
-		if (selectable_bot_list.empty())
-			return;
-
-		selectable_bot_list.remove(nullptr);
-		for (auto group_iter : botgroup_list[botgroup_id]) {
-			for (auto bot_iter : selectable_bot_list) {
-				if (bot_iter->GetBotID() != group_iter)
-					continue;
-
-				if (IsMyBot(bot_owner, bot_iter)) {
-					sbl.push_back(bot_iter);
-					break;
-				}
+		auto selectable_bot_list = entity_list.GetBotsByBotOwnerCharacterID(bot_owner->CharacterID());
+		for (auto bot_iter : selectable_bot_list) {
+			if (bot_iter->GetClass() != cls) {
+				continue;
 			}
+			sbl.push_back(bot_iter);
 		}
+		if (!clear_list)
+			UniquifySBL(sbl);
+	}
 
+	static void PopulateSBL_BySpawnedBotsRace(Client* bot_owner, std::list<Bot*>& sbl, uint16 race, bool clear_list = true) {
+		if (clear_list)
+			sbl.clear();
+		if (!bot_owner || !race)
+			return;
+
+		auto selectable_bot_list = entity_list.GetBotsByBotOwnerCharacterID(bot_owner->CharacterID());
+		for (auto bot_iter : selectable_bot_list) {
+			if (bot_iter->GetBaseRace() != race) {
+				continue;
+			}
+			sbl.push_back(bot_iter);
+		}
+		if (!clear_list)
+			UniquifySBL(sbl);
+	}
+
+	static void PopulateSBL_ByAtMMR(Client* bot_owner, std::list<Bot*>& sbl, bool clear_list = true) {
+		if (clear_list)
+			sbl.clear();
+		if (!bot_owner)
+			return;
+
+		auto selectable_bot_list = entity_list.GetBotsByBotOwnerCharacterID(bot_owner->CharacterID());
+		for (auto bot_iter : selectable_bot_list) {
+			if (!bot_iter->GetMaxMeleeRange()) {
+				continue;
+			}
+			sbl.push_back(bot_iter);
+		}
 		if (!clear_list)
 			UniquifySBL(sbl);
 	}
@@ -2341,12 +2385,14 @@ namespace ActionableBots
 		ABT_ByName,
 		ABT_OwnerGroup,
 		ABT_OwnerRaid,
-		ABT_BotGroup,
 		ABT_TargetGroup,
 		ABT_NamesGroup,
 		ABT_HealRotation,
 		ABT_HealRotationMembers,
 		ABT_HealRotationTargets,
+		ABT_MMR,
+		ABT_Class,
+		ABT_Race,
 		ABT_Spawned,
 		ABT_All
 	};
@@ -2357,23 +2403,25 @@ namespace ActionableBots
 		ABM_ByName = (1 << (ABT_ByName - 1)),
 		ABM_OwnerGroup = (1 << (ABT_OwnerGroup - 1)),
 		ABM_OwnerRaid = (1 << (ABT_OwnerRaid - 1)),
-		ABM_BotGroup = (1 << (ABT_BotGroup - 1)),
 		ABM_TargetGroup = (1 << (ABT_TargetGroup - 1)),
 		ABM_NamesGroup = (1 << (ABT_NamesGroup - 1)),
 		ABM_HealRotation = (1 << (ABT_HealRotation - 1)),
 		ABM_HealRotationMembers = (1 << (ABT_HealRotationMembers - 1)),
 		ABM_HealRotationTargets = (1 << (ABT_HealRotationTargets - 1)),
+		ABM_MMR = (1 << (ABT_MMR -1)),
+		ABM_Class = (1 << (ABT_Class - 1)),
+		ABM_Race = (1 << (ABT_Race - 1)),
 		ABM_Spawned = (1 << (ABT_Spawned - 1)),
 		ABM_All = (1 << (ABT_All - 1)),
 		ABM_Spawned_All = (3 << (ABT_Spawned - 1)),
 		ABM_NoFilter = ~0,
 		// grouped values
-		ABM_Type1 = (ABM_Target | ABM_ByName | ABM_OwnerGroup | ABM_OwnerRaid | ABM_BotGroup | ABM_TargetGroup | ABM_NamesGroup | ABM_HealRotationTargets | ABM_Spawned),
-		ABM_Type2 = (ABM_ByName | ABM_OwnerGroup | ABM_OwnerRaid | ABM_BotGroup | ABM_NamesGroup | ABM_HealRotation | ABM_Spawned)
+		ABM_Type1 = (ABM_Target | ABM_ByName | ABM_OwnerGroup | ABM_OwnerRaid | ABM_TargetGroup | ABM_NamesGroup | ABM_HealRotationTargets | ABM_Spawned | ABT_MMR | ABM_Class | ABM_Race),
+		ABM_Type2 = (ABM_ByName | ABM_OwnerGroup | ABM_OwnerRaid | ABM_NamesGroup | ABM_HealRotation | ABM_Spawned | ABT_MMR | ABM_Class | ABM_Race)
 	};
 
 	// Populates 'sbl'
-	static ABType PopulateSBL(Client* bot_owner, std::string ab_type_arg, std::list<Bot*> &sbl, int ab_mask, const char* name = nullptr, bool clear_list = true, bool suppress_message = false) {
+	static ABType PopulateSBL(Client* bot_owner, std::string ab_type_arg, std::list<Bot*> &sbl, int ab_mask, const char* name = nullptr, uint16 classrace = 0, bool clear_list = true, bool suppress_message = false) {
 		if (clear_list)
 			sbl.clear();
 		if (!bot_owner)
@@ -2388,8 +2436,6 @@ namespace ActionableBots
 			ab_type = ABT_OwnerGroup;
 		else if (!ab_type_arg.compare("ownerraid"))
 			ab_type = ABT_OwnerRaid;
-		else if (!ab_type_arg.compare("botgroup"))
-			ab_type = ABT_BotGroup;
 		else if (!ab_type_arg.compare("targetgroup"))
 			ab_type = ABT_TargetGroup;
 		else if (!ab_type_arg.compare("namesgroup"))
@@ -2400,6 +2446,13 @@ namespace ActionableBots
 			ab_type = ABT_HealRotationMembers;
 		else if (!ab_type_arg.compare("healrotationtargets"))
 			ab_type = ABT_HealRotationTargets;
+		else if (!ab_type_arg.compare("mmr"))
+			ab_type = ABT_MMR;
+		else if (!ab_type_arg.compare("byclass")) {
+			ab_type = ABT_Class;
+		}
+		else if (!ab_type_arg.compare("byrace"))
+			ab_type = ABT_Race;
 		else if (!ab_type_arg.compare("spawned"))
 			ab_type = ABT_Spawned;
 		else if (!ab_type_arg.compare("all"))
@@ -2425,10 +2478,6 @@ namespace ActionableBots
 			if (ab_mask & ABM_OwnerRaid)
 				MyBots::PopulateSBL_ByMyRaidBots(bot_owner, sbl, clear_list);
 			break;
-		case ABT_BotGroup:
-			if (ab_mask & ABM_BotGroup)
-				MyBots::PopulateSBL_ByBotGroup(bot_owner, sbl, name, clear_list);
-			break;
 		case ABT_TargetGroup:
 			if (ab_mask & ABM_TargetGroup)
 				MyBots::PopulateSBL_ByTargetsGroupedBots(bot_owner, sbl, clear_list);
@@ -2449,6 +2498,19 @@ namespace ActionableBots
 			if (ab_mask & ABM_HealRotationTargets)
 				MyBots::PopulateSBL_ByHealRotationTargets(bot_owner, sbl, name, clear_list);
 			break;
+		case ABT_MMR:
+			if (ab_mask & ABM_MMR)
+				MyBots::PopulateSBL_ByAtMMR(bot_owner, sbl, clear_list);
+			break;
+		case ABT_Class:
+			if (ab_mask & ABM_Class) {
+				MyBots::PopulateSBL_BySpawnedBotsClass(bot_owner, sbl, classrace, clear_list);
+			}
+			break;
+		case ABT_Race:
+			if (ab_mask & ABM_Race)
+				MyBots::PopulateSBL_BySpawnedBotsRace(bot_owner, sbl, classrace, clear_list);
+			break;
 		case ABT_Spawned:
 		case ABT_All:
 			if (ab_mask & ABM_Spawned_All)
@@ -2463,8 +2525,14 @@ namespace ActionableBots
 
 			if (!ab_mask)
 				bot_owner->Message(Chat::White, "Command passed null 'ActionableBot' criteria");
-			else if (ab_mask & ab_type)
-				bot_owner->Message(Chat::White, "You have no spawned bots meeting this criteria - type: '%s', name: '%s'", ab_type_arg.c_str(), ((name) ? (name) : ("")));
+			else if (ab_mask & ab_type) {
+				if (classrace) {
+					bot_owner->Message(Chat::White, "You have no spawned bots meeting this criteria - type: '%s', %s: '%i'", ab_type_arg.c_str(), ab_mask & ABM_Class ? "class" : ab_mask & ABM_Race ? "race" : "", classrace);
+				}
+				else {
+					bot_owner->Message(Chat::White, "You have no spawned bots meeting this criteria - type: '%s', name: '%s'", ab_type_arg.c_str(), ((name) ? (name) : ("")));
+				}
+			}
 			else
 				bot_owner->Message(Chat::White, "This command does not allow 'ActionableBot' criteria '%s'", ab_type_arg.c_str());
 			return ABT_None;
@@ -2473,7 +2541,7 @@ namespace ActionableBots
 		return ab_type;
 	}
 
-	static ABType PopulateSBLForSummon(Client* bot_owner, std::string ab_type_arg, std::list<Bot*>& sbl, int ab_mask, const char* name = nullptr, bool clear_list = true, bool suppress_message = false) {
+	static ABType PopulateSBLForSummon(Client* bot_owner, std::string ab_type_arg, std::list<Bot*>& sbl, int ab_mask, const char* name = nullptr, uint16 classrace = 0, bool clear_list = true, bool suppress_message = false) {
 		if (clear_list)
 			sbl.clear();
 		if (!bot_owner)
@@ -2488,8 +2556,6 @@ namespace ActionableBots
 			ab_type = ABT_OwnerGroup;
 		else if (!ab_type_arg.compare("ownerraid"))
 			ab_type = ABT_OwnerRaid;
-		else if (!ab_type_arg.compare("botgroup"))
-			ab_type = ABT_BotGroup;
 		else if (!ab_type_arg.compare("targetgroup"))
 			ab_type = ABT_TargetGroup;
 		else if (!ab_type_arg.compare("namesgroup"))
@@ -2500,9 +2566,13 @@ namespace ActionableBots
 			ab_type = ABT_HealRotationMembers;
 		else if (!ab_type_arg.compare("healrotationtargets"))
 			ab_type = ABT_HealRotationTargets;
-		else if (!ab_type_arg.compare("spawned"))
-			ab_type = ABT_Spawned;
 		else if (!ab_type_arg.compare("mmr"))
+			ab_type = ABT_MMR;
+		else if (!ab_type_arg.compare("byclass"))
+			ab_type = ABT_Class;
+		else if (!ab_type_arg.compare("byrace"))
+			ab_type = ABT_Race;
+		else if (!ab_type_arg.compare("spawned"))
 			ab_type = ABT_Spawned;
 		else if (!ab_type_arg.compare("all"))
 			ab_type = ABT_All;
@@ -2527,10 +2597,6 @@ namespace ActionableBots
 			if (ab_mask & ABM_OwnerRaid)
 				MyBots::PopulateSBL_ByMyRaidBots(bot_owner, sbl, clear_list);
 			break;
-		case ABT_BotGroup:
-			if (ab_mask & ABM_BotGroup)
-				MyBots::PopulateSBL_ByBotGroup(bot_owner, sbl, name, clear_list);
-			break;
 		case ABT_TargetGroup:
 			if (ab_mask & ABM_TargetGroup)
 				MyBots::PopulateSBL_ByTargetsGroupedBots(bot_owner, sbl, clear_list);
@@ -2551,6 +2617,18 @@ namespace ActionableBots
 			if (ab_mask & ABM_HealRotationTargets)
 				MyBots::PopulateSBL_ByHealRotationTargets(bot_owner, sbl, name, clear_list);
 			break;
+		case ABT_MMR:
+			if (ab_mask & ABM_MMR)
+				MyBots::PopulateSBL_ByAtMMR(bot_owner, sbl, clear_list);
+			break;
+		case ABT_Class:
+			if (ab_mask & ABM_Class)
+				MyBots::PopulateSBL_BySpawnedBotsClass(bot_owner, sbl, classrace, clear_list);
+			break;
+		case ABT_Race:
+			if (ab_mask & ABM_Race)
+				MyBots::PopulateSBL_BySpawnedBotsRace(bot_owner, sbl, classrace, clear_list);
+			break;
 		case ABT_Spawned:
 		case ABT_All:
 			if (ab_mask & ABM_Spawned_All)
@@ -2565,8 +2643,14 @@ namespace ActionableBots
 
 			if (!ab_mask)
 				bot_owner->Message(Chat::White, "Command passed null 'ActionableBot' criteria");
-			else if (ab_mask & ab_type)
-				bot_owner->Message(Chat::White, "You have no spawned bots meeting this criteria - type: '%s', name: '%s'", ab_type_arg.c_str(), ((name) ? (name) : ("")));
+			else if (ab_mask & ab_type) {
+				if (classrace) {
+					bot_owner->Message(Chat::White, "You have no spawned bots meeting this criteria - type: '%s', %s: '%i'", ab_type_arg.c_str(), ab_mask & ABM_Class ? "class" : ab_mask & ABM_Race ? "race" : "", classrace);
+				}
+				else {
+					bot_owner->Message(Chat::White, "You have no spawned bots meeting this criteria - type: '%s', name: '%s'", ab_type_arg.c_str(), ((name) ? (name) : ("")));
+				}
+			}
 			else
 				bot_owner->Message(Chat::White, "This command does not allow 'ActionableBot' criteria '%s'", ab_type_arg.c_str());
 			return ABT_None;
@@ -2588,6 +2672,9 @@ namespace ActionableBots
 			if (!raid)
 				return nullptr;
 			uint32 raid_group = raid->GetGroup(bot_grouped_player);
+			if (raid_group >= MAX_RAID_GROUPS) {
+				return nullptr;
+			}
 			for (int x = 0; x < MAX_RAID_MEMBERS; x++) {
 				if (raid->members[x].member && entity_list.IsMobInZone(raid->members[x].member) && raid->members[x].GroupNumber == raid_group) {
 					if (!MyBots::IsMyBot(bot_owner, raid->members[x].member->CastToBot()))
@@ -2631,6 +2718,9 @@ namespace ActionableBots
 		if (!raid)
 			return nullptr;
 		uint32 raid_group = raid->GetGroup(bot_grouped_player);
+		if (raid_group >= MAX_RAID_GROUPS) {
+			return nullptr;
+		}
 		for (int x = 0; x < MAX_RAID_MEMBERS; x++) {
 			if (raid->members[x].member && entity_list.IsMobInZone(raid->members[x].member) && raid->members[x].GroupNumber == raid_group) {
 				if (!MyBots::IsMyBot(bot_owner, raid->members[x].member->CastToBot()))
@@ -2847,12 +2937,13 @@ void bot_command_actionable(Client *c, const Seperator *sep)
 	c->Message(Chat::White, "byname [name] - selects single bot by name");
 	c->Message(Chat::White, "ownergroup - selects all bots in the owner's group");
 	c->Message(Chat::White, "ownerraid - selects all bots in the owner's raid");
-	c->Message(Chat::White, "botgroup [name] - selects members of a bot-group by its name");
 	c->Message(Chat::White, "targetgroup - selects all bots in target's group");
 	c->Message(Chat::White, "namesgroup [name] - selects all bots in name's group");
 	c->Message(Chat::White, "healrotation [name] - selects all member and target bots of a heal rotation where name is a member");
 	c->Message(Chat::White, "healrotationmembers [name] - selects all member bots of a heal rotation where name is a member");
 	c->Message(Chat::White, "healrotationtargets [name] - selects all target bots of a heal rotation where name is a member");
+	c->Message(Chat::White, "byclass - selects all bots of the chosen class");
+	c->Message(Chat::White, "byrace - selects all bots of the chosen rsce");
 	c->Message(Chat::White, "spawned - selects all spawned bots");
 	c->Message(Chat::White, "all - selects all spawned bots .. argument use indicates en masse database updating");
 
@@ -2865,15 +2956,23 @@ void bot_command_aggressive(Client *c, const Seperator *sep)
 	if (helper_spell_list_fail(c, local_list, BCEnum::SpT_Stance) || helper_command_alias_fail(c, "bot_command_aggressive", sep->arg[0], "aggressive"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s ([actionable: target | byname | ownergroup | ownerraid | botgroup | targetgroup | namesgroup | healrotationtargets | spawned] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name]))", sep->arg[0]);
 		helper_send_usage_required_bots(c, BCEnum::SpT_Stance);
 		return;
 	}
 	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string class_race_arg = sep->arg[1];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
 	std::list<Bot*> sbl;
-	if (ActionableBots::PopulateSBL(c, sep->arg[1], sbl, ab_mask, sep->arg[2]) == ActionableBots::ABT_None)
+	if (ActionableBots::PopulateSBL(c, sep->arg[1], sbl, ab_mask, !class_race_check ? sep->arg[2] : nullptr, class_race_check ? atoi(sep->arg[2]) : 0) == ActionableBots::ABT_None) {
 		return;
+	}
+
 	sbl.remove(nullptr);
 
 	int success_count = 0;
@@ -3108,7 +3207,7 @@ void bot_command_attack(Client *c, const Seperator *sep)
 	}
 	if (helper_is_help_or_usage(sep->arg[1])) {
 
-		c->Message(Chat::White, "usage: <enemy_target> %s [actionable: byname | ownergroup | ownerraid | botgroup | namesgroup | healrotation | default: spawned] ([actionable_name])", sep->arg[0]);
+		c->Message(Chat::White, "usage: <enemy_target> %s [actionable: byname | ownergroup | ownerraid | namesgroup | mmr | byclass | byrace | default: spawned] ([actionable_name])", sep->arg[0]);
 		return;
 	}
 	const int ab_mask = ActionableBots::ABM_Type2;
@@ -3133,8 +3232,14 @@ void bot_command_attack(Client *c, const Seperator *sep)
 		ab_arg = "spawned";
 	}
 
+	std::string class_race_arg(sep->arg[1]);
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
 	std::list<Bot*> sbl;
-	if (ActionableBots::PopulateSBL(c, ab_arg.c_str(), sbl, ab_mask, sep->arg[2]) == ActionableBots::ABT_None) {
+	if (ActionableBots::PopulateSBL(c, ab_arg.c_str(), sbl, ab_mask, !class_race_check ? sep->arg[2] : nullptr, class_race_check ? atoi(sep->arg[2]) : 0) == ActionableBots::ABT_None) {
 		return;
 	}
 
@@ -3182,7 +3287,7 @@ void bot_command_behind_mob(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_behind_mob", sep->arg[0], "behindmob"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to prevent a bot from positioning themselves behind a mob in combat.");
@@ -3191,36 +3296,93 @@ void bot_command_behind_mob(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 behindmob = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 behindmob = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		behindmob = atoi(sep->arg[1]);
-		int behindmobcheck = behindmob;
-		if (behindmobcheck == 0 || behindmobcheck == 1) {
-			my_bot->SetBehindMob(behindmob);
-			if (!database.botdb.SaveBehindMob(c->CharacterID(), my_bot->GetBotID(), behindmob)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveBehindMob(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Behind Mob for %s to %u.", my_bot->GetCleanName(), behindmob);
-			}
-		}
-		else {
+		if (behindmob != 0 && behindmob != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Behind Mob status is %s.", my_bot->GetBehindMob() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^behindmob help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current BehindMob status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetBehindMob() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetBehindMob(behindmob);
+			++success_count;
+			if (!database.botdb.SaveBehindMob(c->CharacterID(), my_bot->GetBotID(), behindmob)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveBehindMob(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Behind Mob status was {}.'",
+					first_found->GetCleanName(),
+					behindmob ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Behind Mob status to {}.",
+					success_count,
+					behindmob ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -3319,28 +3481,12 @@ void bot_command_bot(Client *c, const Seperator *sep)
 	helper_send_available_subcommands(c, "bot", subcommand_list);
 }
 
-void bot_command_botgroup(Client *c, const Seperator *sep)
-{
-	// temp
-	c->Message(Chat::White, "This command is disabled...");
-	return;
-	const std::list<const char*> subcommand_list = {
-		"botgroupaddmember", "botgroupcreate", "botgroupdelete", "botgrouplist", "botgroupload", "botgroupremovemember"
-	};
-
-	if (helper_command_alias_fail(c, "bot_command_botgroup", sep->arg[0], "botgroup")) {
-		return;
-	}
-
-	helper_send_available_subcommands(c, "bot-group", subcommand_list);
-}
-
 void bot_command_buff_delay(Client* c, const Seperator* sep)
 {
 	if (helper_command_alias_fail(c, "bot_command_buff_delay", sep->arg[0], "buffdelay"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast buffs.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
@@ -3348,40 +3494,96 @@ void bot_command_buff_delay(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 delaydata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		delaydata = atoi(sep->arg[1]);
-		int delaycheck = delaydata;
-		if (delaycheck >= 1 && delaycheck <= 60000) {
-			my_bot->SetBuffDelay(delaydata);
-			if (!database.botdb.SaveBuffDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveBuffDelay(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Buff Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetBuffDelay() / 1000.00);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
+		if (delaydata < 1 || delaydata > 60000) {
+			c->Message(Chat::White, "You must enter a value between 1-60000 (1ms to 60s.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Buff Timer is %.2f seconds.", my_bot->GetBuffDelay() / 1000.00);
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^buffdelay help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Buff Delay is {} seconds.'",
+					my_bot->GetCleanName(),
+					my_bot->GetBuffDelay() / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetBuffDelay(delaydata);
+			++success_count;
+			if (!database.botdb.SaveBuffDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveBuffDelay(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Buff Delay was set to {} seconds.'",
+					first_found->GetCleanName(),
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Buff Delay to {} seconds.'",
+					success_count,
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -3398,40 +3600,96 @@ void bot_command_buff_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetBuffThreshold(thresholddata);
-			if (!database.botdb.SaveBuffThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveBuffThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Buff Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a value between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Buff Threshold is %u%%.", my_bot->GetBuffThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^bufftheshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Buff Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetBuffThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetBuffThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveBuffThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveBuffThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Buff Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Buff Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -3447,40 +3705,96 @@ void bot_command_buff_min_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetBuffMinThreshold(thresholddata);
-			if (!database.botdb.SaveBuffMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveBuffMinThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Minimum Buff Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a value between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum Buff Threshold is %u%%.", my_bot->GetBuffMinThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^buffmintheshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Buff Minimum Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetBuffMinThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetBuffMinThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveBuffMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveBuffMinThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Buff Minimum Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Buff Minimum Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -3491,7 +3805,7 @@ void bot_command_caster_range(Client* c, const Seperator* sep)
 	}
 
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0 - 300].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0 - 300] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name]))", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set the value to the minimum distance you want your bot to try to remain from its target.");
@@ -3499,41 +3813,96 @@ void bot_command_caster_range(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: This is set to (90) units by default.");
 		return;
 	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
-
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 crange = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		crange = atoi(sep->arg[1]);
-		if (crange >= 0 && crange <= 300) {
-			my_bot->SetBotCasterRange(crange);
-			if (!database.botdb.SaveBotCasterRange(c->CharacterID(), my_bot->GetBotID(), crange)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveBotCasterRange(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Caster Range for %s to %u.", my_bot->GetCleanName(), crange);
-			}
-		}
-		else {
+		if (crange < 0 || crange > 300) {
 			c->Message(Chat::White, "You must enter a value within the range of 0 - 300.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current range is %u.", my_bot->GetBotCasterRange());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^casterrange help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Caster Range is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetBotCasterRange()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetBotCasterRange(crange);
+			++success_count;
+			if (!database.botdb.SaveBotCasterRange(c->CharacterID(), my_bot->GetBotID(), crange)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveBotCasterRange(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Caster Range was set to {}.'",
+					first_found->GetCleanName(),
+					crange
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Caster Range to {}.",
+					success_count,
+					crange
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -3848,43 +4217,100 @@ void bot_command_complete_heal_delay(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_complete_heal_delay", sep->arg[0], "completehealdelay"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Set this to control how often a bot can cast a complete heal on the target.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: The default interval is 8000 (8 seconds).");
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 delaydata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		delaydata = atoi(sep->arg[1]);
-		int delaycheck = delaydata;
-		if (delaycheck >= 1 && delaycheck <= 60000) {
-			my_bot->SetCompleteHealDelay(delaydata);
-			if (!database.botdb.SaveCompleteHealDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveCompleteHealDelay(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Complete Heal Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetCompleteHealDelay() / 1000.00);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
+		if (delaydata < 1 || delaydata > 60000) {
+			c->Message(Chat::White, "You must enter a value between 1-60000 (1ms to 60s.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Complete Heal Timer is %.2f seconds.", my_bot->GetCompleteHealDelay() / 1000.00);
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^completehealdelay help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Complete Heal Delay is {} seconds.'",
+					my_bot->GetCleanName(),
+					my_bot->GetCompleteHealDelay() / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetCompleteHealDelay(delaydata);
+			++success_count;
+			if (!database.botdb.SaveCompleteHealDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveCompleteHealDelay(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Complete Heal Delay was set to {} seconds.'",
+					first_found->GetCleanName(),
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Complete Heal Delay was set to {} seconds.'",
+					success_count,
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -3901,36 +4327,93 @@ void bot_command_complete_heal_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetCompleteHealThreshold(thresholddata);
-			if (!database.botdb.SaveCompleteHealThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveCompleteHealThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Complete Heal Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a value between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Complete Heal Threshold is %u%%.", my_bot->GetCompleteHealThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^completehealthreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Complete Heal Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetCompleteHealThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetCompleteHealThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveCompleteHealThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveCompleteHealThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Complete Heal Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Complete Heal Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -4159,7 +4642,7 @@ void bot_command_cure_delay(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_cure_delay", sep->arg[0], "curedelay"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast cures.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
@@ -4167,40 +4650,93 @@ void bot_command_cure_delay(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 delaydata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		delaydata = atoi(sep->arg[1]);
-		int delaycheck = delaydata;
-		if (delaycheck >= 1 && delaycheck <= 60000) {
-			my_bot->SetCureDelay(delaydata);
-			if (!database.botdb.SaveCureDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveCureDelay(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Cure Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetCureDelay() / 1000.00);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
+		if (delaydata < 1 || delaydata > 60000) {
+			c->Message(Chat::White, "You must enter a value between 1-60000 (1ms to 60s.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Cure Timer is %.2f seconds.", my_bot->GetCureDelay() / 1000.00);
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^curedelay help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Cure Delay is {} seconds.'",
+					my_bot->GetCleanName(),
+					my_bot->GetCureDelay() / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetCureDelay(delaydata);
+			++success_count;
+			if (!database.botdb.SaveCureDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveCureDelay(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Cure Delay was set to {} seconds.'",
+					first_found->GetCleanName(),
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Cure Delay to {} seconds.'",
+					success_count,
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -4217,36 +4753,93 @@ void bot_command_cure_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetCureThreshold(thresholddata);
-			if (!database.botdb.SaveCureThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveCureThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Cure Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a value between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Cure Threshold is %u%%.", my_bot->GetCureThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^curethreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Cure Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetCureThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetCureThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveCureThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveCureThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Cure Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Cure Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -4262,36 +4855,93 @@ void bot_command_cure_min_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetCureMinThreshold(thresholddata);
-			if (!database.botdb.SaveCureMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveCureMinThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Minimum Cure Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a value between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum Cure Threshold is %u%%.", my_bot->GetCureMinThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^cureminthreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Cure Minimum Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetCureMinThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetCureMinThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveCureMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveCureMinThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Cure Minimum Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Cure Minimum Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -4300,7 +4950,7 @@ void bot_command_debuff_delay(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_debuff_delay", sep->arg[0], "debuffdelay"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast debuffs.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
@@ -4308,40 +4958,96 @@ void bot_command_debuff_delay(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 delaydata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		delaydata = atoi(sep->arg[1]);
-		int delaycheck = delaydata;
-		if (delaycheck >= 1 && delaycheck <= 60000) {
-			my_bot->SetDebuffDelay(delaydata);
-			if (!database.botdb.SaveDebuffDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveDebuffDelay(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Debuff Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetDebuffDelay() / 1000.00);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
+		if (delaydata < 1 || delaydata > 60000) {
+			c->Message(Chat::White, "You must enter a value between 1-60000 (1ms to 60s.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Debuff Timer is %.2f seconds.", my_bot->GetDebuffDelay() / 1000.00);
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^debuffdelay help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Debuff Delay is {} seconds.'",
+					my_bot->GetCleanName(),
+					my_bot->GetDebuffDelay() / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetDebuffDelay(delaydata);
+			++success_count;
+			if (!database.botdb.SaveDebuffDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveDebuffDelay(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Debuff Delay was set to {} seconds.'",
+					first_found->GetCleanName(),
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Debuff Delay to {} seconds.'",
+					success_count,
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -4405,15 +5111,22 @@ void bot_command_defensive(Client *c, const Seperator *sep)
 	if (helper_spell_list_fail(c, local_list, BCEnum::SpT_Stance) || helper_command_alias_fail(c, "bot_command_defensive", sep->arg[0], "defensive"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s ([actionable: target | byname | ownergroup | ownerraid | botgroup | targetgroup | namesgroup | healrotationtargets | spawned] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name]))", sep->arg[0]);
 		helper_send_usage_required_bots(c, BCEnum::SpT_Stance);
 		return;
 	}
 	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string class_race_arg = sep->arg[1];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
 	std::list<Bot*> sbl;
-	if (ActionableBots::PopulateSBL(c, sep->arg[1], sbl, ab_mask, sep->arg[2]) == ActionableBots::ABT_None)
+	if (ActionableBots::PopulateSBL(c, sep->arg[1], sbl, ab_mask, !class_race_check ? sep->arg[2] : nullptr, class_race_check ? atoi(sep->arg[2]) : 0) == ActionableBots::ABT_None) {
 		return;
+	}
 	sbl.remove(nullptr);
 
 	int success_count = 0;
@@ -4551,7 +5264,7 @@ void bot_command_dispel_delay(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_dispel_delay", sep->arg[0], "dispeldelay"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast dispels.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
@@ -4559,40 +5272,96 @@ void bot_command_dispel_delay(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 delaydata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		delaydata = atoi(sep->arg[1]);
-		int delaycheck = delaydata;
-		if (delaycheck >= 1 && delaycheck <= 60000) {
-			my_bot->SetDispelDelay(delaydata);
-			if (!database.botdb.SaveDispelDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveDispelDelay(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Dispel Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetDispelDelay() / 1000.00);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
+		if (delaydata < 1 || delaydata > 60000) {
+			c->Message(Chat::White, "You must enter a value between 1-60000 (1ms to 60s.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Dispel Timer is %.2f seconds.", my_bot->GetDispelDelay() / 1000.00);
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^dispeldelay help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Dispel Delay is {} seconds.'",
+					my_bot->GetCleanName(),
+					my_bot->GetDispelDelay() / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetDispelDelay(delaydata);
+			++success_count;
+			if (!database.botdb.SaveDispelDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveDispelDelay(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Dispel Delay was set to {} seconds.'",
+					first_found->GetCleanName(),
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Dispel Delay to {} seconds.'",
+					success_count,
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -4609,40 +5378,96 @@ void bot_command_dispel_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetDispelThreshold(thresholddata);
-			if (!database.botdb.SaveDispelThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveDispelThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Dispel Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a value between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Dispel Threshold is %u%%.", my_bot->GetDispelThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^dispelthreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Dispel Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetDispelThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetDispelThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveDispelThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveDispelThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Dispel Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Dispel Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -4658,40 +5483,96 @@ void bot_command_dispel_min_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetDispelMinThreshold(thresholddata);
-			if (!database.botdb.SaveDispelMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveDispelMinThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Minimum Dispel Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a value between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum Dispel Threshold is %u%%.", my_bot->GetDispelMinThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^dispelminthreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Dispel Minimum Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetDispelMinThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetDispelMinThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveDispelMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveDispelMinThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Dispel Minimum Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Dispel Minimum Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -4708,40 +5589,96 @@ void bot_command_debuff_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetDebuffThreshold(thresholddata);
-			if (!database.botdb.SaveDebuffThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveDebuffThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Debuff Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a value between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Debuff Threshold is %u%%.", my_bot->GetDebuffThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^debuffthreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Debuff Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetDebuffThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetDebuffThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveDebuffThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveDebuffThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Debuff Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Debuff Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -4757,49 +5694,105 @@ void bot_command_debuff_min_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetDebuffMinThreshold(thresholddata);
-			if (!database.botdb.SaveDebuffMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveDebuffMinThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Minimum Debuff Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a value between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum Debuff Threshold is %u%%.", my_bot->GetDebuffMinThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^debuffminthreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
 	}
-}												
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Debuff Minimum Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetDebuffMinThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetDebuffMinThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveDebuffMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveDebuffMinThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Debuff Minimum Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Debuff Minimum Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
+	}
+}
 
 void bot_command_dot_delay(Client* c, const Seperator* sep)
 {
 	if (helper_command_alias_fail(c, "bot_command_dot_delay", sep->arg[0], "dotdelay"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast DoTs.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
@@ -4807,40 +5800,96 @@ void bot_command_dot_delay(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 delaydata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		delaydata = atoi(sep->arg[1]);
-		int delaycheck = delaydata;
-		if (delaycheck >= 1 && delaycheck <= 60000) {
-			my_bot->SetDotDelay(delaydata);
-			if (!database.botdb.SaveDotDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveDotDelay(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a DoT Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetDotDelay() / 1000.00);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
+		if (delaydata < 1 || delaydata > 60000) {
+			c->Message(Chat::White, "You must enter a value between 1-60000 (1ms to 60s.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current DoT Timer is %.2f seconds.", my_bot->GetDotDelay() / 1000.00);
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^dotdelay help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Damage Over Time Delay is {} seconds.'",
+					my_bot->GetCleanName(),
+					my_bot->GetDotDelay() / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetDotDelay(delaydata);
+			++success_count;
+			if (!database.botdb.SaveDotDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveDotDelay(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Damage Over Time Delay was set to {} seconds.'",
+					first_found->GetCleanName(),
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Damage Over Time Delay to {} seconds.'",
+					success_count,
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -4850,46 +5899,102 @@ void bot_command_dot_threshold(Client* c, const Seperator* sep)
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
 		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of own's health].", sep->arg[0]);
-		c->Message(Chat::White, "note: Used to control at what percent the bot will begin to cast DoT spells.");
+		c->Message(Chat::White, "note: Used to control at what percent the bot will begin to cast Damage Over Time spells.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: The default is 95 percent.");
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetDotThreshold(thresholddata);
-			if (!database.botdb.SaveDotThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveDotThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a DoT Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current DoT Threshold is %u%%.", my_bot->GetDotThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^dotthreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Damage Over Time Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetDotThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetDotThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveDotThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveDotThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Damage Over Time Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Damage Over Time Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -4899,46 +6004,102 @@ void bot_command_dot_min_threshold(Client* c, const Seperator* sep)
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
 		c->Message(Chat::White, "usage: <target_bot> %s [current | percent value of own's health].", sep->arg[0]);
-		c->Message(Chat::White, "note: Used to control at what percent the bot will stop casting DoT spells.");
+		c->Message(Chat::White, "note: Used to control at what percent the bot will stop casting Damage Over Time spells.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: The default is 35 percent.");
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetDotMinThreshold(thresholddata);
-			if (!database.botdb.SaveDotMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveDotMinThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Minimum DoT Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum DoT Threshold is %u%%.", my_bot->GetDotMinThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^dotminthreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Damage Over Time Minimum Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetDotMinThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetDotMinThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveDotMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveDotMinThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Damage Over Time Minimum Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Damage Over Time Minimum Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -5008,7 +6169,7 @@ void bot_command_escape_delay(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_escape_delay", sep->arg[0], "escapedelay"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast escapes.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
@@ -5016,40 +6177,96 @@ void bot_command_escape_delay(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 delaydata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		delaydata = atoi(sep->arg[1]);
-		int delaycheck = delaydata;
-		if (delaycheck >= 1 && delaycheck <= 60000) {
-			my_bot->SetEscapeDelay(delaydata);
-			if (!database.botdb.SaveEscapeDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveEscapeDelay(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Escape Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetEscapeDelay() / 1000.00);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
+		if (delaydata < 1 || delaydata > 60000) {
+			c->Message(Chat::White, "You must enter a value between 1-60000 (1ms to 60s.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Escape Timer is %.2f seconds.", my_bot->GetEscapeDelay() / 1000.00);
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^escapedelay help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Escape Delay is {} seconds.'",
+					my_bot->GetCleanName(),
+					my_bot->GetEscapeDelay() / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetEscapeDelay(delaydata);
+			++success_count;
+			if (!database.botdb.SaveEscapeDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveEscapeDelay(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Escape Delay was set to {} seconds.'",
+					first_found->GetCleanName(),
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Escape Delay to {} seconds.'",
+					success_count,
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -5065,40 +6282,96 @@ void bot_command_escape_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetEscapeThreshold(thresholddata);
-			if (!database.botdb.SaveEscapeThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveEscapeThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Escape Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Escape Threshold is %u%%.", my_bot->GetEscapeThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^escapethreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Escape Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetEscapeThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetEscapeThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveEscapeThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveEscapeThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Escape Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Escape Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -5114,40 +6387,96 @@ void bot_command_escape_min_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetEscapeMinThreshold(thresholddata);
-			if (!database.botdb.SaveEscapeMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveEscapeMinThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Minimum Escape Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum Escape Threshold is %u%%.", my_bot->GetEscapeMinThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^escapeminthreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Escape Minimum Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetEscapeMinThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetEscapeMinThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveEscapeMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveEscapeMinThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Escape Minimum Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Escape Minimum Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -5156,43 +6485,100 @@ void bot_command_fast_heal_delay(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_fast_heal_delay", sep->arg[0], "fasthealdelay"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Set this to control how often a bot can cast a fast heal on the target.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: The default interval is 2500 (2.5 seconds).");
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 delaydata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		delaydata = atoi(sep->arg[1]);
-		int delaycheck = delaydata;
-		if (delaycheck >= 1 && delaycheck <= 60000) {
-			my_bot->SetFastHealDelay(delaydata);
-			if (!database.botdb.SaveFastHealDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveFastHealDelay(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Fast Heal Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetFastHealDelay() / 1000.00);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
+		if (delaydata < 1 || delaydata > 60000) {
+			c->Message(Chat::White, "You must enter a value between 1-60000 (1ms to 60s.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Fast Heal Timer is %.2f seconds.", my_bot->GetFastHealDelay() / 1000.00);
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^fasthealdelay help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Fast Heal Delay is {} seconds.'",
+					my_bot->GetCleanName(),
+					my_bot->GetFastHealDelay() / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetFastHealDelay(delaydata);
+			++success_count;
+			if (!database.botdb.SaveFastHealDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveFastHealDelay(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Fast Heal Delay was set to {} seconds.'",
+					first_found->GetCleanName(),
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Fast Heal Delay to {} seconds.'",
+					success_count,
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -5209,36 +6595,93 @@ void bot_command_fast_heal_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetFastHealThreshold(thresholddata);
-			if (!database.botdb.SaveFastHealThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveFastHealThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Fast Heal Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a value between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Fast Heal Threshold is %u%%.", my_bot->GetFastHealThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^fasthealthreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Fast Heal Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetFastHealThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetFastHealThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveFastHealThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveFastHealThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Fast Heal Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Fast Heal Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -5288,7 +6731,7 @@ void bot_command_follow(Client *c, const Seperator *sep)
 	if (helper_command_alias_fail(c, "bot_command_follow", sep->arg[0], "follow"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: (<friendly_target>) %s ([option: reset]) [actionable: byname | ownergroup | ownerraid | botgroup | namesgroup | healrotation | spawned] ([actionable_name])", sep->arg[0]);
+		c->Message(Chat::White, "usage: (<friendly_target>) %s ([option: reset]) [actionable: byname | ownergroup | ownerraid | namesgroup | mmr | byclass | byrace | spawned]] ([actionable_name])", sep->arg[0]);
 		c->Message(Chat::White, "usage: %s chain", sep->arg[0]);
 		return;
 	}
@@ -5320,9 +6763,16 @@ void bot_command_follow(Client *c, const Seperator *sep)
 		}
 	}
 
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
 	std::list<Bot*> sbl;
-	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, sep->arg[name_arg]) == ActionableBots::ABT_None)
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[name_arg] : nullptr, class_race_check ? atoi(sep->arg[name_arg]) : 0) == ActionableBots::ABT_None) {
 		return;
+	}
 
 	sbl.remove(nullptr);
 	for (auto bot_iter : sbl) {
@@ -5395,7 +6845,7 @@ void bot_command_guard(Client *c, const Seperator *sep)
 	}
 	if (helper_is_help_or_usage(sep->arg[1])) {
 
-		c->Message(Chat::White, "usage: %s ([option: clear]) [actionable: target | byname | ownergroup | ownerraid | botgroup | namesgroup | healrotation | spawned] ([actionable_name])", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s ([option: clear]) [actionable: byname | ownergroup | ownerraid | namesgroup | mmr | byclass | byrace | spawned]] ([actionable_name])", sep->arg[0]);
 		return;
 	}
 	const int ab_mask = (ActionableBots::ABM_Target | ActionableBots::ABM_Type2);
@@ -5412,8 +6862,14 @@ void bot_command_guard(Client *c, const Seperator *sep)
 		name_arg = 3;
 	}
 
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
 	std::list<Bot*> sbl;
-	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, sep->arg[name_arg]) == ActionableBots::ABT_None) {
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[name_arg] : nullptr, class_race_check ? atoi(sep->arg[name_arg]) : 0) == ActionableBots::ABT_None) {
 		return;
 	}
 
@@ -5452,7 +6908,7 @@ void bot_command_hateredux_delay(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hateredux_delay", sep->arg[0], "hatereduxdelay"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast hate reduction spells.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
@@ -5460,40 +6916,96 @@ void bot_command_hateredux_delay(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 delaydata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		delaydata = atoi(sep->arg[1]);
-		int delaycheck = delaydata;
-		if (delaycheck >= 1 && delaycheck <= 60000) {
-			my_bot->SetHateReduxDelay(delaydata);
-			if (!database.botdb.SaveHateReduxDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHateReduxDelay(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Hate Reduction Spell Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetHateReduxDelay() / 1000.00);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
+		if (delaydata < 1 || delaydata > 60000) {
+			c->Message(Chat::White, "You must enter a value between 1-60000 (1ms to 60s.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hate Reduction Spell Timer is %.2f seconds.", my_bot->GetHateReduxDelay() / 1000.00);
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^hatereduxdelay help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hate Reduction Spells Delay is {} seconds.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHateReduxDelay() / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHateReduxDelay(delaydata);
+			++success_count;
+			if (!database.botdb.SaveHateReduxDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHateReduxDelay(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hate Reduction Spells Delay was set to {} seconds.'",
+					first_found->GetCleanName(),
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hate Reduction Spells Delay to {} seconds.'",
+					success_count,
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -5509,40 +7021,96 @@ void bot_command_hateredux_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetHateReduxThreshold(thresholddata);
-			if (!database.botdb.SaveHateReduxThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHateReduxThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Hate Reduction Spell Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hate Reduction Spell Threshold is %u%%.", my_bot->GetHateReduxThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^hatereduxthreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hate Reduction Spells Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHateReduxThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHateReduxThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveHateReduxThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHateReduxThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hate Reduction Spells Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hate Reduction Spells Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -5558,40 +7126,96 @@ void bot_command_hateredux_min_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetHateReduxMinThreshold(thresholddata);
-			if (!database.botdb.SaveHateReduxMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHateReduxMinThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Minimum Hate Reduction Spell Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum Hate Reduction Spell Threshold is %u%%.", my_bot->GetHateReduxMinThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^hatereduxminthreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hate Reduction Spells Minimum Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHateReduxMinThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHateReduxMinThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveHateReduxMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHateReduxMinThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hate Reduction Spells Minimum Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hate Reduction Spells Minimum Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -5600,43 +7224,100 @@ void bot_command_heal_delay(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_heal_delay", sep->arg[0], "healdelay"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Set this to control how often a bot can cast a regular heal on the target.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: The default interval is 4500 (4.5 seconds).");
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 delaydata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		delaydata = atoi(sep->arg[1]);
-		int delaycheck = delaydata;
-		if (delaycheck >= 1 && delaycheck <= 60000) {
-			my_bot->SetHealDelay(delaydata);
-			if (!database.botdb.SaveHealDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHealDelay(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Heal Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetHealDelay() / 1000.00);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
+		if (delaydata < 1 || delaydata > 60000) {
+			c->Message(Chat::White, "You must enter a value between 1-60000 (1ms to 60s.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Heal Timer is %.2f seconds.", my_bot->GetHealDelay() / 1000.00);
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^healdelay help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Heal Delay is {} seconds.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHealDelay() / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHealDelay(delaydata);
+			++success_count;
+			if (!database.botdb.SaveHealDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHealDelay(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Heal Delay was set to {} seconds.'",
+					first_found->GetCleanName(),
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Heal Delay to {} seconds.'",
+					success_count,
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -5713,36 +7394,93 @@ void bot_command_heal_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetHealThreshold(thresholddata);
-			if (!database.botdb.SaveHealThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHealThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Heal Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a value between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Heal Threshold is %u%%.", my_bot->GetHealThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^healthreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Heal Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHealThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHealThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveHealThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHealThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Heal Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Heal Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -5788,7 +7526,7 @@ void bot_command_hold(Client *c, const Seperator *sep)
 	}
 	if (helper_is_help_or_usage(sep->arg[1])) {
 
-		c->Message(Chat::White, "usage: %s ([option: clear]) [actionable: target | byname | ownergroup | ownerraid | botgroup | namesgroup | healrotation | spawned] ([actionable_name])", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s ([option: clear]) [actionable: byname | ownergroup | ownerraid | namesgroup | mmr | byclass | byrace | spawned]] ([actionable_name])", sep->arg[0]);
 		return;
 	}
 	const int ab_mask = (ActionableBots::ABM_Target | ActionableBots::ABM_Type2);
@@ -5805,8 +7543,14 @@ void bot_command_hold(Client *c, const Seperator *sep)
 		name_arg = 3;
 	}
 
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
 	std::list<Bot*> sbl;
-	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, sep->arg[name_arg]) == ActionableBots::ABT_None) {
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[name_arg] : nullptr, class_race_check ? atoi(sep->arg[name_arg]) : 0) == ActionableBots::ABT_None) {
 		return;
 	}
 
@@ -5852,7 +7596,7 @@ void bot_command_hold_buffs(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_buffs", sep->arg[0], "holdbuffs"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast buffs.");
@@ -5861,40 +7605,96 @@ void bot_command_hold_buffs(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldBuffs(holdstatus);
-			if (!database.botdb.SaveHoldBuffs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldBuffs(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold Buffs for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Buffs status is %s.", my_bot->GetHoldBuffs() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdbuffs help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Buffs status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldBuffs() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldBuffs(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldBuffs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldBuffs(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Buffs status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Buffs status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -5903,7 +7703,7 @@ void bot_command_hold_charms(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_charms", sep->arg[0], "holdcharms"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Charm Spells.");
@@ -5912,40 +7712,96 @@ void bot_command_hold_charms(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldCharms(holdstatus);
-			if (!database.botdb.SaveHoldCharms(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldCharms(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold Charm Spells for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Charm Spells status is %s.", my_bot->GetHoldCharms() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdcharms help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Charms status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldCharms() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldCharms(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldCharms(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldCharms(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Charms status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Charms status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -5954,7 +7810,7 @@ void bot_command_hold_complete_heals(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_complete_heals", sep->arg[0], "holdcompleteheals"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Complete Heals.");
@@ -5963,40 +7819,96 @@ void bot_command_hold_complete_heals(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldCompleteHeals(holdstatus);
-			if (!database.botdb.SaveHoldCompleteHeals(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldCompleteHeals(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold Complete Heals for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Complete Heals status is %s.", my_bot->GetHoldCompleteHeals() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdcompleteheals help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Complete Heals status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldCompleteHeals() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldCompleteHeals(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldCompleteHeals(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldCompleteHeals(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Complete Heals status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Complete Heals status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -6005,7 +7917,7 @@ void bot_command_hold_cures(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_cures", sep->arg[0], "holdcures"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast cures.");
@@ -6014,40 +7926,96 @@ void bot_command_hold_cures(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldCures(holdstatus);
-			if (!database.botdb.SaveHoldCures(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldCures(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold Cures for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Cures status is %s.", my_bot->GetHoldCures() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdcures help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Cures status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldCures() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldCures(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldCures(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldCures(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Cures status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Cures status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -6056,7 +8024,7 @@ void bot_command_hold_debuffs(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_debuffs", sep->arg[0], "holddebuffs"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast debuffs.");
@@ -6065,40 +8033,96 @@ void bot_command_hold_debuffs(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldDebuffs(holdstatus);
-			if (!database.botdb.SaveHoldDebuffs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldDebuffs(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold Debuffs for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Debuffs status is %s.", my_bot->GetHoldDebuffs() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holddebuffs help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Debuffs status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldDebuffs() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldDebuffs(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldDebuffs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldDebuffs(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Debuffs status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Debuffs status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -6107,7 +8131,7 @@ void bot_command_hold_dispels(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_dispels", sep->arg[0], "holddispels"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast dispels.");
@@ -6116,40 +8140,96 @@ void bot_command_hold_dispels(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldDispels(holdstatus);
-			if (!database.botdb.SaveHoldDispels(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldDispels(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold Dispels for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Dispels status is %s.", my_bot->GetHoldDispels() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holddispels help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Dispels status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldDispels() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldDispels(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldDispels(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldDispels(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Dispels status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Dispels status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -6158,7 +8238,7 @@ void bot_command_hold_dots(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_dots", sep->arg[0], "holddots"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast DoTs.");
@@ -6167,40 +8247,96 @@ void bot_command_hold_dots(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldDoTs(holdstatus);
-			if (!database.botdb.SaveHoldDoTs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldDoTs(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold DoTs for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold DoTs status is %s.", my_bot->GetHoldDoTs() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holddots help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold DoTs status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldDoTs() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldDoTs(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldDoTs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldDoTs(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold DoTs status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold DoTs status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -6209,7 +8345,7 @@ void bot_command_hold_ds(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_ds", sep->arg[0], "holdds"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to resume automatic buffing of damage shields.");
@@ -6218,40 +8354,96 @@ void bot_command_hold_ds(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldDS(holdstatus);
-			if (!database.botdb.SaveHoldDS(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldDS(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold DS for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold DS status is %s.", my_bot->GetHoldDS() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdds help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Damage Shield Spells status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldDS() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldDS(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldDS(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldDS(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Damage Shield Spells status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Damage Shield Spells status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -6260,7 +8452,7 @@ void bot_command_hold_escapes(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_escapes", sep->arg[0], "holdescapes"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters, Hybrids, Monks and Rogues.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast escapes or evading.");
@@ -6269,40 +8461,93 @@ void bot_command_hold_escapes(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass()) && !my_bot->GetClass() == MONK && !my_bot->GetClass() == ROGUE) {
-		c->Message(Chat::White, "You must <target> a caster, hybrid class, Monk or Rogue to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldEscapes(holdstatus);
-			if (!database.botdb.SaveHoldEscapes(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldEscapes(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold Escapes for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Escapes status is %s.", my_bot->GetHoldEscapes() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdescapes help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Escapes status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldEscapes() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldEscapes(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldEscapes(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldEscapes(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Escapes status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Escapes status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -6311,7 +8556,7 @@ void bot_command_hold_fast_heals(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_fast_heals", sep->arg[0], "holdfastheals"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Fast Heals.");
@@ -6320,40 +8565,96 @@ void bot_command_hold_fast_heals(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldFastHeals(holdstatus);
-			if (!database.botdb.SaveHoldFastHeals(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldFastHeals(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold Fast Heals for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Fast Heals status is %s.", my_bot->GetHoldFastHeals() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdfastheals help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Fast Heals status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldFastHeals() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldFastHeals(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldFastHeals(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldFastHeals(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Fast Heals status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Fast Heals status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -6362,7 +8663,7 @@ void bot_command_hold_group_heals(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_group_heals", sep->arg[0], "holdgroupheals"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Group Heals.");
@@ -6371,40 +8672,96 @@ void bot_command_hold_group_heals(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldGroupHeals(holdstatus);
-			if (!database.botdb.SaveHoldGroupHeals(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldGroupHeals(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold Group Heals for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Group Heals status is %s.", my_bot->GetHoldGroupHeals() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdgroupheals help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Group Heals status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldGroupHeals() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldGroupHeals(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldGroupHeals(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldGroupHeals(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Group Heals status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Group Heals status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -6413,7 +8770,7 @@ void bot_command_hold_hateredux(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_hateredux", sep->arg[0], "holdhateredux"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Hate Reduction Spells.");
@@ -6422,40 +8779,96 @@ void bot_command_hold_hateredux(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldHateRedux(holdstatus);
-			if (!database.botdb.SaveHoldHateRedux(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldHateRedux(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold HateRedux for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold HateRedux status is %s.", my_bot->GetHoldHateRedux() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdhateredux help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Hate Reduction Spells status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldHateRedux() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldHateRedux(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldHateRedux(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldHateRedux(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Hate Reduction Spells status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Hate Reduction Spells status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -6464,7 +8877,7 @@ void bot_command_hold_heals(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_heals", sep->arg[0], "holdheals"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Heals.");
@@ -6473,40 +8886,96 @@ void bot_command_hold_heals(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldHeals(holdstatus);
-			if (!database.botdb.SaveHoldHeals(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldHeals(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold Heal for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Heal status is %s.", my_bot->GetHoldHeals() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdheals help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Heals status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldHeals() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldHeals(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldHeals(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldHeals(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Heals status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Heals status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -6515,7 +8984,7 @@ void bot_command_hold_hot_heals(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_hot_heals", sep->arg[0], "holdhotheals"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Heal Over Time Heals.");
@@ -6524,40 +8993,96 @@ void bot_command_hold_hot_heals(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldHotHeals(holdstatus);
-			if (!database.botdb.SaveHoldHotHeals(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldHotHeals(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold HoT Heals for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold HoT Heals status is %s.", my_bot->GetHoldHotHeals() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdhotheals help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Heal Over Time Spells status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldHotHeals() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldHotHeals(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldHotHeals(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldHotHeals(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Heal Over Time Spells status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Heal Over Time Spells status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -6566,7 +9091,7 @@ void bot_command_hold_incombatbuffs(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_incombatbuffs", sep->arg[0], "holdincombatbuffs"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast In-Combat Buffs.");
@@ -6575,40 +9100,96 @@ void bot_command_hold_incombatbuffs(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldInCombatBuffs(holdstatus);
-			if (!database.botdb.SaveHoldInCombatBuffs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldInCombatBuffs(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold InCombatBuffs for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold In-Combat Buffs status is %s.", my_bot->GetHoldInCombatBuffs() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdincombatbuffs help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold In-Combat Buffs status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldInCombatBuffs() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldInCombatBuffs(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldInCombatBuffs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldInCombatBuffs(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold In-Combat Buffs status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold In-Combat Buffs status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -6617,7 +9198,7 @@ void bot_command_hold_incombatbuffsongs(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_incombatbuffsongs", sep->arg[0], "holdincombatbuffsongs"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast In-Combat Buff Songs.");
@@ -6626,40 +9207,96 @@ void bot_command_hold_incombatbuffsongs(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldInCombatBuffSongs(holdstatus);
-			if (!database.botdb.SaveHoldInCombatBuffSongs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldInCombatBuffSongs(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold InCombatBuffSongs for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold In-Combat Buff Songs status is %s.", my_bot->GetHoldInCombatBuffSongs() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdincombatbuffsongs help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold In-Combat Buff Songs status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldInCombatBuffSongs() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldInCombatBuffSongs(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldInCombatBuffSongs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldInCombatBuffSongs(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold In-Combat Buff Songs status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold In-Combat Buff Songs status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -6668,7 +9305,7 @@ void bot_command_hold_lifetaps(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_lifetaps", sep->arg[0], "holdlifetaps"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Lifetaps.");
@@ -6677,40 +9314,96 @@ void bot_command_hold_lifetaps(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+		const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldLifetaps(holdstatus);
-			if (!database.botdb.SaveHoldLifetaps(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldLifetaps(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold Lifetaps for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Lifetaps status is %s.", my_bot->GetHoldLifetaps() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdlifetaps help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Lifetaps status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldLifetaps() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldLifetaps(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldLifetaps(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldLifetaps(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Lifetaps status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Lifetaps status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -6719,7 +9412,7 @@ void bot_command_hold_lulls(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_lull", sep->arg[0], "holdlulls"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Lull Spells.");
@@ -6728,40 +9421,96 @@ void bot_command_hold_lulls(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldLulls(holdstatus);
-			if (!database.botdb.SaveHoldLulls(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldLulls(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold Lull Spells for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Lull Spells status is %s.", my_bot->GetHoldLulls() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdlulls help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Lulls status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldLulls() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldLulls(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldLulls(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldLulls(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Lulls status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Lulls status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -6770,7 +9519,7 @@ void bot_command_hold_mez(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_mez", sep->arg[0], "holdmez"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Mesmerization Spells.");
@@ -6779,40 +9528,96 @@ void bot_command_hold_mez(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldMez(holdstatus);
-			if (!database.botdb.SaveHoldMez(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldMez(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold Mesmerization Spells for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Mesmerization Spells status is %s.", my_bot->GetHoldMez() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdmez help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Mesmerization Spells status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldMez() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldMez(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldMez(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldMez(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Mesmerization Spells status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Mesmerization Spells status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -6821,7 +9626,7 @@ void bot_command_hold_nukes(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_nukes", sep->arg[0], "holdnukes"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast nukes.");
@@ -6830,40 +9635,96 @@ void bot_command_hold_nukes(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldNukes(holdstatus);
-			if (!database.botdb.SaveHoldNukes(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldNukes(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold Nukes for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Nukes status is %s.", my_bot->GetHoldNukes() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdnukes help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Nukes status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldNukes() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldNukes(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldNukes(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldNukes(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Nukes status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Nukes status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -6872,7 +9733,7 @@ void bot_command_hold_outofcombatbuffsongs(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_outofcombatbuffsongs", sep->arg[0], "holdoutofcombatbuffsongs"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Out-Of-Combat Buff Songs.");
@@ -6881,40 +9742,96 @@ void bot_command_hold_outofcombatbuffsongs(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldOutOfCombatBuffSongs(holdstatus);
-			if (!database.botdb.SaveHoldOutOfCombatBuffSongs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldOutOfCombatBuffSongs(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold OutOfCombatBuffSongs for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Out-Of-Combat Buff Songs status is %s.", my_bot->GetHoldOutOfCombatBuffSongs() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdoutofcombatbuffsongs help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Out-of-Combat Buff Songs status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldOutOfCombatBuffSongs() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldOutOfCombatBuffSongs(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldOutOfCombatBuffSongs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldOutOfCombatBuffSongs(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Out-of-Combat Buff Songs status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Out-of-Combat Buff Songs status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -6923,7 +9840,7 @@ void bot_command_hold_pet_buffs(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_pet_buffs", sep->arg[0], "holdpetbuffs"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast buffs on pets.");
@@ -6932,40 +9849,96 @@ void bot_command_hold_pet_buffs(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldPetBuffs(holdstatus);
-			if (!database.botdb.SaveHoldPetBuffs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldPetBuffs(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold Pet Buffs for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Pet Buffs status is %s.", my_bot->GetHoldPetBuffs() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdpetbuffs help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Pet Buffs status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldPetBuffs() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldPetBuffs(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldPetBuffs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldPetBuffs(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Pet Buffs status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Pet Buffs status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -6974,7 +9947,7 @@ void bot_command_hold_pet_heals(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_pet_heals", sep->arg[0], "holdpetheals"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to heal pets.");
@@ -6983,40 +9956,96 @@ void bot_command_hold_pet_heals(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldPetHeals(holdstatus);
-			if (!database.botdb.SaveHoldPetHeals(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldPetHeals(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold Pet Heals for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Pet Heals status is %s.", my_bot->GetHoldPetHeals() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdpetheals help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Pet Heals status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldPetHeals() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldPetHeals(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldPetHeals(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldPetHeals(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Pet Heals status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Pet Heals status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -7025,7 +10054,7 @@ void bot_command_hold_pets(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_pets", sep->arg[0], "holdpets"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Pets.");
@@ -7034,40 +10063,96 @@ void bot_command_hold_pets(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldPets(holdstatus);
-			if (!database.botdb.SaveHoldPets(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldPets(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold Pets for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Pets status is %s.", my_bot->GetHoldPets() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdpets help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Pet Spells status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldPets() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldPets(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldPets(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldPets(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Pet Spells status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Pet Spells status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -7076,7 +10161,7 @@ void bot_command_hold_precombatbuffs(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_precombatbuffs", sep->arg[0], "holdprecombatbuffs"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Pre-Combat Buffs.");
@@ -7085,40 +10170,96 @@ void bot_command_hold_precombatbuffs(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldPreCombatBuffs(holdstatus);
-			if (!database.botdb.SaveHoldPreCombatBuffs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldPreCombatBuffs(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold PreCombatBuffs for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Pre-Combat Buffs status is %s.", my_bot->GetHoldPreCombatBuffs() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdprecombatbuffs help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Pre-Combat Buffs status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldPreCombatBuffs() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldPreCombatBuffs(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldPreCombatBuffs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldPreCombatBuffs(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Pre-Combat Buffs status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Pre-Combat Buffs status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -7127,7 +10268,7 @@ void bot_command_hold_precombatbuffsongs(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_precombatbuffsongs", sep->arg[0], "holdprecombatbuffsongs"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Pre-Combat Buffs Songs.");
@@ -7136,40 +10277,96 @@ void bot_command_hold_precombatbuffsongs(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldPreCombatBuffSongs(holdstatus);
-			if (!database.botdb.SaveHoldPreCombatBuffSongs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldPreCombatBuffSongs(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold PreCombatBuffSongs for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Pre-Combat Buffs status is %s.", my_bot->GetHoldPreCombatBuffSongs() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdprecombatbuffsongs help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Pre-Combat Buff Songs status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldPreCombatBuffSongs() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldPreCombatBuffSongs(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldPreCombatBuffSongs(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldPreCombatBuffSongs(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Pre-Combat Buff Songs status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Pre-Combat Buff Songs status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -7178,7 +10375,7 @@ void bot_command_hold_regular_heals(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_regular_heals", sep->arg[0], "holdregularheals"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Heal Over Time Heals.");
@@ -7187,40 +10384,96 @@ void bot_command_hold_regular_heals(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldRegularHeals(holdstatus);
-			if (!database.botdb.SaveHoldRegularHeals(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldRegularHeals(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold Regular Heals for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Regular Heals status is %s.", my_bot->GetHoldRegularHeals() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdregularheals help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Regular Heals status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldRegularHeals() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldRegularHeals(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldRegularHeals(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldRegularHeals(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Regular Heals status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Regular Heals status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -7230,7 +10483,7 @@ void bot_command_hold_resists(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_resists", sep->arg[0], "holdresists"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to resume automatic buffing of resists.");
@@ -7239,40 +10492,96 @@ void bot_command_hold_resists(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldResists(holdstatus);
-			if (!database.botdb.SaveHoldResists(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldResists(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold Resists for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Resists status is %s.", my_bot->GetHoldResists() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdresists help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Resist Spells status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldResists() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldResists(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldResists(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldResists(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Resist Spells status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Resist Spells status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -7281,7 +10590,7 @@ void bot_command_hold_rez(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_rez", sep->arg[0], "holdrez"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Rez Spells.");
@@ -7290,40 +10599,96 @@ void bot_command_hold_rez(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldRez(holdstatus);
-			if (!database.botdb.SaveHoldRez(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldRez(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold Rez Spells for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Rez Spells status is %s.", my_bot->GetHoldRez() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdrez help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Resurrection Spells status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldRez() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldRez(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldRez(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldRez(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Resurrection Spells status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Resurrection Spells status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -7332,7 +10697,7 @@ void bot_command_hold_roots(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_roots", sep->arg[0], "holdroots"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Roots.");
@@ -7341,40 +10706,96 @@ void bot_command_hold_roots(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldRoots(holdstatus);
-			if (!database.botdb.SaveHoldRoots(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldRoots(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold Roots for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Roots status is %s.", my_bot->GetHoldRoots() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdroots help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Roots status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldRoots() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldRoots(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldRoots(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldRoots(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Roots status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Roots status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -7408,7 +10829,7 @@ void bot_command_hold_slows(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_slows", sep->arg[0], "holdslows"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Slows.");
@@ -7417,40 +10838,96 @@ void bot_command_hold_slows(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldSlows(holdstatus);
-			if (!database.botdb.SaveHoldSlows(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldSlows(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold Slows for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Slows status is %s.", my_bot->GetHoldSlows() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdslows help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Slows status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldSlows() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldSlows(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldSlows(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldSlows(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Slows status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Slows status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -7459,7 +10936,7 @@ void bot_command_hold_snares(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hold_snares", sep->arg[0], "holdsnares"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value: 0-1].", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast Snares.");
@@ -7468,40 +10945,96 @@ void bot_command_hold_snares(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	uint8 holdstatus = 0;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		holdstatus = atoi(sep->arg[1]);
-		int holdstatuscheck = holdstatus;
-		if (holdstatuscheck == 0 || holdstatuscheck == 1) {
-			my_bot->SetHoldSnares(holdstatus);
-			if (!database.botdb.SaveHoldSnares(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHoldSnares(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set Hold Snares for %s to %s.", my_bot->GetCleanName(), holdstatus ? "enabled" : "disabled");
-			}
-		}
-		else {
+		if (holdstatus != 0 && holdstatus != 1) {
 			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Hold Snares status is %s.", my_bot->GetHoldSnares() ? "enabled" : "disabled");
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^holdsnares help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold Snares status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldSnares() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldSnares(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldSnares(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldSnares(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold Snares status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold Snares status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -7510,43 +11043,100 @@ void bot_command_hot_heal_delay(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_hot_heal_delay", sep->arg[0], "hothealdelay"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Set this to control how often a bot can cast a HoT heal on the target.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: The default interval is 22000 (22 seconds).");
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 delaydata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		delaydata = atoi(sep->arg[1]);
-		int delaycheck = delaydata;
-		if (delaycheck >= 1 && delaycheck <= 60000) {
-			my_bot->SetHotHealDelay(delaydata);
-			if (!database.botdb.SaveHotHealDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHotHealDelay(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a HoT Heal Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetHotHealDelay() / 1000.00);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
+		if (delaydata < 1 || delaydata > 60000) {
+			c->Message(Chat::White, "You must enter a value between 1-60000 (1ms to 60s.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current HoT Heal Timer is %.2f seconds.", my_bot->GetHotHealDelay() / 1000.00);
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^hothealdelay help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Heal Over Time Delay is {} seconds.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHotHealDelay() / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHotHealDelay(delaydata);
+			++success_count;
+			if (!database.botdb.SaveHotHealDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHotHealDelay(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Heal Over Time Delay was set to {} seconds.'",
+					first_found->GetCleanName(),
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Heal Over Time Delay to {} seconds.'",
+					success_count,
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -7563,36 +11153,93 @@ void bot_command_hot_heal_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetHotHealThreshold(thresholddata);
-			if (!database.botdb.SaveHotHealThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveHotHealThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a HoT Heal Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a value between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current HoT Heal Threshold is %u%%.", my_bot->GetHotHealThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^hothealthreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Heal Over Time Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHotHealThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHotHealThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveHotHealThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHotHealThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Heal Over Time Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Heal Over Time Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -7608,40 +11255,96 @@ void bot_command_incombatbuff_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetInCombatBuffThreshold(thresholddata);
-			if (!database.botdb.SaveInCombatBuffThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveInCombatBuffThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a In-Combat Buff Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current In-Combat Buff Threshold is %u%%.", my_bot->GetInCombatBuffThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^incombatbuffthreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current In-Combat Buff Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetInCombatBuffThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetInCombatBuffThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveInCombatBuffThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveInCombatBuffThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My In-Combat Buff Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their In-Combat Buff Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -7657,40 +11360,96 @@ void bot_command_incombatbuff_min_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetInCombatBuffMinThreshold(thresholddata);
-			if (!database.botdb.SaveInCombatBuffMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveInCombatBuffMinThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Minimum In-Combat Buff Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum In-Combat Buff Threshold is %u%%.", my_bot->GetInCombatBuffMinThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^incombatbuffminthreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current In-Combat Buff Minimum Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetInCombatBuffMinThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetInCombatBuffMinThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveInCombatBuffMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveInCombatBuffMinThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My In-Combat Buff Minimum Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their In-Combat Buff Minimum Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -7706,40 +11465,96 @@ void bot_command_lifetap_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetLifetapThreshold(thresholddata);
-			if (!database.botdb.SaveLifetapThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveLifetapThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Lifetap Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Lifetap Threshold is %u%%.", my_bot->GetLifetapThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^lifetapthreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Lifetap Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetLifetapThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetLifetapThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveLifetapThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveLifetapThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Lifetap Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Lifetap Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -7755,40 +11570,96 @@ void bot_command_lifetap_min_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetLifetapMinThreshold(thresholddata);
-			if (!database.botdb.SaveLifetapMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveLifetapMinThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Minimum Lifetap Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum Lifetap Threshold is %u%%.", my_bot->GetLifetapMinThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^lifetapminthreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Lifetap Minimum Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetLifetapMinThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetLifetapMinThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveLifetapMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveLifetapMinThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Lifetap Minimum Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Lifetap Minimum Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -8267,7 +12138,7 @@ void bot_command_incombatbuff_delay(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_incombatbuff_delay", sep->arg[0], "incombatbuffdelay"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast in-combat buffs.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
@@ -8275,40 +12146,96 @@ void bot_command_incombatbuff_delay(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 delaydata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		delaydata = atoi(sep->arg[1]);
-		int delaycheck = delaydata;
-		if (delaycheck >= 1 && delaycheck <= 60000) {
-			my_bot->SetInCombatBuffDelay(delaydata);
-			if (!database.botdb.SaveInCombatBuffDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveInCombatBuffDelay(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a In-Combat Buff Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetInCombatBuffDelay() / 1000.00);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
+		if (delaydata < 1 || delaydata > 60000) {
+			c->Message(Chat::White, "You must enter a value between 1-60000 (1ms to 60s.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current In-Combat Buff Timer is %.2f seconds.", my_bot->GetInCombatBuffDelay() / 1000.00);
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^incombatbuffdelay help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current In-Combat Buff Delay is {} seconds.'",
+					my_bot->GetCleanName(),
+					my_bot->GetInCombatBuffDelay() / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetInCombatBuffDelay(delaydata);
+			++success_count;
+			if (!database.botdb.SaveInCombatBuffDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveInCombatBuffDelay(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My In-Combat Buff Delay was set to {} seconds.'",
+					first_found->GetCleanName(),
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their In-Combat Buff Delay to {} seconds.'",
+					success_count,
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -8317,7 +12244,7 @@ void bot_command_lifetap_delay(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_lifetap_delay", sep->arg[0], "lifetapdelay"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast lifetaps.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
@@ -8325,40 +12252,96 @@ void bot_command_lifetap_delay(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 delaydata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		delaydata = atoi(sep->arg[1]);
-		int delaycheck = delaydata;
-		if (delaycheck >= 1 && delaycheck <= 60000) {
-			my_bot->SetLifetapDelay(delaydata);
-			if (!database.botdb.SaveLifetapDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveLifetapDelay(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Lifetap Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetLifetapDelay() / 1000.00);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
+		if (delaydata < 1 || delaydata > 60000) {
+			c->Message(Chat::White, "You must enter a value between 1-60000 (1ms to 60s.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Lifetap Timer is %.2f seconds.", my_bot->GetLifetapDelay() / 1000.00);
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^lifetapdelay help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Lifetap Delay is {} seconds.'",
+					my_bot->GetCleanName(),
+					my_bot->GetLifetapDelay() / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetLifetapDelay(delaydata);
+			++success_count;
+			if (!database.botdb.SaveLifetapDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveLifetapDelay(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Lifetap Delay was set to {} seconds.'",
+					first_found->GetCleanName(),
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Lifetap Delay to {} seconds.'",
+					success_count,
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -8772,7 +12755,7 @@ void bot_command_max_melee_range(Client* c, const Seperator* sep)
 	}
 	if (helper_is_help_or_usage(sep->arg[1])) {
 
-		c->Message(Chat::White, "usage: %s ([option: clear]) [actionable: target | byname | ownergroup | ownerraid | botgroup | namesgroup | healrotation | spawned] ([actionable_name])", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s ([option: clear]) [actionable: byname | ownergroup | ownerraid | namesgroup | mmr | byclass | byrace | spawned]] ([actionable_name])", sep->arg[0]);
 		return;
 	}
 	const int ab_mask = (ActionableBots::ABM_Target | ActionableBots::ABM_Type2);
@@ -8789,8 +12772,14 @@ void bot_command_max_melee_range(Client* c, const Seperator* sep)
 		name_arg = 3;
 	}
 
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
 	std::list<Bot*> sbl;
-	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, sep->arg[name_arg]) == ActionableBots::ABT_None) {
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[name_arg] : nullptr, class_race_check ? atoi(sep->arg[name_arg]) : 0) == ActionableBots::ABT_None) {
 		return;
 	}
 
@@ -9002,7 +12991,7 @@ void bot_command_mez_delay(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_mez_delay", sep->arg[0], "mezdelay"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast mesmerization spells.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
@@ -9010,40 +12999,96 @@ void bot_command_mez_delay(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 delaydata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		delaydata = atoi(sep->arg[1]);
-		int delaycheck = delaydata;
-		if (delaycheck >= 1 && delaycheck <= 60000) {
-			my_bot->SetMezDelay(delaydata);
-			if (!database.botdb.SaveMezDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveMezDelay(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Mesmerization Spell Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetMezDelay() / 1000.00);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
+		if (delaydata < 1 || delaydata > 60000) {
+			c->Message(Chat::White, "You must enter a value between 1-60000 (1ms to 60s.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Mesmerization Spell Timer is %.2f seconds.", my_bot->GetMezDelay() / 1000.00);
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^mezdelay help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Mesmerization Spells Delay is {} seconds.'",
+					my_bot->GetCleanName(),
+					my_bot->GetMezDelay() / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetMezDelay(delaydata);
+			++success_count;
+			if (!database.botdb.SaveMezDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveMezDelay(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Mesmerization Spells Delay was set to {} seconds.'",
+					first_found->GetCleanName(),
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Mesmerization Spells Delay to {} seconds.'",
+					success_count,
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -9059,40 +13104,96 @@ void bot_command_mez_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetMezThreshold(thresholddata);
-			if (!database.botdb.SaveMezThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveMezThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Mesmerization Spell Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Mesmerization Spell Threshold is %u%%.", my_bot->GetMezThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^mezthreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Mesmerization Spells Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetMezThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetMezThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveMezThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveMezThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Mesmerization Spells Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Mesmerization Spells Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -9108,40 +13209,96 @@ void bot_command_mez_min_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetMezMinThreshold(thresholddata);
-			if (!database.botdb.SaveMezMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveMezMinThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Minimum Mesmerization Spell Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum Mesmerization Spell Threshold is %u%%.", my_bot->GetMezMinThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^mezminthreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Mesmerization Spells Minimum Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetMezMinThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetMezMinThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveMezMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveMezMinThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Mesmerization Spells Minimum Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Mesmerization Spells Minimum Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -9350,7 +13507,7 @@ void bot_command_nuke_delay(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_nuke_delay", sep->arg[0], "nukedelay"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast nuke spells.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
@@ -9358,40 +13515,96 @@ void bot_command_nuke_delay(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 delaydata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		delaydata = atoi(sep->arg[1]);
-		int delaycheck = delaydata;
-		if (delaycheck >= 1 && delaycheck <= 60000) {
-			my_bot->SetNukeDelay(delaydata);
-			if (!database.botdb.SaveNukeDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveNukeDelay(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Nuke Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetNukeDelay() / 1000.00);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
+		if (delaydata < 1 || delaydata > 60000) {
+			c->Message(Chat::White, "You must enter a value between 1-60000 (1ms to 60s.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Nuke Timer is %.2f seconds.", my_bot->GetNukeDelay() / 1000.00);
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^nukedelay help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Nuke Delay is {} seconds.'",
+					my_bot->GetCleanName(),
+					my_bot->GetNukeDelay() / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetNukeDelay(delaydata);
+			++success_count;
+			if (!database.botdb.SaveNukeDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveNukeDelay(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Nuke Delay was set to {} seconds.'",
+					first_found->GetCleanName(),
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Nuke Delay to {} seconds.'",
+					success_count,
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -9407,40 +13620,96 @@ void bot_command_nuke_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetNukeThreshold(thresholddata);
-			if (!database.botdb.SaveNukeThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveNukeThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Nuke Spell Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Nuke Spell Threshold is %u%%.", my_bot->GetNukeThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^nukethreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Nuke Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetNukeThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetNukeThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveNukeThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveNukeThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Nuke Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Nuke Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -9456,40 +13725,96 @@ void bot_command_nuke_min_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetNukeMinThreshold(thresholddata);
-			if (!database.botdb.SaveNukeMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveNukeMinThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Minimum Nuke Spell Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum Nuke Spell Threshold is %u%%.", my_bot->GetNukeMinThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^nukeminthreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Nuke Minimum Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetNukeMinThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetNukeMinThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveNukeMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveNukeMinThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Nuke Minimum Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Nuke Minimum Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -10555,7 +14880,7 @@ void bot_command_root_delay(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_root_delay", sep->arg[0], "rootdelay"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast root spells.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
@@ -10563,40 +14888,96 @@ void bot_command_root_delay(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 delaydata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		delaydata = atoi(sep->arg[1]);
-		int delaycheck = delaydata;
-		if (delaycheck >= 1 && delaycheck <= 60000) {
-			my_bot->SetRootDelay(delaydata);
-			if (!database.botdb.SaveRootDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveRootDelay(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Root Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetRootDelay() / 1000.00);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
+		if (delaydata < 1 || delaydata > 60000) {
+			c->Message(Chat::White, "You must enter a value between 1-60000 (1ms to 60s.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Root Timer is %.2f seconds.", my_bot->GetRootDelay() / 1000.00);
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^rootdelay help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Root Delay is {} seconds.'",
+					my_bot->GetCleanName(),
+					my_bot->GetRootDelay() / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetRootDelay(delaydata);
+			++success_count;
+			if (!database.botdb.SaveRootDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveRootDelay(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Root Delay was set to {} seconds.'",
+					first_found->GetCleanName(),
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Root Delay to {} seconds.'",
+					success_count,
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -10612,40 +14993,96 @@ void bot_command_root_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetRootThreshold(thresholddata);
-			if (!database.botdb.SaveRootThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveRootThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Root Spell Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Root Spell Threshold is %u%%.", my_bot->GetRootThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^rootthreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Root Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetRootThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetRootThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveRootThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveRootThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Root Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Root Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -10661,40 +15098,96 @@ void bot_command_root_min_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetRootMinThreshold(thresholddata);
-			if (!database.botdb.SaveRootMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveRootMinThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Minimum Root Spell Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum Root Spell Threshold is %u%%.", my_bot->GetRootMinThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^rootminthreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Root Minimum Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetRootMinThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetRootMinThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveRootMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveRootMinThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Root Minimum Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Root Minimum Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -10888,7 +15381,7 @@ void bot_command_slow_delay(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_slow_delay", sep->arg[0], "slowdelay"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast slows.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
@@ -10896,40 +15389,96 @@ void bot_command_slow_delay(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 delaydata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		delaydata = atoi(sep->arg[1]);
-		int delaycheck = delaydata;
-		if (delaycheck >= 1 && delaycheck <= 60000) {
-			my_bot->SetSlowDelay(delaydata);
-			if (!database.botdb.SaveSlowDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveSlowDelay(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Slow Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetSlowDelay() / 1000.00);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
+		if (delaydata < 1 || delaydata > 60000) {
+			c->Message(Chat::White, "You must enter a value between 1-60000 (1ms to 60s.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Slow Timer is %.2f seconds.", my_bot->GetSlowDelay() / 1000.00);
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^slowdelay help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Slow Delay is {} seconds.'",
+					my_bot->GetCleanName(),
+					my_bot->GetSlowDelay() / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetSlowDelay(delaydata);
+			++success_count;
+			if (!database.botdb.SaveSlowDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveSlowDelay(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Slow Delay was set to {} seconds.'",
+					first_found->GetCleanName(),
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Slow Delay to {} seconds.'",
+					success_count,
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -10945,40 +15494,96 @@ void bot_command_slow_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetSlowThreshold(thresholddata);
-			if (!database.botdb.SaveSlowThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveSlowThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Slow Spell Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Slow Spell Threshold is %u%%.", my_bot->GetSlowThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^slowthreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Slow Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetSlowThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetSlowThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveSlowThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveSlowThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Slow Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Slow Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -10994,40 +15599,96 @@ void bot_command_slow_min_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetSlowMinThreshold(thresholddata);
-			if (!database.botdb.SaveSlowMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveSlowMinThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Minimum Slow Spell Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum Slow Spell Threshold is %u%%.", my_bot->GetSlowMinThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^slowminthreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Slow Minimum Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetSlowMinThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetSlowMinThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveSlowMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveSlowMinThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Slow Minimum Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Slow Minimum Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -11169,7 +15830,7 @@ void bot_command_snare_delay(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_snare_delay", sep->arg[0], "snaredelay"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds. For example, 5000 = 5 seconds].", sep->arg[0]);
+		c->Message(Chat::White, "usage: <target_bot> %s [current | value in milliseconds] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
 		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast snare spells.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
@@ -11177,40 +15838,96 @@ void bot_command_snare_delay(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 delaydata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		delaydata = atoi(sep->arg[1]);
-		int delaycheck = delaydata;
-		if (delaycheck >= 1 && delaycheck <= 60000) {
-			my_bot->SetSnareDelay(delaydata);
-			if (!database.botdb.SaveSnareDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveSnareDelay(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Snare Timer for %s to %.2f seconds.", my_bot->GetCleanName(), my_bot->GetSnareDelay() / 1000.00);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter a value between 1 and 60000.");
+		if (delaydata < 1 || delaydata > 60000) {
+			c->Message(Chat::White, "You must enter a value between 1-60000 (1ms to 60s.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Snare Timer is %.2f seconds.", my_bot->GetSnareDelay() / 1000.00);
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^snaredelay help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Snare Delay is {} seconds.'",
+					my_bot->GetCleanName(),
+					my_bot->GetSnareDelay() / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetSnareDelay(delaydata);
+			++success_count;
+			if (!database.botdb.SaveSnareDelay(c->CharacterID(), my_bot->GetBotID(), delaydata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveSnareDelay(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Snare Delay was set to {} seconds.'",
+					first_found->GetCleanName(),
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Snare Delay to {} seconds.'",
+					success_count,
+					delaydata / 1000.00
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -11226,40 +15943,96 @@ void bot_command_snare_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetSnareThreshold(thresholddata);
-			if (!database.botdb.SaveSnareThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveSnareThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Snare Spell Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Snare Spell Threshold is %u%%.", my_bot->GetSnareThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^snarethreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Snare Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetSnareThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetSnareThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveSnareThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveSnareThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Snare Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Snare Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -11275,40 +16048,96 @@ void bot_command_snare_min_threshold(Client* c, const Seperator* sep)
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command.");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class to use this command.");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	uint32 thresholddata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		thresholddata = atoi(sep->arg[1]);
-		int thresholdcheck = thresholddata;
-		if (thresholdcheck >= 0 && thresholdcheck <= 150) {
-			my_bot->SetSnareMinThreshold(thresholddata);
-			if (!database.botdb.SaveSnareMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
-				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveSnareMinThreshold(), my_bot->GetCleanName());
-				return;
-			}
-			else {
-				c->Message(Chat::White, "Successfully set a Minimum Snare Spell Threshold for %s to %u%%.", my_bot->GetCleanName(), thresholddata);
-			}
-		}
-		else {
-			c->Message(Chat::White, "You must enter enter a between 0 and 150.");
+		if (thresholddata < 0 || thresholddata > 150) {
+			c->Message(Chat::White, "You must enter a value between 0-150 (0%% to 150%% of health.");
 			return;
 		}
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current Minimum Snare Spell Threshold is %u%%.", my_bot->GetSnareMinThreshold());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 	else {
-		c->Message(Chat::White, "Incorrect argument, use ^snareminthreshold help for a list of options.");
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Snare Minimum Threshold is {}%%.'",
+					my_bot->GetCleanName(),
+					my_bot->GetSnareMinThreshold()
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetSnareMinThreshold(thresholddata);
+			++success_count;
+			if (!database.botdb.SaveSnareMinThreshold(c->CharacterID(), my_bot->GetBotID(), thresholddata)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveSnareMinThreshold(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Snare Minimum Threshold was set to {}%%.'",
+					first_found->GetCleanName(),
+					thresholddata
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Snare Minimum Threshold to {}%%.'",
+					success_count,
+					thresholddata
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -11404,7 +16233,7 @@ void bot_command_taunt(Client *c, const Seperator *sep)
 	if (helper_command_alias_fail(c, "bot_command_taunt", sep->arg[0], "taunt"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s ([option: on | off]) ([actionable: target | byname | ownergroup | ownerraid | botgroup | targetgroup | namesgroup | healrotationtargets | spawned] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s ([option: on | off]) ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name]))", sep->arg[0]);
 		return;
 	}
 	const int ab_mask = ActionableBots::ABM_Type1;
@@ -11424,9 +16253,16 @@ void bot_command_taunt(Client *c, const Seperator *sep)
 		ab_arg = 2;
 	}
 
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
 	std::list<Bot*> sbl;
-	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, sep->arg[(ab_arg + 1)]) == ActionableBots::ABT_None)
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[(ab_arg + 1)] : nullptr, class_race_check ? atoi(sep->arg[(ab_arg + 1)]) : 0) == ActionableBots::ABT_None) {
 		return;
+	}
 	sbl.remove(nullptr);
 
 	int taunting_count = 0;
@@ -11966,10 +16802,10 @@ void bot_subcommand_bot_camp(Client *c, const Seperator *sep)
 	if (helper_command_alias_fail(c, "bot_subcommand_bot_camp", sep->arg[0], "botcamp"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s ([actionable: target | byname | ownergroup | ownerraid | botgroup | targetgroup | namesgroup | healrotation | spawned] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name]))", sep->arg[0]);
 		return;
 	}
-	const int ab_mask = ActionableBots::ABM_NoFilter;
+	const int ab_mask = ActionableBots::ABM_Type1;
 
 	if (RuleB(Bots, PreventBotCampOnFD) && c->GetFeigned()) {
 		c->Message(Chat::White, "You cannot camp bots while feigned.");
@@ -11995,10 +16831,17 @@ void bot_subcommand_bot_camp(Client *c, const Seperator *sep)
 			return;
 		}
 	}
+	
+	std::string class_race_arg = sep->arg[1];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
 
 	std::list<Bot*> sbl;
-	if (ActionableBots::PopulateSBL(c, sep->arg[1], sbl, ab_mask, sep->arg[2]) == ActionableBots::ABT_None)
+	if (ActionableBots::PopulateSBL(c, sep->arg[1], sbl, ab_mask, !class_race_check ? sep->arg[2] : nullptr, class_race_check ? atoi(sep->arg[2]) : 0) == ActionableBots::ABT_None) {
 		return;
+	}
 
 	for (auto bot_iter : sbl)
 		bot_iter->Camp();
@@ -12588,7 +17431,7 @@ void bot_subcommand_bot_dye_armor(Client *c, const Seperator *sep)
 		c->Message(
 			Chat::White,
 			fmt::format(
-				"Usage: {} [Material Slot] [Red: 0-255] [Green: 0-255] [Blue: 0-255] ([actionable: target | byname | ownergroup | ownerraid | botgroup | targetgroup | namesgroup | healrotation | spawned] ([actionable_name]))",
+				"Usage: {} [Material Slot] [Red: 0-255] [Green: 0-255] [Blue: 0-255] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | spawned] ([actionable_name]))",
 				sep->arg[0]
 			).c_str()
 		);
@@ -12800,8 +17643,8 @@ void bot_subcommand_bot_follow_distance(Client *c, const Seperator *sep)
 	if (helper_command_alias_fail(c, "bot_subcommand_bot_follow_distance", sep->arg[0], "botfollowdistance"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s [set] [distance] ([actionable: target | byname | ownergroup | ownerraid | botgroup | targetgroup | namesgroup | healrotation | spawned] ([actionable_name]))", sep->arg[0]);
-		c->Message(Chat::White, "usage: %s [clear] ([actionable: target | byname | ownergroup | ownerraid | botgroup | targetgroup | namesgroup | healrotation | spawned] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [set] [distance] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | spawned] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [clear] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | spawned] ([actionable_name]))", sep->arg[0]);
 		return;
 	}
 	const int ab_mask = ActionableBots::ABM_NoFilter;
@@ -12975,7 +17818,7 @@ void bot_subcommand_bot_inspect_message(Client *c, const Seperator *sep)
 	if (helper_command_alias_fail(c, "bot_subcommand_bot_inspect_message", sep->arg[0], "botinspectmessage"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s [set | clear] ([actionable: target | byname | ownergroup | ownerraid | botgroup | targetgroup | namesgroup | healrotation | spawned] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [set | clear] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | spawned] ([actionable_name]))", sep->arg[0]);
 		c->Message(Chat::White, "Notes:");
 		if (c->ClientVersion() >= EQ::versions::ClientVersion::SoF) {
 			c->Message(Chat::White, "- Self-inspect and type your bot's inspect message");
@@ -13368,7 +18211,7 @@ void bot_subcommand_bot_report(Client *c, const Seperator *sep)
 	if (helper_command_alias_fail(c, "bot_subcommand_bot_report", sep->arg[0], "botreport"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s ([actionable: target | byname | ownergroup | ownerraid | botgroup | targetgroup | namesgroup | healrotation | spawned] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | spawned] ([actionable_name]))", sep->arg[0]);
 		return;
 	}
 	const int ab_mask = ActionableBots::ABM_NoFilter;
@@ -13785,38 +18628,29 @@ void bot_subcommand_bot_summon(Client *c, const Seperator *sep)
 	}
 
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Usage: {} ([actionable: target | byname | ownergroup | ownerraid | botgroup | targetgroup | namesgroup | healrotation | spawned | mmr] ([actionable_name]))",
-				sep->arg[0]
-			).c_str()
-		);
+		c->Message(Chat::White, "usage: %s ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name]))", sep->arg[0]);
 		return;
 	}
-	const int ab_mask = ActionableBots::ABM_NoFilter;
+	const int ab_mask = ActionableBots::ABM_Type1;
+
+	std::string class_race_arg = sep->arg[1];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
 
 	std::list<Bot*> sbl;
-	if (ActionableBots::PopulateSBLForSummon(c, sep->arg[1], sbl, ab_mask, sep->arg[2]) == ActionableBots::ABT_None) {
+	if (ActionableBots::PopulateSBL(c, sep->arg[1], sbl, ab_mask, !class_race_check ? sep->arg[2] : nullptr, class_race_check ? atoi(sep->arg[2]) : 0) == ActionableBots::ABT_None) {
 		return;
 	}
+
+	sbl.remove(nullptr);
 
 	auto sbl_size = sbl.size();
 
 	for (auto bot_iter : sbl) {
 		if (!bot_iter) {
 			continue;
-		}
-
-		//std::string mmr_summon = sep->arg[1];
-		//std::string mmr_check = "mmr";
-		//if ((mmr_summon.find(mmr_check) == std::string::npos)) {
-		//if (mmr_summon.compare(mmr_check) == 0) {
-		if (!strcasecmp(sep->arg[1], "mmr")) {
-			if (!bot_iter->GetMaxMeleeRange()) {
-				--sbl_size;
-				continue;
-			}
 		}
 
 		bot_iter->WipeHateList();
@@ -13947,7 +18781,7 @@ void bot_subcommand_bot_toggle_helm(Client *c, const Seperator *sep)
 	if (helper_command_alias_fail(c, "bot_subcommand_bot_toggle_helm", sep->arg[0], "bottogglehelm"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s ([option: on | off]) ([actionable: target | byname | ownergroup | ownerraid | botgroup | targetgroup | namesgroup | healrotation | spawned] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s ([option: on | off]) ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | spawned] ([actionable_name]))", sep->arg[0]);
 		return;
 	}
 	const int ab_mask = ActionableBots::ABM_NoFilter;
@@ -14138,855 +18972,6 @@ void bot_subcommand_bot_woad(Client *c, const Seperator *sep)
 		return;
 
 	helper_bot_appearance_form_final(c, my_bot);
-}
-
-void bot_subcommand_botgroup_add_member(Client *c, const Seperator *sep)
-{
-	// temp
-	c->Message(Chat::White, "This command is disabled...");
-	return;
-	if (helper_command_alias_fail(c, "bot_subcommand_botgroup_add_member", sep->arg[0], "botgroupaddmember")) {
-		return;
-	}
-
-	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Usage: (<target_leader>) {} [member_name] ([leader_name])",
-				sep->arg[0]
-			).c_str()
-		);
-		return;
-	}
-
-	std::list<Bot*> sbl;
-	MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[1]);
-	if (sbl.empty()) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Usage: (<target_leader>) {} [member_name]",
-				sep->arg[0]
-			).c_str()
-		);
-		return;
-	}
-
-	auto new_member = sbl.front();
-	if (!new_member) {
-		c->Message(Chat::White, "Error: New member bot dereferenced to nullptr");
-		return;
-	}
-
-	if (new_member->HasGroup()) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"{} is already member of a group.",
-				new_member->GetCleanName()
-			).c_str()
-		);
-		return;
-	}
-
-	uint32 botgroup_id = 0;
-	if (!database.botdb.LoadBotGroupIDByMemberID(new_member->GetBotID(), botgroup_id)) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Failed to load bot-group id by member ID for '{}'.",
-				new_member->GetCleanName()
-			).c_str()
-		);
-		return;
-	}
-
-	if (botgroup_id) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"{} is already a member of a bot-group.",
-				new_member->GetCleanName()
-			).c_str()
-		);
-		return;
-	}
-
-	MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[2]);
-
-	if (sbl.empty()) {
-		MyBots::PopulateSBL_ByTargetedBot(c, sbl);
-	}
-
-	if (sbl.empty()) {
-		c->Message(Chat::White, "You must target or name a group leader as a bot that you own to use this command.");
-		return;
-	}
-
-	auto leader = sbl.front();
-	if (!leader) {
-		c->Message(Chat::White, "Error: Group leader bot dereferenced to nullptr.");
-		return;
-	}
-
-	auto* g = leader->GetGroup();
-	if (!g || g->GetLeader() != leader) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"{} is not the leader of a group.",
-				leader->GetCleanName()
-			).c_str()
-		);
-		return;
-	}
-
-	botgroup_id = 0;
-	if (!database.botdb.LoadBotGroupIDByLeaderID(leader->GetBotID(), botgroup_id)) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Failed to load bot-group ID by leader ID for '{}'.",
-				leader->GetCleanName()
-			).c_str()
-		);
-		return;
-	}
-
-	if (!botgroup_id) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"{} is not the leader of a bot-group.",
-				leader->GetCleanName()
-			).c_str()
-		);
-		return;
-	}
-
-	if (!Bot::AddBotToGroup(new_member, g)) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Could not add {} as a new member to a group with {}.",
-				new_member->GetCleanName(),
-				leader->GetCleanName()
-			).c_str()
-		);
-		return;
-	}
-
-	database.SetGroupID(new_member->GetName(), g->GetID(), new_member->GetBotID());
-
-	if (!database.botdb.AddMemberToBotGroup(leader->GetBotID(), new_member->GetBotID())) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Failed to add member to bot-group, {} could not be added to a group with {}.",
-				new_member->GetCleanName(),
-				leader->GetCleanName()
-			).c_str()
-		);
-		Bot::RemoveBotFromGroup(new_member, leader->GetGroup());
-		return;
-	}
-
-	std::string botgroup_name;
-	if (!database.botdb.LoadBotGroupNameByLeaderID(leader->GetBotID(), botgroup_name)) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Failed to load bot-group name by leader ID for bot ID {}.",
-				leader->GetBotID()
-			).c_str()
-		);
-	}
-
-	c->Message(
-		Chat::White,
-		fmt::format(
-			"Successfully added {} to bot-group {}.",
-			new_member->GetCleanName(),
-			botgroup_name
-		).c_str()
-	);
-}
-
-void bot_subcommand_botgroup_auto_spawn(Client *c, const Seperator *sep)
-{
-	// temp
-	c->Message(Chat::White, "This command is disabled...");
-	return;
-	if (helper_command_alias_fail(c, "bot_subcommand_botgroup_auto_spawn", sep->arg[0], "botgroupautospawn")) {
-		return;
-	}
-
-	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Usage: (<target_leader>) {} ([leader_name])",
-				sep->arg[0]
-			).c_str()
-		);
-		return;
-	}
-
-	std::list<Bot*> sbl;
-
-	if (sbl.empty()) {
-		MyBots::PopulateSBL_ByTargetedBot(c, sbl);
-	}
-
-	if (sbl.empty()) {
-		c->Message(Chat::White, "You must target or name a group leader as a bot that you own to use this command.");
-		return;
-	}
-
-	auto leader = sbl.front();
-	if (!leader) {
-		c->Message(Chat::White, "Error: Group leader bot dereferenced to nullptr.");
-		return;
-	}
-
-	auto* g = leader->GetGroup();
-	if (!g || g->GetLeader() != leader) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"{} is not the leader of a group.",
-				leader->GetCleanName()
-			).c_str()
-		);
-		return;
-	}
-
-	uint32 botgroup_id = 0;
-	if (!database.botdb.LoadBotGroupIDByLeaderID(leader->GetBotID(), botgroup_id)) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Failed to load bot-group ID by leader ID for '{}'.",
-				leader->GetCleanName()
-			).c_str()
-		);
-		return;
-	}
-
-	if (!botgroup_id) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"{} is not the leader of a bot-group.",
-				leader->GetCleanName()
-			).c_str()
-		);
-		return;
-	}
-
-	std::string botgroup_name;
-	if (!database.botdb.LoadBotGroupNameByLeaderID(leader->GetBotID(), botgroup_name)) {
-		c->Message(Chat::White, "Failed to load bot-group name by leader ID.");
-		return;
-	}
-
-	if (!database.botdb.ToggleBotGroupAutoSpawn(botgroup_id)) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Failed to toggle auto spawn for bot-group '{}'.",
-				botgroup_name
-			).c_str()
-		);
-		return;
-	}
-
-	bool auto_spawn = database.botdb.IsBotGroupAutoSpawn(botgroup_name);
-
-	c->Message(
-		Chat::White,
-		fmt::format(
-			"Auto spawn is now {}active bot-group '{}'.",
-			!auto_spawn ? "in" : "",
-			botgroup_name
-		).c_str()
-	);
-}
-
-void bot_subcommand_botgroup_create(Client *c, const Seperator *sep)
-{
-	// temp
-	c->Message(Chat::White, "This command is disabled...");
-	return;
-	if (helper_command_alias_fail(c, "bot_subcommand_botgroup_create", sep->arg[0], "botgroupcreate")) {
-		return;
-	}
-
-	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Usage: (<target_leader>) {} [group_name] ([leader_name])",
-				sep->arg[0]
-			).c_str()
-		);
-		return;
-	}
-
-	std::string botgroup_name = sep->argplus[1];
-	if (botgroup_name.empty()) {
-		c->Message(Chat::White, "You must specify a name for this bot-group to use this command.");
-		return;
-	}
-
-	if (database.botdb.QueryBotGroupExistence(botgroup_name)) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"The name '{}' already exists for a bot-group. Please choose another.",
-				botgroup_name
-			).c_str()
-		);
-		return;
-	}
-
-	std::list<Bot*> sbl;
-	MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[2]);
-
-	if (sbl.empty()) {
-		MyBots::PopulateSBL_ByTargetedBot(c, sbl);
-	}
-
-	if (sbl.empty()) {
-		c->Message(Chat::White, "You must target or name a group leader as a bot that you own to use this command.");
-		return;
-	}
-
-	auto leader = sbl.front();
-	if (!leader) {
-		c->Message(Chat::White, "Error: Group leader bot dereferenced to nullptr.");
-		return;
-	}
-
-	if (leader->HasGroup()) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"{} is already a current member of a group.",
-				leader->GetCleanName()
-			).c_str()
-		);
-		return;
-	}
-
-	uint32 botgroup_id = 0;
-	if (!database.botdb.LoadBotGroupIDByLeaderID(leader->GetBotID(), botgroup_id)) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Failed to load bot-group ID by leader ID for '{}'.",
-				leader->GetCleanName()
-			).c_str()
-		);
-		return;
-	}
-
-	if (botgroup_id) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"{} is already the current leader of a bot-group.",
-				leader->GetCleanName()
-			).c_str()
-		);
-		return;
-	}
-
-	botgroup_id = 0;
-	if (!database.botdb.LoadBotGroupIDByMemberID(leader->GetBotID(), botgroup_id)) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Failed to load bot-group id by member ID for '{}'.",
-				leader->GetCleanName()
-			).c_str()
-		);
-		return;
-	}
-
-	if (botgroup_id) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"{} is already a current member of a bot-group.",
-				leader->GetCleanName()
-			).c_str()
-		);
-		return;
-	}
-
-	auto* g = new Group(leader);
-	if (!g) {
-		c->Message(Chat::White, "Could not create a new group instance.");
-		return;
-	}
-
-	if (!database.botdb.CreateBotGroup(botgroup_name, leader->GetBotID())) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Failed to create bot-group '{}'.",
-				botgroup_name
-			).c_str()
-		);
-		safe_delete(g);
-		return;
-	}
-
-	entity_list.AddGroup(g);
-	database.SetGroupID(leader->GetCleanName(), g->GetID(), leader->GetBotID());
-	database.SetGroupLeaderName(g->GetID(), leader->GetCleanName());
-	leader->SetFollowID(c->GetID());
-
-	c->Message(
-		Chat::White,
-		fmt::format(
-			"Successfully created bot-group '{}' with '{}' as its leader.",
-			botgroup_name,
-			leader->GetCleanName()
-		).c_str()
-	);
-}
-
-void bot_subcommand_botgroup_delete(Client *c, const Seperator *sep)
-{
-	// temp
-	c->Message(Chat::White, "This command is disabled...");
-	return;
-	if (helper_command_alias_fail(c, "bot_subcommand_botgroup_delete", sep->arg[0], "botgroupdelete")) {
-		return;
-	}
-
-	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s [botgroup_name]", sep->arg[0]);
-		return;
-	}
-
-	std::string botgroup_name = sep->argplus[1];
-	if (botgroup_name.empty()) {
-		c->Message(Chat::White, "You must specify a [name] for this bot-group to use this command");
-		return;
-	}
-
-	uint32 botgroup_id = 0;
-	if (!database.botdb.LoadBotGroupIDForLoadBotGroup(c->CharacterID(), botgroup_name, botgroup_id)) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Failed to load bot-group ID for load bot-group for '{}'.",
-				botgroup_name
-			).c_str()
-		);
-		return;
-	}
-
-	if (!botgroup_id) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Could not locate group ID for '{}'.",
-				botgroup_name
-			).c_str()
-		);
-		return;
-	}
-
-	uint32 leader_id = 0;
-	if (!database.botdb.LoadLeaderIDByBotGroupID(botgroup_id, leader_id)) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Failed to load leader ID by bot-group ID for '{}'.",
-				botgroup_name
-			).c_str()
-		);
-		return;
-	}
-
-	if (!leader_id) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Could not locate leader ID for '{}'.",
-				botgroup_name
-			).c_str()
-		);
-		return;
-	}
-
-	std::list<Bot*> gbl;
-	std::list<Bot*> sbl;
-	MyBots::PopulateSBL_BySpawnedBots(c, sbl);
-
-	std::map<uint32, std::list<uint32>> member_list;
-	if (!database.botdb.LoadBotGroup(botgroup_name, member_list)) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Failed to load bot-group '{}'.",
-				botgroup_name
-			).c_str()
-		);
-		return;
-	}
-
-	if (member_list.find(botgroup_id) == member_list.end() || member_list[botgroup_id].empty()) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Could not locate member list for bot-group '{}'.",
-				botgroup_name
-			).c_str()
-		);
-		return;
-	}
-
-	for (auto bot_iter : sbl) {
-		for (auto group_iter : member_list[botgroup_id]) {
-			if (bot_iter->GetBotID() == group_iter) {
-				gbl.push_back(bot_iter);
-				break;
-			}
-		}
-	}
-
-	gbl.unique();
-
-	for (auto group_member : gbl) {
-		if (group_member->HasGroup()) {
-			Bot::RemoveBotFromGroup(group_member, group_member->GetGroup());
-		}
-	}
-
-	if (!database.botdb.DeleteBotGroup(leader_id)) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Failed to delete bot-group '{}'.",
-				botgroup_name
-			).c_str()
-		);
-		return;
-	}
-
-	c->Message(
-		Chat::White,
-		fmt::format(
-			"Successfully deleted bot-group '{}'.",
-			botgroup_name
-		).c_str()
-	);
-}
-
-void bot_subcommand_botgroup_list(Client *c, const Seperator *sep)
-{
-	// temp
-	c->Message(Chat::White, "This command is disabled...");
-	return;
-	if (helper_command_alias_fail(c, "bot_subcommand_botgroup_list", sep->arg[0], "botgrouplist")) {
-		return;
-	}
-
-	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Usage: {}",
-				sep->arg[0]
-			).c_str()
-		);
-		return;
-	}
-
-	std::list<std::pair<std::string, uint32>> botgroups_list;
-	if (!database.botdb.LoadBotGroupsListByOwnerID(c->CharacterID(), botgroups_list)) {
-		c->Message(Chat::White, "Failed to load bot-group.");
-		return;
-	}
-
-	if (botgroups_list.empty()) {
-		c->Message(Chat::White, "You have no saved bot-groups.");
-		return;
-	}
-
-	uint32 botgroup_count = 0;
-
-	for (const auto& [group_name, group_leader_id] : botgroups_list) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Bot-group {} | Name: {} | Leader: {}{} | {}",
-				(botgroup_count + 1),
-				group_name,
-				database.botdb.GetBotNameByID(group_leader_id),
-				database.botdb.IsBotGroupAutoSpawn(group_name) ? " (Auto Spawn)" : "",
-				Saylink::Silent(
-					fmt::format("^botgroupload {}", group_name),
-					"Load"
-				)
-			).c_str()
-		);
-
-		botgroup_count++;
-	}
-
-	c->Message(
-		Chat::White,
-		fmt::format(
-			"{} Bot-group{} listed.",
-			botgroup_count,
-			botgroup_count != 1 ? "s" : ""
-		).c_str()
-	);
-}
-
-void bot_subcommand_botgroup_load(Client *c, const Seperator *sep)
-{
-	// temp
-	c->Message(Chat::White, "This command is disabled...");
-	return;
-	if (helper_command_alias_fail(c, "bot_subcommand_botgroup_load", sep->arg[0], "botgroupload")) {
-		return;
-	}
-
-	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Usage: {} [botgroup_name]",
-				sep->arg[0]
-			).c_str()
-		);
-		return;
-	}
-
-	std::string botgroup_name = sep->argplus[1];
-	if (botgroup_name.empty()) {
-		c->Message(Chat::White, "You must specify the name of a bot-group to load to use this command.");
-		return;
-	}
-
-	if (!database.botdb.QueryBotGroupExistence(botgroup_name)) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Failed to query bot-group existence for '{}'.",
-				botgroup_name
-			).c_str()
-		);
-		return;
-	}
-
-	if (c->GetFeigned()) {
-		c->Message(Chat::White, "You cannot spawn a bot-group while feigned.");
-		return;
-	}
-
-	auto* owner_group = c->GetGroup();
-	if (owner_group) {
-		std::list<Client*> member_list;
-		owner_group->GetClientList(member_list);
-		member_list.remove(nullptr);
-
-		for (auto member_iter : member_list) {
-			if (member_iter->IsEngaged() || member_iter->GetAggroCount() > 0) {
-				c->Message(Chat::White, "You cannot spawn bots while your group is engaged,");
-				return;
-			}
-		}
-	} else {
-		if (c->GetAggroCount() > 0) {
-			c->Message(Chat::White, "You cannot spawn bots while you are engaged,");
-			return;
-		}
-	}
-
-	uint32 botgroup_id = 0;
-	if (!database.botdb.LoadBotGroupIDForLoadBotGroup(c->CharacterID(), botgroup_name, botgroup_id) || !botgroup_id) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Failed to load bot-group ID for load bot-group for '{}'.",
-				botgroup_name
-			).c_str()
-		);
-		return;
-	}
-
-	std::map<uint32, std::list<uint32>> member_list;
-	if (!database.botdb.LoadBotGroup(botgroup_name, member_list)) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Failed to load bot-group for '{}'.",
-				botgroup_name
-			).c_str()
-		);
-		return;
-	}
-
-	if (member_list.find(botgroup_id) == member_list.end() || member_list[botgroup_id].empty()) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Database returned an empty list for bot-group '{}'.",
-				botgroup_name
-			).c_str()
-		);
-		return;
-	}
-
-	auto spawned_bot_count = Bot::SpawnedBotCount(c->CharacterID());
-
-	auto bot_spawn_limit = c->GetBotSpawnLimit();
-
-	if (bot_spawn_limit == 999)
-		return;
-
-	if (zone->GetZoneID() == 202) {
-		spawned_bot_count = RuleI(Bots, PlaneOfKnowledgeSpawnLimit);
-	}
-	else if (zone->GetZoneID() == 203) {
-		spawned_bot_count = RuleI(Bots, PlaneOfTranquilitySpawnLimit);
-	}
-
-	if (
-		bot_spawn_limit >= 0 &&
-		(
-			spawned_bot_count >= bot_spawn_limit ||
-			(spawned_bot_count + member_list.begin()->second.size()) > bot_spawn_limit
-		)
-	) {
-		std::string message;
-		if (bot_spawn_limit) {
-			message = fmt::format(
-				"You cannot have more than {} spawned bot{}.",
-				bot_spawn_limit,
-				bot_spawn_limit != 1 ? "s" : ""
-			);
-		} else {
-			message = "You are not currently allowed to spawn any bots.";
-		}
-
-		c->Message(Chat::White, message.c_str());
-		return;
-	}
-
-	uint32 leader_id = 0;
-	if (!database.botdb.LoadLeaderIDByBotGroupName(botgroup_name, leader_id)) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Failed to load leader ID by bot-group name for '{}'.",
-				botgroup_name
-			).c_str()
-		);
-		return;
-	}
-
-	if (!leader_id) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Cannot locate bot-group leader ID for '{}'.",
-				botgroup_name
-			).c_str()
-		);
-		return;
-	}
-
-	Bot::SpawnBotGroupByName(c, botgroup_name, leader_id);
-}
-
-void bot_subcommand_botgroup_remove_member(Client *c, const Seperator *sep)
-{
-	// temp
-	c->Message(Chat::White, "This command is disabled...");
-	return;
-	if (helper_command_alias_fail(c, "bot_subcommand_botgroup_remove_member", sep->arg[0], "botgroupremovemember")) {
-		return;
-	}
-
-	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Usage: (<target_member>) {} ([member_name])",
-				sep->arg[0]
-			).c_str()
-		);
-		return;
-	}
-
-	std::list<Bot*> sbl;
-	MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[1]);
-
-	if (sbl.empty()) {
-		MyBots::PopulateSBL_ByTargetedBot(c, sbl);
-	}
-
-	if (sbl.empty()) {
-		c->Message(Chat::White, "You must target or name a group member as a bot that you own to use this command.");
-		return;
-	}
-
-	auto group_member = sbl.front();
-	if (!group_member) {
-		c->Message(Chat::White, "Error: Group member bot dereferenced to nullptr.");
-		return;
-	}
-
-	if (!group_member->HasGroup()) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"{} is not a current member of a group.",
-				group_member->GetCleanName()
-			).c_str()
-		);
-		return;
-	}
-
-	if (!Bot::RemoveBotFromGroup(group_member, group_member->GetGroup())) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Could not remove {} from their group.",
-				group_member->GetCleanName()
-			).c_str()
-		);
-		return;
-	}
-
-	if (!database.botdb.RemoveMemberFromBotGroup(group_member->GetBotID())) {
-		c->Message(
-			Chat::White,
-			fmt::format(
-				"Could not remove {} from their bot-group.",
-				group_member->GetCleanName()
-			).c_str()
-		);
-		return;
-	}
-
-	c->Message(
-		Chat::White,
-		fmt::format(
-			"Successfully removed {} from their bot-group.",
-			group_member->GetCleanName()
-		).c_str()
-	);
 }
 
 void bot_subcommand_circle(Client *c, const Seperator *sep)
@@ -16599,7 +20584,7 @@ void bot_subcommand_pet_get_lost(Client *c, const Seperator *sep)
 	if (helper_command_alias_fail(c, "bot_subcommand_pet_get_lost", sep->arg[0], "petgetlost"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s ([actionable: target | byname | ownergroup | ownerraid | botgroup | targetgroup | namesgroup | healrotation | spawned] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | spawned] ([actionable_name]))", sep->arg[0]);
 		return;
 	}
 	int ab_mask = ActionableBots::ABM_NoFilter;
