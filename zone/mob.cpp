@@ -3802,96 +3802,54 @@ bool Mob::PlotPositionAroundTarget(Mob* target, float &x_dest, float &y_dest, fl
 	return Result;
 }
 
-bool Mob::PlotBotPositionAroundTarget(Mob* target, float& x_dest, float& y_dest, float& z_dest, float min_distance, float max_distance, bool behindOnly, bool frontOnly, bool lookForAftArc) {
+bool Mob::PlotBotPositionAroundTarget(Mob* target, float& x_dest, float& y_dest, float& z_dest, float min_distance, float max_distance, bool behindOnly, bool frontOnly) {
 	bool Result = false;
-
+	
 	if (target) {
 		float look_heading = 0;
 
-		if (lookForAftArc)
-			look_heading = GetReciprocalHeading(target->GetPosition());
-		else
-			look_heading = target->GetHeading();
-
-		// Convert to sony heading to radians
-		look_heading = (look_heading / 512.0f) * 6.283184f;
-
+		min_distance = sqrt(min_distance);
+		max_distance = sqrt(max_distance);
 		float tempX = 0;
 		float tempY = 0;
 		float tempZ = 0;
-		float tempSize = 0;
-		const float rangeCreepMod = 1;
-		const uint8 maxIterationsAllowed = 100;
-		uint8 counter = 0;
-		float rangeReduction = 0;
-		tempSize = target->GetSize();
-		rangeReduction = (tempSize * rangeCreepMod);
-		float adjustedSize = 0;
+		const float tarX = target->GetX();
+		const float tarY = target->GetY();
+		const uint16 maxIterationsAllowed = 1000;
+		uint16 counter = 0;
+		//TestDebug("Plotting for {} - Min: [{}] - Max: [{}] - BehindMob: [{}] - Taunt [{}]", GetCleanName(), min_distance, max_distance, behindOnly, frontOnly); //deleteme
+		while (counter < maxIterationsAllowed) {
+			tempX = tarX + zone->random.Real(-max_distance, max_distance);
+			tempY = tarY + zone->random.Real(-max_distance, max_distance);
 
-		while (/*tempSize > 0 && */counter != maxIterationsAllowed) {
-			adjustedSize = tempSize;
-			adjustedSize *= (zone->random.Real(.1, 10));
-			tempX = GetX() + (adjustedSize * static_cast<float>(sin(double(look_heading))));
-			tempY = GetY() + (adjustedSize * static_cast<float>(cos(double(look_heading))));
-			tempZ = target->GetZ();
-
-			if (!CheckLosFN(tempX, tempY, tempZ, tempSize)) {
-				//tempSize -= rangeReduction;
-			}
-			else {
-				glm::vec4 temp_m_Position;
-				temp_m_Position.x = tempX;
-				temp_m_Position.y = tempY;
-				temp_m_Position.z = tempZ;
-				float tar_distance = DistanceSquared(target->GetPosition(), temp_m_Position);
-				//TestDebug("Try #[{}]. Target LOCs XYZ - [{}], [{}], [{}] - Temp LOCs [{}], [{}], [{}] - Distance between = [{}] - Melee Distance = [{}] - Difference = [{}]", (counter + 1), target->GetX(), target->GetY(), target->GetZ(), tempX, tempY, tempZ, tar_distance, melee_distance, (tar_distance / melee_distance));
-				if (tar_distance <= max_distance && tar_distance >= min_distance) {
-					if ((!behindOnly && !frontOnly) || (behindOnly && BehindMob(target, tempX, tempY)) || (frontOnly && InFrontMob(target, tempX, tempY))) {
-						Result = true;
-						break;
-					}
-				}
-				//tempSize -= rangeReduction;
-			}
-
-			counter++;
-		}
-
-		if (!Result) {
-			// Try to find an attack arc to position at from the opposite direction.
-			look_heading += (3.141592 / 2);
-
-			tempSize = target->GetSize();
-			counter = 0;
-
-			while (/*tempSize > 0 && */counter != maxIterationsAllowed) {
-				adjustedSize = tempSize;
-				adjustedSize *= (zone->random.Real(.1, 10));
-				tempX = GetX() + (adjustedSize * static_cast<float>(sin(double(look_heading))));
-				tempY = GetY() + (adjustedSize * static_cast<float>(cos(double(look_heading))));
-				tempZ = target->GetZ();
-
-				if (!CheckLosFN(tempX, tempY, tempZ, tempSize)) {
-					//tempSize -= rangeReduction;
-				}
-				else {
-					glm::vec4 temp_m_Position;
-					temp_m_Position.x = tempX;
-					temp_m_Position.y = tempY;
-					temp_m_Position.z = tempZ;
-					float tar_distance = DistanceSquared(target->GetPosition(), temp_m_Position);
-					//TestDebug("Try #[{}]. Target LOCs XYZ - [{}], [{}], [{}] - Temp LOCs [{}], [{}], [{}] - Distance between = [{}] - Melee Distance = [{}] - Difference = [{}]", (counter + 1), target->GetX(), target->GetY(), target->GetZ(), tempX, tempY, tempZ, tar_distance, melee_distance, (tar_distance / melee_distance));
-					if (tar_distance <= max_distance && tar_distance >= min_distance) {
-						if ((!behindOnly && !frontOnly) || (behindOnly && BehindMob(target, tempX, tempY)) || (frontOnly && InFrontMob(target, tempX, tempY))) {
-							Result = true;
-							break;
-						}
-					}
-					//tempSize -= rangeReduction;
-				}
-
+			glm::vec4 temp_m_Position;
+			temp_m_Position.x = tempX;
+			temp_m_Position.y = tempY;
+			temp_m_Position.z = tempZ;
+			float tar_distance = DistanceNoZ(target->GetPosition(), temp_m_Position);			
+			if (tar_distance > max_distance || tar_distance < min_distance) {
+				//TestDebug("Plot Failed Distance - Try #[{}]. Target LOCs XYZ - [{}], [{}], [{}] - Temp LOCs [{}], [{}], [{}] - Distance between = [{}] - Melee Distance = [{}] - Difference = [{}]", (counter + 1), target->GetX(), target->GetY(), target->GetZ(), tempX, tempY, tempZ, tar_distance, max_distance, (tar_distance / max_distance));
 				counter++;
+				continue;
 			}
+			if (frontOnly && !InFrontMob(target, tempX, tempY)) {
+				//TestDebug("Plot Failed frontOnly - Try #[{}]. Target LOCs XYZ - [{}], [{}], [{}] - Temp LOCs [{}], [{}], [{}] - Distance between = [{}] - Melee Distance = [{}] - Difference = [{}]", (counter + 1), target->GetX(), target->GetY(), target->GetZ(), tempX, tempY, tempZ, tar_distance, max_distance, (tar_distance / max_distance));
+				counter++;
+				continue;
+			}
+			if (behindOnly && !BehindMob(target, tempX, tempY)) {
+				//TestDebug("Plot Failed BehindMob - Try #[{}]. Target LOCs XYZ - [{}], [{}], [{}] - Temp LOCs [{}], [{}], [{}] - Distance between = [{}] - Melee Distance = [{}] - Difference = [{}]", (counter + 1), target->GetX(), target->GetY(), target->GetZ(), tempX, tempY, tempZ, tar_distance, max_distance, (tar_distance / max_distance));
+				counter++;
+				continue;
+			}
+			if (CastToBot()->RequiresLoSForPositioning() && !CheckPositioningLosFN(target, tempX, tempY, tempZ)) {
+				//TestDebug("Plot Failed LoS - Try #[{}]. Target LOCs XYZ - [{}], [{}], [{}] - Temp LOCs [{}], [{}], [{}] - Distance between = [{}] - Melee Distance = [{}] - Difference = [{}]", (counter + 1), target->GetX(), target->GetY(), target->GetZ(), tempX, tempY, tempZ, tar_distance, max_distance, (tar_distance / max_distance));
+				counter++;
+				continue;
+			}
+			//TestDebug("Plot PASSED! - Try #[{}]. Target LOCs XYZ - [{}], [{}], [{}] - Temp LOCs [{}], [{}], [{}] - Distance between = [{}] - Melee Distance = [{}] - Difference = [{}]", (counter + 1), target->GetX(), target->GetY(), target->GetZ(), tempX, tempY, tempZ, tar_distance, max_distance, (tar_distance / max_distance));
+			Result = true;
+			break;
 		}
 
 		if (Result) {

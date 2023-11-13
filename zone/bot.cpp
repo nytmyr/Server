@@ -3438,8 +3438,7 @@ void Bot::AI_Process()
 
 		bool behind_mob = false;
 		bool backstab_weapon = false;
-		if (/*GetClass() == ROGUE || */GetBehindMob()) {
-
+		if (GetBehindMob()) {
 			behind_mob = BehindMob(tar, GetX(), GetY()); // Can be separated for other future use
 			if (GetClass() == ROGUE) {
 				backstab_weapon = p_item && p_item->GetItemBackstabDamage();
@@ -11559,7 +11558,7 @@ void Bot::DoCombatPositioning(Mob* tar, glm::vec3 Goal, bool stop_melee_level, f
 			}
 			if (tar->IsRooted() && !taunting) { // Move non-taunters out of range - Above already checks if bot is targeted, otherwise they would stay
 				if (tar_distance <= melee_distance_max) {
-					if (PlotBotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z, (melee_distance_max + 1), (melee_distance_max * 2), false, false, true)) {
+					if (PlotBotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z, (melee_distance_max + 1), (melee_distance_max * 2), false, false)) {
 						RunToGoalWithJitter(Goal);
 					}
 				}
@@ -11567,8 +11566,8 @@ void Bot::DoCombatPositioning(Mob* tar, glm::vec3 Goal, bool stop_melee_level, f
 					DoFaceCheckWithJitter(tar);
 				}
 			}
-			if (tar_distance < melee_distance_min) {
-				if (PlotBotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z, melee_distance_min, melee_distance, false, true, true)) {
+			else if (tar_distance < melee_distance_min)  { // Back up any bots too close
+				if (PlotBotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z, melee_distance_min, melee_distance, false, taunting)) {
 					RunToGoalWithJitter(Goal);
 				}
 				else {
@@ -11580,37 +11579,31 @@ void Bot::DoCombatPositioning(Mob* tar, glm::vec3 Goal, bool stop_melee_level, f
 	}
 	else {
 		if (!tar->IsFeared()) {
-			if (!IsBotArcher() && GetBehindMob() && !taunting && (tar_distance < melee_distance_min || !behind_mob)) { // Adjust behind mob
-				if (PlotBotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z, melee_distance_min, melee_distance, true, false, true)) {
-					RunToGoalWithJitter(Goal);
-				}
-				else {
-					DoFaceCheckWithJitter(tar);
-				}
-			}
-			else if (tar_distance < melee_distance_min && !taunting) { // Regular adjustment
-				if (PlotBotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z, melee_distance_min, melee_distance, false, false, true)) {
-					RunToGoalWithJitter(Goal);
-				}
-				else {
-					DoFaceCheckWithJitter(tar);
-				}
-			}
-			else if (taunting) { // Taunting adjustments
+			if (taunting) { // Taunting adjustments
 				Mob* mobTar = tar->GetTarget();
-				if (mobTar) {
+				if (!mobTar || mobTar == nullptr) {
+					DoFaceCheckNoJitter(tar);
+					return;
 				}
-				if (RuleB(Bots, TauntingBotsFollowTopHate)) {
-					if (mobTar != nullptr && (DistanceSquared(m_Position, mobTar->GetPosition()) > pow(RuleR(Bots, DistanceTauntingBotsStickMainHate), 2))) {
+				if (RuleB(Bots, TauntingBotsFollowTopHate)) { // If enabled, taunting bots will stick to top hate
+					if ((DistanceSquared(m_Position, mobTar->GetPosition()) > pow(RuleR(Bots, DistanceTauntingBotsStickMainHate), 2))) {
 						Goal = mobTar->GetPosition();
 						RunToGoalWithJitter(Goal);
 					}
+				}
+				else { // Otherwise, stick to any other bots that are taunting
+					if (mobTar->IsBot() && mobTar->CastToBot()->taunting && (DistanceSquared(m_Position, mobTar->GetPosition()) > pow(RuleR(Bots, DistanceTauntingBotsStickMainHate), 2))) {
+						Goal = mobTar->GetPosition();
+						RunToGoalWithJitter(Goal);
+					}
+				}
+			}
+			else if (tar_distance < melee_distance_min || (GetBehindMob() && !behind_mob) || !HasRequiredLoSForPositioning(tar)) { // Regular adjustment
+				if (PlotBotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z, melee_distance_min, melee_distance, GetBehindMob(), taunting)) {
+					RunToGoalWithJitter(Goal);
 				}
 				else {
-					if (mobTar != nullptr && mobTar->IsBot() && mobTar->CastToBot()->taunting && (DistanceSquared(m_Position, mobTar->GetPosition()) > pow(RuleR(Bots, DistanceTauntingBotsStickMainHate), 2))) {
-						Goal = mobTar->GetPosition();
-						RunToGoalWithJitter(Goal);
-					}
+					DoFaceCheckWithJitter(tar);
 				}
 			}
 			DoFaceCheckNoJitter(tar);
@@ -11655,6 +11648,39 @@ bool Bot::IsBotInGroupOrRaidGroup(bool bypassAlert) {
 		if (!bypassAlert) {
 			GetOwner()->CastToClient()->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no usable bots are outside of your group or raid.");
 		}
+		return false;
+	}
+	return true;
+}
+
+bool Bot::RequiresLoSForPositioning() {
+	if (GetLevel() < GetStopMeleeLevel()) {
+		return true;
+	}
+	else if (GetClass() == CLERIC && !GetHoldHeals()) {
+		return false;
+	}
+	else if (GetClass() == BARD && GetLevel() >= GetStopMeleeLevel()) {
+		return false;
+	}
+	return true;
+}
+
+bool Bot::HasRequiredLoSForPositioning(Mob* tar) {
+	if (!tar) {
+		return true;
+	}
+
+	if (GetClass() == CLERIC && !GetHoldHeals()) {
+		return true;
+	}
+	else if (GetClass() == BARD && GetLevel() >= GetStopMeleeLevel()) {
+		return true;
+	}
+	if (!CheckLosFN(tar)) {
+		return false;
+	}
+	if (!CheckWaterLoS(this, tar)) {
 		return false;
 	}
 	return true;

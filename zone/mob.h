@@ -776,6 +776,7 @@ public:
 	std::list<struct_HateList*>& GetHateList() { return hate_list.GetHateList(); }
 	bool CheckLosFN(Mob* other);
 	bool CheckLosFN(float posX, float posY, float posZ, float mobSize);
+	bool CheckPositioningLosFN(Mob* other, float posX, float posY, float posZ);
 	bool CheckLosCheat(Mob* who, Mob* other);
 	bool CheckLosCheatExempt(Mob* who, Mob* other);
 	bool DoLosChecks(Mob* who, Mob* other);
@@ -841,7 +842,7 @@ public:
 	void ShowBuffs(Client* client);
 	void ShowBuffList(Client* client);
 	bool PlotPositionAroundTarget(Mob* target, float &x_dest, float &y_dest, float &z_dest, bool lookForAftArc = true);
-	bool PlotBotPositionAroundTarget(Mob* target, float& x_dest, float& y_dest, float& z_dest, float min_distance, float max_distance, bool behindOnly = false, bool frontOnly = false, bool lookForAftArc = true);
+	bool PlotBotPositionAroundTarget(Mob* target, float& x_dest, float& y_dest, float& z_dest, float min_distance, float max_distance, bool behindOnly = false, bool frontOnly = false);
 	bool PlotPositionOnArcInFrontOfTarget(Mob *target, float &x_dest, float &y_dest, float &z_dest, float distance, float min_deg = 5.0f, float max_deg = 150.0f);
 	bool PlotPositionOnArcBehindTarget(Mob *target, float &x_dest, float &y_dest, float &z_dest, float distance);
 	bool PlotPositionBehindMeFacingTarget(Mob *target, float &x_dest, float &y_dest, float &z_dest, float min_dist = 1.0f, float max_dist = 5.0f);

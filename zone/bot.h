@@ -359,6 +359,8 @@ public:
 	void DoFaceCheckNoJitter(Mob* tar);
 	void RunToGoalWithJitter(glm::vec3 Goal);
 	bool IsBotInGroupOrRaidGroup(bool bypassAlert = false);
+	bool RequiresLoSForPositioning();
+	bool HasRequiredLoSForPositioning(Mob* tar);
 
 	// Custom commands for spells
 	bool CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 spellid = 0, std::string healType = "None");
