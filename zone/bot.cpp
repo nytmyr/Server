@@ -2502,135 +2502,135 @@ void Bot::SetHoldMode() {
 }
 
 // Custom commands for spells
-void Bot::SetHoldBuffs(uint8 holdstatus) {
+void Bot::SetHoldBuffs(bool holdstatus) {
 	_holdBuffs = holdstatus;
 }
 
-void Bot::SetHoldCharms(uint8 holdstatus) {
+void Bot::SetHoldCharms(bool holdstatus) {
 	_holdCharms = holdstatus;
 }
 
-void Bot::SetHoldCompleteHeals(uint8 holdstatus) {
+void Bot::SetHoldCompleteHeals(bool holdstatus) {
 	_holdCompleteHeals = holdstatus;
 }
 
-void Bot::SetHoldCures(uint8 holdstatus) {
+void Bot::SetHoldCures(bool holdstatus) {
 	_holdCures = holdstatus;
 }
 
-void Bot::SetHoldDebuffs(uint8 holdstatus) {
+void Bot::SetHoldDebuffs(bool holdstatus) {
 	_holdDebuffs = holdstatus;
 }
 
-void Bot::SetHoldDispels(uint8 holdstatus) {
+void Bot::SetHoldDispels(bool holdstatus) {
 	_holdDispels = holdstatus;
 }
 
-void Bot::SetHoldDS(uint8 holdstatus) {
+void Bot::SetHoldDS(bool holdstatus) {
 	_holdDS = holdstatus;
 }
 
-void Bot::SetHoldDoTs(uint8 holdstatus) {
+void Bot::SetHoldDoTs(bool holdstatus) {
 	_holdDoTs = holdstatus;
 }
 
-void Bot::SetHoldEscapes(uint8 holdstatus) {
+void Bot::SetHoldEscapes(bool holdstatus) {
 	_holdEscapes = holdstatus;
 }
 
-void Bot::SetHoldFastHeals(uint8 holdstatus) {
+void Bot::SetHoldFastHeals(bool holdstatus) {
 	_holdFastHeals = holdstatus;
 }
 
-void Bot::SetHoldGroupHeals(uint8 holdstatus) {
+void Bot::SetHoldGroupHeals(bool holdstatus) {
 	_holdGroupHeals = holdstatus;
 }
 
-void Bot::SetHoldHateRedux(uint8 holdstatus) {
+void Bot::SetHoldHateRedux(bool holdstatus) {
 	_holdHateRedux = holdstatus;
 }
 
-void Bot::SetHoldHeals(uint8 holdstatus) {
+void Bot::SetHoldHeals(bool holdstatus) {
 	_holdHeals = holdstatus;
 }
 
-void Bot::SetHoldHotHeals(uint8 holdstatus) {
+void Bot::SetHoldHotHeals(bool holdstatus) {
 	_holdHotHeals = holdstatus;
 }
 
-void Bot::SetHoldInCombatBuffs(uint8 holdstatus) {
+void Bot::SetHoldInCombatBuffs(bool holdstatus) {
 	_holdInCombatBuffs = holdstatus;
 }
 
-void Bot::SetHoldInCombatBuffSongs(uint8 holdstatus) {
+void Bot::SetHoldInCombatBuffSongs(bool holdstatus) {
 	_holdInCombatBuffSongs = holdstatus;
 }
 
-void Bot::SetHoldLifetaps(uint8 holdstatus) {
+void Bot::SetHoldLifetaps(bool holdstatus) {
 	_holdLifetaps = holdstatus;
 }
 
-void Bot::SetHoldLulls(uint8 holdstatus) {
+void Bot::SetHoldLulls(bool holdstatus) {
 	_holdLulls = holdstatus;
 }
 
-void Bot::SetHoldMez(uint8 holdstatus) {
+void Bot::SetHoldMez(bool holdstatus) {
 	_holdMez = holdstatus;
 }
 
-void Bot::SetHoldNukes(uint8 holdstatus) {
+void Bot::SetHoldNukes(bool holdstatus) {
 	_holdNukes = holdstatus;
 }
 
-void Bot::SetHoldOutOfCombatBuffSongs(uint8 holdstatus) {
+void Bot::SetHoldOutOfCombatBuffSongs(bool holdstatus) {
 	_holdOutOfCombatBuffSongs = holdstatus;
 }
 
-void Bot::SetHoldPetBuffs(uint8 holdstatus) {
+void Bot::SetHoldPetBuffs(bool holdstatus) {
 	_holdpetBuffs = holdstatus;
 }
 
-void Bot::SetHoldPetHeals(uint8 holdstatus) {
+void Bot::SetHoldPetHeals(bool holdstatus) {
 	_holdpetHeals = holdstatus;
 }
 
-void Bot::SetHoldPets(uint8 holdstatus) {
+void Bot::SetHoldPets(bool holdstatus) {
 	_holdPets = holdstatus;
 }
 
-void Bot::SetHoldPreCombatBuffs(uint8 holdstatus) {
+void Bot::SetHoldPreCombatBuffs(bool holdstatus) {
 	_holdPreCombatBuffs = holdstatus;
 }
 
-void Bot::SetHoldPreCombatBuffSongs(uint8 holdstatus) {
+void Bot::SetHoldPreCombatBuffSongs(bool holdstatus) {
 	_holdPreCombatBuffSongs = holdstatus;
 }
 
-void Bot::SetHoldRegularHeals(uint8 holdstatus) {
+void Bot::SetHoldRegularHeals(bool holdstatus) {
 	_holdRegularHeals = holdstatus;
 }
 
-void Bot::SetHoldResists(uint8 holdstatus) {
+void Bot::SetHoldResists(bool holdstatus) {
 	_holdResists = holdstatus;
 }
 
-void Bot::SetHoldRez(uint8 holdstatus) {
+void Bot::SetHoldRez(bool holdstatus) {
 	_holdRez = holdstatus;
 }
 
-void Bot::SetHoldRoots(uint8 holdstatus) {
+void Bot::SetHoldRoots(bool holdstatus) {
 	_holdRoots = holdstatus;
 }
 
-void Bot::SetHoldSlows(uint8 holdstatus) {
+void Bot::SetHoldSlows(bool holdstatus) {
 	_holdSlows = holdstatus;
 }
 
-void Bot::SetHoldSnares(uint8 holdstatus) {
+void Bot::SetHoldSnares(bool holdstatus) {
 	_holdSnares = holdstatus;
 }
 
-void Bot::SetBehindMob(uint8 behindmobstatus) {
+void Bot::SetBehindMob(bool behindmobstatus) {
 	_behindMobStatus = behindmobstatus;
 }
 

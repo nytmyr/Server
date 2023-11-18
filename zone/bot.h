@@ -365,39 +365,39 @@ public:
 	// Custom commands for spells
 	bool CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 spellid = 0, std::string healType = "None");
 	bool CanCommandCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 spellid = 0, std::string healType = "None");
-	uint8 GetHoldBuffs() { return _holdBuffs; }
-	uint8 GetHoldCharms() { return _holdCharms; }
-	uint8 GetHoldCompleteHeals() { return _holdCompleteHeals; }
-	uint8 GetHoldCures() { return _holdCures; }
-	uint8 GetHoldDebuffs() { return _holdDebuffs; }
-	uint8 GetHoldDispels() { return _holdDispels; }
-	uint8 GetHoldDoTs() { return _holdDoTs; }
-	uint8 GetHoldDS() { return _holdDS; }
-	uint8 GetHoldEscapes() { return _holdEscapes; }
-	uint8 GetHoldFastHeals() { return _holdFastHeals; }
-	uint8 GetHoldGroupHeals() { return _holdGroupHeals; }
-	uint8 GetHoldHateRedux() { return _holdHateRedux; }
-	uint8 GetHoldHeals() { return _holdHeals; }
-	uint8 GetHoldHotHeals() { return _holdHotHeals; }
-	uint8 GetHoldInCombatBuffs() { return _holdInCombatBuffs; }
-	uint8 GetHoldInCombatBuffSongs() { return _holdInCombatBuffSongs; }
-	uint8 GetHoldLifetaps() { return _holdLifetaps; }
-	uint8 GetHoldLulls() { return _holdLulls; }
-	uint8 GetHoldMez() { return _holdMez; }
-	uint8 GetHoldNukes() { return _holdNukes; }
-	uint8 GetHoldOutOfCombatBuffSongs() { return _holdOutOfCombatBuffSongs; }
-	uint8 GetHoldPetBuffs() { return _holdpetBuffs; }
-	uint8 GetHoldPetHeals() { return _holdpetHeals; }
-	uint8 GetHoldPets() { return _holdPets; }
-	uint8 GetHoldPreCombatBuffs() { return _holdPreCombatBuffs; }
-	uint8 GetHoldPreCombatBuffSongs() { return _holdPreCombatBuffSongs; }
-	uint8 GetHoldRegularHeals() { return _holdRegularHeals; }
-	uint8 GetHoldResists() { return _holdResists; }
-	uint8 GetHoldRez() { return _holdRez; }
-	uint8 GetHoldRoots() { return _holdRoots; }
-	uint8 GetHoldSlows() { return _holdSlows; }
-	uint8 GetHoldSnares() { return _holdSnares; }
-	uint8 GetBehindMob() { return _behindMobStatus; }
+	bool GetHoldBuffs() { return _holdBuffs; }
+	bool GetHoldCharms() { return _holdCharms; }
+	bool GetHoldCompleteHeals() { return _holdCompleteHeals; }
+	bool GetHoldCures() { return _holdCures; }
+	bool GetHoldDebuffs() { return _holdDebuffs; }
+	bool GetHoldDispels() { return _holdDispels; }
+	bool GetHoldDoTs() { return _holdDoTs; }
+	bool GetHoldDS() { return _holdDS; }
+	bool GetHoldEscapes() { return _holdEscapes; }
+	bool GetHoldFastHeals() { return _holdFastHeals; }
+	bool GetHoldGroupHeals() { return _holdGroupHeals; }
+	bool GetHoldHateRedux() { return _holdHateRedux; }
+	bool GetHoldHeals() { return _holdHeals; }
+	bool GetHoldHotHeals() { return _holdHotHeals; }
+	bool GetHoldInCombatBuffs() { return _holdInCombatBuffs; }
+	bool GetHoldInCombatBuffSongs() { return _holdInCombatBuffSongs; }
+	bool GetHoldLifetaps() { return _holdLifetaps; }
+	bool GetHoldLulls() { return _holdLulls; }
+	bool GetHoldMez() { return _holdMez; }
+	bool GetHoldNukes() { return _holdNukes; }
+	bool GetHoldOutOfCombatBuffSongs() { return _holdOutOfCombatBuffSongs; }
+	bool GetHoldPetBuffs() { return _holdpetBuffs; }
+	bool GetHoldPetHeals() { return _holdpetHeals; }
+	bool GetHoldPets() { return _holdPets; }
+	bool GetHoldPreCombatBuffs() { return _holdPreCombatBuffs; }
+	bool GetHoldPreCombatBuffSongs() { return _holdPreCombatBuffSongs; }
+	bool GetHoldRegularHeals() { return _holdRegularHeals; }
+	bool GetHoldResists() { return _holdResists; }
+	bool GetHoldRez() { return _holdRez; }
+	bool GetHoldRoots() { return _holdRoots; }
+	bool GetHoldSlows() { return _holdSlows; }
+	bool GetHoldSnares() { return _holdSnares; }
+	bool GetBehindMob() { return _behindMobStatus; }
 	uint32 GetBuffDelay() { return _buffDelay; }
 	uint32 GetCompleteHealDelay() { return _chealDelay; }
 	uint32 GetCureDelay() { return _cureDelay; }
@@ -448,39 +448,39 @@ public:
 	uint8 GetSlowMinThreshold() { return _slowminThreshold; }
 	uint8 GetSnareThreshold() { return _snareThreshold; }
 	uint8 GetSnareMinThreshold() { return _snareminThreshold; }
-	void SetHoldBuffs(uint8 holdstatus);
-	void SetHoldCharms(uint8 holdstatus);
-	void SetHoldCompleteHeals(uint8 holdstatus);
-	void SetHoldCures(uint8 holdstatus);
-	void SetHoldDebuffs(uint8 holdstatus);
-	void SetHoldDispels(uint8 holdstatus);
-	void SetHoldDoTs(uint8 holdstatus);
-	void SetHoldDS(uint8 holdstatus);
-	void SetHoldEscapes(uint8 holdstatus);
-	void SetHoldFastHeals(uint8 holdstatus);
-	void SetHoldGroupHeals(uint8 holdstatus);
-	void SetHoldHateRedux(uint8 holdstatus);
-	void SetHoldHeals(uint8 holdstatus);
-	void SetHoldHotHeals(uint8 holdstatus);
-	void SetHoldInCombatBuffs(uint8 holdstatus);
-	void SetHoldInCombatBuffSongs(uint8 holdstatus);
-	void SetHoldLifetaps(uint8 holdstatus);
-	void SetHoldLulls(uint8 holdstatus);
-	void SetHoldMez(uint8 holdstatus);
-	void SetHoldNukes(uint8 holdstatus);
-	void SetHoldOutOfCombatBuffSongs(uint8 holdstatus);
-	void SetHoldPetBuffs(uint8 holdstatus);
-	void SetHoldPetHeals(uint8 holdstatus);
-	void SetHoldPets(uint8 holdstatus);
-	void SetHoldPreCombatBuffs(uint8 holdstatus);
-	void SetHoldPreCombatBuffSongs(uint8 holdstatus);
-	void SetHoldRegularHeals(uint8 holdstatus);
-	void SetHoldResists(uint8 holdstatus);
-	void SetHoldRez(uint8 holdstatus);
-	void SetHoldRoots(uint8 holdstatus);
-	void SetHoldSlows(uint8 holdstatus);
-	void SetHoldSnares(uint8 holdstatus);
-	void SetBehindMob(uint8 behindmobstatus);
+	void SetHoldBuffs(bool holdstatus);
+	void SetHoldCharms(bool holdstatus);
+	void SetHoldCompleteHeals(bool holdstatus);
+	void SetHoldCures(bool holdstatus);
+	void SetHoldDebuffs(bool holdstatus);
+	void SetHoldDispels(bool holdstatus);
+	void SetHoldDoTs(bool holdstatus);
+	void SetHoldDS(bool holdstatus);
+	void SetHoldEscapes(bool holdstatus);
+	void SetHoldFastHeals(bool holdstatus);
+	void SetHoldGroupHeals(bool holdstatus);
+	void SetHoldHateRedux(bool holdstatus);
+	void SetHoldHeals(bool holdstatus);
+	void SetHoldHotHeals(bool holdstatus);
+	void SetHoldInCombatBuffs(bool holdstatus);
+	void SetHoldInCombatBuffSongs(bool holdstatus);
+	void SetHoldLifetaps(bool holdstatus);
+	void SetHoldLulls(bool holdstatus);
+	void SetHoldMez(bool holdstatus);
+	void SetHoldNukes(bool holdstatus);
+	void SetHoldOutOfCombatBuffSongs(bool holdstatus);
+	void SetHoldPetBuffs(bool holdstatus);
+	void SetHoldPetHeals(bool holdstatus);
+	void SetHoldPets(bool holdstatus);
+	void SetHoldPreCombatBuffs(bool holdstatus);
+	void SetHoldPreCombatBuffSongs(bool holdstatus);
+	void SetHoldRegularHeals(bool holdstatus);
+	void SetHoldResists(bool holdstatus);
+	void SetHoldRez(bool holdstatus);
+	void SetHoldRoots(bool holdstatus);
+	void SetHoldSlows(bool holdstatus);
+	void SetHoldSnares(bool holdstatus);
+	void SetBehindMob(bool behindmobstatus);
 	void SetBuffDelay(uint32 buffdelay);
 	void SetCompleteHealDelay(uint32 chealdelay);
 	void SetCureDelay(uint32 curedelay);
@@ -1057,39 +1057,39 @@ private:
 	bool _showhelm;
 	bool _pauseAI;
 	uint8 _stopMeleeLevel;
-	uint8 _holdBuffs;
-	uint8 _holdCharms;
-	uint8 _holdCompleteHeals;
-	uint8 _holdCures;
-	uint8 _holdDebuffs;
-	uint8 _holdDispels;
-	uint8 _holdDoTs;
-	uint8 _holdDS;
-	uint8 _holdEscapes;
-	uint8 _holdFastHeals;
-	uint8 _holdGroupHeals;
-	uint8 _holdHateRedux;
-	uint8 _holdHeals;
-	uint8 _holdHotHeals;
-	uint8 _holdInCombatBuffs;
-	uint8 _holdInCombatBuffSongs;
-	uint8 _holdLifetaps;
-	uint8 _holdLulls;
-	uint8 _holdMez;
-	uint8 _holdNukes;
-	uint8 _holdOutOfCombatBuffSongs;
-	uint8 _holdpetBuffs;
-	uint8 _holdpetHeals;
-	uint8 _holdPets;
-	uint8 _holdPreCombatBuffs;
-	uint8 _holdPreCombatBuffSongs;
-	uint8 _holdRegularHeals;
-	uint8 _holdResists;
-	uint8 _holdRez;
-	uint8 _holdRoots;
-	uint8 _holdSlows;
-	uint8 _holdSnares;
-	uint8 _behindMobStatus;
+	bool _holdBuffs;
+	bool _holdCharms;
+	bool _holdCompleteHeals;
+	bool _holdCures;
+	bool _holdDebuffs;
+	bool _holdDispels;
+	bool _holdDoTs;
+	bool _holdDS;
+	bool _holdEscapes;
+	bool _holdFastHeals;
+	bool _holdGroupHeals;
+	bool _holdHateRedux;
+	bool _holdHeals;
+	bool _holdHotHeals;
+	bool _holdInCombatBuffs;
+	bool _holdInCombatBuffSongs;
+	bool _holdLifetaps;
+	bool _holdLulls;
+	bool _holdMez;
+	bool _holdNukes;
+	bool _holdOutOfCombatBuffSongs;
+	bool _holdpetBuffs;
+	bool _holdpetHeals;
+	bool _holdPets;
+	bool _holdPreCombatBuffs;
+	bool _holdPreCombatBuffSongs;
+	bool _holdRegularHeals;
+	bool _holdResists;
+	bool _holdRez;
+	bool _holdRoots;
+	bool _holdSlows;
+	bool _holdSnares;
+	bool _behindMobStatus;
 	uint32 _buffDelay;
 	uint32 _cureDelay;
 	uint32 _chealDelay;

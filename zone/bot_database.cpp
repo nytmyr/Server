@@ -2551,7 +2551,7 @@ bool BotDatabase::SaveStopMeleeLevel(const uint32 owner_id, const uint32 bot_id,
 }
 
 //Custom spell commands
-bool BotDatabase::SaveHoldBuffs(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldBuffs(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -2561,7 +2561,7 @@ bool BotDatabase::SaveHoldBuffs(const uint32 owner_id, const uint32 bot_id, cons
 		" SET `hold_buffs` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -2572,7 +2572,7 @@ bool BotDatabase::SaveHoldBuffs(const uint32 owner_id, const uint32 bot_id, cons
 	return true;
 }
 
-bool BotDatabase::SaveHoldCharms(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldCharms(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -2582,7 +2582,7 @@ bool BotDatabase::SaveHoldCharms(const uint32 owner_id, const uint32 bot_id, con
 		" SET `hold_charms` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -2593,7 +2593,7 @@ bool BotDatabase::SaveHoldCharms(const uint32 owner_id, const uint32 bot_id, con
 	return true;
 }
 
-bool BotDatabase::SaveHoldCompleteHeals(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldCompleteHeals(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -2603,7 +2603,7 @@ bool BotDatabase::SaveHoldCompleteHeals(const uint32 owner_id, const uint32 bot_
 		" SET `hold_complete_heals` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -2614,7 +2614,7 @@ bool BotDatabase::SaveHoldCompleteHeals(const uint32 owner_id, const uint32 bot_
 	return true;
 }
 
-bool BotDatabase::SaveHoldCures(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldCures(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -2624,7 +2624,7 @@ bool BotDatabase::SaveHoldCures(const uint32 owner_id, const uint32 bot_id, cons
 		" SET `hold_cures` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -2635,7 +2635,7 @@ bool BotDatabase::SaveHoldCures(const uint32 owner_id, const uint32 bot_id, cons
 	return true;
 }
 
-bool BotDatabase::SaveHoldDebuffs(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldDebuffs(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -2645,7 +2645,7 @@ bool BotDatabase::SaveHoldDebuffs(const uint32 owner_id, const uint32 bot_id, co
 		" SET `hold_debuffs` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -2656,7 +2656,7 @@ bool BotDatabase::SaveHoldDebuffs(const uint32 owner_id, const uint32 bot_id, co
 	return true;
 }
 
-bool BotDatabase::SaveHoldDispels(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldDispels(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -2666,7 +2666,7 @@ bool BotDatabase::SaveHoldDispels(const uint32 owner_id, const uint32 bot_id, co
 		" SET `hold_dispels` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -2677,7 +2677,7 @@ bool BotDatabase::SaveHoldDispels(const uint32 owner_id, const uint32 bot_id, co
 	return true;
 }
 
-bool BotDatabase::SaveHoldDoTs(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldDoTs(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -2687,7 +2687,7 @@ bool BotDatabase::SaveHoldDoTs(const uint32 owner_id, const uint32 bot_id, const
 		" SET `hold_dots` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -2698,7 +2698,7 @@ bool BotDatabase::SaveHoldDoTs(const uint32 owner_id, const uint32 bot_id, const
 	return true;
 }
 
-bool BotDatabase::SaveHoldDS(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldDS(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -2708,7 +2708,7 @@ bool BotDatabase::SaveHoldDS(const uint32 owner_id, const uint32 bot_id, const u
 		" SET `hold_ds` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -2719,7 +2719,7 @@ bool BotDatabase::SaveHoldDS(const uint32 owner_id, const uint32 bot_id, const u
 	return true;
 }
 
-bool BotDatabase::SaveHoldEscapes(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldEscapes(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -2729,7 +2729,7 @@ bool BotDatabase::SaveHoldEscapes(const uint32 owner_id, const uint32 bot_id, co
 		" SET `hold_escapes` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -2740,7 +2740,7 @@ bool BotDatabase::SaveHoldEscapes(const uint32 owner_id, const uint32 bot_id, co
 	return true;
 }
 
-bool BotDatabase::SaveHoldFastHeals(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldFastHeals(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -2750,7 +2750,7 @@ bool BotDatabase::SaveHoldFastHeals(const uint32 owner_id, const uint32 bot_id, 
 		" SET `hold_fast_heals` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -2761,7 +2761,7 @@ bool BotDatabase::SaveHoldFastHeals(const uint32 owner_id, const uint32 bot_id, 
 	return true;
 }
 
-bool BotDatabase::SaveHoldGroupHeals(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldGroupHeals(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -2771,7 +2771,7 @@ bool BotDatabase::SaveHoldGroupHeals(const uint32 owner_id, const uint32 bot_id,
 		" SET `hold_group_heals` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -2782,7 +2782,7 @@ bool BotDatabase::SaveHoldGroupHeals(const uint32 owner_id, const uint32 bot_id,
 	return true;
 }
 
-bool BotDatabase::SaveHoldHateRedux(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldHateRedux(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -2792,7 +2792,7 @@ bool BotDatabase::SaveHoldHateRedux(const uint32 owner_id, const uint32 bot_id, 
 		" SET `hold_hateredux` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -2803,7 +2803,7 @@ bool BotDatabase::SaveHoldHateRedux(const uint32 owner_id, const uint32 bot_id, 
 	return true;
 }
 
-bool BotDatabase::SaveHoldHeals(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldHeals(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -2813,7 +2813,7 @@ bool BotDatabase::SaveHoldHeals(const uint32 owner_id, const uint32 bot_id, cons
 		" SET `hold_heals` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -2824,7 +2824,7 @@ bool BotDatabase::SaveHoldHeals(const uint32 owner_id, const uint32 bot_id, cons
 	return true;
 }
 
-bool BotDatabase::SaveHoldHotHeals(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldHotHeals(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -2834,7 +2834,7 @@ bool BotDatabase::SaveHoldHotHeals(const uint32 owner_id, const uint32 bot_id, c
 		" SET `hold_hot_heals` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -2845,7 +2845,7 @@ bool BotDatabase::SaveHoldHotHeals(const uint32 owner_id, const uint32 bot_id, c
 	return true;
 }
 
-bool BotDatabase::SaveHoldInCombatBuffs(const uint32 owner_id, const uint32 bot_id, const uint8 hicb_value)
+bool BotDatabase::SaveHoldInCombatBuffs(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -2855,7 +2855,7 @@ bool BotDatabase::SaveHoldInCombatBuffs(const uint32 owner_id, const uint32 bot_
 		" SET `hold_incombatbuffs` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hicb_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -2866,7 +2866,7 @@ bool BotDatabase::SaveHoldInCombatBuffs(const uint32 owner_id, const uint32 bot_
 	return true;
 }
 
-bool BotDatabase::SaveHoldInCombatBuffSongs(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldInCombatBuffSongs(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -2876,7 +2876,7 @@ bool BotDatabase::SaveHoldInCombatBuffSongs(const uint32 owner_id, const uint32 
 		" SET `hold_incombatbuffsongs` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -2887,7 +2887,7 @@ bool BotDatabase::SaveHoldInCombatBuffSongs(const uint32 owner_id, const uint32 
 	return true;
 }
 
-bool BotDatabase::SaveHoldLifetaps(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldLifetaps(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -2897,7 +2897,7 @@ bool BotDatabase::SaveHoldLifetaps(const uint32 owner_id, const uint32 bot_id, c
 		" SET `hold_lifetaps` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -2908,7 +2908,7 @@ bool BotDatabase::SaveHoldLifetaps(const uint32 owner_id, const uint32 bot_id, c
 	return true;
 }
 
-bool BotDatabase::SaveHoldLulls(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldLulls(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -2918,7 +2918,7 @@ bool BotDatabase::SaveHoldLulls(const uint32 owner_id, const uint32 bot_id, cons
 		" SET `hold_lulls` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -2929,7 +2929,7 @@ bool BotDatabase::SaveHoldLulls(const uint32 owner_id, const uint32 bot_id, cons
 	return true;
 }
 
-bool BotDatabase::SaveHoldMez(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldMez(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -2939,7 +2939,7 @@ bool BotDatabase::SaveHoldMez(const uint32 owner_id, const uint32 bot_id, const 
 		" SET `hold_mez` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -2950,7 +2950,7 @@ bool BotDatabase::SaveHoldMez(const uint32 owner_id, const uint32 bot_id, const 
 	return true;
 }
 
-bool BotDatabase::SaveHoldNukes(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldNukes(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -2960,7 +2960,7 @@ bool BotDatabase::SaveHoldNukes(const uint32 owner_id, const uint32 bot_id, cons
 		" SET `hold_nukes` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -2972,7 +2972,7 @@ bool BotDatabase::SaveHoldNukes(const uint32 owner_id, const uint32 bot_id, cons
 }
 
 
-bool BotDatabase::SaveHoldOutOfCombatBuffSongs(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldOutOfCombatBuffSongs(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -2982,7 +2982,7 @@ bool BotDatabase::SaveHoldOutOfCombatBuffSongs(const uint32 owner_id, const uint
 		" SET `hold_outofcombatbuffsongs` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -2993,7 +2993,7 @@ bool BotDatabase::SaveHoldOutOfCombatBuffSongs(const uint32 owner_id, const uint
 	return true;
 }
 
-bool BotDatabase::SaveHoldPetBuffs(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldPetBuffs(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -3003,7 +3003,7 @@ bool BotDatabase::SaveHoldPetBuffs(const uint32 owner_id, const uint32 bot_id, c
 		" SET `hold_pet_buffs` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -3014,7 +3014,7 @@ bool BotDatabase::SaveHoldPetBuffs(const uint32 owner_id, const uint32 bot_id, c
 	return true;
 }
 
-bool BotDatabase::SaveHoldPetHeals(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldPetHeals(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -3024,7 +3024,7 @@ bool BotDatabase::SaveHoldPetHeals(const uint32 owner_id, const uint32 bot_id, c
 		" SET `hold_pet_heals` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -3035,7 +3035,7 @@ bool BotDatabase::SaveHoldPetHeals(const uint32 owner_id, const uint32 bot_id, c
 	return true;
 }
 
-bool BotDatabase::SaveHoldPets(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldPets(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -3045,7 +3045,7 @@ bool BotDatabase::SaveHoldPets(const uint32 owner_id, const uint32 bot_id, const
 		" SET `hold_pets` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -3056,7 +3056,7 @@ bool BotDatabase::SaveHoldPets(const uint32 owner_id, const uint32 bot_id, const
 	return true;
 }
 
-bool BotDatabase::SaveHoldPreCombatBuffs(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldPreCombatBuffs(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -3066,7 +3066,7 @@ bool BotDatabase::SaveHoldPreCombatBuffs(const uint32 owner_id, const uint32 bot
 		" SET `hold_precombatbuffs` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -3077,7 +3077,7 @@ bool BotDatabase::SaveHoldPreCombatBuffs(const uint32 owner_id, const uint32 bot
 	return true;
 }
 
-bool BotDatabase::SaveHoldPreCombatBuffSongs(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldPreCombatBuffSongs(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -3087,7 +3087,7 @@ bool BotDatabase::SaveHoldPreCombatBuffSongs(const uint32 owner_id, const uint32
 		" SET `hold_precombatbuffsongs` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -3098,7 +3098,7 @@ bool BotDatabase::SaveHoldPreCombatBuffSongs(const uint32 owner_id, const uint32
 	return true;
 }
 
-bool BotDatabase::SaveHoldRegularHeals(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldRegularHeals(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -3108,7 +3108,7 @@ bool BotDatabase::SaveHoldRegularHeals(const uint32 owner_id, const uint32 bot_i
 		" SET `hold_regular_heals` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -3119,7 +3119,7 @@ bool BotDatabase::SaveHoldRegularHeals(const uint32 owner_id, const uint32 bot_i
 	return true;
 }
 
-bool BotDatabase::SaveHoldResists(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldResists(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -3129,7 +3129,7 @@ bool BotDatabase::SaveHoldResists(const uint32 owner_id, const uint32 bot_id, co
 		" SET `hold_resists` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -3140,7 +3140,7 @@ bool BotDatabase::SaveHoldResists(const uint32 owner_id, const uint32 bot_id, co
 	return true;
 }
 
-bool BotDatabase::SaveHoldRez(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldRez(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -3150,7 +3150,7 @@ bool BotDatabase::SaveHoldRez(const uint32 owner_id, const uint32 bot_id, const 
 		" SET `hold_rez` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -3161,7 +3161,7 @@ bool BotDatabase::SaveHoldRez(const uint32 owner_id, const uint32 bot_id, const 
 	return true;
 }
 
-bool BotDatabase::SaveHoldRoots(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldRoots(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -3171,7 +3171,7 @@ bool BotDatabase::SaveHoldRoots(const uint32 owner_id, const uint32 bot_id, cons
 		" SET `hold_roots` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -3182,7 +3182,7 @@ bool BotDatabase::SaveHoldRoots(const uint32 owner_id, const uint32 bot_id, cons
 	return true;
 }
 
-bool BotDatabase::SaveHoldSlows(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldSlows(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -3192,7 +3192,7 @@ bool BotDatabase::SaveHoldSlows(const uint32 owner_id, const uint32 bot_id, cons
 		" SET `hold_slows` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -3203,7 +3203,7 @@ bool BotDatabase::SaveHoldSlows(const uint32 owner_id, const uint32 bot_id, cons
 	return true;
 }
 
-bool BotDatabase::SaveHoldSnares(const uint32 owner_id, const uint32 bot_id, const uint8 hold_value)
+bool BotDatabase::SaveHoldSnares(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -3213,7 +3213,7 @@ bool BotDatabase::SaveHoldSnares(const uint32 owner_id, const uint32 bot_id, con
 		" SET `hold_snares` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		hold_value,
+		(hold_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -3224,7 +3224,7 @@ bool BotDatabase::SaveHoldSnares(const uint32 owner_id, const uint32 bot_id, con
 	return true;
 }
 
-bool BotDatabase::SaveBehindMob(const uint32 owner_id, const uint32 bot_id, const uint8 behindmob_value)
+bool BotDatabase::SaveBehindMob(const uint32 owner_id, const uint32 bot_id, const bool behindmob_value)
 {
 	if (!owner_id || !bot_id)
 		return false;
@@ -3234,7 +3234,7 @@ bool BotDatabase::SaveBehindMob(const uint32 owner_id, const uint32 bot_id, cons
 		" SET `behind_mob` = '%u'"
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
-		behindmob_value,
+		(behindmob_value ? 1 : 0),
 		owner_id,
 		bot_id
 	);
