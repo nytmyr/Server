@@ -16199,10 +16199,7 @@ void bot_command_summon_corpse(Client *c, const Seperator *sep)
 		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
 			continue;
 		}
-		if (!my_bot) {
-			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
-			return;
-		}
+		
 		if (local_entry->spell_id != 0 && my_bot->GetMana() < spells[local_entry->spell_id].mana) {
 			continue;
 		}
@@ -16414,8 +16411,7 @@ void bot_command_track(Client *c, const Seperator *sep)
 		return;
 	}
 
-	if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
-		c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
+	if (!my_bot->IsBotInGroupOrRaidGroup()) {
 		return;
 	}
 
