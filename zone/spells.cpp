@@ -3289,12 +3289,16 @@ bool Mob::CheckSpellLevelRestriction(Mob *caster, uint16 spell_id)
 
 	bool check_for_restrictions = false;
 	bool can_cast = true;
+	bool owner_check = false;
 
 	// NON GM clients might be restricted by rule setting
-	if (caster->IsClient()) {
-		if (IsClient()) { // Only restrict client on client for this rule
+	if (caster->IsClient() || caster->IsBot()) {
+		if (IsClient() || IsBot() || (!IsBot() && HasOwner() && GetUltimateOwner()->IsClient())) { // Only restrict client on client for this rule
 			if (RuleB(Spells, BuffLevelRestrictions)) {
 				check_for_restrictions = true;
+				if (!IsBot() && HasOwner() && GetUltimateOwner()->IsClient()) {
+					owner_check = true;
+				}
 			}
 		}
 	}
@@ -3310,14 +3314,36 @@ bool Mob::CheckSpellLevelRestriction(Mob *caster, uint16 spell_id)
 		if (IsBuffSpell(spell_id) && IsBeneficialSpell(spell_id)) {
 			if (spell_level > 65) {
 				if (IsGroupSpell(spell_id) && GetLevel() < 62) {
-					can_cast = false;
+					if (!owner_check) {
+						can_cast = false;
+					}
+					else {
+						if (GetUltimateOwner()->GetLevel() < 62) {
+							can_cast = false;
+						}
+					}
 				}
 				else if (GetLevel() < 61) {
-					can_cast = false;
+					if (!owner_check) {
+						can_cast = false;
+					}
+					else {
+						if (GetUltimateOwner()->GetLevel() < 61) {
+							can_cast = false;
+						}
+					}
 				}
-			} else if (spell_level > 50) { // 51-65
+			}
+			else if (spell_level > 50) { // 51-65
 				if (GetLevel() < (spell_level / 2 + 15)) {
-					can_cast = false;
+					if (!owner_check) {
+						can_cast = false;
+					}
+					else {
+						if (GetUltimateOwner()->GetLevel() < (spell_level / 2 + 15)) {
+							can_cast = false;
+						}
+					}
 				}
 			}
 		}
