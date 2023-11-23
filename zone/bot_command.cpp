@@ -3422,14 +3422,11 @@ void bot_command_bind_affinity(Client *c, const Seperator *sep)
 		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
 			continue;
 		}
-		if (!my_bot) {
-			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
-			return;
-		}
+
 		if (local_entry->spell_id != 0 && my_bot->GetMana() < spells[local_entry->spell_id].mana) {
-			c->Message(Chat::White, "%s does not have enough mana.", my_bot->GetCleanName());
-			return;
+			continue;
 		}
+
 		// Cast effect message is not being generated
 		if (helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id)) {
 			//c->Message(Chat::White, "Successfully bound %s to this location", target_mob->GetCleanName());
@@ -3906,7 +3903,7 @@ void bot_command_caster_range(Client* c, const Seperator* sep)
 	}
 }
 
-void bot_command_charm(Client *c, const Seperator *sep)
+void bot_command_charm(Client* c, const Seperator* sep)
 {
 	auto local_list = &bot_command_spells[BCEnum::SpT_Charm];
 	if (helper_spell_list_fail(c, local_list, BCEnum::SpT_Charm) || helper_command_alias_fail(c, "bot_command_charm", sep->arg[0], "charm"))
@@ -3934,7 +3931,7 @@ void bot_command_charm(Client *c, const Seperator *sep)
 		c->Message(Chat::Red, "You must have Line of Sight or move further away from the door to use this command.");
 		return;
 	}
-	
+
 	if (c->GetTarget()->IsCharmed()) {
 		c->Message(Chat::Yellow, "%s is already charmed by %s.", c->GetTarget()->GetCleanName(), c->GetTarget()->GetOwner()->GetCleanName());
 		return;
@@ -4186,7 +4183,7 @@ void bot_command_charm(Client *c, const Seperator *sep)
 		}
 	}
 	if (!my_bot) {
-		c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
+		c->Message(Chat::Red, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
 		return;
 	}
 	if (my_bot->HasPet()) {
@@ -4198,17 +4195,19 @@ void bot_command_charm(Client *c, const Seperator *sep)
 		return;
 	}
 	if (botSpell.SpellId == 0) {
-		c->Message(Chat::White, "Could not find a spell for (%s).", sep->arg[0]);
+		c->Message(Chat::Yellow, "Could not find a spell for (%s).", sep->arg[0]);
 		return;
 	}
 	if (botSpell.SpellId != 0 && my_bot->GetMana() < spells[botSpell.SpellId].mana) {
-		c->Message(Chat::White, "%s does not have enough mana.", my_bot->GetCleanName());
+		c->Message(Chat::Yellow, "%s does not have enough mana.", my_bot->GetCleanName());
 		return;
 	}
-	uint32 dont_root_before = 0;
-	if (helper_cast_standard_spell(my_bot, my_target, botSpell.SpellId, true, &dont_root_before)) {
-		my_target->SetDontRootMeBefore(dont_root_before);
+	if (my_bot->CheckSpellRecastTimers(my_bot, botSpell.SpellIndex)) {
+		c->Message(Chat::Yellow, "%s says, '%s currently has a recast delay'.", my_bot->GetCleanName(), spells[botSpell.SpellId].name);
 	}
+
+	helper_cast_standard_spell(my_bot, my_target, botSpell.SpellId, true);
+
 	return;
 }
 
@@ -4613,19 +4612,17 @@ void bot_command_cure(Client *c, const Seperator *sep)
 		if (!my_bot) {
 			continue;
 		}
+
 		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
 			continue;
 		}
+
 		if (!my_bot->IsCommandedSpellAllowedByBotSpellList(local_entry->spell_id, target_mob)) {
 			continue;
 		}
-		if (!my_bot) {
-			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
-			return;
-		}
+		
 		if (local_entry->spell_id != 0 && my_bot->GetMana() < spells[local_entry->spell_id].mana) {
-			c->Message(Chat::White, "%s does not have enough mana.", my_bot->GetCleanName());
-			return;
+			continue;
 		}
 
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
@@ -5223,6 +5220,14 @@ void bot_command_depart(Client *c, const Seperator *sep)
 		my_bot = ActionableBots::Select_ByMinLevelAndClass(c, local_entry->target_type, sbl, local_entry->spell_level, local_entry->caster_class, target_mob);
 		if (!my_bot)
 			continue;
+
+		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
+			continue;
+		}
+
+		if (local_entry->spell_id != 0 && my_bot->GetMana() < spells[local_entry->spell_id].mana) {
+			continue;
+		}
 
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
 		break;
@@ -6146,13 +6151,9 @@ void bot_command_escape(Client *c, const Seperator *sep)
 		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
 			continue;
 		}
-		if (!my_bot) {
-			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
-			return;
-		}
+
 		if (local_entry->spell_id != 0 && my_bot->GetMana() < spells[local_entry->spell_id].mana) {
-			c->Message(Chat::White, "%s does not have enough mana.", my_bot->GetCleanName());
-			return;
+			continue;
 		}
 
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
@@ -11700,13 +11701,9 @@ void bot_command_identify(Client *c, const Seperator *sep)
 		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
 			continue;
 		}
-		if (!my_bot) {
-			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
-			return;
-		}
+
 		if (local_entry->spell_id != 0 && my_bot->GetMana() < spells[local_entry->spell_id].mana) {
-			c->Message(Chat::White, "%s does not have enough mana.", my_bot->GetCleanName());
-			return;
+			continue;
 		}
 
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
@@ -11794,13 +11791,9 @@ void bot_command_invisibility(Client *c, const Seperator *sep)
 		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
 			continue;
 		}
-		if (!my_bot) {
-			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
-			return;
-		}
+
 		if (local_entry->spell_id != 0 && my_bot->GetMana() < spells[local_entry->spell_id].mana) {
-			c->Message(Chat::White, "%s does not have enough mana.", my_bot->GetCleanName());
-			return;
+			continue;
 		}
 
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
@@ -12109,19 +12102,17 @@ void bot_command_levitation(Client *c, const Seperator *sep)
 		if (!my_bot) {
 			continue;
 		}
+
 		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
 			continue;
 		}
+
 		if (!my_bot->IsCommandedSpellAllowedByBotSpellList(local_entry->spell_id, target_mob)) {
 			continue;
 		}
-		if (!my_bot) {
-			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
-			return;
-		}
+
 		if (local_entry->spell_id != 0 && my_bot->GetMana() < spells[local_entry->spell_id].mana) {
-			c->Message(Chat::White, "%s does not have enough mana.", my_bot->GetCleanName());
-			return;
+			continue;
 		}
 
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
@@ -12727,24 +12718,26 @@ void bot_command_lull(Client* c, const Seperator* sep)
 		}
 	}
 	if (!my_bot) {
-		c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
+		c->Message(Chat::Red, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
 		return;
 	}
 	if (!my_bot->IsBotInGroupOrRaidGroup()) {
 		return;
 	}
 	if (botSpell.SpellId == 0) {
-		c->Message(Chat::White, "Could not find a spell for (%s).", sep->arg[0]);
+		c->Message(Chat::Yellow, "Could not find a spell for (%s).", sep->arg[0]);
 		return;
 	}
 	if (botSpell.SpellId != 0 && my_bot->GetMana() < spells[botSpell.SpellId].mana) {
-		c->Message(Chat::White, "%s does not have enough mana.", my_bot->GetCleanName());
+		c->Message(Chat::Yellow, "%s does not have enough mana.", my_bot->GetCleanName());
 		return;
 	}
-	uint32 dont_root_before = 0;
-	if (helper_cast_standard_spell(my_bot, my_target, botSpell.SpellId, true, &dont_root_before)) {
-		my_target->SetDontRootMeBefore(dont_root_before);
+	if (my_bot->CheckSpellRecastTimers(my_bot, botSpell.SpellIndex)) {
+		c->Message(Chat::Yellow, "%s says, '%s currently has a recast delay'.", my_bot->GetCleanName(), spells[botSpell.SpellId].name);
 	}
+
+	helper_cast_standard_spell(my_bot, my_target, botSpell.SpellId, true);
+
 	return;
 }
 
@@ -12964,24 +12957,25 @@ void bot_command_mesmerize(Client *c, const Seperator *sep)
 		}
 	}
 	if (!my_bot) {
-		c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
+		c->Message(Chat::Red, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
 		return;
 	}
 	if (!my_bot->IsBotInGroupOrRaidGroup()) {
 		return;
 	}
 	if (botSpell.SpellId == 0) {
-		c->Message(Chat::White, "Could not find a spell for (%s).", sep->arg[0]);
+		c->Message(Chat::Yellow, "Could not find a spell for (%s).", sep->arg[0]);
 		return;
 	}
 	if (botSpell.SpellId != 0 && my_bot->GetMana() < spells[botSpell.SpellId].mana) {
-		c->Message(Chat::White, "%s does not have enough mana.", my_bot->GetCleanName());
+		c->Message(Chat::Yellow, "%s does not have enough mana.", my_bot->GetCleanName());
 		return;
 	}
-	uint32 dont_root_before = 0;
-	if (helper_cast_standard_spell(my_bot, my_target, botSpell.SpellId, true, &dont_root_before)) {
-		my_target->SetDontRootMeBefore(dont_root_before);
+	if (my_bot->CheckSpellRecastTimers(my_bot, botSpell.SpellIndex)) {
+		c->Message(Chat::Yellow, "%s says, '%s currently has a recast delay'.", my_bot->GetCleanName(), spells[botSpell.SpellId].name);
 	}
+
+	helper_cast_standard_spell(my_bot, my_target, botSpell.SpellId, true);
 
 	return;
 }
@@ -13481,9 +13475,11 @@ void bot_command_movement_speed(Client *c, const Seperator *sep)
 		if (!my_bot) {
 			continue;
 		}
+
 		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
 			continue;
 		}
+
 		if (!my_bot->IsCommandedSpellAllowedByBotSpellList(local_entry->spell_id, target_mob)) {
 			continue;
 		}
@@ -14598,16 +14594,17 @@ void bot_command_resistance(Client *c, const Seperator *sep)
 		if (!my_bot) {
 			continue;
 		}
+
 		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
 			continue;
 		}
+
 		if (!my_bot->IsCommandedSpellAllowedByBotSpellList(local_entry->spell_id, target_mob)) {
 			continue;
 		}
 
-		if (!my_bot) {
-			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
-			return;
+		if (local_entry->spell_id != 0 && my_bot->GetMana() < spells[local_entry->spell_id].mana) {
+			continue;
 		}
 
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
@@ -14724,24 +14721,26 @@ void bot_command_resurrect(Client *c, const Seperator *sep)
 		}
 	}
 	if (!my_bot) {
-		c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
+		c->Message(Chat::Red, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
 		return;
 	}
 	if (!my_bot->IsBotInGroupOrRaidGroup()) {
 		return;
 	}
 	if (botSpell.SpellId == 0) {
-		c->Message(Chat::White, "Could not find a spell for (%s).", sep->arg[0]);
+		c->Message(Chat::Yellow, "Could not find a spell for (%s).", sep->arg[0]);
 		return;
 	}
 	if (botSpell.SpellId != 0 && my_bot->GetMana() < spells[botSpell.SpellId].mana) {
-		c->Message(Chat::White, "%s does not have enough mana.", my_bot->GetCleanName());
+		c->Message(Chat::Yellow, "%s does not have enough mana.", my_bot->GetCleanName());
 		return;
 	}
-	uint32 dont_root_before = 0;
-	if (helper_cast_standard_spell(my_bot, my_target, botSpell.SpellId, true, &dont_root_before)) {
-		my_target->SetDontRootMeBefore(dont_root_before);
+	if (my_bot->CheckSpellRecastTimers(my_bot, botSpell.SpellIndex)) {
+		c->Message(Chat::Yellow, "%s says, '%s currently has a recast delay'.", my_bot->GetCleanName(), spells[botSpell.SpellId].name);
 	}
+
+	helper_cast_standard_spell(my_bot, my_target, botSpell.SpellId, true);
+
 	return;
 }
 
@@ -14857,17 +14856,27 @@ void bot_command_root(Client *c, const Seperator *sep)
 			continue;
 		}
 
-		if (!my_bot) {
-			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
-			return;
+		if (local_entry->spell_id != 0 && my_bot->GetMana() < spells[local_entry->spell_id].mana) {
+			continue;
 		}
 
-		uint32 dont_root_before = 0;
-		if (helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id, true, &dont_root_before)) {
-			target_mob->SetDontRootMeBefore(dont_root_before);
-			cast_success = true;
+		BotSpell botSpell;
+		botSpell.SpellId = 0;
+		botSpell.SpellIndex = 0;
+		botSpell.ManaCost = 0;
+		botSpell = my_bot->GetBotSpellBySpellID(my_bot, local_entry->spell_id);
+
+		if (botSpell.SpellId = 0) {
+			continue;
 		}
-		break;
+
+		if (my_bot->CheckSpellRecastTimers(my_bot, botSpell.SpellIndex)) {
+			continue;
+		}
+
+		helper_cast_standard_spell(my_bot, my_target, local_entry->spell_id, true);
+
+		return;
 	}
 
 	if (!cast_success) {
@@ -15233,9 +15242,8 @@ void bot_command_rune(Client *c, const Seperator *sep)
 			continue;
 		}
 
-		if (!my_bot) {
-			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
-			return;
+		if (local_entry->spell_id != 0 && my_bot->GetMana() < spells[local_entry->spell_id].mana) {
+			continue;
 		}
 
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
@@ -15294,9 +15302,8 @@ void bot_command_send_home(Client *c, const Seperator *sep)
 			continue;
 		}
 
-		if (!my_bot) {
-			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
-			return;
+		if (local_entry->spell_id != 0 && my_bot->GetMana() < spells[local_entry->spell_id].mana) {
+			continue;
 		}
 
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
@@ -15362,9 +15369,8 @@ void bot_command_size(Client *c, const Seperator *sep)
 			continue;
 		}
 
-		if (!my_bot) {
-			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
-			return;
+		if (local_entry->spell_id != 0 && my_bot->GetMana() < spells[local_entry->spell_id].mana) {
+			continue;
 		}
 
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
@@ -15803,21 +15809,28 @@ void bot_command_snare(Client* c, const Seperator* sep)
 		if (!my_bot->IsCommandedSpellAllowedByBotSpellList(local_entry->spell_id, target_mob)) {
 			continue;
 		}
-		if (!my_bot) {
-			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
-			return;
-		}
+
 		if (local_entry->spell_id != 0 && my_bot->GetMana() < spells[local_entry->spell_id].mana) {
-			c->Message(Chat::White, "%s does not have enough mana.", my_bot->GetCleanName());
-			return;
+			continue;
 		}
 
-		uint32 dont_root_before = 0;
-		if (helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id, true, &dont_root_before)) {
-			target_mob->SetDontRootMeBefore(dont_root_before);
-			cast_success = true;
+		BotSpell botSpell;
+		botSpell.SpellId = 0;
+		botSpell.SpellIndex = 0;
+		botSpell.ManaCost = 0;
+		botSpell = my_bot->GetBotSpellBySpellID(my_bot, local_entry->spell_id);
+
+		if (botSpell.SpellId = 0) {
+			continue;
 		}
-		break;
+
+		if (my_bot->CheckSpellRecastTimers(my_bot, botSpell.SpellIndex)) {
+			continue;
+		}
+
+		helper_cast_standard_spell(my_bot, my_target, local_entry->spell_id, true);
+
+		return;
 	}
 
 	if (!cast_success) {
@@ -16191,8 +16204,7 @@ void bot_command_summon_corpse(Client *c, const Seperator *sep)
 			return;
 		}
 		if (local_entry->spell_id != 0 && my_bot->GetMana() < spells[local_entry->spell_id].mana) {
-			c->Message(Chat::White, "%s does not have enough mana.", my_bot->GetCleanName());
-			return;
+			continue;
 		}
 
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
@@ -16672,13 +16684,9 @@ void bot_command_water_breathing(Client *c, const Seperator *sep)
 		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
 			continue;
 		}
-		if (!my_bot) {
-			c->Message(Chat::White, "Could not find a bot for (%s). Be sure no usable bots are outside of your group or raid and be sure that they have enough mana. Use (%s help) for more options.", sep->arg[0], sep->arg[0]);
-			return;
-		}
+
 		if (local_entry->spell_id != 0 && my_bot->GetMana() < spells[local_entry->spell_id].mana) {
-			c->Message(Chat::White, "%s does not have enough mana.", my_bot->GetCleanName());
-			return;
+			continue;
 		}
 
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
@@ -19026,6 +19034,14 @@ void bot_subcommand_circle(Client *c, const Seperator *sep)
 		if (!my_bot)
 			continue;
 
+		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
+			continue;
+		}
+
+		if (local_entry->spell_id != 0 && my_bot->GetMana() < spells[local_entry->spell_id].mana) {
+			continue;
+		}
+
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
 		break;
 	}
@@ -20842,6 +20858,14 @@ void bot_subcommand_portal(Client *c, const Seperator *sep)
 		my_bot = ActionableBots::Select_ByMinLevelAndClass(c, local_entry->target_type, sbl, local_entry->spell_level, local_entry->caster_class, target_mob);
 		if (!my_bot)
 			continue;
+
+		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
+			continue;
+		}
+
+		if (local_entry->spell_id != 0 && my_bot->GetMana() < spells[local_entry->spell_id].mana) {
+			continue;
+		}
 
 		cast_success = helper_cast_standard_spell(my_bot, target_mob, local_entry->spell_id);
 		break;

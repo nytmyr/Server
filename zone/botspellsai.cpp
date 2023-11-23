@@ -4336,3 +4336,33 @@ bool Bot::IsCommandedSpellAllowedByBotSpellList(uint16 spellid, Mob* tar) {
 	}
 	return false;
 }
+
+BotSpell Bot::GetBotSpellBySpellID(Bot* botCaster, uint32 spell_id) {
+	BotSpell result;
+
+	result.SpellId = 0;
+	result.SpellIndex = 0;
+	result.ManaCost = 0;
+
+	if (botCaster && botCaster->AI_HasSpells()) {
+		std::vector<BotSpells_Struct> botSpellList = botCaster->AIBot_spells;
+
+		for (int i = botSpellList.size() - 1; i >= 0; i--) {
+			if (!IsValidSpell(botSpellList[i].spellid)) {
+				// this is both to quit early to save cpu and to avoid casting bad spells
+				// Bad info from database can trigger this incorrectly, but that should be fixed in DB, not here
+				continue;
+			}
+
+			if (botSpellList[i].spellid = spell_id) {
+				result.SpellId = botSpellList[i].spellid;
+				result.SpellIndex = i;
+				result.ManaCost = botSpellList[i].manacost;
+
+				break;
+			}
+		}
+	}
+
+	return result;
+}
