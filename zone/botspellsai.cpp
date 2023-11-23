@@ -877,8 +877,8 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 							if (selectedBotSpell.SpellId == 0)
 								continue;
 
-							if (CheckSpellRecastTimers(this, itr->SpellIndex)) {
 								uint32 TempDontBuffMeBefore = tar->DontBuffMeBefore();
+						if (CheckSpellRecastTimers(this, selectedBotSpell.SpellIndex)) {
 
 								// no buffs with illusions.. use #bot command to cast illusions
 								if (IsEffectInSpell(selectedBotSpell.SpellId, SE_Illusion) && tar != this)
@@ -1426,7 +1426,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						if (tar->CanBuffStack(iter.SpellId, botLevel, true) < 0)
 							continue;
 
-						if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, HateReduxResistLimit)))
+						if (!DoResistCheck(this, tar, iter.SpellId, RuleI(Bots, HateReduxResistLimit)))
 							continue;
 
 						if (IsValidSpellRange(iter.SpellId, tar)) {
