@@ -397,6 +397,10 @@ void Mob::AI_Init()
 	pDontRootMeBefore = 0;
 	pDontSnareMeBefore = 0;
 	pDontCureMeBefore = 0;
+	pDontRegularHealMeBefore = 0;
+	pDontFastHealMeBefore = 0;
+	pDontCompleteHealMeBefore = 0;
+	pDontHotHealMeBefore = 0;
 }
 
 void NPC::AI_Init()

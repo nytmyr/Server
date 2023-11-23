@@ -252,6 +252,37 @@ Bot::Bot(
 		m_monk_evade_timer.Start();
 	}
 
+	m_buff_delay_timer.Start();
+	m_cheal_delay_timer.Start();
+	m_cure_delay_timer.Start();
+	m_debuff_delay_timer.Start();
+	m_dispel_delay_timer.Start();
+	m_dot_delay_timer.Start();
+	m_escape_delay_timer.Start();
+	m_fheal_delay_timer.Start();
+	m_hateredux_delay_timer.Start();
+	m_heal_delay_timer.Start();
+	m_hotheal_delay_timer.Start();
+	m_incombatbuff_delay_timer.Start();
+	m_lifetap_delay_timer.Start();
+	m_mez_delay_timer.Start();
+	m_nuke_delay_timer.Start();
+	m_root_delay_timer.Start();
+	m_slow_delay_timer.Start();
+	m_snare_delay_timer.Start();
+
+
+	pDontHealMeBefore = 0;
+	pDontBuffMeBefore = Timer::GetCurrentTime() + 400;
+	pDontDotMeBefore = 0;
+	pDontRootMeBefore = 0;
+	pDontSnareMeBefore = 0;
+	pDontCureMeBefore = 0;
+	pDontRegularHealMeBefore = 0;
+	pDontFastHealMeBefore = 0;
+	pDontCompleteHealMeBefore = 0;
+	pDontHotHealMeBefore = 0;
+
 	m_CastingRoles.GroupHealer = false;
 	m_CastingRoles.GroupSlower = false;
 	m_CastingRoles.GroupNuker = false;
@@ -11161,7 +11192,7 @@ bool Bot::CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 
 
 	switch (spellType) {
 		case SpellType_Buff:
-			if (((!tar->IsPet() && GetHoldBuffs()) || (tar->IsPet() && GetHoldPetBuffs())) || targetHP < GetBuffMinThreshold() || targetHP > GetBuffThreshold() || (m_buff_delay_timer.Enabled() && m_buff_delay_timer.Check())) {
+			if (((!tar->IsPet() && GetHoldBuffs()) || (tar->IsPet() && GetHoldPetBuffs())) || targetHP < GetBuffMinThreshold() || targetHP > GetBuffThreshold() || m_buff_delay_timer.GetRemainingTime() /*|| !m_buff_delay_timer.Check()*/) {
 				return false;
 			}
 			return true;
@@ -11186,37 +11217,37 @@ bool Bot::CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 
 					return false;
 				}
 			}
-			else if (m_cure_delay_timer.Enabled() && !m_cure_delay_timer.Check()) {
+			else if (!m_cure_delay_timer.Check()) {
 				return false;
 			}
 			return true;
 			break;
 		case SpellType_Debuff:
-			if (GetHoldDebuffs() || targetHP < GetDebuffMinThreshold() || targetHP > GetDebuffThreshold() || (m_debuff_delay_timer.Enabled() && !m_debuff_delay_timer.Check())) {
+			if (GetHoldDebuffs() || targetHP < GetDebuffMinThreshold() || targetHP > GetDebuffThreshold() || !m_debuff_delay_timer.Check()) {
 				return false;
 			}
 			return true;
 			break;
 		case SpellType_Dispel:
-			if (GetHoldDispels() || targetHP < GetDispelMinThreshold() || targetHP > GetDispelThreshold() || (m_dispel_delay_timer.Enabled() && !m_dispel_delay_timer.Check())) {
+			if (GetHoldDispels() || targetHP < GetDispelMinThreshold() || targetHP > GetDispelThreshold() || !m_dispel_delay_timer.Check()) {
 				return false;
 			}
 			return true;
 			break;
 		case SpellType_DOT:
-			if (GetHoldDoTs() || targetHP < GetDotMinThreshold() || targetHP > GetDotThreshold() || (m_dot_delay_timer.Enabled() && !m_dot_delay_timer.Check())) {
+			if (GetHoldDoTs() || targetHP < GetDotMinThreshold() || targetHP > GetDotThreshold() || !m_dot_delay_timer.Check()) {
 				return false;
 			}
 			return true;
 			break;
 		case SpellType_Escape:
-			if (GetHoldEscapes() || botHP < GetEscapeMinThreshold() || botHP > GetEscapeThreshold() || (m_escape_delay_timer.Enabled() && !m_escape_delay_timer.Check())) {
+			if (GetHoldEscapes() || botHP < GetEscapeMinThreshold() || botHP > GetEscapeThreshold() || !m_escape_delay_timer.Check()) {
 				return false;
 			}
 			return true;
 			break;
 		case SpellType_HateRedux:
-			if (GetHoldHateRedux() || GetTarget()->GetHateTop() != botCaster || botHP < GetHateReduxMinThreshold() || botHP > GetHateReduxThreshold() || (m_hateredux_delay_timer.Enabled() && !m_hateredux_delay_timer.Check())) {
+			if (GetHoldHateRedux() || GetTarget()->GetHateTop() != botCaster || botHP < GetHateReduxMinThreshold() || botHP > GetHateReduxThreshold() || !m_hateredux_delay_timer.Check()) {
 				return false;
 			}
 			return true;
@@ -11254,10 +11285,10 @@ bool Bot::CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 
 			break;
 		}
 		case SpellType_InCombatBuff:
-			if ((GetClass() != SHAMAN) && (GetHoldInCombatBuffs() || targetHP < GetInCombatBuffMinThreshold() || targetHP > GetInCombatBuffThreshold() || (m_incombatbuff_delay_timer.Enabled() && !m_incombatbuff_delay_timer.Check()))) {
+			if ((GetClass() != SHAMAN) && (GetHoldInCombatBuffs() || targetHP < GetInCombatBuffMinThreshold() || targetHP > GetInCombatBuffThreshold() || !m_incombatbuff_delay_timer.Check())) {
 				return false;
 			}
-			if ((GetClass() == SHAMAN) && (GetHoldInCombatBuffs() || (botHP < GetInCombatBuffMinThreshold() || botHP < 50) || (GetManaRatio() > GetInCombatBuffThreshold() || GetManaRatio() > 90) || (m_incombatbuff_delay_timer.Enabled() && !m_incombatbuff_delay_timer.Check()))) {
+			if ((GetClass() == SHAMAN) && (GetHoldInCombatBuffs() || (botHP < GetInCombatBuffMinThreshold() || botHP < 50) || (GetManaRatio() > GetInCombatBuffThreshold() || GetManaRatio() > 90) || !m_incombatbuff_delay_timer.Check())) {
 				return false;
 			}
 			return true;
@@ -11269,7 +11300,7 @@ bool Bot::CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 
 			return true;
 			break;
 		case SpellType_Lifetap:
-			if (GetHoldLifetaps() || botHP < GetLifetapMinThreshold() || botHP > GetLifetapThreshold() || (m_lifetap_delay_timer.Enabled() && !m_lifetap_delay_timer.Check())) {
+			if (GetHoldLifetaps() || botHP < GetLifetapMinThreshold() || botHP > GetLifetapThreshold() || !m_lifetap_delay_timer.Check()) {
 				return false;
 			}
 			return true;
@@ -11281,7 +11312,7 @@ bool Bot::CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 
 			return true;
 			break;
 		case SpellType_Mez:
-			if (GetHoldMez() || targetHP < GetMezMinThreshold() || targetHP > GetMezThreshold() || (m_mez_delay_timer.Enabled() && !m_mez_delay_timer.Check())) {
+			if (GetHoldMez() || targetHP < GetMezMinThreshold() || targetHP > GetMezThreshold() || !m_mez_delay_timer.Check()) {
 				return false;
 			}
 			return true;
@@ -11290,7 +11321,7 @@ bool Bot::CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 
 			return true;
 			break;
 		case SpellType_Nuke:
-			if (GetHoldNukes() || targetHP < GetNukeMinThreshold() || targetHP > GetNukeThreshold() || (m_nuke_delay_timer.Enabled() && !m_nuke_delay_timer.Check())) {
+			if (GetHoldNukes() || targetHP < GetNukeMinThreshold() || targetHP > GetNukeThreshold() || !m_nuke_delay_timer.Check()) {
 				return false;
 			}
 			return true;
@@ -11326,19 +11357,19 @@ bool Bot::CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 
 			return true;
 			break;
 		case SpellType_Root:
-			if (GetHoldRoots() || targetHP < GetRootMinThreshold() || targetHP > GetRootThreshold() || (m_root_delay_timer.Enabled() && !m_root_delay_timer.Check())) {
+			if (GetHoldRoots() || targetHP < GetRootMinThreshold() || targetHP > GetRootThreshold() || !m_root_delay_timer.Check()) {
 				return false;
 			}
 			return true;
 			break;
 		case SpellType_Slow:
-			if (GetHoldSlows() || targetHP < GetSlowMinThreshold() || targetHP > GetSlowThreshold() || (m_slow_delay_timer.Enabled() && !m_slow_delay_timer.Check())) {
+			if (GetHoldSlows() || targetHP < GetSlowMinThreshold() || targetHP > GetSlowThreshold() || !m_slow_delay_timer.Check()) {
 				return false;
 			}
 			return true;
 			break;
 		case SpellType_Snare:
-			if (GetHoldSnares() || targetHP < GetSnareMinThreshold() || targetHP > GetSnareThreshold() || (m_snare_delay_timer.Enabled() && !m_snare_delay_timer.Check())) {
+			if (GetHoldSnares() || targetHP < GetSnareMinThreshold() || targetHP > GetSnareThreshold() || !m_snare_delay_timer.Check()) {
 				return false;
 			}
 			return true;
