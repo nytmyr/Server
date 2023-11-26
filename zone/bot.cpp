@@ -6267,7 +6267,7 @@ void Bot::DoClassAttacks(Mob *target, bool IsRiposte) {
 				if (!botitem) {
 				break;
 				}
-				else if (((botitem == 10652 || botitem == 610652 || botitem == 810652) && GetLevel() >= RuleI(Bots, BotsUseEpicMinLvl) && RuleI(Bots, BotsUseEpicMinLvl) != -1 && RuleB(Bots, MonkEpicEnabled)) || ((botitem == 10652 || botitem == 610652 || botitem == 810652) && RuleI(Bots, BotsUseEpicMinLvl) == -1 && GetLevel() >= 50 && RuleB(Bots, MonkEpicEnabled))) {
+				else if (RuleB(Bots, MonkEpicEnabled) && (botitem == 10652 || botitem == 610652 || botitem == 810652) && (GetLevel() >= database.GetItem(botitem)->Click.Level2)) {
 					if (CanBuffStack(SPELL_CELESTIAL_TRANQUILITY, GetLevel(), true) >= 0) {
 						CastSpell(SPELL_CELESTIAL_TRANQUILITY, GetID());
 						break;
