@@ -662,6 +662,7 @@ RULE_INT(Bots, ResurrectionSicknessSpell, 756, "756 is Default Resurrection Sick
 RULE_BOOL(Bots, CopySettingsOwnBotsOnly, false, "Determines whether a bot you are copying settings from must be a bot you own or not, default false.")
 RULE_REAL(Bots, CombatRegenManaLimit, 80, "Mana Ratio when bots will attempt to sit to med in combat, default 80")
 RULE_REAL(Bots, CombatRegenHealthLimit, 40, "Health Ratio limit when bots will no longer attempt to sit to med in combat, default 40")
+RULE_INT(Bots, AutosaveIntervalSeconds, 300, "Number of seconds after which a timer is triggered which stores the bot data. The value 0 means no periodic automatic saving.")
 
 /*
 * CUSTOM BOT RULES

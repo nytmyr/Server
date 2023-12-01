@@ -1046,6 +1046,7 @@ private:
 	Timer m_snare_delay_timer;
 
 	Timer m_combat_jitter_timer;
+	Timer auto_save_timer;
 	bool m_combat_jitter_flag;
 	bool m_combat_out_of_range_jitter_flag;
 	bool m_dirtyautohaters;
