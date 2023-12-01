@@ -3869,55 +3869,94 @@ bool Bot::IsTargetAlreadyReceivingSpell(Mob* tar, uint16 spellid, std::string he
 		return true;
 	}
 
-	Mob* ultimate_tar = tar;
-
 	if (IsNPC() && CastToNPC()->GetSwarmOwner()) {
 		return true;
 	}
-	if (tar->IsPet()) {
-		ultimate_tar = tar->GetOwner();
-	}
-	if (ultimate_tar->IsClient() || ultimate_tar->IsBot()) {
-		if (ultimate_tar->IsRaidGrouped()) {
-			Raid* raid = ultimate_tar->GetRaid();
-			if (raid) {
-				std::vector<RaidMember> raid_group_members = raid->GetMembers();
-				for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
-					if (iter->member && entity_list.IsMobInZone(iter->member) && iter->member->IsBot()) {
-						if (
-							iter->member->IsCasting()
+
+	if (IsRaidGrouped()) {
+		Raid* raid = GetRaid();
+
+		if (raid) {
+			std::vector<RaidMember> raid_group_members = raid->GetMembers();
+
+			for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
+				if (iter->member
+					&& entity_list.IsMobInZone(iter->member)
+					&& iter->member->IsBot()
+					&& iter->member->IsCasting()
+					&& iter->member->CastToBot()->casting_spell_targetid
+					&& entity_list.GetMobID(iter->member->CastToBot()->casting_spell_targetid) == entity_list.GetMobID(tar->GetID())
+					&& iter->member->CastingSpellID() == spellid
+					) {
+
+					return true;
+				}
+				else {
+					if (IsGroupSpell(spellid)) {
+						if (iter->member
+							&& entity_list.IsMobInZone(iter->member)
+							&& iter->member->IsBot()
+							&& iter->member->IsCasting()
 							&& iter->member->CastToBot()->casting_spell_targetid
-							&& entity_list.GetMobID(iter->member->CastToBot()->casting_spell_targetid) == entity_list.GetMobID(tar->GetID())
-							&& iter->member->CastingSpellID() == spellid
-							) {
-							return true;
-						}
-					}
-				}
-			}
-		}
-		else if (ultimate_tar->IsGrouped()) {
-			Group* group = ultimate_tar->GetGroup();
-			if (group) {
-				for (int counter = 0; counter < group->GroupCount(); counter++) {
-					Mob* group_member = group->members[counter];
-					if (group_member && entity_list.IsMobInZone(group_member) && group_member->IsBot()) {
-						if (
-							group_member->IsCasting()
-							&& group_member->CastToBot()->casting_spell_targetid
-							&& entity_list.GetMobID(group_member->CastToBot()->casting_spell_targetid) == entity_list.GetMobID(tar->GetID())
-							&& group_member->CastingSpellID() == spellid
-							) {
-							return true;
+							&& iter->member->CastingSpellID() == spellid) {
+
+							uint32 r_group = raid->GetGroup(tar->GetName());
+
+							if (r_group) {
+								std::vector<RaidMember> raid_group_members = raid->GetRaidGroupMembers(r_group);
+								for (int i = 0; i < raid_group_members.size(); ++i) {
+									if (
+										raid_group_members.at(i).member
+										&& entity_list.GetMobID(iter->member->CastToBot()->casting_spell_targetid) == entity_list.GetMobID(raid_group_members.at(i).member->GetID())
+										) {
+										return true;
+									}
+								}
+							}
 						}
 					}
 				}
 			}
 		}
 	}
-	else {
-		return true;
+	else if (IsGrouped()) {
+		Group* group = GetGroup();
+		if (group) {
+			for (int counter = 0; counter < group->GroupCount(); counter++) {
+				Mob* group_member = group->members[counter];
+
+				if (group_member
+					&& entity_list.IsMobInZone(group_member)
+					&& group_member->IsBot()
+					&& group_member->IsCasting()
+					&& group_member->CastToBot()->casting_spell_targetid
+					&& entity_list.GetMobID(group_member->CastToBot()->casting_spell_targetid) == entity_list.GetMobID(tar->GetID())
+					&& group_member->CastingSpellID() == spellid
+					) {
+
+					return true;
+				}
+				else {
+					if (IsGroupSpell(spellid)) {
+						for (int counter = 0; counter < group->GroupCount(); counter++) {
+							Mob* group_member = group->members[counter];
+
+							if (group_member
+								&& entity_list.IsMobInZone(group_member)
+								&& group_member->IsBot()
+								&& group_member->IsCasting()
+								&& group_member->CastingSpellID() == spellid
+								) {
+								
+								return true;
+							}
+						}
+					}
+				}
+			}
+		}
 	}
+
 	return false;
 }
 
