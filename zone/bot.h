@@ -46,15 +46,12 @@ constexpr uint32 BOT_KEEP_ALIVE_INTERVAL = 5000; // 5 seconds
 constexpr uint32 BOT_COMBAT_JITTER_INTERVAL_MIN = 1500; // 5 seconds
 constexpr uint32 BOT_COMBAT_JITTER_INTERVAL_MAX = 3000; // 20 seconds
 
+constexpr uint32 MAG_EPIC_1_0 = 28034;
+
 extern WorldServer worldserver;
 
 constexpr int BotAISpellRange = 100; // TODO: Write a method that calcs what the bot's spell range is based on spell, equipment, AA, whatever and replace this
-constexpr int MaxSpellTimer = 15;
-constexpr int MaxDisciplineTimer = 10;
-constexpr int DisciplineReuseStart = MaxSpellTimer + 1;
-constexpr int MaxTimer = MaxSpellTimer + MaxDisciplineTimer;
-
-
+constexpr int NegativeItemReuse = -1; // Unlinked timer for items
 
 // nHSND	negative Healer/Slower/Nuker/Doter
 // pH		positive Healer
@@ -238,6 +235,8 @@ public:
 	bool GetReturningFlag() { return m_returning_flag; }
 	bool GetMaxMeleeRange() { return m_max_melee_range; }
 	void SetMaxMeleeRange(bool flag = true) { m_max_melee_range = flag; }
+	bool GetIsUsingItemClick() { return is_using_item_click; }
+	void SetIsUsingItemClick(bool flag = true) { is_using_item_click = flag; }
 	bool UseDiscipline(uint32 spell_id, uint32 target);
 	uint8 GetNumberNeedingHealedInGroup(uint8 hpr, bool includePets);
 	bool GetNeedsCured(Mob *tar);
@@ -300,6 +299,10 @@ public:
 	void SetEndurance(int32 newEnd);	//This sets the current endurance to the new value
 	void DoEnduranceRegen();	//This Regenerates endurance
 	void DoEnduranceUpkeep();	//does the endurance upkeep
+
+	void TryItemClick(uint16 slot_id);
+	EQ::ItemInstance* GetClickItem(uint16 slot_id);
+	void DoItemClick(const EQ::ItemData* inst, uint16 slot_id);
 
 	bool AI_AddBotSpells(uint32 bot_spell_id);
 	void AddSpellToBotList(
@@ -604,11 +607,6 @@ public:
 	static void ProcessBotOwnerRefDelete(Mob* botOwner);	// Removes a Client* reference when the Client object is destroyed
 	static void ProcessGuildInvite(Client* guildOfficer, Bot* botToGuild);	// Processes a client's request to guild a bot
 	static bool ProcessGuildRemoval(Client* guildOfficer, std::string botName);	// Processes a client's request to deguild a bot
-	static int32 GetSpellRecastTimer(Bot *caster, int timer_index);
-	static bool CheckSpellRecastTimers(Bot *caster, int SpellIndex);
-	static int32 GetDisciplineRecastTimer(Bot *caster, int timer_index);
-	static bool CheckDisciplineRecastTimers(Bot *caster, int timer_index);
-	static uint32 GetDisciplineRemainingTime(Bot *caster, int timer_index);
 
 	//Raid methods
 	void PetAIProcess_Raid();
@@ -820,8 +818,19 @@ public:
 			_botStance = EQ::constants::stancePassive;
 	}
 	void SetBotCasterRange(uint32 bot_caster_range) { m_bot_caster_range = bot_caster_range; }
-	void SetSpellRecastTimer(int timer_index, int32 recast_delay);
-	void SetDisciplineRecastTimer(int timer_index, int32 recast_delay);
+	int32 GetSpellRecastTimer(uint16 spell_id);
+	bool CheckSpellRecastTimers(uint16 spell_id);
+	void SetSpellRecastTimer(uint16 spell_id, int32 recast_delay = 0);
+	uint32 CalcSpellRecastTimer(uint16 spell_id);
+	int32 GetDisciplineReuseTimer(uint16 spell_id);
+	bool CheckDisciplineReuseTimers(uint16 spell_id);
+	uint32 GetDisciplineReuseRemainingTime(uint16 spell_id);
+	void SetDisciplineRecastTimer(uint16 spell_id, int32 recast_delay = 0);
+	int32 GetItemReuseTimer(const EQ::ItemData* item);
+	bool CheckItemReuseTimers(const EQ::ItemData* item);
+	void SetItemReuseTimer(const EQ::ItemData* item, uint32 reuse_timer = 0);
+	uint32 GetItemReuseRemainingTime(const EQ::ItemData* item);
+	void ClearExpiredTimers();
 	void SetAltOutOfCombatBehavior(bool behavior_flag) { _altoutofcombatbehavior = behavior_flag;}
 	void SetShowHelm(bool showhelm) { _showhelm = showhelm; }
 	void SetBeardColor(uint8 value) { beardcolor = value; }
@@ -923,7 +932,8 @@ public:
 
 	// New accessors for BotDatabase access
 	bool DeleteBot();
-	uint32* GetTimers() { return timers; }
+	std::vector<BotTimer_Struct> GetBotTimers() { return bot_timers; }
+	void SetBotTimers(std::vector<BotTimer_Struct> timers) { bot_timers = timers; }
 	uint32 GetLastZoneID() { return _lastZoneId; }
 	inline uint16 GetBaseRace() const { return _baseRace; }
 	int32 GetBaseAC() { return _baseAC; }
@@ -969,6 +979,7 @@ protected:
 
 	std::vector<BotSpells_Struct> AIBot_spells;
 	std::vector<BotSpells_Struct> AIBot_spells_enforced;
+	std::vector<BotTimer_Struct> bot_timers;
 
 private:
 	// Class Members
@@ -1004,7 +1015,6 @@ private:
 	int32	cur_end;
 	int32	max_end;
 	int32	end_regen;
-	uint32 timers[MaxTimer];
 
 	Timer m_evade_timer; // can be moved to pTimers at some point
 	Timer m_monk_evade_timer;
@@ -1032,6 +1042,7 @@ private:
 	Timer m_snare_delay_timer;
 
 	Timer m_combat_jitter_timer;
+	Timer auto_save_timer;
 	bool m_combat_jitter_flag;
 	bool m_combat_out_of_range_jitter_flag;
 	bool m_dirtyautohaters;
@@ -1043,6 +1054,9 @@ private:
 	bool m_pulling_flag;
 	bool m_returning_flag;
 	bool m_max_melee_range;
+
+	bool is_using_item_click;
+
 	eStandingPetOrder m_previous_pet_order;
 	uint32 m_bot_caster_range;
 	BotCastingRoles m_CastingRoles;

@@ -1569,7 +1569,7 @@ int bot_command_init(void)
 		bot_command_add("snareminthreshold", "Sets a threshold to stop casting snares", AccountStatus::Player, bot_command_snare_min_threshold) ||
 		bot_command_add("maxmeleerange", "Toggles whether your bot is at max melee range or not. This will disable all special abilities, including taunt.", AccountStatus::Player, bot_command_max_melee_range) ||
 		bot_command_add("removefromraid", "This will remove a bot from a raid, can be used for stuck bots.", AccountStatus::Player, bot_command_remove_from_raid) ||
-		bot_command_add("useepic", "Orders your targeted bot to use their epic if it is equipped", AccountStatus::Player, bot_command_use_epic) ||
+		bot_command_add("clickitem", "Orders your targeted bot to click the item in the provided inventory slot.", AccountStatus::Player, bot_command_click_item) ||
 		//bot_command_add("combatmed", "Allows your bot to med in combat as long as it thinks it won't get aggro.", AccountStatus::Player, bot_command_combat_med) ||
 
 		bot_command_add("copysettings", "Will copy the targeted bots settings to the named bot.", AccountStatus::Player, bot_command_copy_settings) ||
@@ -3025,7 +3025,7 @@ void bot_command_aggressive(Client *c, const Seperator *sep)
 		}
 	}
 
-	c->Message(Chat::White, "%i of %i bots have used aggressive disciplines", success_count, candidate_count);
+	c->Message(Chat::White, "%i of %i bots have attempted to use aggressive disciplines", success_count, candidate_count);
 }
 
 void bot_command_apply_poison(Client *c, const Seperator *sep)
@@ -4202,7 +4202,7 @@ void bot_command_charm(Client* c, const Seperator* sep)
 		c->Message(Chat::Yellow, "%s does not have enough mana.", my_bot->GetCleanName());
 		return;
 	}
-	if (my_bot->CheckSpellRecastTimers(my_bot, botSpell.SpellIndex)) {
+	if (my_bot->CheckSpellRecastTimers(botSpell.SpellId)) {
 		c->Message(Chat::Yellow, "%s says, '%s currently has a recast delay'.", my_bot->GetCleanName(), spells[botSpell.SpellId].name);
 	}
 
@@ -5167,7 +5167,7 @@ void bot_command_defensive(Client *c, const Seperator *sep)
 		}
 	}
 
-	c->Message(Chat::White, "%i of %i bots have used defensive disciplines", success_count, candidate_count);
+	c->Message(Chat::White, "%i of %i bots hused attempted to use defensive disciplines", success_count, candidate_count);
 }
 
 void bot_command_depart(Client *c, const Seperator *sep)
@@ -12732,7 +12732,7 @@ void bot_command_lull(Client* c, const Seperator* sep)
 		c->Message(Chat::Yellow, "%s does not have enough mana.", my_bot->GetCleanName());
 		return;
 	}
-	if (my_bot->CheckSpellRecastTimers(my_bot, botSpell.SpellIndex)) {
+	if (my_bot->CheckSpellRecastTimers(botSpell.SpellId)) {
 		c->Message(Chat::Yellow, "%s says, '%s currently has a recast delay'.", my_bot->GetCleanName(), spells[botSpell.SpellId].name);
 	}
 
@@ -12971,7 +12971,7 @@ void bot_command_mesmerize(Client *c, const Seperator *sep)
 		c->Message(Chat::Yellow, "%s does not have enough mana.", my_bot->GetCleanName());
 		return;
 	}
-	if (my_bot->CheckSpellRecastTimers(my_bot, botSpell.SpellIndex)) {
+	if (my_bot->CheckSpellRecastTimers(botSpell.SpellId)) {
 		c->Message(Chat::Yellow, "%s says, '%s currently has a recast delay'.", my_bot->GetCleanName(), spells[botSpell.SpellId].name);
 	}
 
@@ -14735,7 +14735,7 @@ void bot_command_resurrect(Client *c, const Seperator *sep)
 		c->Message(Chat::Yellow, "%s does not have enough mana.", my_bot->GetCleanName());
 		return;
 	}
-	if (my_bot->CheckSpellRecastTimers(my_bot, botSpell.SpellIndex)) {
+	if (my_bot->CheckSpellRecastTimers(botSpell.SpellId)) {
 		c->Message(Chat::Yellow, "%s says, '%s currently has a recast delay'.", my_bot->GetCleanName(), spells[botSpell.SpellId].name);
 	}
 
@@ -14870,7 +14870,7 @@ void bot_command_root(Client *c, const Seperator *sep)
 			continue;
 		}
 
-		if (my_bot->CheckSpellRecastTimers(my_bot, botSpell.SpellIndex)) {
+		if (my_bot->CheckSpellRecastTimers(botSpell.SpellId)) {
 			continue;
 		}
 
@@ -15824,7 +15824,7 @@ void bot_command_snare(Client* c, const Seperator* sep)
 			continue;
 		}
 
-		if (my_bot->CheckSpellRecastTimers(my_bot, botSpell.SpellIndex)) {
+		if (my_bot->CheckSpellRecastTimers(botSpell.SpellId)) {
 			continue;
 		}
 
@@ -16455,191 +16455,65 @@ void bot_command_track(Client *c, const Seperator *sep)
 	entity_list.ShowSpawnWindow(c, (c->GetLevel() * base_distance), track_named);
 }
 
-void bot_command_use_epic(Client *c, const Seperator *sep)
+void bot_command_click_item(Client *c, const Seperator *sep)
 {
-	if (!RuleB(Bots, BotsUseEpics)) {
-			c->Message(Chat::White, "The ability to use a bot's epic is currently disabled.");
+	if (!RuleB(Bots, BotsCanClickItems)) {
+			c->Message(Chat::White, "The ability for bots to click equipped items is currently disabled.");
 			return;
 	}
-	if (RuleB(Bots, BotsUseEpics)) {
-		if (RuleI(Bots, BotsUseEpicMinLvl) > c->GetLevel()) {
-		c->Message(Chat::White, "You must be level %i to use your bot's epic", RuleI(Bots, BotsUseEpicMinLvl));
+
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: <slot id> %s ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "This will cause the selected bots to click the item in the given slot ID.");
+		c->Message(Chat::White, "Use ^invlist to see their items along with slot IDs.");
+		c->Message(Chat::White, "Note: Items without unlimited charges are not currently supported.");
+		c->Message(Chat::White, "Note: Items with unlinked recast timers (-1) are not currently supported.");
 		return;
-		} else { 
-			if (RuleI(Bots, BotsUseEpicMinLvl) == -1 && c->GetLevel() < 50) {
-				c->Message(Chat::White, "You must be level 50 to use your bot's epic");
-				return;
-			}
-				if (helper_is_help_or_usage(sep->arg[1])) {
-					c->Message(Chat::White, "usage: target the corpse or NPC you want the bot to cast on and type %s <bot name>", sep->arg[0]);
-					return;
-				}
-				Bot* selected_bot = nullptr;
-				std::list<Bot*> sbl;
-				MyBots::PopulateSBL_ByNamedBot(c, sbl, sep->arg[1]);
-				if (sbl.empty()) {
-					c->Message(Chat::White, "You do not own or have a bot spawned a bot by that name.");
-					return;
-				}
+	}
 
-				selected_bot = sbl.front();
+	if (!sep->IsNumber(1)) {
+		c->Message(Chat::Yellow, "You must specify a slot ID. Use %s help for more information.", sep->arg[0]);
+		return;
+	}
 
-				if ((entity_list.GetGroupByClient(c) && entity_list.GetGroupByClient(c)->IsGroupMember(selected_bot)) || (entity_list.GetRaidByClient(c) && entity_list.GetRaidByClient(c)->IsRaidMember(selected_bot->GetName()))) {
-				}
-				else {
-					c->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no conflicting classes are outside of your group or raid.");
-					return;
-				}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-				auto bot_class = selected_bot->GetClass();	
-				auto target_mob = c->GetTarget();
-				if (bot_class == WIZARD) {
-					//check and use 14341 | 614341
-					auto instp = selected_bot->CastToBot()->GetBotItem(13);
-						if (!instp || !instp->GetItem()) {
-							c->Message(Chat::White, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
-							return;
-						}
-					auto pitem = instp->GetItem()->ID;	
-						if (pitem == 14341 || pitem == 614341) {
-							uint32 dont_root_before = 0;
-							if (helper_cast_standard_spell(selected_bot, selected_bot, 25101, true, &dont_root_before))
-								target_mob->SetDontRootMeBefore(dont_root_before);
-								return;
-						} else {
-							c->Message(Chat::White, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
-							return;
-						}
-				}
-				auto target_corpse = target_mob->IsPlayerCorpse();
-				if (target_mob && bot_class == CLERIC){
-					//check and use 5532 | 605532
-					if (target_corpse) {
-					auto instp = selected_bot->CastToBot()->GetBotItem(13);
-						if (!instp || !instp->GetItem()) {
-							c->Message(Chat::White, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
-							return;
-						}
-					auto pitem = instp->GetItem()->ID;	
-						if (pitem == 5532 || pitem == 605532) {
-							uint32 dont_root_before = 0;
-							if (helper_cast_standard_spell(selected_bot, target_mob, 25102, true, &dont_root_before))
-								target_mob->SetDontRootMeBefore(dont_root_before);
-								return;
-						} else {
-							c->Message(Chat::White, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
-							return;
-						}
-					} else {
-						c->Message(Chat::White, "Target is not a player corpse.");
-						return;
-					}
-				}
-				auto target_enemy = ActionableTarget::VerifyEnemy(c, BCEnum::TT_Single);
-				if (!target_enemy && !target_corpse && bot_class == ENCHANTER) {
-					//check and use 10650 | 610650
-					auto instp = selected_bot->CastToBot()->GetBotItem(13);
-						if (!instp || !instp->GetItem()) {
-							c->Message(Chat::White, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
-							return;
-						}
-					auto pitem = instp->GetItem()->ID;	
-						if (pitem == 10650 || pitem == 610650) {
-							uint32 dont_root_before = 0;
-							if (helper_cast_standard_spell(selected_bot, target_mob, 25103, true, &dont_root_before))
-								target_mob->SetDontRootMeBefore(dont_root_before);
-								return;
-						} else {
-							c->Message(Chat::White, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
-							return;
-						}
-				}
-				if (target_enemy && bot_class == ENCHANTER) {
-					c->Message(Chat::White, "Your target is not a friendly target.");
-					return;
-				}
-				if (target_enemy && bot_class == DRUID) {
-					//check and use 20490 | 620490
-					auto instp = selected_bot->CastToBot()->GetBotItem(13);
-						if (!instp || !instp->GetItem()) {
-							c->Message(Chat::White, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
-							return;
-						}
-					auto pitem = instp->GetItem()->ID;	
-						if (pitem == 20490 || pitem == 620490) {
-							if (!c->DoLosChecks(c, target_mob)) {
-								c->Message(Chat::Red, "You must have Line of Sight to use this command.");
-								return;
-							}
-							if (!c->CastToMob()->CheckLosCheat(c, target_mob)) {
-								c->Message(Chat::Red, "You must have Line of Sight or move further away from the door to use this command.");
-								return;
-							}
-							uint32 dont_root_before = 0;
-							if (helper_cast_standard_spell(selected_bot, target_mob, 25104, true, &dont_root_before))
-								target_mob->SetDontRootMeBefore(dont_root_before);
-								return;
-						} else {
-							c->Message(Chat::White, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
-							return;
-						}
-				}
-				if (target_enemy && bot_class == NECROMANCER) {
-					//check and use 20544 | 620544
-					auto instp = selected_bot->CastToBot()->GetBotItem(13);
-						if (!instp || !instp->GetItem()) {
-							c->Message(Chat::White, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
-							return;
-						}
-					auto pitem = instp->GetItem()->ID;	
-						if (pitem == 20544 || pitem == 620544) {
-							if (!c->DoLosChecks(c, target_mob)) {
-								c->Message(Chat::Red, "You must have Line of Sight to use this command.");
-								return;
-							}
-							if (!c->CastToMob()->CheckLosCheat(c, target_mob)) {
-								c->Message(Chat::Red, "You must have Line of Sight or move further away from the door to use this command.");
-								return;
-							}
-							uint32 dont_root_before = 0;
-							if (helper_cast_standard_spell(selected_bot, target_mob, 25107, true, &dont_root_before))
-								target_mob->SetDontRootMeBefore(dont_root_before);
-								return;
-						} else {
-							c->Message(Chat::White, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
-							return;
-						}
-				}
-				if (target_enemy && bot_class == SHAMAN) {
-					//check and use 10651 | 610651
-					auto instp = selected_bot->CastToBot()->GetBotItem(13);
-						if (!instp || !instp->GetItem()) {
-							c->Message(Chat::White, "I need something for my %s (slot 13)", EQ::invslot::GetInvPossessionsSlotName(13), 13);
-							return;
-						}
-					auto pitem = instp->GetItem()->ID;	
-						if (pitem == 10651 || pitem == 610651) {
-							if (!c->DoLosChecks(c, target_mob)) {
-								c->Message(Chat::Red, "You must have Line of Sight to use this command.");
-								return;
-							}
-							if (!c->CastToMob()->CheckLosCheat(c, target_mob)) {
-								c->Message(Chat::Red, "You must have Line of Sight or move further away from the door to use this command.");
-								return;
-							}
-							uint32 dont_root_before = 0;
-							if (helper_cast_standard_spell(selected_bot, target_mob, 25106, true, &dont_root_before))
-								target_mob->SetDontRootMeBefore(dont_root_before);
-								return;
-						} else {
-							c->Message(Chat::White, "Your bot does not currently have their epic equipped.", EQ::invslot::GetInvPossessionsSlotName(13), 13);
-							return;
-						}
-				} else {
-					c->Message(Chat::White, "No bots have an epic usable on this target");
-					return;
-				}
+	int ab_arg = 1;
+	uint32 slot_id = 0;
+
+	if (sep->IsNumber(1)) {
+		ab_arg = 2;
+		slot_id = atoi(sep->arg[1]);
+		if (slot_id < EQ::invslot::EQUIPMENT_BEGIN || slot_id > EQ::invslot::EQUIPMENT_END) {
+			c->Message(Chat::Yellow, "You must specify a valid inventory slot from 0 to 22. Use %s help for more information", sep->arg[0]);
+			return;
 		}
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	for (auto my_bot : sbl) {
+		if (RuleI(Bots, BotsClickItemsMinLvl) > my_bot->GetLevel()) {
+			c->Message(Chat::White, "%s must be level %i to use clickable items.", my_bot->GetCleanName(), RuleI(Bots, BotsClickItemsMinLvl));
+			continue;
+		}
+		
+		if (!my_bot->IsBotInGroupOrRaidGroup(true)) {
+			c->Message(Chat::White, "%s says, 'I cannot use commands outside of your group or raid'.", my_bot->GetCleanName());
+			continue;
+		}
+
+		my_bot->TryItemClick(slot_id);
 	}
 }
 
