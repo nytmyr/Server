@@ -1754,7 +1754,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					BotSpell_wPriority botSpell = *itr;
 					if (botSpell.SpellId == 0)
 						continue;
-					if (!CheckSpellRecastTimers(this, botSpell.SpellIndex))
+					if (!CheckSpellRecastTimer(botSpell.SpellId))
 						continue;
 
 					if (!(!tar->IsImmuneToBotSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
@@ -1874,7 +1874,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					continue;
 				}
 
-				if (!CheckSpellRecastTimers(this, selectedBotSpell.SpellIndex))
+				if (!CheckSpellRecastTimer(selectedBotSpell.SpellId))
 					continue;
 
 				if (IsValidSpellRange(selectedBotSpell.SpellId, tar)) {
@@ -1906,7 +1906,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 				if (botSpell.SpellId == 0)
 					continue;
-				if (!CheckSpellRecastTimers(this, botSpell.SpellIndex))
+				if (!CheckSpellRecastTimer(botSpell.SpellId))
 					continue;
 
 				if (IsInvulnerabilitySpell(botSpell.SpellId))
@@ -2000,7 +2000,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					BotSpell_wPriority botSpell = *itr;
 					if (botSpell.SpellId == 0)
 						continue;
-					if (!CheckSpellRecastTimers(this, botSpell.SpellIndex))
+					if (!CheckSpellRecastTimer(botSpell.SpellId))
 						continue;
 					if (GetSpellTargetType(botSpell.SpellId) == ST_Plant && tar->GetBodyType() != BT_Plant)
 						continue;
@@ -2138,7 +2138,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					BotSpell_wPriority botSpell = *itr;
 					if (botSpell.SpellId == 0)
 						continue;
-					if (!CheckSpellRecastTimers(this, botSpell.SpellIndex))
+					if (!CheckSpellRecastTimer(botSpell.SpellId))
 						continue;
 
 					if (!(!tar->IsImmuneToBotSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
@@ -2171,7 +2171,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					if (selectedBotSpell.SpellId == 0)
 						continue;
 
-					if (CheckSpellRecastTimers(this, selectedBotSpell.SpellIndex)) {
+					if (CheckSpellRecastTimer(selectedBotSpell.SpellId)) {
 
 						// no buffs with illusions.. use #bot command to cast illusions
 						if (IsEffectInSpell(selectedBotSpell.SpellId, SE_Illusion) && tar != this)
@@ -2256,7 +2256,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				BotSpell_wPriority botSpell = *itr;
 				if (botSpell.SpellId == 0)
 					continue;
-				if (!CheckSpellRecastTimers(this, botSpell.SpellIndex))
+				if (!CheckSpellRecastTimer(botSpell.SpellId))
 					continue;
 
 				if (!(!tar->IsImmuneToBotSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
@@ -2294,7 +2294,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				BotSpell_wPriority botSpell = *itr;
 				if (botSpell.SpellId == 0)
 					continue;
-				if (!CheckSpellRecastTimers(this, botSpell.SpellIndex))
+				if (!CheckSpellRecastTimer(botSpell.SpellId))
 					continue;
 
 				if (!(!tar->IsImmuneToBotSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
@@ -2339,7 +2339,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 					if (selectedBotSpell.SpellId == 0)
 						continue;
-					if (!CheckSpellRecastTimers(this, selectedBotSpell.SpellIndex))
+					if (!CheckSpellRecastTimer(selectedBotSpell.SpellId))
 						continue;
 
 					if (!(!tar->IsImmuneToBotSpell(selectedBotSpell.SpellId, this) && tar->CanBuffStack(selectedBotSpell.SpellId, botLevel, true) >= 0))
@@ -2374,7 +2374,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					BotSpell_wPriority botSpell = *itr;
 					if (botSpell.SpellId == 0)
 						continue;
-					if (!CheckSpellRecastTimers(this, botSpell.SpellIndex))
+					if (!CheckSpellRecastTimer(botSpell.SpellId))
 						continue;
 
 					if (!(!tar->IsImmuneToBotSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
@@ -2420,7 +2420,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				for (auto iter : botSongList) {
 					if (!iter.SpellId)
 						continue;
-					if (!CheckSpellRecastTimers(this, iter.SpellIndex))
+					if (!CheckSpellRecastTimer(iter.SpellId))
 						continue;
 
 					if (spells[iter.SpellId].zone_type != -1 && zone->GetZoneType() != -1 && spells[iter.SpellId].zone_type != zone->GetZoneType() && zone->CanCastOutdoor() != 1) // is this bit or index?
@@ -2468,7 +2468,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 			if (botSpell.SpellId == 0)
 				break;
 
-			if (!CheckSpellRecastTimers(this, botSpell.SpellIndex))
+			if (!CheckSpellRecastTimer(botSpell.SpellId))
 				break;
 
 			if (!(!tar->IsImmuneToBotSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
@@ -2503,7 +2503,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				BotSpell_wPriority botSpell = *itr;
 				if (botSpell.SpellId == 0)
 					continue;
-				if (!CheckSpellRecastTimers(this, botSpell.SpellIndex))
+				if (!CheckSpellRecastTimer(botSpell.SpellId))
 					continue;
 
 				if (!(!tar->IsImmuneToBotSpell(botSpell.SpellId, this) && tar->CanBuffStack(botSpell.SpellId, botLevel, false) >= 0))
@@ -2543,7 +2543,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				if (botSpell.SpellId == 0)
 					break;
 
-				if (!CheckSpellRecastTimers(this, botSpell.SpellIndex))
+				if (!CheckSpellRecastTimer(botSpell.SpellId))
 					break;
 
 				if (IsValidSpellRange(botSpell.SpellId, tar)) {
@@ -2584,7 +2584,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				for (auto iter : botSongList) {
 					if (!iter.SpellId)
 						continue;
-					if (!CheckSpellRecastTimers(this, iter.SpellIndex))
+					if (!CheckSpellRecastTimer(iter.SpellId))
 						continue;
 
 					if (spells[iter.SpellId].zone_type != -1 && zone->GetZoneType() != -1 && spells[iter.SpellId].zone_type != zone->GetZoneType() && zone->CanCastOutdoor() != 1) // is this bit or index?
@@ -2615,7 +2615,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				for (auto iter : spellList) {
 					if (!iter.SpellId)
 						continue;
-					if (!CheckSpellRecastTimers(this, iter.SpellIndex))
+					if (!CheckSpellRecastTimer(iter.SpellId))
 						continue;
 
 					if (IsValidSpellRange(iter.SpellId, tar)) {
@@ -2645,7 +2645,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 			for (auto iter : botSongList) {
 				if (!iter.SpellId)
 					continue;
-				if (!CheckSpellRecastTimers(this, iter.SpellIndex))
+				if (!CheckSpellRecastTimer(iter.SpellId))
 					continue;
 
 				if (spells[iter.SpellId].zone_type != -1 && zone->GetZoneType() != -1 && spells[iter.SpellId].zone_type != zone->GetZoneType() && zone->CanCastOutdoor() != 1) // is this bit or index?
@@ -2682,7 +2682,7 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 			for (auto iter : botSongList) {
 				if (!iter.SpellId)
 					continue;
-				if (!CheckSpellRecastTimers(this, iter.SpellIndex))
+				if (!CheckSpellRecastTimer(iter.SpellId))
 					continue;
 
 				if (spells[iter.SpellId].zone_type != -1 && zone->GetZoneType() != -1 && spells[iter.SpellId].zone_type != zone->GetZoneType() && zone->CanCastOutdoor() != 1) // is this bit or index?
