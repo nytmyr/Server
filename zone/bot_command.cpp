@@ -11815,7 +11815,7 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "usage: [%s meleeonly] will display only melee bots that can use the item.", sep->arg[0]);
 		c->Message(Chat::White, "usage: [%s wiscasteronly] will display only Wisdom-based Caster bots that can use the item.", sep->arg[0]);
 		c->Message(Chat::White, "usage: [%s intcasteronly] will display only Intelligence-based Caster bots that can use the item.", sep->arg[0]);
-		c->Message(Chat::White, "usage: [%s platoenly] will display only Plate-wearing bots that can use the item.", sep->arg[0]);
+		c->Message(Chat::White, "usage: [%s plateonly] will display only Plate-wearing bots that can use the item.", sep->arg[0]);
 		c->Message(Chat::White, "usage: [%s chainonly] will display only Chain-wearing bots that can use the item.", sep->arg[0]);
 		c->Message(Chat::White, "usage: [%s leatheronly] will display only Leather-wearing bots that can use the item.", sep->arg[0]);
 		c->Message(Chat::White, "usage: [%s clothonly] will display only Cloth-wearing bots that can use the item.", sep->arg[0]);
