@@ -14307,29 +14307,23 @@ void bot_command_pull(Client *c, const Seperator *sep)
 	}
 	if (helper_is_help_or_usage(sep->arg[1])) {
 
-		c->Message(Chat::White, "usage: <enemy_target> %s ([actionable: ownergroup | ownerraid] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "usage: <enemy_target> %s ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name]))", sep->arg[0]);
 		return;
 	}
 
-	int ab_mask;
-	if (c->IsRaidGrouped()) {
-		ab_mask = ActionableBots::ABM_OwnerRaid; // existing behavior - need to add c->IsGrouped() check and modify code if different behavior is desired
-	}
-	else {
-		ab_mask = ActionableBots::ABM_OwnerGroup; // existing behavior - need to add c->IsGrouped() check and modify code if different behavior is desired
+	const int ab_mask = ActionableBots::ABM_Type1;
+
+	std::string class_race_arg = sep->arg[1];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
 	}
 
 	std::list<Bot*> sbl;
-	if (c->IsRaidGrouped()) {
-		if (ActionableBots::PopulateSBL(c, "ownerraid", sbl, ab_mask) == ActionableBots::ABT_None) {
-			return;
-		}
+	if (ActionableBots::PopulateSBL(c, sep->arg[1], sbl, ab_mask, !class_race_check ? sep->arg[2] : nullptr, class_race_check ? atoi(sep->arg[2]) : 0) == ActionableBots::ABT_None) {
+		return;
 	}
-	else {
-		if (ActionableBots::PopulateSBL(c, "ownergroup", sbl, ab_mask) == ActionableBots::ABT_None) {
-			return;
-		}
-	}
+
 	sbl.remove(nullptr);
 
 	auto target_mob = ActionableTarget::VerifyEnemy(c, BCEnum::TT_Single);
