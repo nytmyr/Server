@@ -8849,8 +8849,12 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 				//}
 				for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
 					if (iter->member && entity_list.IsMobInZone(iter->member)) {
-						if (caster->AICastSpell(iter->member, chanceToCast, SpellType_Buff) || (iter->member->GetPet() && !iter->member->GetPet()->IsFamiliar() && caster->AICastSpell(iter->member->GetPet(), chanceToCast, SpellType_Buff)))
+						if (caster->AICastSpell(iter->member, chanceToCast, SpellType_Buff)) {
 							return true;
+						}
+						if (iter->member->GetPet() && !iter->member->GetPet()->IsFamiliar() && caster->AICastSpell(iter->member->GetPet(), chanceToCast, SpellType_Buff)) {
+							return true;
+						}
 					}
 				}
 			}
@@ -8860,8 +8864,12 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 			if(g) {
 				for(int i = 0; i < MAX_GROUP_MEMBERS; i++) {
 					if(g->members[i]) {
-						if(caster->AICastSpell(g->members[i], chanceToCast, SpellType_Buff) || (g->members[i]->GetPet() && !g->members[i]->GetPet()->IsFamiliar() && caster->AICastSpell(g->members[i]->GetPet(), chanceToCast, SpellType_Buff)))
+						if (caster->AICastSpell(g->members[i], chanceToCast, SpellType_Buff)) {
 							return true;
+						}
+						if (g->members[i]->GetPet() && !g->members[i]->GetPet()->IsFamiliar() && caster->AICastSpell(g->members[i]->GetPet(), chanceToCast, SpellType_Buff)) {
+							return true;
+						}
 					}
 				}
 			}
