@@ -3488,7 +3488,7 @@ void bot_command_buff_delay(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast buffs.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: The default interval is 0 (0 seconds).");
+		c->Message(Chat::White, "note: The default interval is 1 (0 seconds).");
 		return;
 	}
 
@@ -4644,7 +4644,7 @@ void bot_command_cure_delay(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast cures.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: The default interval is 0 (0 seconds).");
+		c->Message(Chat::White, "note: The default interval is 1 (0 seconds).");
 		return;
 	}
 
@@ -5274,7 +5274,7 @@ void bot_command_dispel_delay(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast dispels.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: The default interval is 0 (0 seconds).");
+		c->Message(Chat::White, "note: The default interval is 1 (0 seconds).");
 		return;
 	}
 
@@ -6175,7 +6175,7 @@ void bot_command_escape_delay(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast escapes.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: The default interval is 0 (0 seconds).");
+		c->Message(Chat::White, "note: The default interval is 1 (0 seconds).");
 		return;
 	}
 
@@ -6914,7 +6914,7 @@ void bot_command_hateredux_delay(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast hate reduction spells.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: The default interval is 0 (0 seconds).");
+		c->Message(Chat::White, "note: The default interval is 1 (0 seconds).");
 		return;
 	}
 
@@ -8138,7 +8138,7 @@ void bot_command_hold_dispels(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast dispels.");
 		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting dispels.");
-		c->Message(Chat::White, "note: The default hold is disabled (0).");
+		c->Message(Chat::White, "note: The default hold is enabled (1).");
 		return;
 	}
 
@@ -12134,7 +12134,7 @@ void bot_command_incombatbuff_delay(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast in-combat buffs.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: The default interval is 0 (0 seconds).");
+		c->Message(Chat::White, "note: The default interval is 1 (0 seconds).");
 		return;
 	}
 
@@ -12240,7 +12240,7 @@ void bot_command_lifetap_delay(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast lifetaps.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: The default interval is 0 (0 seconds).");
+		c->Message(Chat::White, "note: The default interval is 1 (0 seconds).");
 		return;
 	}
 
@@ -12990,7 +12990,7 @@ void bot_command_mez_delay(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: Set this to control how often the targeted bot can cast mesmerization spells.");
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(Chat::White, "note: The default interval is 0 (0 seconds).");
+		c->Message(Chat::White, "note: The default interval is 1 (0 seconds).");
 		return;
 	}
 
