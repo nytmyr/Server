@@ -82,53 +82,42 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 	switch (iSpellTypes) {
 		case SpellType_Mez: {
 			if (CanCastBySpellType(this, tar, SpellType_Mez)) {
-				if (tar->GetBodyType() != BT_Giant) {
-					if (!checked_los) {
-						if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar)) // if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar) || !CheckLosCheat(this, tar))
-							break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
+				//TODO
+				//Check if single target or AoE mez is best
+				//if (TARGETS ON MT IS => 3 THEN botSpell = AoEMez)
+				//if (TARGETS ON MT IS <= 2 THEN botSpell = BestMez)
 
-						checked_los = true;
-					}
-					if ((botClass == NECROMANCER) && tar->GetBodyType() != BT_Undead && tar->GetBodyType() != BT_SummonedUndead && tar->GetBodyType() != BT_Vampire)
-						break;
-					//TODO
-					//Check if single target or AoE mez is best
-					//if (TARGETS ON MT IS => 3 THEN botSpell = AoEMez)
-					//if (TARGETS ON MT IS <= 2 THEN botSpell = BestMez)
+				botSpell = GetBestBotSpellForMez(this);
 
-					botSpell = GetBestBotSpellForMez(this);
+				if (botSpell.SpellId == 0)
+					break;
+				if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, MezResistLimit)))
+					break;
 
-					if (botSpell.SpellId == 0)
-						break;
-					if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, MezResistLimit)))
-						break;
+				Mob* addMob = GetFirstIncomingMobToMez(this, botSpell);
 
-					Mob* addMob = GetFirstIncomingMobToMez(this, botSpell);
-
-					if (!addMob) {
-						//Say("!addMob.");
-						break;
-					}
-
-					if (!(!addMob->IsImmuneToBotSpell(botSpell.SpellId, this) && addMob->CanBuffStack(botSpell.SpellId, botLevel, true) >= 0))
-						break;
-
-					
-
-					if (IsValidSpellRange(botSpell.SpellId, addMob)) {
-						castedSpell = AIDoSpellCast(botSpell.SpellIndex, addMob, botSpell.ManaCost);
-					}
-					else {
-						break;
-					}
-
-					if (castedSpell) {
-						BotGroupSay(this, "Attempting to mez %s with [%s].", addMob->GetCleanName(), GetSpellName(botSpell.SpellId));
-						//m_mez_delay_timer.Start(GetMezDelay());
-						break;
-					}
+				if (!addMob) {
+					//Say("!addMob.");
+					break;
 				}
-				break;
+
+				if (!(!addMob->IsImmuneToBotSpell(botSpell.SpellId, this) && addMob->CanBuffStack(botSpell.SpellId, botLevel, true) >= 0))
+					break;
+
+				
+
+				if (IsValidSpellRange(botSpell.SpellId, addMob)) {
+					castedSpell = AIDoSpellCast(botSpell.SpellIndex, addMob, botSpell.ManaCost);
+				}
+				else {
+					break;
+				}
+
+				if (castedSpell) {
+					BotGroupSay(this, "Attempting to mez %s with [%s].", addMob->GetCleanName(), GetSpellName(botSpell.SpellId));
+					//m_mez_delay_timer.Start(GetMezDelay());
+					break;
+				}
 			}
 			break;
 		}
@@ -2451,16 +2440,35 @@ BotSpell Bot::GetBestBotSpellForDiseaseBasedSlow(Bot* botCaster) {
 Mob* Bot::GetFirstIncomingMobToMez(Bot* botCaster, BotSpell botSpell) {
 	Mob* result = 0;
 	bool go_next = false;
+	uint32 spell_range = 0;
 
 	if (botCaster && IsMesmerizeSpell(botSpell.SpellId)) {
+		for (auto& close_mob : botCaster->close_mobs) {
+			NPC* npc = close_mob.second->CastToNPC();
 
-		std::list<NPC*> npc_list;
-		entity_list.GetNPCList(npc_list);
+			if (!npc->IsOnHatelist(botCaster->GetOwner())) {
+				continue;
+			}
 
-		for (std::list<NPC*>::iterator itr = npc_list.begin(); itr != npc_list.end(); ++itr) {
-			NPC* npc = *itr;
+			if (npc->GetBodyType() == BT_Giant) {
+				continue;
+			}
 
-			if (DistanceSquaredNoZ(npc->GetPosition(), botCaster->GetPosition()) <= botCaster->GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range)) {
+			if ((botCaster->GetClass() == NECROMANCER) && npc->GetBodyType() != BT_Undead && npc->GetBodyType() != BT_SummonedUndead && npc->GetBodyType() != BT_Vampire) {
+				continue;
+			}
+
+			if (npc->GetHPRatio() < botCaster->GetMezMinThreshold() || npc->GetHPRatio() > botCaster->GetMezThreshold()) {
+				continue;
+			}
+
+			if (!botCaster->CheckLosFN(npc) || !botCaster->CheckWaterLoS(botCaster, npc) || !botCaster->CheckLosCheat(botCaster, npc)) {
+				continue;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
+			}
+
+			spell_range = botCaster->GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range);
+
+			if (DistanceSquaredNoZ(npc->GetPosition(), botCaster->GetPosition()) <= (spell_range * spell_range)) {
 				if (!npc->IsMezzed()) {
 					if (botCaster->IsRaidGrouped()) {
 						Raid* raid = botCaster->GetRaid();

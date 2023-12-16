@@ -11333,7 +11333,7 @@ bool Bot::CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 
 			return true;
 			break;
 		case SpellType_Mez:
-			if (GetHoldMez() || targetHP < GetMezMinThreshold() || targetHP > GetMezThreshold() || !m_mez_delay_timer.Check()) {
+			if (GetHoldMez() || !m_mez_delay_timer.Check()) {
 				return false;
 			}
 			return true;

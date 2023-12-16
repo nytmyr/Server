@@ -1474,53 +1474,42 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 	switch (iSpellTypes) {
 	case SpellType_Mez: {
 		if (CanCastBySpellType(this, tar, SpellType_Mez)) {
-			if (tar->GetBodyType() != BT_Giant) {
-				if (!checked_los) {
-					if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar)) // if (!CheckLosFN(tar) || !CheckWaterLoS(this, tar) || !CheckLosCheat(this, tar))
-						break;	//cannot see target... we assume that no spell is going to work since we will only be casting detrimental spells in this call
+			//TODO
+			//Check if single target or AoE mez is best
+			//if (TARGETS ON MT IS => 3 THEN botSpell = AoEMez)
+			//if (TARGETS ON MT IS <= 2 THEN botSpell = BestMez)
 
-					checked_los = true;
-				}
-				if ((botClass == NECROMANCER) && tar->GetBodyType() != BT_Undead && tar->GetBodyType() != BT_SummonedUndead && tar->GetBodyType() != BT_Vampire)
-					break;
-				//TODO
-				//Check if single target or AoE mez is best
-				//if (TARGETS ON MT IS => 3 THEN botSpell = AoEMez)
-				//if (TARGETS ON MT IS <= 2 THEN botSpell = BestMez)
+			botSpell = GetBestBotSpellForMez(this);
 
-				botSpell = GetBestBotSpellForMez(this);
+			if (botSpell.SpellId == 0)
+				break;
+			if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, MezResistLimit)))
+				break;
 
-				if (botSpell.SpellId == 0)
-					break;
-				if (!DoResistCheck(this, tar, botSpell.SpellId, RuleI(Bots, MezResistLimit)))
-					break;
+			Mob* addMob = GetFirstIncomingMobToMez(this, botSpell);
 
-				Mob* addMob = GetFirstIncomingMobToMez(this, botSpell);
-
-				if (!addMob) {
-					//Say("!addMob.");
-					break;
-				}
-
-				if (!(!addMob->IsImmuneToBotSpell(botSpell.SpellId, this) && addMob->CanBuffStack(botSpell.SpellId, botLevel, true) >= 0))
-					break;
-
-
-
-				if (IsValidSpellRange(botSpell.SpellId, addMob)) {
-					castedSpell = AIDoSpellCast(botSpell.SpellIndex, addMob, botSpell.ManaCost);
-				}
-				else {
-					break;
-				}
-
-				if (castedSpell) {
-					BotGroupSay(this, "Attempting to mez %s with [%s].", addMob->GetCleanName(), GetSpellName(botSpell.SpellId));
-					//m_mez_delay_timer.Start(GetMezDelay());
-					break;
-				}
+			if (!addMob) {
+				//Say("!addMob.");
+				break;
 			}
-			break;
+
+			if (!(!addMob->IsImmuneToBotSpell(botSpell.SpellId, this) && addMob->CanBuffStack(botSpell.SpellId, botLevel, true) >= 0))
+				break;
+
+
+
+			if (IsValidSpellRange(botSpell.SpellId, addMob)) {
+				castedSpell = AIDoSpellCast(botSpell.SpellIndex, addMob, botSpell.ManaCost);
+			}
+			else {
+				break;
+			}
+
+			if (castedSpell) {
+				BotGroupSay(this, "Attempting to mez %s with [%s].", addMob->GetCleanName(), GetSpellName(botSpell.SpellId));
+				//m_mez_delay_timer.Start(GetMezDelay());
+				break;
+			}
 		}
 		break;
 	}
