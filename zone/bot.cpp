@@ -8687,43 +8687,14 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 
 	uint8 botCasterClass = caster->GetClass();
 
-	if( iSpellTypes == SpellType_Heal )	{
-		if(botCasterClass == CLERIC || botCasterClass == DRUID || botCasterClass == SHAMAN) {
-			//float hpRatioToHeal = 55.0f;
-			//switch (caster->GetBotStance()) {
-			//case EQ::constants::stanceReactive:
-			//	hpRatioToHeal = 85.0f;
-			//	break;
-			//case EQ::constants::stanceBalanced:
-			//	hpRatioToHeal = 55.0f;
-			//	break;
-			//case EQ::constants::stanceBurn:
-			//	hpRatioToHeal = 35.0f;
-			//	break;
-			//case EQ::constants::stanceBurnAE:
-			//	hpRatioToHeal = 25.0f;
-			//	break;
-			//case EQ::constants::stanceAggressive:
-			//	hpRatioToHeal = 0.0f;
-			//	break;
-			//case EQ::constants::stanceEfficient:
-			//default:
-			//	hpRatioToHeal = 70.0f;
-			//	break;
-			//}
+	if (iSpellTypes == SpellType_Heal )	{
+		if (botCasterClass == CLERIC || botCasterClass == DRUID || botCasterClass == SHAMAN) {
 			if (caster->IsRaidGrouped()) {
 				Raid* raid = entity_list.GetRaidByBotName(caster->GetName());
 				uint32 gid = raid->GetGroup(caster->GetName());
 				if (gid < 12) {
-					//std::vector<RaidMember> raid_group_members;
-					//if (RuleB(Bots, CastOnAllRaidMembers)) {
-						std::vector<RaidMember> raid_group_members = raid->GetMembers();
-					//}
-					//else {
-					//	raid_group_members = raid->GetRaidGroupMembers(gid);
-					//}
+					std::vector<RaidMember> raid_group_members = raid->GetMembers();
 					for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
-						//for (auto& iter : raid->GetRaidGroupMembers(g)) {
 						if (iter->member && entity_list.IsMobInZone(iter->member)) {
 							if (caster->AICastSpell(iter->member, 100, SpellType_Heal)) {
 								return true;
@@ -8731,11 +8702,9 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 						}
 
 						if (iter->member && entity_list.IsMobInZone(iter->member) && iter->member->HasPet() && !iter->member->GetPet()->IsFamiliar()) {
-							//if (iter->member->GetPet()->GetOwner() != caster && caster->IsEngaged() && iter->member->IsCasting() && iter->member->GetClass() != ENCHANTER)
-								//continue;
-
-							if (caster->AICastSpell(iter->member->GetPet(), 100, SpellType_Heal))
+							if (caster->AICastSpell(iter->member->GetPet(), 100, SpellType_Heal)) {
 								return true;
+							}
 						}
 					}
 				}
@@ -8751,51 +8720,21 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 						}
 
 						if (g->members[i] && g->members[i]->HasPet() && !g->members[i]->GetPet()->IsFamiliar()) {
-							//if(g->members[i]->GetPet()->GetOwner() != caster && caster->IsEngaged() && g->members[i]->IsCasting() && g->members[i]->GetClass() != ENCHANTER )
-								//continue;
-
-							if (caster->AICastSpell(g->members[i]->GetPet(), 100, SpellType_Heal))
+							if (caster->AICastSpell(g->members[i]->GetPet(), 100, SpellType_Heal)) {
 								return true;
+							}
 						}
 					}
 				}
 			}
 		}
 
-		if( botCasterClass == PALADIN || botCasterClass == BEASTLORD || botCasterClass == RANGER) {
-			//float hpRatioToHeal = 55.0f;
-			//switch(caster->GetBotStance()) {
-			//	case EQ::constants::stanceReactive:
-			//		hpRatioToHeal = 85.0f;
-			//		break;
-			//	case EQ::constants::stanceBalanced:
-			//		hpRatioToHeal = 55.0f;
-			//		break;
-			//	case EQ::constants::stanceBurn:
-			//		hpRatioToHeal = 35.0f;
-			//		break;
-			//	case EQ::constants::stanceBurnAE:
-			//		hpRatioToHeal = 25.0f;
-			//		break;
-			//	case EQ::constants::stanceAggressive:
-			//		hpRatioToHeal = 0.0f;
-			//		break;
-			//	case EQ::constants::stanceEfficient:
-			//	default:
-			//		hpRatioToHeal = 70.0f;
-			//		break;
-			//}
+		if (botCasterClass == PALADIN || botCasterClass == BEASTLORD || botCasterClass == RANGER) {
 			if (caster->IsRaidGrouped()) {
 				Raid* raid = entity_list.GetRaidByBotName(caster->GetName());
 				uint32 gid = raid->GetGroup(caster->GetName());
 				if (gid < 12) {
-					//std::vector<RaidMember> raid_group_members;
-					//if (RuleB(Bots, CastOnAllRaidMembers)) {
 					std::vector<RaidMember> raid_group_members = raid->GetMembers();
-					//}
-					//else {
-					//	raid_group_members = raid->GetRaidGroupMembers(gid);
-					//}
 					for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
 						if (iter->member && entity_list.IsMobInZone(iter->member)) {
 							if (caster->AICastSpell(iter->member, 100, SpellType_Heal)) {
@@ -8805,11 +8744,9 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 						}
 
 						if (iter->member && entity_list.IsMobInZone(iter->member) && iter->member->HasPet() && !iter->member->GetPet()->IsFamiliar()) {
-							//if (iter->member->GetPet()->GetOwner() != caster && caster->IsEngaged() && iter->member->IsCasting() && iter->member->GetClass() != ENCHANTER)
-								//continue;
-
-							if (caster->AICastSpell(iter->member->GetPet(), 100, SpellType_Heal))
+							if (caster->AICastSpell(iter->member->GetPet(), 100, SpellType_Heal)) {
 								return true;
+							}
 						}
 					}
 				}
@@ -8849,13 +8786,7 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 			Raid* raid = entity_list.GetRaidByBotName(caster->GetName());
 			uint32 g = raid->GetGroup(caster->GetName());
 			if (g < 12) {
-				//std::vector<RaidMember> raid_group_members;
-				//if (RuleB(Bots, CastOnAllRaidMembers)) {
-					std::vector<RaidMember> raid_group_members = raid->GetMembers();
-				//}
-				//else {
-				//	raid_group_members = raid->GetRaidGroupMembers(gid);
-				//}
+				std::vector<RaidMember> raid_group_members = raid->GetMembers();
 				for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
 					if (iter->member && entity_list.IsMobInZone(iter->member)) {
 						if (caster->AICastSpell(iter->member, chanceToCast, SpellType_Buff)) {
@@ -8892,13 +8823,7 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 			Raid* raid = entity_list.GetRaidByBotName(caster->GetName());
 			uint32 gid = raid->GetGroup(caster->GetName());
 			if (gid < 12) {
-				//std::vector<RaidMember> raid_group_members;
-				//if (RuleB(Bots, CastOnAllRaidMembers)) {
-					std::vector<RaidMember> raid_group_members = raid->GetMembers();
-				//}
-				//else {
-				//	raid_group_members = raid->GetRaidGroupMembers(gid);
-				//}
+				std::vector<RaidMember> raid_group_members = raid->GetMembers();
 				for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
 					if (iter->member && entity_list.IsMobInZone(iter->member) && caster->GetNeedsCured(iter->member)) {
 						if (caster->AICastSpell(iter->member, 100, SpellType_Cure))
@@ -8943,13 +8868,7 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 			Raid* raid = entity_list.GetRaidByBotName(caster->GetName());
 			uint32 gid = raid->GetGroup(caster->GetName());
 			if (gid < 12) {
-				//std::vector<RaidMember> raid_group_members;
-				//if (RuleB(Bots, CastOnAllRaidMembers)) {
-					std::vector<RaidMember> raid_group_members = raid->GetMembers();
-				//}
-				//else {
-				//	raid_group_members = raid->GetRaidGroupMembers(gid);
-				//}
+				std::vector<RaidMember> raid_group_members = raid->GetMembers();
 				for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
 					if (iter->member && caster->GetNeedsHateRedux(iter->member)) {
 						if (caster->AICastSpell(iter->member, 100, SpellType_HateRedux))
@@ -8980,13 +8899,7 @@ bool EntityList::Bot_AICheckCloseBeneficialSpells(Bot* caster, uint8 iChance, fl
 			Raid* raid = entity_list.GetRaidByBotName(caster->GetName());
 			uint32 g = raid->GetGroup(caster->GetName());
 			if (g < 12) {
-				//std::vector<RaidMember> raid_group_members;
-				//if (RuleB(Bots, CastOnAllRaidMembers)) {
-					std::vector<RaidMember> raid_group_members = raid->GetMembers();
-				//}
-				//else {
-				//	raid_group_members = raid->GetRaidGroupMembers(gid);
-				//}
+				std::vector<RaidMember> raid_group_members = raid->GetMembers();
 				for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
 					if (iter->member && entity_list.IsMobInZone(iter->member)) {
 						if (caster->AICastSpell(iter->member, iChance, SpellType_PreCombatBuff) || caster->AICastSpell(iter->member->GetPet(), iChance, SpellType_PreCombatBuff))
