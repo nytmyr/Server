@@ -487,6 +487,8 @@ bool BotDatabase::LoadBot(const uint32 bot_id, Bot*& loaded_bot)
 		loaded_bot->SetBotEnforceSpellSetting((l.enforce_spell_settings ? true : false));
 		loaded_bot->SetBotArcherySetting((l.archery_setting ? true : false));
 		loaded_bot->SetBotPetSetTypeSetting((l.petsettype_setting));
+		loaded_bot->SetHoldAENukes(l.hold_ae_nukes);
+		loaded_bot->SetHoldAERains(l.hold_ae_rains);
 		loaded_bot->SetHoldBuffs(l.hold_buffs);
 		loaded_bot->SetHoldCharms(l.hold_charms);
 		loaded_bot->SetHoldCompleteHeals(l.hold_complete_heals);
@@ -632,6 +634,8 @@ bool BotDatabase::SaveNewBot(Bot* bot_inst, uint32& bot_id)
 	e.enforce_spell_settings		= bot_inst->GetBotEnforceSpellSetting();
 	e.archery_setting				= bot_inst->IsBotArcher() ? 1 : 0;
 	e.petsettype_setting			= 255;
+	e.hold_ae_nukes					= 1;
+	e.hold_ae_rains					= 1;
 	e.hold_buffs					= 0;
 	e.hold_charms					= 0;
 	e.hold_complete_heals		    = 0;
@@ -785,6 +789,8 @@ bool BotDatabase::SaveBot(Bot* bot_inst)
 	l.enforce_spell_settings		= bot_inst->GetBotEnforceSpellSetting();
 	l.archery_setting				= bot_inst->IsBotArcher() ? 1 : 0;
 	l.petsettype_setting			= bot_inst->GetBotPetSetTypeSetting();
+	l.hold_ae_nukes					= bot_inst->GetHoldAENukes();
+	l.hold_ae_rains					= bot_inst->GetHoldAERains();
 	l.hold_buffs					= bot_inst->GetHoldBuffs();
 	l.hold_charms					= bot_inst->GetHoldCharms();
 	l.hold_complete_heals		    = bot_inst->GetHoldCompleteHeals();
@@ -2593,6 +2599,48 @@ bool BotDatabase::SaveStopMeleeLevel(const uint32 owner_id, const uint32 bot_id,
 }
 
 //Custom spell commands
+bool BotDatabase::SaveHoldAENukes(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hold_ae_nukes` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		(hold_value ? 1 : 0),
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveHoldAERains(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `hold_ae_rains` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		(hold_value ? 1 : 0),
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
 bool BotDatabase::SaveHoldBuffs(const uint32 owner_id, const uint32 bot_id, const bool hold_value)
 {
 	if (!owner_id || !bot_id)
@@ -5478,6 +5526,8 @@ const char* BotDatabase::fail::SaveAllFollowDistances() { return "Failed to save
 const char* BotDatabase::fail::SaveStopMeleeLevel() { return "Failed to save stop melee level"; }
 
 //Custom spell commands
+const char* BotDatabase::fail::SaveHoldAENukes() { return "Failed to save hold AE nukes status"; }
+const char* BotDatabase::fail::SaveHoldAERains() { return "Failed to save hold AE rains status"; }
 const char* BotDatabase::fail::SaveHoldBuffs() { return "Failed to save hold buffs status"; }
 const char* BotDatabase::fail::SaveHoldCharms() { return "Failed to save hold charms status"; }
 const char* BotDatabase::fail::SaveHoldCompleteHeals() { return "Failed to save hold Complete Heals status"; }

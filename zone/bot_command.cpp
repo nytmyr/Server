@@ -1485,6 +1485,8 @@ int bot_command_init(void)
 		bot_command_add("snare", "Orders a bot to snare the target", AccountStatus::Player, bot_command_snare) ||
 		bot_command_add("casterrange", "Controls the range casters will try to stay away from a mob (if too far, they will skip spells that are out-of-range)", AccountStatus::Player, bot_command_caster_range) ||
 		bot_command_add("behindmob", "Toggles whether or not your bot tries to stay behind a mob", AccountStatus::Player, bot_command_behind_mob) ||
+		bot_command_add("holdaenukes", "Toggles a bot's ability to cast AE nukes", AccountStatus::Player, bot_command_hold_ae_nukes) ||
+		bot_command_add("holdaerains", "Toggles a bot's ability to cast AE rains", AccountStatus::Player, bot_command_hold_ae_rains) ||
 		bot_command_add("holdbuffs", "Toggles a bot's ability to cast buffs", AccountStatus::Player, bot_command_hold_buffs) ||
 		bot_command_add("holdcharms", "Toggles a bot's ability to cast charms", AccountStatus::Player, bot_command_hold_charms) ||
 		bot_command_add("holdcompleteheals", "Toggles a bot's ability to cast Complete heals", AccountStatus::Player, bot_command_hold_complete_heals) ||
@@ -7590,6 +7592,220 @@ void bot_command_hold(Client *c, const Seperator *sep)
 				clear ? "no longer " : ""
 			).c_str()
 		);
+	}
+}
+
+void bot_command_hold_ae_nukes(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_ae_nukes", sep->arg[0], "holdaenukes"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast AE nukes.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting AE nukes.");
+		c->Message(Chat::White, "note: The default hold is enabled (1).");
+		return;
+	}
+
+	const int ab_mask = ActionableBots::ABM_Type1;
+
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
+	if (sep->IsNumber(1)) {
+		ab_arg = 2;
+		holdstatus = atoi(sep->arg[1]);
+		if (holdstatus != 0 && holdstatus != 1) {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold AE Nukes status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldAENukes() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldAENukes(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldAENukes(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldAENukes(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold AE Nukes status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold AE Nukes status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+	}
+}
+
+void bot_command_hold_ae_rains(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_hold_ae_rains", sep->arg[0], "holdaerains"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
+		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		c->Message(Chat::White, "note: Set to 0 to allow the selected bot to cast AE rains.");
+		c->Message(Chat::White, "note: Set to 1 to prevent the selected bot from casting AE rains.");
+		c->Message(Chat::White, "note: The default hold is enabled (1).");
+		return;
+	}
+
+	const int ab_mask = ActionableBots::ABM_Type1;
+
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 holdstatus = 0;
+	if (sep->IsNumber(1)) {
+		ab_arg = 2;
+		holdstatus = atoi(sep->arg[1]);
+		if (holdstatus != 0 && holdstatus != 1) {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current Hold AE Rains status is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetHoldAERains() ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetHoldAERains(holdstatus);
+			++success_count;
+			if (!database.botdb.SaveHoldAERains(c->CharacterID(), my_bot->GetBotID(), holdstatus)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveHoldAERains(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Hold AE Rains status was {}.'",
+					first_found->GetCleanName(),
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Hold AE Rains status to {}.",
+					success_count,
+					holdstatus ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
 	}
 }
 
@@ -22430,6 +22646,8 @@ void CopyBotSettings(Bot* from, Bot* to, uint8 chosen_type)
 		to->SetBotCasterRange(from->GetBotCasterRange());
 	}
 	if (chosen_type == COPY_HOLDS || chosen_type == COPY_ALL) {
+		to->SetHoldAENukes(from->GetHoldAENukes());
+		to->SetHoldAERains(from->GetHoldAERains());
 		to->SetHoldBuffs(from->GetHoldBuffs());
 		to->SetHoldCharms(from->GetHoldCharms());
 		to->SetHoldCompleteHeals(from->GetHoldCompleteHeals());
@@ -22544,6 +22762,8 @@ void DefaultBotSettings(Bot* my_bot, uint8 chosen_type)
 		my_bot->SetBotEnforceSpellSetting(false, true);
 	}
 	if (chosen_type == DEFAULT_HOLDS || chosen_type == DEFAULT_ALL) {
+		my_bot->SetHoldAENukes(true);
+		my_bot->SetHoldAERains(true);
 		my_bot->SetHoldBuffs(false);
 		my_bot->SetHoldCharms(false);
 		my_bot->SetHoldCompleteHeals(false);

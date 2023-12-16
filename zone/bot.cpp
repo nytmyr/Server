@@ -2508,6 +2508,14 @@ void Bot::SetHoldMode() {
 }
 
 // Custom commands for spells
+void Bot::SetHoldAENukes(bool holdstatus) {
+	_holdAENukes = holdstatus;
+}
+
+void Bot::SetHoldAERains(bool holdstatus) {
+	_holdAERains = holdstatus;
+}
+
 void Bot::SetHoldBuffs(bool holdstatus) {
 	_holdBuffs = holdstatus;
 }
@@ -12205,4 +12213,88 @@ void Bot::DoItemClick(const EQ::ItemData* item, uint16 slot_id) {
 		}
 	}
 
+}
+
+void Bot::CheckForAETargets(Mob* tar, uint16 spell_id, bool *ae_targets) {
+	if (!tar) {
+		return;
+	}
+
+	int spellAERange = GetActSpellRange(spell_id, spells[spell_id].aoe_range);
+	int spellRange = GetActSpellRange(spell_id, spells[spell_id].range);
+	bool valid_ae = false;
+
+	if ((GetHoldAENukes() && IsPBAENukeSpell(spell_id)) || (IsPBAENukeSpell(spell_id) && ((Distance(GetPosition(), tar->GetPosition()) > spellAERange)))) {
+		*ae_targets = valid_ae;
+		return;
+	}
+
+	if ((GetHoldAERains() && !IsPBAENukeSpell(spell_id)) || (!IsPBAENukeSpell(spell_id) && ((Distance(GetPosition(), tar->GetPosition()) > spellRange)))) {
+		*ae_targets = valid_ae;
+		return;
+	}
+
+	std::list<NPC*> npc_list;
+	entity_list.GetNPCList(npc_list);
+
+	uint8 npc_ae_count = 0;
+
+	for (auto& close_mob : close_mobs) {
+		NPC* npc = close_mob.second->CastToNPC();
+
+		if (npc->IsOnHatelist(GetOwner()) && !npc->IsMezzed()) {
+			if (IsPBAENukeSpell(spell_id)) {
+				if (spellAERange >= Distance(GetPosition(), npc->GetPosition())) {
+					if (DoResistCheck(this, npc, spell_id, RuleI(Bots, NukeResistLimit))) {
+						++npc_ae_count;
+					}
+				}
+			}
+			else {
+				if (spellAERange >= Distance(tar->GetPosition(), npc->GetPosition())) {
+					if (DoResistCheck(this, npc, spell_id, RuleI(Bots, NukeResistLimit))) {
+						++npc_ae_count;
+					}
+				}
+			}
+		}
+		/* TODO: Add Mez checks?
+		if (npc->IsMezzed() && DistanceSquaredNoZ(npc->GetPosition(), GetPosition()) <= (150 * 150)) {
+			npc_ae_count = 0;
+			npc_pbae_count = 0;
+			continue;
+		}
+		*/
+		else {
+			continue;
+		}
+
+		if (npc_ae_count >= RuleI(Bots, MinTargetsForAE)) {
+			valid_ae = true;
+			break;
+		}
+	}
+
+	*ae_targets = valid_ae;
+}
+
+bool Bot::ValidAENukeOrRain(Mob* tar, uint16 spell_id) {
+	if (!IsValidSpellRange(spell_id, tar)) {
+		return false;
+	}
+
+	if (IsAENukeSpell(spell_id) || IsPBAENukeSpell(spell_id) || IsAERainNukeSpell(spell_id) || IsAEDurationSpell(spell_id)) {
+		if (GetHoldAENukes() && spells[spell_id].aoe_duration == 0) {
+			return false;
+		}
+
+		if (GetHoldAERains() && spells[spell_id].aoe_duration > 0) {
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
+
+	return true;
 }

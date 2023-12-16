@@ -534,7 +534,11 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					checked_los = true;
 				}
 
-				if (botClass == MAGICIAN || botClass == SHADOWKNIGHT || botClass == NECROMANCER || botClass == PALADIN || botClass == RANGER || botClass == DRUID || botClass == CLERIC || botClass == WIZARD) {
+				if (!GetHoldAENukes() || !GetHoldAERains()) {
+					botSpell = GetBestAENukeOrRainSpell(this);
+				}
+			
+				if (botSpell.SpellId == 0 && (botClass == MAGICIAN || botClass == SHADOWKNIGHT || botClass == NECROMANCER || botClass == PALADIN || botClass == RANGER || botClass == DRUID || botClass == CLERIC || botClass == WIZARD)) {
 					if ((botClass == CLERIC || botClass == PALADIN || botClass == SHADOWKNIGHT || botClass == NECROMANCER) && (tar->GetBodyType() == BT_Undead || tar->GetBodyType() == BT_SummonedUndead || tar->GetBodyType() == BT_Vampire))
 						botSpell = GetBestBotSpellForNukeByTargetType(this, ST_Undead);
 					else if ((botClass == CLERIC || botClass == RANGER || botClass == DRUID || botClass == MAGICIAN) && (tar->GetBodyType() == BT_Summoned || tar->GetBodyType() == BT_Summoned2 || tar->GetBodyType() == BT_Summoned3))
@@ -549,20 +553,18 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						botSpell = GetBestBotSpellForNukeByTargetType(this, ST_Dragon);
 				}
 
-				if (botClass == PALADIN || botClass == DRUID || botClass == CLERIC || botClass == 1 || botClass == WIZARD || botClass == ENCHANTER || botClass == NECROMANCER) {
-					if (botSpell.SpellId == 0) {
-						uint8 stunChance = (tar->IsCasting() ? RuleI(Bots, StunCastChanceIfCasting) : RuleI(Bots, StunCastChanceNormal));
+				if (botSpell.SpellId == 0 && (botClass == PALADIN || botClass == DRUID || botClass == CLERIC || botClass == 1 || botClass == WIZARD || botClass == ENCHANTER || botClass == NECROMANCER)) {
+					uint8 stunChance = (tar->IsCasting() ? RuleI(Bots, StunCastChanceIfCasting) : RuleI(Bots, StunCastChanceNormal));
 
-						if (botClass == PALADIN)
-							stunChance = RuleI(Bots, StunCastChanceIfCastingPaladins);
+					if (botClass == PALADIN)
+						stunChance = RuleI(Bots, StunCastChanceIfCastingPaladins);
 
-						if (!tar->GetSpecialAbility(UNSTUNABLE) && !tar->IsStunned() && (zone->random.Int(1, 100) <= stunChance)) {
-							botSpell = GetBestBotSpellForStunByTargetType(this, ST_Target);
-						}
+					if (!tar->GetSpecialAbility(UNSTUNABLE) && !tar->IsStunned() && (zone->random.Int(1, 100) <= stunChance)) {
+						botSpell = GetBestBotSpellForStunByTargetType(this, ST_Target);
 					}
 				}
 
-				if (botClass == WIZARD && botSpell.SpellId == 0) {
+				if (botSpell.SpellId == 0 && botClass == WIZARD) {
 					botSpell = GetBestBotWizardNukeSpellByTargetResists(this, tar);
 				}
 
@@ -586,8 +588,21 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					else {
 						botSpell.SpellId = 0;
 					}
+					std::string nukeType = ".";
+					if (IsPBAENukeSpell(botSpell.SpellId)) {
+						nukeType = " [PBAE].";
+					}
+					else if (IsAERainNukeSpell(botSpell.SpellId)) {
+						nukeType = " [AERain].";
+					}
+					else if (IsAEDurationSpell(botSpell.SpellId)) {
+						nukeType = " [AERain].";
+					}
+					else if (IsAENukeSpell(botSpell.SpellId)) {
+						nukeType = " [AE].";
+					}
 					if (castedSpell) {
-						BotGroupSay(this, "Nuking %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
+						BotGroupSay(this, "Nuking %s with [%s]%s", tar->GetCleanName(), GetSpellName(botSpell.SpellId), nukeType);
 						break;
 					}
 				}
@@ -1362,10 +1377,10 @@ bool Bot::AIDoSpellCast(uint8 i, Mob* tar, int32 mana_cost, uint32* oDontDoAgain
 		(
 			(
 				(
-					(spells[AIBot_spells[i].spellid].target_type==ST_GroupTeleport && AIBot_spells[i].type == SpellType_Heal) ||
-					spells[AIBot_spells[i].spellid].target_type ==ST_AECaster ||
-					spells[AIBot_spells[i].spellid].target_type ==ST_Group ||
-					spells[AIBot_spells[i].spellid].target_type ==ST_AEBard ||
+					(spells[AIBot_spells[i].spellid].target_type == ST_GroupTeleport && AIBot_spells[i].type == SpellType_Heal) ||
+					spells[AIBot_spells[i].spellid].target_type == ST_AECaster ||
+					spells[AIBot_spells[i].spellid].target_type == ST_Group ||
+					spells[AIBot_spells[i].spellid].target_type == ST_AEBard ||
 					(
 						tar == this && spells[AIBot_spells[i].spellid].target_type != ST_TargetsTarget
 					)
@@ -2779,6 +2794,10 @@ BotSpell Bot::GetBestBotSpellForStunByTargetType(Bot* botCaster, SpellTargetType
 
 		for(std::list<BotSpell>::iterator botSpellListItr = botSpellList.begin(); botSpellListItr != botSpellList.end(); ++botSpellListItr)
 		{
+			if (!botCaster->IsValidSpellRange(botSpellListItr->SpellId, botCaster->GetTarget())) {
+				continue;
+			}
+
 			// Assuming all the spells have been loaded into this list by level and in descending order
 			if (IsStunSpell(botSpellListItr->SpellId) && botCaster->CheckSpellRecastTimer(botSpellListItr->SpellId))
 			{
@@ -2803,6 +2822,7 @@ BotSpell Bot::GetBestBotWizardNukeSpellByTargetResists(Bot* botCaster, Mob* targ
 	result.ManaCost = 0;
 
 	if (botCaster && target) {
+
 		const int lureResisValue = -100;
 
 		int32 level_mod = (target->GetLevel() - botCaster->GetLevel()) * (target->GetLevel() - botCaster->GetLevel()) / 2;
@@ -2827,6 +2847,9 @@ BotSpell Bot::GetBestBotWizardNukeSpellByTargetResists(Bot* botCaster, Mob* targ
 
 		for(std::list<BotSpell>::iterator botSpellListItr = botSpellList.begin(); botSpellListItr != botSpellList.end(); ++botSpellListItr) {
 			// Assuming all the spells have been loaded into this list by level and in descending order
+			if (!botCaster->IsValidSpellRange(botSpellListItr->SpellId, botCaster->GetTarget())) {
+				continue;
+			}
 
 			if(botCaster->CheckSpellRecastTimer(botSpellListItr->SpellId)) {
 				if(selectLureNuke && (spells[botSpellListItr->SpellId].resist_difficulty < lureResisValue)) {
@@ -3801,6 +3824,20 @@ bool Bot::IsValidSpellRange(uint16 spell_id, Mob const* tar) {
 	return false;
 }
 
+bool Bot::IsValidAESpellRange(uint16 spell_id, Mob const* tar, Mob const* npc) {
+	if (!IsValidSpell(spell_id)) {
+		return false;
+	}
+
+	if (tar) {
+		int spellrange = (GetActSpellRange(spell_id, spells[spell_id].aoe_range) * GetActSpellRange(spell_id, spells[spell_id].aoe_range));
+		if (spellrange >= DistanceSquared(tar->GetPosition(), npc->GetPosition())) {
+			return true;
+		}
+	}
+	return false;
+}
+
 bool Bot::IsTargetAlreadyReceivingSpell(Mob* tar, uint16 spellid, std::string healType) {
 
 	if (!tar || !spellid) {
@@ -4113,6 +4150,60 @@ BotSpell Bot::GetBotSpellBySpellID(Bot* botCaster, uint32 spell_id) {
 				break;
 			}
 		}
+	}
+
+	return result;
+}
+
+BotSpell Bot::GetBestAENukeOrRainSpell(Bot* botCaster) {
+	BotSpell result;
+
+	result.SpellId = 0;
+	result.SpellIndex = 0;
+	result.ManaCost = 0;
+
+	bool ae_targets = false;
+	Mob* tar = botCaster->GetTarget();
+
+	if (!tar) {
+		return result;
+	}
+
+	std::list<BotSpell_wPriority> spellList = GetPrioritizedBotSpellsBySpellType(botCaster, SpellType_Nuke);
+	for (std::list<BotSpell_wPriority>::iterator itr = spellList.begin(); itr != spellList.end(); ++itr) {
+		BotSpell_wPriority botSpell = *itr;
+
+		if (botSpell.SpellId == 0) {
+			continue;
+		}
+
+		if (!IsValidSpell(botSpell.SpellId)) {
+			continue;
+		}
+
+		if (!botCaster->ValidAENukeOrRain(tar, botSpell.SpellId)) {
+			continue;
+		}
+
+		if (!botCaster->CheckSpellRecastTimer(botSpell.SpellId)) {
+			continue;
+		}
+
+		if (!(!tar->IsImmuneToBotSpell(botSpell.SpellId, botCaster) && tar->CanBuffStack(botSpell.SpellId, botCaster->GetLevel(), false) >= 0)) {
+			continue;
+		}
+
+		botCaster->CheckForAETargets(tar, botSpell.SpellId, &ae_targets);
+
+		if (!ae_targets) {
+			continue;
+		}
+
+		result.SpellId = botSpell.SpellId;
+		result.SpellIndex = botSpell.SpellIndex;
+		result.ManaCost = botSpell.ManaCost;
+
+		break;
 	}
 
 	return result;

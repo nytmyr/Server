@@ -143,6 +143,8 @@ public:
 	bool SaveBotArcherSetting(const uint32 bot_id, const bool bot_archer_setting);
 	bool SaveBotPetSetTypeSetting(const uint32 bot_id, const uint8 bot_petsettype_setting);
 
+	bool SaveHoldAENukes(const uint32 owner_id, const uint32 bot_id, const bool hold_value);
+	bool SaveHoldAERains(const uint32 owner_id, const uint32 bot_id, const bool hold_value);
 	bool SaveHoldBuffs(const uint32 owner_id, const uint32 bot_id, const bool hold_value);
 	bool SaveHoldCharms(const uint32 owner_id, const uint32 bot_id, const bool hold_value);
 	bool SaveHoldCompleteHeals(const uint32 owner_id, const uint32 bot_id, const bool hold_value);
@@ -340,6 +342,8 @@ public:
 		static const char* SaveBotCasterRange();
 
 		//Custom spell commands
+		static const char* SaveHoldAENukes();
+		static const char* SaveHoldAERains();
 		static const char* SaveHoldBuffs();
 		static const char* SaveHoldCharms();
 		static const char* SaveHoldCompleteHeals();

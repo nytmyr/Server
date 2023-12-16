@@ -629,6 +629,8 @@ void bot_command_snare(Client* c, const Seperator* sep);
 
 void bot_command_behind_mob(Client* c, const Seperator* sep);
 void bot_command_caster_range(Client* c, const Seperator* sep);
+void bot_command_hold_ae_nukes(Client* c, const Seperator* sep);
+void bot_command_hold_ae_rains(Client* c, const Seperator* sep);
 void bot_command_hold_buffs(Client* c, const Seperator* sep);
 void bot_command_hold_charms(Client* c, const Seperator* sep);
 void bot_command_hold_complete_heals(Client* c, const Seperator* sep);

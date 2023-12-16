@@ -1926,7 +1926,11 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				checked_los = true;
 			}
 
-			if (botClass == MAGICIAN || botClass == SHADOWKNIGHT || botClass == NECROMANCER || botClass == PALADIN || botClass == RANGER || botClass == DRUID || botClass == CLERIC || botClass == WIZARD) {
+			if (!GetHoldAENukes() || !GetHoldAERains()) {
+				botSpell = GetBestAENukeOrRainSpell(this);
+			}
+
+			if (botSpell.SpellId == 0 && (botClass == MAGICIAN || botClass == SHADOWKNIGHT || botClass == NECROMANCER || botClass == PALADIN || botClass == RANGER || botClass == DRUID || botClass == CLERIC || botClass == WIZARD)) {
 				if ((botClass == CLERIC || botClass == PALADIN || botClass == SHADOWKNIGHT || botClass == NECROMANCER) && (tar->GetBodyType() == BT_Undead || tar->GetBodyType() == BT_SummonedUndead || tar->GetBodyType() == BT_Vampire))
 					botSpell = GetBestBotSpellForNukeByTargetType(this, ST_Undead);
 				else if ((botClass == CLERIC || botClass == RANGER || botClass == DRUID || botClass == MAGICIAN) && (tar->GetBodyType() == BT_Summoned || tar->GetBodyType() == BT_Summoned2 || tar->GetBodyType() == BT_Summoned3))
@@ -1941,20 +1945,18 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					botSpell = GetBestBotSpellForNukeByTargetType(this, ST_Dragon);
 			}
 
-			if (botClass == PALADIN || botClass == DRUID || botClass == CLERIC || botClass == 1 || botClass == WIZARD || botClass == ENCHANTER || botClass == NECROMANCER) {
-				if (botSpell.SpellId == 0) {
-					uint8 stunChance = (tar->IsCasting() ? RuleI(Bots, StunCastChanceIfCasting) : RuleI(Bots, StunCastChanceNormal));
+			if (botSpell.SpellId == 0 && (botClass == PALADIN || botClass == DRUID || botClass == CLERIC || botClass == 1 || botClass == WIZARD || botClass == ENCHANTER || botClass == NECROMANCER)) {
+				uint8 stunChance = (tar->IsCasting() ? RuleI(Bots, StunCastChanceIfCasting) : RuleI(Bots, StunCastChanceNormal));
 
-					if (botClass == PALADIN)
-						stunChance = RuleI(Bots, StunCastChanceIfCastingPaladins);
+				if (botClass == PALADIN)
+					stunChance = RuleI(Bots, StunCastChanceIfCastingPaladins);
 
-					if (!tar->GetSpecialAbility(UNSTUNABLE) && !tar->IsStunned() && (zone->random.Int(1, 100) <= stunChance)) {
-						botSpell = GetBestBotSpellForStunByTargetType(this, ST_Target);
-					}
+				if (!tar->GetSpecialAbility(UNSTUNABLE) && !tar->IsStunned() && (zone->random.Int(1, 100) <= stunChance)) {
+					botSpell = GetBestBotSpellForStunByTargetType(this, ST_Target);
 				}
 			}
 
-			if (botClass == WIZARD && botSpell.SpellId == 0) {
+			if (botSpell.SpellId == 0 && botClass == WIZARD) {
 				botSpell = GetBestBotWizardNukeSpellByTargetResists(this, tar);
 			}
 
@@ -1978,8 +1980,21 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				else {
 					botSpell.SpellId = 0;
 				}
+				std::string nukeType = ".";
+				if (IsPBAENukeSpell(botSpell.SpellId)) {
+					nukeType = " [PBAE].";
+				}
+				else if (IsAERainNukeSpell(botSpell.SpellId)) {
+					nukeType = " [AERain].";
+				}
+				else if (IsAEDurationSpell(botSpell.SpellId)) {
+					nukeType = " [AERain].";
+				}
+				else if (IsAENukeSpell(botSpell.SpellId)) {
+					nukeType = " [AE].";
+				}
 				if (castedSpell) {
-					BotGroupSay(this, "Nuking %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
+					BotGroupSay(this, "Nuking %s with [%s]%s", tar->GetCleanName(), GetSpellName(botSpell.SpellId), nukeType);
 					break;
 				}
 			}

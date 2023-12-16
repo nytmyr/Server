@@ -352,6 +352,7 @@ public:
 	void SetHoldMode();
 	uint32 GetBotCasterRange() { return m_bot_caster_range; }
 	bool IsValidSpellRange(uint16 spell_id, Mob const* tar);
+	bool IsValidAESpellRange(uint16 spell_id, Mob const* tar, Mob const* npc);
 	bool IsTargetAlreadyReceivingSpell(Mob* tar, uint16 spellid, std::string healType = "None");
 	uint32 GetBotSpellType(Bot* botCaster, uint16 spellid);
 	void SetBotSpellDelay(Bot* botCaster, uint32 iSpellTypes, Mob* spelltar);
@@ -368,6 +369,8 @@ public:
 	// Custom commands for spells
 	bool CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 spellid = 0, std::string healType = "None");
 	bool CanCommandCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 spellid = 0, std::string healType = "None");
+	bool GetHoldAENukes() { return _holdAENukes; }
+	bool GetHoldAERains() { return _holdAERains; }
 	bool GetHoldBuffs() { return _holdBuffs; }
 	bool GetHoldCharms() { return _holdCharms; }
 	bool GetHoldCompleteHeals() { return _holdCompleteHeals; }
@@ -451,6 +454,8 @@ public:
 	uint8 GetSlowMinThreshold() { return _slowminThreshold; }
 	uint8 GetSnareThreshold() { return _snareThreshold; }
 	uint8 GetSnareMinThreshold() { return _snareminThreshold; }
+	void SetHoldAENukes(bool holdstatus);
+	void SetHoldAERains(bool holdstatus);
 	void SetHoldBuffs(bool holdstatus);
 	void SetHoldCharms(bool holdstatus);
 	void SetHoldCompleteHeals(bool holdstatus);
@@ -647,6 +652,7 @@ public:
 	static BotSpell GetBestBotSpellForResistDebuff(Bot* botCaster, Mob* target);
 	static bool DoResistCheck(Bot* botCaster, Mob* target, uint16 botspellid, int32 resist_limit);
 	static BotSpell GetBotSpellBySpellID(Bot* botCaster, uint32 spell_id);
+	static BotSpell GetBestAENukeOrRainSpell(Bot* botCaster);
 
 	static NPCType *CreateDefaultNPCTypeStructForBot(
 		std::string botName,
@@ -848,6 +854,9 @@ public:
 	void SetDrakkinHeritage(uint32 value) { drakkin_heritage = value; }
 	void SetDrakkinTattoo(uint32 value) { drakkin_tattoo = value; }
 	bool DyeArmor(int16 slot_id, uint32 rgb, bool all_flag = false, bool save_flag = true);
+
+	void CheckForAETargets(Mob* tar, uint16 spell_id, bool *ae_targets);
+	bool ValidAENukeOrRain(Mob* tar, uint16 spell_id);
 
 	int GetExpansionBitmask();
 	void SetExpansionBitmask(int expansion_bitmask, bool save = true);
@@ -1076,6 +1085,8 @@ private:
 	bool _showhelm;
 	bool _pauseAI;
 	uint8 _stopMeleeLevel;
+	bool _holdAENukes;
+	bool _holdAERains;
 	bool _holdBuffs;
 	bool _holdCharms;
 	bool _holdCompleteHeals;
