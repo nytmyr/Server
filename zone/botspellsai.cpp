@@ -3792,6 +3792,11 @@ bool Bot::IsValidSpellRange(uint16 spell_id, Mob const* tar) {
 		if (spellrange >= DistanceSquared(m_Position, tar->GetPosition())) {
 			return true;
 		}
+
+		spellrange = (GetActSpellRange(spell_id, spells[spell_id].aoe_range) * GetActSpellRange(spell_id, spells[spell_id].aoe_range));
+		if (spellrange >= DistanceSquared(m_Position, tar->GetPosition())) {
+			return true;
+		}
 	}
 	return false;
 }
