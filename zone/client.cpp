@@ -12256,3 +12256,16 @@ void Client::PlayerTradeEventLog(Trade *t, Trade *t2)
 	RecordPlayerEventLogWithClient(trader, PlayerEvent::TRADE, e);
 	RecordPlayerEventLogWithClient(trader2, PlayerEvent::TRADE, e);
 }
+
+float Client::GetTotalGearScore() {
+	float total_score = 0;
+
+	for (int i = EQ::invslot::EQUIPMENT_BEGIN; i <= EQ::invslot::EQUIPMENT_END; i++) {
+		const EQ::ItemInstance* inst = m_inv[i];
+		if (inst && inst->GetItem()) {
+			total_score += inst->GetItem()->GearScore;
+		}
+	}
+
+	return total_score;
+}

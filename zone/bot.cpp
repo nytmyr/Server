@@ -12211,3 +12211,16 @@ bool Bot::ValidAENukeOrRain(Mob* tar, uint16 spell_id) {
 
 	return true;
 }
+
+float Bot::GetTotalGearScore() {
+	uint32 total_score = 0;
+
+	for (int i = EQ::invslot::EQUIPMENT_BEGIN; i <= EQ::invslot::EQUIPMENT_END; i++) {
+		const EQ::ItemInstance* inst = GetBotItem(i);
+		if (inst && inst->GetItem()) {
+			total_score += inst->GetItem()->GearScore;
+		}
+	}
+
+	return total_score;
+}

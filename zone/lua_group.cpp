@@ -141,6 +141,11 @@ uint32 Lua_Group::GetAverageLevel() {
 	return self->GetAvgLevel();
 }
 
+float Lua_Group::GetGroupTotalGearScore() {
+	Lua_Safe_Call_Real();
+	return self->GetGroupTotalGearScore();
+}
+
 luabind::scope lua_register_group() {
 	return luabind::class_<Lua_Group>("Group")
 	.def(luabind::constructor<>())
@@ -157,6 +162,7 @@ luabind::scope lua_register_group() {
 	.def("GetLeaderName", (const char*(Lua_Group::*)(void))&Lua_Group::GetLeaderName)
 	.def("GetLowestLevel", (uint32(Lua_Group::*)(void))&Lua_Group::GetLowestLevel)
 	.def("GetMember", (Lua_Mob(Lua_Group::*)(int))&Lua_Group::GetMember)
+	.def("GetGroupTotalGearScore", (uint32(Lua_Group::*)(Lua_Mob))&Lua_Group::GetGroupTotalGearScore)
 	.def("GetTotalGroupDamage", (uint32(Lua_Group::*)(Lua_Mob))&Lua_Group::GetTotalGroupDamage)
 	.def("GroupCount", (int(Lua_Group::*)(void))&Lua_Group::GroupCount)
 	.def("GroupMessage", (void(Lua_Group::*)(Lua_Mob,const char*))&Lua_Group::GroupMessage)

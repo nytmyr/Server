@@ -2922,6 +2922,11 @@ void Perl_Client_GrantAllAAPoints(Client* self, uint8 unlock_level)
 	self->GrantAllAAPoints(unlock_level);
 }
 
+float Perl_Client_GetTotalGearScore(Client* self) // @categories Client
+{
+	return self->GetTotalGearScore();
+}
+
 void perl_register_client()
 {
 	perl::interpreter perl(PERL_GET_THX);
@@ -3159,6 +3164,7 @@ void perl_register_client()
 	package.add("GetTargetRingZ", &Perl_Client_GetTargetRingZ);
 	package.add("GetTaskActivityDoneCount", &Perl_Client_GetTaskActivityDoneCount);
 	package.add("GetThirst", &Perl_Client_GetThirst);
+	package.add("GetTotalGearScore", &Perl_Client_GetTotalGearScore);
 	package.add("GetTotalSecondsPlayed", &Perl_Client_GetTotalSecondsPlayed);
 	package.add("GetWeight", &Perl_Client_GetWeight);
 	package.add("GetPEQZoneFlags", &Perl_Client_GetPEQZoneFlags);

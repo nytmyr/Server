@@ -535,6 +535,11 @@ void Perl_Bot_AddItem(Bot *self, perl::reference table_ref)
 	}
 }
 
+float Perl_Bot_GetTotalGearScore(Bot* self) // @categories Group
+{
+	return self->GetTotalGearScore();
+}
+
 void perl_register_bot()
 {
 	perl::interpreter state(PERL_GET_THX);
@@ -608,6 +613,7 @@ void perl_register_bot()
 	package.add("GetItemReuseTimer", (uint32(*)(Bot*, uint32))&Perl_Bot_GetItemReuseTimer);
 	package.add("GetSpellRecastTimer", (uint32(*)(Bot*))&Perl_Bot_GetSpellRecastTimer);
 	package.add("GetSpellRecastTimer", (uint32(*)(Bot*, uint16))&Perl_Bot_GetSpellRecastTimer);
+	package.add("GetTotalGearScore", &Perl_Bot_GetTotalGearScore);
 	package.add("IsGrouped", &Perl_Bot_IsGrouped);
 	package.add("IsSitting", &Perl_Bot_IsSitting);
 	package.add("IsStanding", &Perl_Bot_IsStanding);

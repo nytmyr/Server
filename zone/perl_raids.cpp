@@ -158,6 +158,11 @@ int Perl_Raid_GetGroupNumber(Raid* self, int member_index) {
 	return self->members[member_index].GroupNumber;
 }
 
+float Perl_Raid_GetRaidTotalGearScore(Raid* self) // @categories Raid
+{
+	return self->GetRaidTotalGearScore();
+}
+
 void perl_register_raid()
 {
 	perl::interpreter perl(PERL_GET_THX);
@@ -177,7 +182,8 @@ void perl_register_raid()
 	package.add("GetMember", &Perl_Raid_GetMember);
 	package.add("GetLeader", &Perl_Raid_GetLeader);
 	package.add("GetLeaderName", &Perl_Raid_GetLeaderName);
-	package.add("GetTotalRaidDamage", &Perl_Raid_GetTotalRaidDamage);
+	package.add("GetRaidTotalGearScore", &Perl_Raid_GetRaidTotalGearScore);
+	package.add("GetTotalRaidDamage", &Perl_Raid_GetTotalRaidDamage);	
 	package.add("GroupCount", &Perl_Raid_GroupCount);
 	package.add("IsGroupLeader", (bool(*)(Raid*, const char*))&Perl_Raid_IsGroupLeader);
 	package.add("IsGroupLeader", (bool(*)(Raid*, Client*))&Perl_Raid_IsGroupLeader);

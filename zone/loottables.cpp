@@ -1465,7 +1465,7 @@ void NPC::AddVegasEpicTokenLoot(Mob* top_client) {
 	//std::replace(npc_name.begin(), npc_name.end(), "\`", "\'");
 
 	if (IsRaidTarget() && !NPCBypassesVegasRaidLoot()) {
-		roll_to_hit = int(roll_to_hit - (GetShardAmount() / RuleR(Vegas, TokenMultiplier)));
+		roll_to_hit = int(roll_to_hit - (GetShardAmount() * RuleR(Vegas, TokenMultiplier)));
 		roll_count = RuleI(Vegas, RaidTargetEpicTokenRollCount);
 	}
 	else {

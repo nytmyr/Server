@@ -544,6 +544,11 @@ void Lua_Bot::AddItem(const luabind::object& item_table) {
 	}
 }
 
+float Lua_Bot::GetTotalGearScore() {
+	Lua_Safe_Call_Real();
+	return self->GetTotalGearScore();
+}
+
 luabind::scope lua_register_bot() {
 	return luabind::class_<Lua_Bot, Lua_Mob>("Bot")
 	.def(luabind::constructor<>())
@@ -608,6 +613,7 @@ luabind::scope lua_register_bot() {
 	.def("GetSpellDamage", (int(Lua_Bot::*)(void))&Lua_Bot::GetSpellDamage)
 	.def("GetSpellRecastTimer", (uint32(Lua_Bot::*)())&Lua_Bot::GetSpellRecastTimer)
 	.def("GetSpellRecastTimer", (uint32(Lua_Bot::*)(uint16))&Lua_Bot::GetSpellRecastTimer)
+	.def("GetTotalGearScore", (uint32(Lua_Bot::*)(Lua_Mob))&Lua_Bot::GetTotalGearScore)
 	.def("HasAugmentEquippedByID", (bool(Lua_Bot::*)(uint32))&Lua_Bot::HasAugmentEquippedByID)
 	.def("HasBotItem", (int16(Lua_Bot::*)(uint32))&Lua_Bot::HasBotItem)
 	.def("HasBotSpellEntry", (bool(Lua_Bot::*)(uint16))&Lua_Bot::HasBotSpellEntry)

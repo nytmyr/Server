@@ -152,6 +152,7 @@ public:
 	inline Client *GetMentoree() { return mentoree; }
 
 	bool DoesAnyMemberHaveExpeditionLockout(const std::string& expedition_name, const std::string& event_name, int max_check_count = 0);
+	float GetGroupTotalGearScore();
 
 	Mob* members[MAX_GROUP_MEMBERS];
 	char	membername[MAX_GROUP_MEMBERS][64];

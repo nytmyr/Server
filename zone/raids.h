@@ -252,6 +252,8 @@ public:
 
 	bool DoesAnyMemberHaveExpeditionLockout(const std::string& expedition_name, const std::string& event_name, int max_check_count = 0);
 
+	float GetRaidTotalGearScore();
+
 	std::vector<RaidMember> GetMembers() const;
 	std::vector<RaidMember> GetRaidGroupMembers(uint32 gid);
 

@@ -304,6 +304,8 @@ public:
 	EQ::ItemInstance* GetClickItem(uint16 slot_id);
 	void DoItemClick(const EQ::ItemData* inst, uint16 slot_id);
 
+	float GetTotalGearScore();
+
 	bool AI_AddBotSpells(uint32 bot_spell_id);
 	void AddSpellToBotList(
 		int16 iPriority,

@@ -1643,6 +1643,8 @@ public:
 	inline uint8 GetClientCureThreshold() { return m_pp.cure_threshold; }
 	inline uint32 GetClientCureDelay() { return m_pp.cure_delay; }
 
+	float GetTotalGearScore();
+
 	void QuestReward(Mob* target, uint32 copper = 0, uint32 silver = 0, uint32 gold = 0, uint32 platinum = 0, uint32 itemid = 0, uint32 exp = 0, bool faction = false);
 	void QuestReward(Mob* target, const QuestReward_Struct &reward, bool faction = false);
 	void CashReward(uint32 copper, uint32 silver, uint32 gold, uint32 platinum);

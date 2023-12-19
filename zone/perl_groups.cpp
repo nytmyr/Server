@@ -147,6 +147,11 @@ uint32_t Perl_Group_GetAverageLevel(Group* self) // @categories Script Utility, 
 	return self->GetAvgLevel();
 }
 
+float Perl_Group_GetGroupTotalGearScore(Group* self) // @categories Group
+{
+	return self->GetGroupTotalGearScore();
+}
+
 void perl_register_group()
 {
 	perl::interpreter perl(PERL_GET_THX);
@@ -163,6 +168,7 @@ void perl_register_group()
 	package.add("GetLeaderName", &Perl_Group_GetLeaderName);
 	package.add("GetLowestLevel", &Perl_Group_GetLowestLevel);
 	package.add("GetMember", &Perl_Group_GetMember);
+	package.add("GetGroupTotalGearScore", &Perl_Group_GetGroupTotalGearScore);
 	package.add("GetTotalGroupDamage", &Perl_Group_GetTotalGroupDamage);
 	package.add("GroupCount", &Perl_Group_GroupCount);
 	package.add("GroupMessage", (void(*)(Group*, Mob*, const char*))&Perl_Group_GroupMessage);

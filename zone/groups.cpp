@@ -2571,3 +2571,28 @@ bool Group::IsLeader(const char* name) {
 
 	return false;
 }
+
+float Group::GetGroupTotalGearScore() {
+	uint32 total_score = 0;
+
+	for (int i = 0; i < MAX_GROUP_MEMBERS; i++) {
+		if (members[i]) {
+			for (int x = EQ::invslot::EQUIPMENT_BEGIN; x <= EQ::invslot::EQUIPMENT_END; x++) {
+				if (members[i]->IsClient()) {
+					const EQ::ItemData* item = database.GetItem(members[i]->CastToClient()->GetItemIDAt(x));
+					if (item) {
+						total_score += item->GearScore;
+					}
+				}
+				else if (members[i]->IsBot()) {
+					const EQ::ItemInstance* inst = members[i]->CastToBot()->GetBotItem(x);
+					if (inst && inst->GetItem()) {
+						total_score += inst->GetItem()->GearScore;
+					}
+				}
+			}
+		}
+	}
+
+	return total_score;
+}

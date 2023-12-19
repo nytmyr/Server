@@ -168,6 +168,11 @@ bool Lua_Raid::DoesAnyMemberHaveExpeditionLockout(std::string expedition_name, s
 	return self->DoesAnyMemberHaveExpeditionLockout(expedition_name, event_name, max_check_count);
 }
 
+float Lua_Raid::GetRaidTotalGearScore() {
+	Lua_Safe_Call_Real();
+	return self->GetRaidTotalGearScore();
+}
+
 luabind::scope lua_register_raid() {
 	return luabind::class_<Lua_Raid>("Raid")
 	.def(luabind::constructor<>())
@@ -185,6 +190,7 @@ luabind::scope lua_register_raid() {
 	.def("GetID", (int(Lua_Raid::*)(void))&Lua_Raid::GetID)
 	.def("GetLowestLevel", (int(Lua_Raid::*)(void))&Lua_Raid::GetLowestLevel)
 	.def("GetMember", (Lua_Client(Lua_Raid::*)(int))&Lua_Raid::GetMember)
+	.def("GetRaidTotalGearScore", (uint32(Lua_Raid::*)(Lua_Mob))&Lua_Raid::GetRaidTotalGearScore)
 	.def("GetTotalRaidDamage", (uint32(Lua_Raid::*)(Lua_Mob))&Lua_Raid::GetTotalRaidDamage)
 	.def("GroupCount", (int(Lua_Raid::*)(uint32))&Lua_Raid::GroupCount)
 	.def("IsGroupLeader", (bool(Lua_Raid::*)(const char*))&Lua_Raid::IsGroupLeader)

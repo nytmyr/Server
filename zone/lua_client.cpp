@@ -3100,6 +3100,11 @@ void Lua_Client::GrantAllAAPoints(uint8 unlock_level)
 	self->GrantAllAAPoints(unlock_level);
 }
 
+float Lua_Client::GetTotalGearScore() {
+	Lua_Safe_Call_Real();
+	return self->GetTotalGearScore();
+}
+
 luabind::scope lua_register_client() {
 	return luabind::class_<Lua_Client, Lua_Mob>("Client")
 	.def(luabind::constructor<>())
@@ -3333,6 +3338,7 @@ luabind::scope lua_register_client() {
 	.def("GetTargetRingY", (float(Lua_Client::*)(void))&Lua_Client::GetTargetRingY)
 	.def("GetTargetRingZ", (float(Lua_Client::*)(void))&Lua_Client::GetTargetRingZ)
 	.def("GetThirst", (int(Lua_Client::*)(void))&Lua_Client::GetThirst)
+	.def("GetTotalGearScore", (uint32(Lua_Client::*)(void))&Lua_Client::GetTotalGearScore)
 	.def("GetTotalSecondsPlayed", (uint32(Lua_Client::*)(void))&Lua_Client::GetTotalSecondsPlayed)
 	.def("GetWeight", (int(Lua_Client::*)(void))&Lua_Client::GetWeight)
 	.def("GetPEQZoneFlags", (luabind::object(Lua_Client::*)(lua_State*))&Lua_Client::GetPEQZoneFlags)
