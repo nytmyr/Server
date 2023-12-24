@@ -946,6 +946,10 @@ const EQ::ItemData* NPC::GetVegasItems(uint32 id_min, uint32 id_max, float diffi
 		if (!item) {
 			continue;
 		}
+		if (!raid_only && (difficulty_min > RuleR(Vegas, DifficultyMinMaxValue))) {
+			VegasLootDetail("Difficulty is over the MinMaxValue of {} for non-raid items, setting Min Difficulty to {}.", RuleR(Vegas, DifficultyMinMaxValue), RuleR(Vegas, MinDifficultyCapIfOverMaxValue)); //deleteme
+			difficulty_min = RuleR(Vegas, MinDifficultyCapIfOverMaxValue);
+		}
 		if (
 			item->ID >= id_min && item->ID <= id_max
 			&& item->difficulty >= difficulty_min && item->difficulty <= difficulty_max
