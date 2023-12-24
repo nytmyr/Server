@@ -7,6 +7,7 @@
 #include "npc.h"
 #include "lua_npc.h"
 #include "lua_client.h"
+#include "data_bucket.h"
 
 struct Lua_NPC_Loot_List {
 	std::vector<uint32> entries;
@@ -810,6 +811,72 @@ void Lua_NPC::SetDifficulty(float difficulty_) {
 	self->SetDifficulty(difficulty_);
 }
 
+void Lua_NPC::AddVegasLoot(float difficulty_min, float difficulty_max, bool raid_only, uint32 bonus_chance)
+{
+	Lua_Safe_Call_Void();
+	uint32 id_min = RuleI(Vegas, MinVegasItemID);
+	uint32 id_max = RuleI(Vegas, MaxVegasItemID);
+	uint16 zoneid = zone->GetZoneID();
+	uint8 zone_era; // 0 = Classic, 1 = Kunark, 2 = Velious, 3 = Luclin, 4 = PoP
+	uint32 zone_range_min, zone_range_max;
+	self->GetVegasZoneRange(zoneid, &zone_era, &zone_range_min, &zone_range_max);
+	float diff_min = self->GetDifficulty() * RuleR(Vegas, RaidMinDifficultyMultiplier);
+	float diff_max = self->GetDifficulty() * RuleR(Vegas, RaidMaxDifficultyMultiplier);
+
+	if (bonus_chance) {
+		diff_min = self->GetDifficulty() * RuleR(Vegas, RaidMinDifficultyBonusMultiplier);
+		diff_max = self->GetDifficulty() * RuleR(Vegas, RaidMaxDifficultyBonusMultiplier);
+	}
+
+	std::string query;
+	std::string vegas_loot_type;
+	std::string item_name;
+
+	Mob* top_client = self->GetTopHateClient();
+	if (top_client && self->IsVegasLootEligible(top_client) && entity_list.GetClientByCharID(top_client->CastToClient()->CharacterID())) {
+		const EQ::ItemData* chosen_item = self->GetVegasItems(id_min, id_max, difficulty_min ? difficulty_min : diff_min, difficulty_max ? difficulty_max : diff_max, zone_range_min, zone_range_max, raid_only);
+		if (chosen_item) {
+			self->AddItem(chosen_item, chosen_item->MaxCharges, RuleB(Vegas, EquipVegasDrops));
+			VegasLoot("Added [{}] to [{}] for [{}]", database.CreateItemLink(chosen_item->ID), self->GetCleanName(), top_client->GetCleanName()); //deleteme
+
+			if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasLootLogging)) {
+				std::string key = "TotalRandomDrops";
+				std::string bucket_value = DataBucket::GetData(key);
+				if (Strings::IsNumber(bucket_value) && Strings::ToUnsignedInt(bucket_value) > 0) {
+					DataBucket::SetData(key, std::to_string(Strings::ToUnsignedInt(bucket_value) + 1));
+				}
+				else {
+					DataBucket::SetData(key, std::to_string(1));
+				}
+			}
+
+			//Discord send
+			if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasDiscordLogging)) {
+				std::ostringstream output;
+				output <<
+					"Added [Raid Item] [" << chosen_item->Name << "](http://vegaseq.com/Allaclone/?a=item&id=" << chosen_item->ID << ") [ID: " << chosen_item->ID << "] [GS:" << int(chosen_item->GearScore) << "] [" << (self->GetNPCTypeID(), self->IsRaidTarget() ? "Raid" : self->IsRareSpawn() ? "Rare" : "Common") << "]"
+					" to [" << self->GetCleanName() << "](http://vegaseq.com/Allaclone/?a=npc&id=" << self->GetNPCTypeID() << ") [ID: " << self->GetNPCTypeID() << "] [Level: " << int(self->GetLevel()) << "] [MobDiff: " << int(self->GetDifficulty()) << "]"
+					" For [" << top_client->GetCleanName() << "](http://vegaseq.com/charbrowser/index.php?page=character&char=" << top_client->GetCleanName() << ") [ID: " << top_client->CastToClient()->CharacterID() << "] [Level: " << int(top_client->CastToClient()->GetLevel()) << "]"
+					" in [" << zone->GetLongName() << "](http://vegaseq.com/Allaclone/?a=zone&name=" << zone->GetShortName() << ") [Instance: " << zone->GetInstanceID() << "]"
+					;
+				std::string out_final = output.str();
+				zone->SendDiscordMessage("rngitems", out_final);
+			}
+			//Database Logging
+			if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasLootLogging)) {
+				vegas_loot_type = "Raid";
+				item_name = chosen_item->Name;
+				//std::replace(item_name.begin(), item_name.end(), "\`", "\'");
+				query = StringFormat(
+					"INSERT INTO rng_items "
+					"SET `npc_id` = '%i', `npc_name` = '%s', `npc_level` = '%i', `type` = '%s', `npc_diff` = '%f', `item_id` = '%i', `raid_item` = '%i', `item` = '%s', `item_diff` = '%f', `item_gearscore` = '%f', `zone_id` = '%i', `zone` = '%s', `zone_instance_id` = '%i', `time` = NOW(), `charid` = '%i', `char` = '%s', `char_level` = '%i' ",
+					self->GetNPCTypeID(), Strings::Escape(self->GetCleanName()).c_str(), self->GetLevel(), vegas_loot_type, double(self->GetDifficulty()), chosen_item->ID, raid_only, Strings::Escape(chosen_item->Name).c_str(), double(chosen_item->difficulty), double(chosen_item->GearScore), zone->GetZoneID(), zone->GetShortName(), zone->GetInstanceID(), top_client->CastToClient()->CharacterID(), top_client->CastToClient()->GetCleanName(), top_client->CastToClient()->GetLevel());
+				self->QueryVegasLoot(query, top_client->CastToClient()->GetCleanName(), self->GetCleanName());
+			}
+		}
+	}
+}
+
 luabind::scope lua_register_npc() {
 	return luabind::class_<Lua_NPC, Lua_Mob>("NPC")
 	.def(luabind::constructor<>())
@@ -829,6 +896,7 @@ luabind::scope lua_register_npc() {
 	.def("AddItem", (void(Lua_NPC::*)(int,int,bool,int,int,int,int,int,int))&Lua_NPC::AddItem)
 	.def("AddLootTable", (void(Lua_NPC::*)(int))&Lua_NPC::AddLootTable)
 	.def("AddLootTable", (void(Lua_NPC::*)(void))&Lua_NPC::AddLootTable)
+	.def("AddVegasLoot", (void(Lua_NPC::*)(float,float,bool,uint32))&Lua_NPC::AddVegasLoot)
 	.def("AssignWaypoints", (void(Lua_NPC::*)(int))&Lua_NPC::AssignWaypoints)
 	.def("CalculateNewWaypoint", (void(Lua_NPC::*)(void))&Lua_NPC::CalculateNewWaypoint)
 	.def("ChangeLastName", (void(Lua_NPC::*)(std::string))&Lua_NPC::ChangeLastName)

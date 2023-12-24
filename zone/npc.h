@@ -214,7 +214,7 @@ public:
 	virtual Mob* GetTopHateClient();
 	bool	IsOnVegasCoolDown(Mob* top_client);
 	void	AddVegasItemLoot(Mob* top_client);
-	const EQ::ItemData* GetVegasItems(uint32 id_min, uint32 id_max, float difficulty_min, float difficulty_max, uint32 zone_range_min, uint32 zone_range_max, bool raidonly);
+	const	EQ::ItemData* GetVegasItems(uint32 id_min, uint32 id_max, float difficulty_min, float difficulty_max, uint32 zone_range_min, uint32 zone_range_max, bool raid_only);
 	bool	NPCBypassesVegasLoot();
 	bool	GuaranteedNormalDrop();
 	bool	GuaranteedBonusDrop();

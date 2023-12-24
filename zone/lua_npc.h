@@ -182,6 +182,7 @@ public:
 	int16 GetRaidPoints();
 	int GetShardAmount();
 	void SetDifficulty(float difficulty_);
+	void AddVegasLoot(float difficulty_min, float difficulty_max, bool raid_only, uint32 bonus_chance);
 };
 
 #endif
