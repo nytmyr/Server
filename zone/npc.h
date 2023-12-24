@@ -590,7 +590,7 @@ public:
 
 	inline bool IsSkipAutoScale() const { return skip_auto_scale; }
 
-	void ScaleNPC(uint8 npc_level, bool always_scale = false, bool override_special_abilities = false);
+	void ScaleNPC(uint8 npc_level, bool always_scale = false, bool override_special_abilities = false, float scale_mult = 1);
 
 	void RecalculateSkills();
 	void ReloadSpells();

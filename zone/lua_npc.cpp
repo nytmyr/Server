@@ -772,6 +772,12 @@ void Lua_NPC::ScaleNPC(uint8 npc_level, bool override_special_abilities)
 	self->ScaleNPC(npc_level, true, override_special_abilities);
 }
 
+void Lua_NPC::ScaleNPC(uint8 npc_level, bool override_special_abilities, float scale_mult)
+{
+	Lua_Safe_Call_Void();
+	self->ScaleNPC(npc_level, true, override_special_abilities, scale_mult);
+}
+
 bool Lua_NPC::IsUnderwaterOnly() {
 	Lua_Safe_Call_Bool();
 	return self->IsUnderwaterOnly();

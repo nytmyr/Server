@@ -778,7 +778,12 @@ void Perl_NPC_ScaleNPC(NPC* self, uint8 npc_level)
 
 void Perl_NPC_ScaleNPC(NPC* self, uint8 npc_level, bool override_special_abilities)
 {
-	return self->ScaleNPC(npc_level, override_special_abilities);
+	return self->ScaleNPC(npc_level, true, override_special_abilities);
+}
+
+void Perl_NPC_ScaleNPC(NPC* self, uint8 npc_level, bool override_special_abilities, float scale_mult)
+{
+	return self->ScaleNPC(npc_level, true, override_special_abilities, scale_mult);
 }
 
 bool Perl_NPC_IsUnderwaterOnly(NPC* self) // @categories Script Utility
@@ -932,6 +937,7 @@ void perl_register_npc()
 	package.add("SaveGuardSpot", (void(*)(NPC*, float, float, float, float))&Perl_NPC_SaveGuardSpot);
 	package.add("ScaleNPC", (void(*)(NPC*, uint8))&Perl_NPC_ScaleNPC);
 	package.add("ScaleNPC", (void(*)(NPC*, uint8, bool))&Perl_NPC_ScaleNPC);
+	package.add("ScaleNPC", (void(*)(NPC*, uint8, bool, float))& Perl_NPC_ScaleNPC);
 	package.add("SendPayload", (void(*)(NPC*, int))&Perl_NPC_SendPayload);
 	package.add("SendPayload", (void(*)(NPC*, int, std::string))&Perl_NPC_SendPayload);
 	package.add("SetCopper", &Perl_NPC_SetCopper);
