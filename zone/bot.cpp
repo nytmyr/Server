@@ -102,6 +102,29 @@ Bot::Bot(NPCType *npcTypeData, Client* botOwner) : NPC(npcTypeData, nullptr, glm
 
 	rest_timer.Disable();
 	ping_timer.Disable();
+
+	m_combat_jitter_timer.Disable();
+	auto_save_timer.Disable();
+	m_evade_timer.Disable();
+	m_monk_evade_timer.Disable();
+	m_buff_delay_timer.Disable();
+	m_cheal_delay_timer.Disable();
+	m_cure_delay_timer.Disable();
+	m_debuff_delay_timer.Disable();
+	m_dispel_delay_timer.Disable();
+	m_dot_delay_timer.Disable();
+	m_escape_delay_timer.Disable();
+	m_fheal_delay_timer.Disable();
+	m_hateredux_delay_timer.Disable();
+	m_heal_delay_timer.Disable();
+	m_hotheal_delay_timer.Disable();
+	m_incombatbuff_delay_timer.Disable();
+	m_lifetap_delay_timer.Disable();
+	m_mez_delay_timer.Disable();
+	m_nuke_delay_timer.Disable();
+	m_root_delay_timer.Disable();
+	m_slow_delay_timer.Disable();
+	m_snare_delay_timer.Disable();
 	SetFollowDistance(BOT_FOLLOW_DISTANCE_DEFAULT);
 	if (IsCasterClass(GetClass()))
 		SetStopMeleeLevel((uint8)RuleI(Bots, CasterStopMeleeLevel));
@@ -223,6 +246,29 @@ Bot::Bot(
 
 	rest_timer.Disable();
 	ping_timer.Disable();
+
+	m_combat_jitter_timer.Disable();
+	auto_save_timer.Disable();
+	m_evade_timer.Disable();
+	m_monk_evade_timer.Disable();
+	m_buff_delay_timer.Disable();
+	m_cheal_delay_timer.Disable();
+	m_cure_delay_timer.Disable();
+	m_debuff_delay_timer.Disable();
+	m_dispel_delay_timer.Disable();
+	m_dot_delay_timer.Disable();
+	m_escape_delay_timer.Disable();
+	m_fheal_delay_timer.Disable();
+	m_hateredux_delay_timer.Disable();
+	m_heal_delay_timer.Disable();
+	m_hotheal_delay_timer.Disable();
+	m_incombatbuff_delay_timer.Disable();
+	m_lifetap_delay_timer.Disable();
+	m_mez_delay_timer.Disable();
+	m_nuke_delay_timer.Disable();
+	m_root_delay_timer.Disable();
+	m_slow_delay_timer.Disable();
+	m_snare_delay_timer.Disable();
 	SetFollowDistance(BOT_FOLLOW_DISTANCE_DEFAULT);
 	if (IsCasterClass(GetClass()))
 		SetStopMeleeLevel((uint8)RuleI(Bots, CasterStopMeleeLevel));
