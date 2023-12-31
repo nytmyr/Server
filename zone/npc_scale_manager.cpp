@@ -495,7 +495,7 @@ int8 NpcScaleManager::GetNPCScalingType(NPC *&npc)
 		return 2;
 	}
 
-	if (npc->IsRareSpawn() || npc_name.find('#') != std::string::npos || isupper(npc_name[0])) {
+	if (npc->IsRareSpawn()) {
 		return 1;
 	}
 
