@@ -18858,46 +18858,121 @@ void bot_subcommand_bot_stop_melee_level(Client *c, const Seperator *sep)
 	if (helper_command_alias_fail(c, "bot_subcommand_bot_stop_melee_level", sep->arg[0], "botstopmeleelevel"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: <target_bot> %s [current | reset | sync | value: 0-255]", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | reset | sync | value: 0-255] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name]))", sep->arg[0]);
 		c->Message(Chat::White, "note: Only caster or hybrid class bots may be modified");
 		c->Message(Chat::White, "note: Use [reset] to set stop melee level to server rule");
 		c->Message(Chat::White, "note: Use [sync] to set stop melee level to current bot level");
 		return;
 	}
 
-	auto my_bot = ActionableBots::AsTarget_ByBot(c);
-	if (!my_bot) {
-		c->Message(Chat::White, "You must <target> a bot that you own to use this command");
-		return;
-	}
-	if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-		c->Message(Chat::White, "You must <target> a caster or hybrid class bot to use this command");
-		return;
-	}
+	const int ab_mask = ActionableBots::ABM_Type1;
 
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
 	uint8 sml = RuleI(Bots, CasterStopMeleeLevel);
-
+	bool sync_sml = false;
+	bool reset_sml = false;
+	bool current_check = false;
+	uint32 delaydata = 0;
 	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		sml = Strings::ToInt(sep->arg[1]);
+		if (sml <= 0 || sml > 255) {
+			c->Message(Chat::White, "You must provide a value between 0-255.");
+			return;
+		}
 	}
 	else if (!strcasecmp(sep->arg[1], "sync")) {
-		sml = my_bot->GetLevel();
+		ab_arg = 2;
+		sync_sml = true;
 	}
-	else if (!strcasecmp(sep->arg[1], "current")) {
-		c->Message(Chat::White, "My current melee stop level is %u", my_bot->GetStopMeleeLevel());
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
+	}
+	else if (!strcasecmp(sep->arg[1], "reset")) {
+		ab_arg = 2;
+		reset_sml = true;
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
 		return;
 	}
-	else if (strcasecmp(sep->arg[1], "reset")) {
-		c->Message(Chat::White, "A [current] or [reset] argument, or numeric [value] is required to use this command");
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
 		return;
 	}
-	// [reset] falls through with initialization value
+	sbl.remove(nullptr);
 
-	my_bot->SetStopMeleeLevel(sml);
-	if (!database.botdb.SaveStopMeleeLevel(c->CharacterID(), my_bot->GetBotID(), sml))
-		c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveStopMeleeLevel(), my_bot->GetCleanName());
-
-	c->Message(Chat::White, "Successfully set stop melee level for %s to %u", my_bot->GetCleanName(), sml);
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'This command only works on caster or hybrid classes.'",
+					my_bot->GetCleanName()
+				).c_str()
+			);
+			continue;
+		}
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (sync_sml) {
+			sml = my_bot->GetLevel();
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current stop melee level is {}.'",
+					my_bot->GetCleanName(),
+					my_bot->GetStopMeleeLevel()
+				).c_str()
+			);
+			continue;
+		}
+		else {
+			my_bot->SetStopMeleeLevel(sml);
+			if (!database.botdb.SaveStopMeleeLevel(c->CharacterID(), my_bot->GetBotID(), sml)) {
+				c->Message(Chat::White, "%s for '%s'", BotDatabase::fail::SaveStopMeleeLevel(), my_bot->GetCleanName());
+			}
+			else {
+				++success_count;
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My stop melee level was set to {}.'",
+					first_found->GetCleanName(),
+					sml
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their stop melee level to {}.'",
+					success_count,
+					sml
+				).c_str()
+			);
+		}
+	}
 }
 
 void bot_subcommand_bot_summon(Client *c, const Seperator *sep)
