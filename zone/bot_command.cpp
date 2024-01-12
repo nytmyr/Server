@@ -12036,7 +12036,9 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "usage: [%s chainonly] will display only Chain-wearing bots that can use the item.", sep->arg[0]);
 		c->Message(Chat::White, "usage: [%s leatheronly] will display only Leather-wearing bots that can use the item.", sep->arg[0]);
 		c->Message(Chat::White, "usage: [%s clothonly] will display only Cloth-wearing bots that can use the item.", sep->arg[0]);
-		c->Message(Chat::White, "usage: [%s gearscore] will display only items with a lower Gear Score than the item on your cursor. You can also use this as an argument to narrow down further, for example [%s plateonly gearscore] to see only plate-wearers that have a lower Gear Score item than the current item on your cursor.", sep->arg[0], sep->arg[0]);
+		c->Message(Chat::White, "usage: [%s haste] will display bots that have no or lesser haste.", sep->arg[0]);
+		c->Message(Chat::White, "usage: [%s gearscore] will display only items with a lower Gear Score than the item on your cursor.", sep->arg[0]);
+		c->Message(Chat::White, "usage: You can also use empty, gearscore or haste as an argument to narrow down further, for example [%s plateonly gearscore] or [%s plateonly empty] or [%s plateonly haste]", sep->arg[0], sep->arg[0], sep->arg[0]);
 		return;
 	}
 
@@ -12051,14 +12053,24 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 	bool chain_only = false;
 	bool leather_only = false;
 	bool cloth_only = false;
+	bool haste_only = false;
+	int haste_value = 0;
 	bool gear_score = false;
 
 	std::string arg1 = sep->arg[1];
 	std::string arg2 = sep->arg[2];
-	if (arg1.compare("empty") == 0) {
+
+	if (arg1.compare("empty") == 0 || arg2.compare("empty") == 0) {
 		empty_only = true;
 	}
-	else if (arg1.compare("byclass") == 0) {
+	if (arg1.compare("gearscore") == 0 || arg2.compare("gearscore") == 0) {
+		gear_score = true;
+	}
+	if (arg1.compare("haste") == 0 || arg2.compare("haste") == 0) {
+		haste_only = true;
+	}
+
+	if (arg1.compare("byclass") == 0) {
 		if (Strings::IsNumber(sep->arg[2])) {
 			class_mask = Strings::ToUnsignedInt(sep->arg[2]);
 				if (!(class_mask >= WARRIOR && class_mask <= BEASTLORD)) {
@@ -12094,31 +12106,28 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 	else if (arg1.compare("clothonly") == 0) {
 		cloth_only = true;
 	}
-	else if (arg1.compare("gearscore") == 0 || arg2.compare("gearscore") == 0) {
-		gear_score = true;
-	}
-	else if (!arg1.empty()) {
-		c->Message(Chat::White, "Please choose the correct subtype. For help use %s help.", sep->arg[0]);
-		return;
-	}
+
 	const auto item_instance = c->GetInv().GetItem(EQ::invslot::slotCursor);
+
 	if (!item_instance) {
 		c->Message(Chat::White, "No item found on cursor!");
 		return;
 	}
 
 	auto item_data = item_instance->GetItem();
+
 	if (!item_data) {
 		c->Message(Chat::White, "No data found for cursor item!");
 		return;
 	}
 
 	if (item_data->ItemClass != EQ::item::ItemClassCommon || item_data->Slots == 0) {
-		c->Message(Chat::White, "'%s' is not an equipable item!", item_data->Name);
+		c->Message(Chat::White, "'%s' is not an equippable item!", item_data->Name);
 		return;
 	}
 
 	std::list<int16> equipable_slot_list;
+
 	for (int16 equipable_slot = EQ::invslot::EQUIPMENT_BEGIN; equipable_slot <= EQ::invslot::EQUIPMENT_END; ++equipable_slot) {
 		if (item_data->Slots & (1 << equipable_slot)) {
 			equipable_slot_list.push_back(equipable_slot);
@@ -12133,27 +12142,46 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 
 	std::list<Bot*> sbl;
 	MyBots::PopulateSBL_BySpawnedBots(c, sbl);
+
 	if (class_mask) {
 		ActionableBots::Filter_ByClasses(c, sbl, GetPlayerClassBit(class_mask));
 	}
+
 	for (const auto& bot_iter : sbl) {
 		if (!bot_iter) {
 			continue;
 		}
-		if (
-			(caster_only && !IsCasterClass(bot_iter->GetClass()))
-			|| (hybrid_only && !IsSpellFighterClass(bot_iter->GetClass()))
-			|| (melee_only && !IsNonSpellFighterClass(bot_iter->GetClass()))
-			|| (wis_caster_only && !IsWISCasterClass(bot_iter->GetClass()))
-			|| (int_caster_only && !IsINTCasterClass(bot_iter->GetClass()))
-			|| (plate_only && !IsPlateClass(bot_iter->GetClass()))
-			|| (chain_only && !IsChainClass(bot_iter->GetClass()))
-			|| (leather_only && !IsLeatherClass(bot_iter->GetClass()))
-			|| (cloth_only && !IsClothClass(bot_iter->GetClass()))
-			) {
+		if (caster_only && !IsCasterClass(bot_iter->GetClass())) {
+			continue;
+		}
+		if (hybrid_only && !IsSpellFighterClass(bot_iter->GetClass())) {
+			continue;
+		}
+		if (melee_only && !IsNonSpellFighterClass(bot_iter->GetClass())) {
+			continue;
+		}
+		if (wis_caster_only && !IsWISCasterClass(bot_iter->GetClass())) {
+			continue;
+		}
+		if (int_caster_only && !IsINTCasterClass(bot_iter->GetClass())) {
+			continue;
+		}
+		if (plate_only && !IsPlateClass(bot_iter->GetClass())) {
+			continue;
+		}
+		if (chain_only && !IsChainClass(bot_iter->GetClass())) {
+			continue;
+		}
+		if (leather_only && !IsLeatherClass(bot_iter->GetClass())) {
+			continue;
+		}
+		if (cloth_only && !IsClothClass(bot_iter->GetClass())) {
 			continue;
 		}
 		if (((~item_data->Races) & GetPlayerRaceBit(bot_iter->GetRace())) || ((~item_data->Classes) & GetPlayerClassBit(bot_iter->GetClass()))) {
+			continue;
+		}
+		if (item_data->ReqLevel > bot_iter->GetLevel()) {
 			continue;
 		}
 
@@ -12166,58 +12194,104 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 			bot_iter->GetCleanName()
 		);
 
-		for (auto slot_iter : equipable_slot_list) {
-			// needs more failure criteria - this should cover the bulk for now
-			if (slot_iter == EQ::invslot::slotSecondary && item_data->Damage && !bot_iter->CanThisClassDualWield()) {
-				continue;
-			}
+		bool skip_bot = false;
+		haste_value = 0;
 
+		std::list<int16> refined_equipable_slot_list;
+
+		for (auto slot_iter : equipable_slot_list) {
 			auto equipped_item = bot_iter->GetInv()[slot_iter];
 
-			if (equipped_item && !empty_only) {
-				linker.SetItemInst(equipped_item);
-				if (gear_score && equipped_item->GetItem()->GearScore >= item_data->GearScore) {
+			if (equipped_item) {
+				if (empty_only) {
 					continue;
 				}
-				c->Message(
-					Chat::Say,
-					fmt::format(
-						"{} says, 'I can use that for my {} instead of my {}! Would you like to {} my {}?'",
-						text_link,
-						EQ::invslot::GetInvPossessionsSlotName(slot_iter),
-						linker.GenerateLink(),
+				if (item_data->CheckLoreConflict(equipped_item->GetItem())) {
+					skip_bot = true;
+					break;
+				}
+				if (haste_only) {
+					if (equipped_item->GetItem()->Haste > haste_value) {
+						haste_value = equipped_item->GetItem()->Haste;
+					}
+					if (equipped_item->GetItem()->Haste > item_data->Haste) {
+						continue;
+					}
+					if (gear_score) {
+						if (equipped_item->GetItem()->Haste == item_data->Haste && equipped_item->GetItem()->GearScore >= item_data->GearScore) {
+							continue;
+						}
+					}
+					else {
+						if (equipped_item->GetItem()->Haste >= item_data->Haste) {
+							continue;
+						}
+					}
+				}
+				else {
+					if (gear_score && equipped_item->GetItem()->GearScore >= item_data->GearScore) {
+						continue;
+					}
+				}
+			}
+			refined_equipable_slot_list.push_back(slot_iter);
+		}
+
+		if (skip_bot) {
+			continue;
+		}
+
+		if (refined_equipable_slot_list.empty()) {
+			continue;
+		}
+
+		//if (haste_only) {
+		//	if (item_data->Haste < haste_value || (!gear_score && item_data->Haste <= haste_value)) {
+		//		continue;
+		//	}
+		//}
+		for (auto slot_iter : refined_equipable_slot_list) {
+			auto equipped_item = bot_iter->GetInv()[slot_iter];
+
+			if (equipped_item) {
+				linker.SetItemInst(equipped_item);
+			}
+
+			c->Message(
+				Chat::Say,
+				fmt::format(
+					"{} says, 'I can use that for my {}{} Would you like to {}?'",
+					text_link,
+					EQ::invslot::GetInvPossessionsSlotName(slot_iter),
+					(
+						equipped_item ? 
+							fmt::format(
+								" instead of my {}!", linker.GenerateLink()
+							) :
+						"!"
+					),
+					(
+						equipped_item ?
 						Saylink::Silent(
 							fmt::format(
 								"^inventoryremove {} byname {}",
 								slot_iter,
 								bot_iter->GetCleanName()
 							),
-							"remove"
-						),
-						linker.GenerateLink()
-					).c_str()
-				);
-
-				bot_iter->DoAnim(29);
-			} else if (!equipped_item) {
-				c->Message(
-					Chat::Say,
-					fmt::format(
-						"{} says, 'I can use that for my {}! Would you like to {} it to me?'",
-						text_link,
-						EQ::invslot::GetInvPossessionsSlotName(slot_iter),
+							"remove my item"
+						) :
 						Saylink::Silent(
 							fmt::format(
 								"^inventorygive byname {}",
 								bot_iter->GetCleanName()
 							),
-							"give"
+							"give it to me"
 						)
-					).c_str()
-				);
-
-				bot_iter->DoAnim(29);
-			}
+					)
+				).c_str()
+			);
+			
+			bot_iter->DoAnim(29);
 		}
 	}
 }

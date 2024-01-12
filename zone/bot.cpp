@@ -8676,41 +8676,12 @@ void Bot::CalcBotStats(bool showtext) {
 }
 
 bool Bot::CheckLoreConflict(const EQ::ItemData* item) {
-	if (!item || !(item->LoreFlag))
-		return false;
+	if (!item) { return false; }
+	if (!item->LoreFlag) { return false; }
+	if (item->LoreGroup == 0) { return false; }
 
-	if (RuleI(Inventory, CustomItemsLoreIDStart) == 0 && RuleI(Inventory, SecondCustomItemsLoreIDStart) == 0) {
-		if (item->LoreGroup == -1)	// Standard lore items; look everywhere except the shared bank, return the result
-			return (m_inv.HasItem(item->ID, 0, invWhereWorn) != INVALID_INDEX);
-	}
-	else {
-		if (item->LoreGroup == -1) { // Standard lore items; look everywhere except the shared bank, return the result
-			uint32 dupecheck = item->ID;
-			uint32 customitems = RuleI(Inventory, CustomItemsLoreIDStart);
-			uint32 secondcustomitems = RuleI(Inventory, SecondCustomItemsLoreIDStart);
-			//do checks for customitems against regular items
-			if (item->ID >= customitems && item->ID < secondcustomitems) {
-				if (m_inv.HasItem(dupecheck - customitems, 0, ~invWhereSharedBank) != INVALID_INDEX)
-					return (m_inv.HasItem(dupecheck - customitems, 0, ~invWhereSharedBank) != INVALID_INDEX);
-				if (m_inv.HasItem(dupecheck + (secondcustomitems - customitems), 0, ~invWhereSharedBank) != INVALID_INDEX)
-					return (m_inv.HasItem(dupecheck + (secondcustomitems - customitems), 0, ~invWhereSharedBank) != INVALID_INDEX);
-			}
-			if (item->ID < customitems) {
-				if (m_inv.HasItem(dupecheck + customitems, 0, ~invWhereSharedBank) != INVALID_INDEX)
-					return (m_inv.HasItem(dupecheck + customitems, 0, ~invWhereSharedBank) != INVALID_INDEX);
-				if (m_inv.HasItem(dupecheck + secondcustomitems, 0, ~invWhereSharedBank) != INVALID_INDEX)
-					return (m_inv.HasItem(dupecheck + secondcustomitems, 0, ~invWhereSharedBank) != INVALID_INDEX);
-			}
-			//do checks for secondcustomitems against regular items
-			if (item->ID >= secondcustomitems) {
-				if (m_inv.HasItem(dupecheck - secondcustomitems, 0, ~invWhereSharedBank) != INVALID_INDEX)
-					return (m_inv.HasItem(dupecheck - secondcustomitems, 0, ~invWhereSharedBank) != INVALID_INDEX);
-				if (m_inv.HasItem(dupecheck - (secondcustomitems - customitems), 0, ~invWhereSharedBank) != INVALID_INDEX)
-					return (m_inv.HasItem(dupecheck - (secondcustomitems - customitems), 0, ~invWhereSharedBank) != INVALID_INDEX);
-			}
-			return (m_inv.HasItem(item->ID, 0, ~invWhereSharedBank) != INVALID_INDEX);
-		}
-	}
+	if (item->LoreGroup == -1)	// Standard lore items; look everywhere except the shared bank, return the result
+		return (m_inv.HasItem(item->ID, 0, invWhereWorn) != INVALID_INDEX);
 
 	//If the item has a lore group, we check for other items with the same group and return the result
 	return (m_inv.HasItemByLoreGroup(item->LoreGroup, invWhereWorn) != INVALID_INDEX);
