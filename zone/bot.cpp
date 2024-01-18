@@ -4354,9 +4354,9 @@ bool Bot::Spawn(Client* botCharacterOwner) {
 			m_monk_evade_timer.Start();
 		}
 
-		m_buff_delay_timer.Start();
+		m_buff_delay_timer.Start(1500);
 		m_cheal_delay_timer.Start();
-		m_cure_delay_timer.Start();
+		m_cure_delay_timer.Start(1500);
 		m_debuff_delay_timer.Start();
 		m_dispel_delay_timer.Start();
 		m_dot_delay_timer.Start();
