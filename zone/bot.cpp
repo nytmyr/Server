@@ -3595,19 +3595,19 @@ void Bot::AI_Process()
 				}
 			} 
 			else {
-				melee_distance = melee_distance_max * float(RuleR(Bots, NormalMeleeRangeDistance));
+				melee_distance = melee_distance_max * RuleR(Bots, NormalMeleeRangeDistance);
 			}
 		}
 
-		float melee_distance_min = melee_distance * float(RuleR(Bots, PercentMinMeleeDistance));
+		float melee_distance_min = melee_distance * RuleR(Bots, PercentMinMeleeDistance);
 		if (taunting) {
-			melee_distance = melee_distance_max * float(RuleR(Bots, TauntNormalMeleeRangeDistance));
-			melee_distance_min = melee_distance * float(RuleR(Bots, PercentTauntMinMeleeDistance));
+			melee_distance = melee_distance_max * RuleR(Bots, TauntNormalMeleeRangeDistance);
+			melee_distance_min = melee_distance * RuleR(Bots, PercentTauntMinMeleeDistance);
 		}
 
 		if (!taunting && !IsBotArcher() && GetMaxMeleeRange()) {
-			melee_distance = melee_distance_max * float(RuleR(Bots, PercentMaxMeleeRangeDistance));
-			melee_distance_min = melee_distance_max * float(RuleR(Bots, PercentMinMaxMeleeRangeDistance));
+			melee_distance = melee_distance_max * RuleR(Bots, PercentMaxMeleeRangeDistance);
+			melee_distance_min = melee_distance_max * RuleR(Bots, PercentMinMaxMeleeRangeDistance);
 		}
 
 		/* Caster Range Checks */
@@ -3618,7 +3618,7 @@ void Bot::AI_Process()
 				melee_distance_min = melee_distance_max + 1;
 			}
 			else {
-				melee_distance_min = melee_distance * float(RuleR(Bots, PercentMinCasterRangeDistance));
+				melee_distance_min = melee_distance * RuleR(Bots, PercentMinCasterRangeDistance);
 			}
 		}
 
@@ -11549,7 +11549,7 @@ void Bot::DoCombatPositioning(Mob* tar, glm::vec3 Goal, bool stop_melee_level, f
 			}
 			if (tar->IsRooted() && !taunting) { // Move non-taunters out of range - Above already checks if bot is targeted, otherwise they would stay
 				if (tar_distance <= melee_distance_max) {
-					if (PlotBotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z, (melee_distance_max + 1), (melee_distance_max * 2), false, false)) {
+					if (PlotBotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z, (melee_distance_max + 1), (melee_distance_max * 2), false, false, true)) {
 						RunToGoalWithJitter(Goal);
 					}
 				}
@@ -11557,14 +11557,14 @@ void Bot::DoCombatPositioning(Mob* tar, glm::vec3 Goal, bool stop_melee_level, f
 					DoFaceCheckWithJitter(tar);
 				}
 			}
-			else if (tar_distance < melee_distance_min)  { // Back up any bots too close
-				if (PlotBotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z, melee_distance_min, melee_distance, false, taunting)) {
-					RunToGoalWithJitter(Goal);
-				}
-				else {
-					DoFaceCheckWithJitter(tar);
-				}
-			}
+			//else if (tar_distance < melee_distance_min)  { // Back up any bots too close
+			//	if (PlotBotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z, melee_distance_min, melee_distance, false, taunting)) {
+			//		RunToGoalWithJitter(Goal);
+			//	}
+			//	else {
+			//		DoFaceCheckWithJitter(tar);
+			//	}
+			//}
 			DoFaceCheckNoJitter(tar);
 		}
 	}
@@ -11594,6 +11594,19 @@ void Bot::DoCombatPositioning(Mob* tar, glm::vec3 Goal, bool stop_melee_level, f
 					RunToGoalWithJitter(Goal);
 				}
 				else {
+					if (stop_melee_level || IsBotArcher()) {
+						if (IsBotArcher()) {
+							float minArcheryRange = RuleI(Combat, MinRangedAttackDist) * RuleI(Combat, MinRangedAttackDist);
+							if (PlotBotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z, minArcheryRange, melee_distance, false, taunting)) {
+								RunToGoalWithJitter(Goal);
+							}
+						}
+						else {
+							if (PlotBotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z, melee_distance_max + 1, melee_distance, false, taunting)) {
+								RunToGoalWithJitter(Goal);
+							}
+						}
+					}
 					DoFaceCheckWithJitter(tar);
 				}
 			}
@@ -11668,12 +11681,15 @@ bool Bot::HasRequiredLoSForPositioning(Mob* tar) {
 	else if (GetClass() == BARD && GetLevel() >= GetStopMeleeLevel()) {
 		return true;
 	}
-	if (!CheckLosFN(tar)) {
+	if (!DoLosChecks(this, tar)) {
 		return false;
 	}
-	if (!CheckWaterLoS(this, tar)) {
-		return false;
-	}
+	//if (!CheckLosFN(tar)) {
+	//	return false;
+	//}
+	//if (!CheckWaterLoS(this, tar)) {
+	//	return false;
+	//}
 	return true;
 }
 
