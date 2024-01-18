@@ -3388,6 +3388,10 @@ void Bot::AI_Process()
 				BotMeditate(true);
 			}
 
+			if (GetClass() == BARD) {
+				BotMeditate(true);
+			}
+
 			return;
 		}
 
@@ -3966,15 +3970,15 @@ void Bot::AI_Process()
 
 				if (NOT_PASSIVE) {
 
-					if (!AI_IdleCastCheck() && !IsCasting() && GetClass() != BARD) {
+					if (!AI_IdleCastCheck() && !IsCasting()) { //&& GetClass() != BARD) {
 						BotMeditate(true);
 					}
 				}
 				else {
 
-					if (GetClass() != BARD) {
+					//if (GetClass() != BARD) {
 						BotMeditate(true);
-					}
+					//}
 				}
 
 				return;
