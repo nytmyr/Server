@@ -3413,7 +3413,7 @@ void Bot::AI_Process()
 			tar->IsMezzed() ||
 			lo_distance > leash_distance ||
 			tar_distance > leash_distance ||
-			(!GetAttackingFlag() && !CheckLosFN(tar) && !leash_owner->CheckLosFN(tar)) || // This is suppose to keep bots from attacking things behind walls
+			(!GetAttackingFlag() && !DoLosChecks(this, tar) && !leash_owner->DoLosChecks(leash_owner, tar)) || // This is suppose to keep bots from attacking things behind walls
 			!IsAttackAllowed(tar)
 			/* DISABLED ALT COMBAT ||
 			(bo_alt_combat &&
@@ -3475,7 +3475,7 @@ void Bot::AI_Process()
 
 			constexpr size_t PULL_AGGRO = 5225; // spells[5225]: 'Throw Stone' - 0 cast time
 
-			if (tar_distance <= (spells[PULL_AGGRO].range * spells[PULL_AGGRO].range) && CheckLosFN(tar)) {
+			if (tar_distance <= (spells[PULL_AGGRO].range * spells[PULL_AGGRO].range) && DoLosChecks(this, tar)) {
 
 				StopMoving();
 				CastSpell(PULL_AGGRO, tar->GetID());
@@ -4075,7 +4075,7 @@ void Bot::PetAIProcess() {
 		// Let's check if we have a los with our target.
 		// If we don't, our hate_list is wiped.
 		// It causes some cpu stress but without it, it was causing the bot/pet to aggro behind wall, floor etc...
-		if(!botPet->CheckLosFN(botPet->GetTarget()) || botPet->GetTarget()->IsMezzed() || !botPet->IsAttackAllowed(GetTarget())) {
+		if(!botPet->DoLosChecks(botPet, botPet->GetTarget()) || botPet->GetTarget()->IsMezzed() || !botPet->IsAttackAllowed(GetTarget())) {
 			botPet->WipeHateList();
 			botPet->SetTarget(botPet->GetOwner());
 			return;
@@ -12122,7 +12122,7 @@ void Bot::DoItemClick(const EQ::ItemData* item, uint16 slot_id) {
 		return;
 	}
 
-	if (tar != this && (!CheckLosFN(tar) || !CheckWaterLoS(this, tar))) {
+	if (tar != this && !DoLosChecks(this, tar)) {
 		GetOwner()->Message(Chat::Yellow, "%s does not currently have Line of Sight on %s.", GetCleanName(), tar->GetCleanName());
 		return;
 	}

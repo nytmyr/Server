@@ -1619,7 +1619,7 @@ bool Mob::CheckLosCheatExempt(Mob* who, Mob* other) {
 			//exempt_check_other.x = 1455; exempt_check_other.y = 415; exempt_check_other.z = -242;
 			//check to be sure the player and the target are outside of the councilman area
 			//if the player is inside the cove they cannot be higher than the ceiling (no exploiting from uptop)
-			if (DistanceNoZ(other->GetPosition(), exempt_check_who) >= 255 && DistanceNoZ(who->GetPosition(), exempt_check_who) >= 255 && (DistanceNoZ(who->GetPosition(), exempt_check_who) <= 600 || (DistanceNoZ(who->GetPosition(), exempt_check_who) <= 800 && who->GetZ() < -171))) {
+			if (who->GetZ() <= -171 && other->GetZ() <= -171 && DistanceNoZ(other->GetPosition(), exempt_check_who) <= 800 && DistanceNoZ(who->GetPosition(), exempt_check_who) <= 800) {
 				return true;
 			}
 		}
@@ -1634,4 +1634,5 @@ bool Mob::DoLosChecks(Mob* who, Mob* other) {
 		}
 		return false;
 	}
+	return true;
 }
