@@ -5184,6 +5184,11 @@ void bot_command_depart(Client *c, const Seperator *sep)
 		return;
 	}
 
+	std::list<Bot*> sbl;
+	MyBots::PopulateSBL_BySpawnedBots(c, sbl);
+	ActionableTarget::Types actionable_targets;
+	Bot* my_bot = nullptr;
+
 	bool single = false;
 	std::string single_arg = sep->arg[2];
 	if (!single_arg.compare("single"))
@@ -5191,8 +5196,17 @@ void bot_command_depart(Client *c, const Seperator *sep)
 
 	std::string destination = sep->arg[1];
 	if (!destination.compare("list")) {
-		Bot* my_druid_bot = ActionableBots::AsGroupMember_ByClass(c, c, DRUID);
-		Bot* my_wizard_bot = ActionableBots::AsGroupMember_ByClass(c, c, WIZARD);
+		//Bot* my_druid_bot = ActionableBots::AsGroupMember_ByClass(c, c, DRUID);
+		//Bot* my_wizard_bot = ActionableBots::AsGroupMember_ByClass(c, c, WIZARD);
+		Bot* my_druid_bot = ActionableBots::Select_ByMinLevelAndClass(c, BCEnum::TT_None, sbl, 1, DRUID);
+		Bot* my_wizard_bot = ActionableBots::Select_ByMinLevelAndClass(c, BCEnum::TT_None, sbl, 1, WIZARD);
+		if ((!my_druid_bot && !my_wizard_bot) || (!my_druid_bot->IsBotInGroupOrRaidGroup(true) && !my_wizard_bot->IsBotInGroupOrRaidGroup(true))) {
+			if (!my_druid_bot && !my_wizard_bot) {
+				c->Message(Chat::Yellow, "No compatible bots found for %s.", sep->arg[0]);
+			}
+			return;
+		}
+
 		helper_command_depart_list(c, my_druid_bot, my_wizard_bot, local_list, single);
 		return;
 	}
@@ -5201,9 +5215,8 @@ void bot_command_depart(Client *c, const Seperator *sep)
 		return;
 	}
 
-	ActionableTarget::Types actionable_targets;
-	Bot* my_bot = nullptr;
-	std::list<Bot*> sbl;
+	my_bot = nullptr;
+	sbl.clear();
 	MyBots::PopulateSBL_BySpawnedBots(c, sbl);
 
 	bool cast_success = false;
@@ -19448,6 +19461,10 @@ void bot_subcommand_circle(Client *c, const Seperator *sep)
 		helper_send_usage_required_bots(c, BCEnum::SpT_Depart, DRUID);
 		return;
 	}
+	std::list<Bot*> sbl;
+	MyBots::PopulateSBL_BySpawnedBots(c, sbl);
+	ActionableTarget::Types actionable_targets;
+	Bot* my_bot = nullptr;
 
 	bool single = false;
 	std::string single_arg = sep->arg[2];
@@ -19456,8 +19473,16 @@ void bot_subcommand_circle(Client *c, const Seperator *sep)
 
 	std::string destination = sep->arg[1];
 	if (!destination.compare("list")) {
-		Bot* my_druid_bot = ActionableBots::AsGroupMember_ByClass(c, c, DRUID);
-		helper_command_depart_list(c, my_druid_bot, nullptr, local_list, single);
+		//Bot* my_druid_bot = ActionableBots::AsGroupMember_ByClass(c, c, DRUID);
+		my_bot = ActionableBots::Select_ByMinLevelAndClass(c, BCEnum::TT_None, sbl, 1, DRUID);
+		if (!my_bot || !my_bot->IsBotInGroupOrRaidGroup(true)) {
+			if (!my_bot) {
+				c->Message(Chat::Yellow, "No compatible bots found for %s.", sep->arg[0]);
+			}
+			return;
+		}
+
+		helper_command_depart_list(c, nullptr, my_bot, local_list, single);
 		return;
 	}
 	else if (destination.empty()) {
@@ -19465,9 +19490,8 @@ void bot_subcommand_circle(Client *c, const Seperator *sep)
 		return;
 	}
 
-	ActionableTarget::Types actionable_targets;
-	Bot* my_bot = nullptr;
-	std::list<Bot*> sbl;
+	my_bot = nullptr;
+	sbl.clear();
 	MyBots::PopulateSBL_BySpawnedBots(c, sbl);
 
 	bool cast_success = false;
@@ -21274,6 +21298,11 @@ void bot_subcommand_portal(Client *c, const Seperator *sep)
 		return;
 	}
 
+	std::list<Bot*> sbl;
+	MyBots::PopulateSBL_BySpawnedBots(c, sbl);
+	ActionableTarget::Types actionable_targets;
+	Bot* my_bot = nullptr;
+
 	bool single = false;
 	std::string single_arg = sep->arg[2];
 	if (!single_arg.compare("single"))
@@ -21281,18 +21310,25 @@ void bot_subcommand_portal(Client *c, const Seperator *sep)
 
 	std::string destination = sep->arg[1];
 	if (!destination.compare("list")) {
-		auto my_wizard_bot = ActionableBots::AsGroupMember_ByClass(c, c, WIZARD);
-		helper_command_depart_list(c, nullptr, my_wizard_bot, local_list, single);
+		//auto my_wizard_bot = ActionableBots::AsGroupMember_ByClass(c, c, WIZARD);
+		my_bot = ActionableBots::Select_ByMinLevelAndClass(c, BCEnum::TT_None, sbl, 1, WIZARD);
+		if (!my_bot || !my_bot->IsBotInGroupOrRaidGroup(true)) {
+			if (!my_bot) {
+				c->Message(Chat::Yellow, "No compatible bots found for %s.", sep->arg[0]);
+			}
+			return;
+		}
+
+		helper_command_depart_list(c, nullptr, my_bot, local_list, single);
 		return;
 	}
 	else if (destination.empty()) {
 		c->Message(Chat::White, "A [destination] or [list] argument is required to use this command");
 		return;
 	}
-
-	ActionableTarget::Types actionable_targets;
-	Bot* my_bot = nullptr;
-	std::list<Bot*> sbl;
+	
+	my_bot = nullptr;
+	sbl.clear();
 	MyBots::PopulateSBL_BySpawnedBots(c, sbl);
 
 	bool cast_success = false;
