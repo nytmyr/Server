@@ -2452,14 +2452,78 @@ BotSpell Bot::GetBestBotSpellForDiseaseBasedSlow(Bot* botCaster) {
 	return result;
 }
 
+bool Bot::IsMobEngagedByAnyone(Bot* botCaster, Mob* tar) {
+	if (!tar) {
+		return false;
+	}
+
+	if (botCaster->IsRaidGrouped()) {
+		Raid* raid = botCaster->GetRaid();
+		if (raid) {
+			std::vector<RaidMember> raid_group_members = raid->GetMembers();
+			for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
+				if (iter->member && entity_list.IsMobInZone(iter->member)) {
+					if (iter->member->GetTarget() == tar) {
+						if (iter->member->IsBot()) {
+							return true;
+						}
+						if (iter->member->IsCasting()) {
+							if (IsEffectInSpell(iter->member->CastingSpellID(), SE_CurrentHP)) {
+								return true;
+							}
+							if (IsEffectInSpell(iter->member->CastingSpellID(), SE_CurrentHPOnce)) {
+								return true;
+							}
+						}
+						if (iter->member->IsClient() && (iter->member->CastToClient()->AutoAttackEnabled() || iter->member->CastToClient()->AutoFireEnabled())) {
+							return true;
+						}
+					}
+				}
+			}
+		}
+	}
+	else if (botCaster->IsGrouped()) {
+		Group* g = botCaster->GetGroup();
+		if (g) {
+			for (int counter = 0; counter < g->GroupCount(); counter++) {
+				if (g->members[counter] && entity_list.IsMobInZone(g->members[counter])) {
+					if (g->members[counter]->GetTarget() == tar) {
+						if (g->members[counter]->IsBot()) {
+							return true;
+						}
+						if (g->members[counter]->IsCasting()) {
+							if (IsEffectInSpell(g->members[counter]->CastingSpellID(), SE_CurrentHP)) {
+								return true;
+							}
+							if (IsEffectInSpell(g->members[counter]->CastingSpellID(), SE_CurrentHPOnce)) {
+								return true;
+							}
+						}
+						if (g->members[counter]->IsClient() && (g->members[counter]->CastToClient()->AutoAttackEnabled() || g->members[counter]->CastToClient()->AutoFireEnabled())) {
+							return true;
+						}
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
 Mob* Bot::GetFirstIncomingMobToMez(Bot* botCaster, BotSpell botSpell) {
 	Mob* result = 0;
 	bool go_next = false;
 	uint32 spell_range = 0;
+	int buff_count = 0;
 
 	if (botCaster && IsMesmerizeSpell(botSpell.SpellId)) {
 		for (auto& close_mob : botCaster->close_mobs) {
 			NPC* npc = close_mob.second->CastToNPC();
+
+			if (npc->IsMezzed()) {
+				continue;
+			}
 
 			if (!npc->IsOnHatelist(botCaster->GetOwner())) {
 				continue;
@@ -2484,101 +2548,26 @@ Mob* Bot::GetFirstIncomingMobToMez(Bot* botCaster, BotSpell botSpell) {
 			spell_range = botCaster->GetActSpellRange(botSpell.SpellId, spells[botSpell.SpellId].range);
 
 			if (DistanceSquaredNoZ(npc->GetPosition(), botCaster->GetPosition()) <= (spell_range * spell_range)) {
-				if (!npc->IsMezzed()) {
-					if (botCaster->IsRaidGrouped()) {
-						Raid* raid = botCaster->GetRaid();
-						if (raid) {
-							std::vector<RaidMember> raid_group_members = raid->GetMembers();
-							for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
-								if (!go_next) {
-									if (iter->member && entity_list.IsMobInZone(iter->member)) {
-										if (npc->IsOnHatelist(iter->member)) {
-											if (
-												iter->member->GetTarget() != npc || (
-													!iter->member->IsCasting() && (
-														(iter->member->IsClient() && !iter->member->CastToClient()->AutoAttackEnabled() && !iter->member->CastToClient()->AutoFireEnabled())
-														|| (iter->member->IsBot() && !iter->member->CastToBot()->GetAttackFlag() && (!iter->member->CastToBot()->GetPullFlag() || !iter->member->CastToBot()->GetPullingFlag()))
-														)
-													)
-												) {
-												int buff_count = npc->GetMaxTotalSlots();
-												auto npc_buffs = npc->GetBuffs();
-												for (int i = 0; i < buff_count; i++) {
-													if (IsDetrimentalSpell(npc_buffs[i].spellid) && IsEffectInSpell(npc_buffs[i].spellid, SE_CurrentHP)) {
-														go_next = true;
-														break;
-													}
-												}
-												if (!go_next) {
-													result = npc;
-												}
-											}
-											else {
-												go_next = true;
-											}
-										}
-									}
-								}
-							}
-							if (result) {
-								if (zone->random.Int(1, 100) <= RuleI(Bots, MezChance)) {
-									botCaster->m_mez_delay_timer.Start(RuleI(Bots, MezSuccessDelay));
-									result = npc;
-									return result;
-								}
-								result = 0;
-							}
-							go_next = false;
-						}
-					}
-					else if (botCaster->IsGrouped()) {
-						Group* g = botCaster->GetGroup();
-						if (g) {
-							for (int counter = 0; counter < g->GroupCount(); counter++) {
-								if (!go_next) {
-									if (g->members[counter] && entity_list.IsMobInZone(g->members[counter])) {
-										if (npc->IsOnHatelist(g->members[counter])) {
-											if (
-												g->members[counter]->GetTarget() != npc || (
-													!g->members[counter]->IsCasting() && (
-														(g->members[counter]->IsClient() && !g->members[counter]->CastToClient()->AutoAttackEnabled() && !g->members[counter]->CastToClient()->AutoFireEnabled())
-														|| (g->members[counter]->IsBot() && !g->members[counter]->CastToBot()->GetAttackFlag() && (!g->members[counter]->CastToBot()->GetPullFlag() || !g->members[counter]->CastToBot()->GetPullingFlag()))
-														)
-													)
-												) {
-												int buff_count = npc->GetMaxTotalSlots();
-												auto npc_buffs = npc->GetBuffs();
-												bool dot_check = false;
-												for (int i = 0; i < buff_count; i++) {
-													if (IsDetrimentalSpell(npc_buffs[i].spellid) && IsEffectInSpell(npc_buffs[i].spellid, SE_CurrentHP)) {
-														go_next = true;
-														break;
-													}
-												}
-												if (!go_next) {
-													result = npc;
-												}
-											}
-											else {
-												go_next = true;
-											}
-										}
-									}
-								}
-							}
-							if (result) {
-								if (zone->random.Int(1, 100) <= RuleI(Bots, MezChance)) {
-									botCaster->m_mez_delay_timer.Start(RuleI(Bots, MezSuccessDelay));
-									result = npc;
-									return result;
-								}
-								result = 0;
-							}
-							go_next = false;
-						}
+				if (IsMobEngagedByAnyone(botCaster, npc)) {
+					continue;
+				}
+
+				buff_count = npc->GetMaxTotalSlots();
+				auto npc_buffs = npc->GetBuffs();
+
+				for (int i = 0; i < buff_count; i++) {
+					if (IsDetrimentalSpell(npc_buffs[i].spellid) && IsEffectInSpell(npc_buffs[i].spellid, SE_CurrentHP)) {
+						continue;
 					}
 				}
+
+				if (zone->random.Int(1, 100) <= RuleI(Bots, MezChance)) {
+					botCaster->m_mez_delay_timer.Start(RuleI(Bots, MezSuccessDelay));
+					result = npc;
+					return result;
+				}
 			}
+			continue;
 		}
 		botCaster->m_mez_delay_timer.Start(RuleI(Bots, MezFailDelay));
 	}

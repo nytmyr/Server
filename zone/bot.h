@@ -642,6 +642,7 @@ public:
 	static BotSpell GetBestBotSpellForMagicBasedSlow(Bot* botCaster);
 	static BotSpell GetBestBotSpellForDiseaseBasedSlow(Bot* botCaster);
 
+	static bool IsMobEngagedByAnyone(Bot* botCaster, Mob* tar);
 	static Mob* GetFirstIncomingMobToMez(Bot* botCaster, BotSpell botSpell);
 	static BotSpell GetBestBotSpellForMez(Bot* botCaster);
 	static BotSpell GetBestBotMagicianPetSpell(Bot* botCaster);
