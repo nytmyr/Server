@@ -2064,6 +2064,8 @@ public:
 		booAutoDefend,
 		booBuffCounter,
 		booMonkWuMessage,
+		booAssistGroupOrRaid,
+		booFleeOnAggro,
 		_booCount
 	};
 
