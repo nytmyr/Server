@@ -12219,7 +12219,7 @@ void Bot::CheckForAETargets(Mob* tar, uint16 spell_id, bool *ae_targets) {
 			continue;
 		}
 
-		if (npc_ae_count >= RuleI(Bots, MinTargetsForAE)) {
+		if (npc_ae_count >= RuleI(Bots, MinTargetsForAENukes)) {
 			valid_ae = true;
 			break;
 		}

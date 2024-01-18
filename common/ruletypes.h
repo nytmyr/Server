@@ -663,7 +663,17 @@ RULE_BOOL(Bots, CopySettingsOwnBotsOnly, false, "Determines whether a bot you ar
 RULE_REAL(Bots, CombatRegenManaLimit, 80, "Mana Ratio when bots will attempt to sit to med in combat, default 80")
 RULE_REAL(Bots, CombatRegenHealthLimit, 40, "Health Ratio limit when bots will no longer attempt to sit to med in combat, default 40")
 RULE_INT(Bots, AutosaveIntervalSeconds, 300, "Number of seconds after which a timer is triggered which stores the bot data. The value 0 means no periodic automatic saving.")
-RULE_INT(Bots, MinTargetsForAE, 3, "Minimum number of targets that must pass AE checks to attempt to do an AE Nuke/Rain, default 3")
+RULE_INT(Bots, MinTargetsForAENukes, 3, "Minimum number of targets that must pass AE checks to attempt to do an AE Nuke/Rain, default 3")
+RULE_INT(Bots, MinTargetsForAEMez, 3, "Minimum number of targets that must pass AE checks to attempt to do an AE Mez, default 3")
+RULE_INT(Bots, MinTargetsForAECure, 3, "Minimum number of targets that must pass AE checks to attempt to do an AE Cure, default 3")
+RULE_INT(Bots, MinTargetsForAEStun, 3, "Minimum number of targets that must pass AE checks to attempt to do an AE Stun, default 3")
+RULE_INT(Bots, MinTargetsForAEEscape, 3, "Minimum number of targets that must pass AE checks to attempt to do an AE Escape, default 3")
+RULE_INT(Bots, MinTargetsForAEDebuff, 3, "Minimum number of targets that must pass AE checks to attempt to do an AE Debuff, default 3")
+RULE_INT(Bots, MinTargetsForAEDoT, 3, "Minimum number of targets that must pass AE checks to attempt to do an AE DoT, default 3")
+RULE_INT(Bots, MinTargetsForAESlow, 3, "Minimum number of targets that must pass AE checks to attempt to do an AE Slow, default 3")
+RULE_INT(Bots, MinTargetsForAESnare, 3, "Minimum number of targets that must pass AE checks to attempt to do an AE Snare, default 3")
+RULE_INT(Bots, MinTargetsForAEFear, 3, "Minimum number of targets that must pass AE checks to attempt to do an AE Fear, default 3")
+RULE_INT(Bots, MinTargetsForAELull, 3, "Minimum number of targets that must pass AE checks to attempt to do an AE Lull, default 3")
 
 /*
 * CUSTOM BOT RULES
