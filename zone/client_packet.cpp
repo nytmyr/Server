@@ -16558,11 +16558,11 @@ struct RecordKillCheck {
 
 void Client::RecordKilledNPCEvent(NPC *n)
 {
-	bool is_named = Strings::Contains(n->GetName(), "#") && !n->IsRaidTarget();
+	//bool is_named = Strings::Contains(n->GetName(), "#") && !n->IsRaidTarget();
 
 	std::vector<RecordKillCheck> checks = {
 		RecordKillCheck{.event = PlayerEvent::KILLED_NPC, .check = true},
-		RecordKillCheck{.event = PlayerEvent::KILLED_NAMED_NPC, .check = is_named},
+		RecordKillCheck{.event = PlayerEvent::KILLED_NAMED_NPC, .check = n->IsRareSpawn()},
 		RecordKillCheck{.event = PlayerEvent::KILLED_RAID_NPC, .check = n->IsRaidTarget()},
 	};
 
