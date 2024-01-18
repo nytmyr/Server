@@ -791,6 +791,8 @@ RULE_REAL(Merchant, ChaBonusMod, 3.45, "Determines CHA cap, from 104 CHA. 3.45 i
 RULE_REAL(Merchant, ChaPenaltyMod, 1.52, "Determines CHA bottom, up to 102 CHA. 1.52 is 37 CHA at apprehensive. 0.98 is 0 CHA at apprehensive")
 RULE_BOOL(Merchant, EnableAltCurrencySell, true, "Enables the ability to resell items to alternate currency merchants")
 RULE_BOOL(Merchant, AllowCorpse, false, "Setting whether dealers leave a corpse behind ")
+RULE_INT(Merchant, MaxItemsListedDefault, 80, "Maximum number of items a merchant will list before client checks. Default 80")
+RULE_INT(Merchant, MaxItemsListedRoF2, 200, "Maximum number of items a merchant will list for RoF2 clients. Default 200")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(Bazaar)
