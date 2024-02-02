@@ -4252,11 +4252,11 @@ void Mob::CommonDamage(Mob* attacker, int64 &damage, const uint16 spell_id, cons
 		//this was done to simplify the code here (since we can only effectively skip one mob on queue)
 		eqFilterType filter;
 		Mob* skip = attacker;
-		if (attacker && attacker->GetOwnerID()) {
+		if (attacker && attacker->IsPet() && !attacker->IsBot()) {
 			//attacker is a pet, let pet owners see their pet's damage
 			Mob* owner = attacker->GetOwner();
 			if (owner && owner->IsClient()) {
-				if ((IsValidSpell(spell_id) || (FromDamageShield)) && damage > 0) {
+				if (FromDamageShield && damage > 0) {
 					//special crap for spell damage, looks hackish to me
 					char val1[20] = { 0 };
 					owner->MessageString(Chat::NonMelee, OTHER_HIT_NONMELEE, GetCleanName(), ConvertArray(damage, val1));
@@ -4265,58 +4265,64 @@ void Mob::CommonDamage(Mob* attacker, int64 &damage, const uint16 spell_id, cons
 					if (damage > 0) {
 						if (IsValidSpell(spell_id)) {
 							filter = iBuffTic ? FilterDOT : FilterSpellDamage;
-						} else {
+						}
+						else {
 							filter = FilterPetHits;
 						}
 					}
-					else if (damage == -5)
-						filter = FilterNone;	//cant filter invulnerable
-					else
+					else if (damage == -5) {
+						filter = FilterNone;    //cant filter invulnerable
+					}
+					else {
 						filter = FilterPetMisses;
+					}
 
-					if (!FromDamageShield)
-						owner->CastToClient()->QueuePacket(outapp, true, CLIENT_CONNECTED, filter);
+					if (!FromDamageShield) {
+						entity_list.QueueCloseClients(
+							attacker, /* Sender */
+							outapp, /* packet */
+							false, /* Skip Sender */
+							((IsValidSpell(spell_id)) ? RuleI(Range, SpellMessages) : RuleI(Range, DamageMessages)),
+							0, /* don't skip anyone on spell */
+							true, /* Packet ACK */
+							filter /* eqFilterType filter */
+						);
+					}
 				}
 			}
 
-			//if (RuleB(Bots, Enabled)) {
-				else if (owner && owner->IsBot() && RuleB(Bots, DisplaySpellDamage)) {
-					if (((spell_id != SPELL_UNKNOWN) || (FromDamageShield)) && damage > 0) {
-						//special crap for spell damage, looks hackish to me
-						char val1[20] = { 0 };
-						owner->CastToBot()->GetBotOwner()->CastToClient()->MessageString(Chat::NonMelee, OTHER_HIT_NONMELEE, attacker->GetCleanName(), ConvertArray(damage, val1));
-
-					}
-					else {
-						if (damage > 0) {
-							if (spell_id != SPELL_UNKNOWN)
-								filter = iBuffTic ? FilterDOT : FilterSpellDamage;
-							else
-								filter = FilterPetHits;
-						}
-						else if (damage == -5)
-							filter = FilterNone;	//cant filter invulnerable
-						else
-							filter = FilterPetMisses;
-
-						if (!FromDamageShield)
-							owner->CastToBot()->GetBotOwner()->CastToClient()->QueuePacket(outapp, true, CLIENT_CONNECTED, filter);
-
-					}
-				}
-			//}
 			skip = owner;
 		}
 		else {
 			//attacker is not a pet, send to the attacker
 			//if the attacker is a client, try them with the correct filter
-			if (attacker && (attacker->IsClient() || attacker->IsBot())) {
+			if (attacker && attacker->IsOfClientBot()) {
 				if ((IsValidSpell(spell_id) || FromDamageShield) && damage > 0) {
 					//special crap for spell damage, looks hackish to me
 					char val1[20] = { 0 };
 					if (FromDamageShield) {
-						if (attacker->CastToClient()->GetFilter(FilterDamageShields) != FilterHide)
-							attacker->MessageString(Chat::DamageShield, OTHER_HIT_NONMELEE, GetCleanName(), ConvertArray(damage, val1));
+						if (attacker->IsBot()) {
+							Mob* owner = attacker->GetOwner();
+
+							if (owner->CastToClient()->GetFilter(FilterDamageShields) != FilterHide) {
+								owner->MessageString(
+									Chat::DamageShield,
+									OTHER_HIT_NONMELEE,
+									GetCleanName(),
+									ConvertArray(damage, val1)
+								);
+							}
+						}
+						else {
+							if (attacker->CastToClient()->GetFilter(FilterDamageShields) != FilterHide) {
+								attacker->MessageString(
+									Chat::DamageShield,
+									OTHER_HIT_NONMELEE,
+									GetCleanName(),
+									ConvertArray(damage, val1)
+								);
+							}
+						}
 					}
 					else {
 						entity_list.FilteredMessageCloseString(
@@ -4334,7 +4340,7 @@ void Mob::CommonDamage(Mob* attacker, int64 &damage, const uint16 spell_id, cons
 					}
 				}
 				// Only try to queue these packets to a client
-				else if (attacker && (attacker->IsClient())) {
+				else {
 					if (damage > 0) {
 						if (IsValidSpell(spell_id)) {
 							filter = iBuffTic ? FilterDOT : FilterSpellDamage;
@@ -4347,13 +4353,27 @@ void Mob::CommonDamage(Mob* attacker, int64 &damage, const uint16 spell_id, cons
 						filter = FilterNone;	//cant filter invulnerable
 					else
 						filter = FilterMyMisses;
-					//set to filter duplicate message to the client if client uses #damage to themselves
-					//if (!attacker->IsClient() && attacker->CastToClient()->GetID() != attacker->GetTarget()->GetID()) {
-					attacker->CastToClient()->QueuePacket(outapp, true, CLIENT_CONNECTED, filter);
-					//}
+
+					if (attacker->IsClient()) {
+						attacker->CastToClient()->QueuePacket(outapp, true, CLIENT_CONNECTED, filter);
+					}
+					else {
+						entity_list.QueueCloseClients(
+							attacker, /* Sender */
+							outapp, /* packet */
+							false, /* Skip Sender */
+							(
+								IsValidSpell(spell_id) ?
+								RuleI(Range, SpellMessages) :
+								RuleI(Range, DamageMessages)
+							),
+							0, /* don't skip anyone on spell */
+							true, /* Packet ACK */
+							filter /* eqFilterType filter */
+						);
+					}
 				}
 			}
-			skip = attacker;
 		}
 
 		//send damage to all clients around except the specified skip mob (attacker or the attacker's owner) and ourself
@@ -4374,34 +4394,56 @@ void Mob::CommonDamage(Mob* attacker, int64 &damage, const uint16 spell_id, cons
 		// If this is Damage Shield damage, the correct OP_Damage packets will be sent from Mob::DamageShield, so
 		// we don't send them here.
 		if (!FromDamageShield) {
-			if (RuleB(Bots, Enabled)) {
-				// If a bot is the attacker, send a damage message ot the Bot Owner
-				if (attacker->GetTarget() && spell_id != SPELL_UNKNOWN && damage > 0 && !Critical && attacker && attacker != this && attacker->IsBot() && RuleB(Bots, DisplaySpellDamage)) {
-					attacker->CastToBot()->GetBotOwner()->FilteredMessageString(
-						attacker->CastToBot()->GetBotOwner(),
-						Chat::DotDamage,
-						FilterDOT,
-						OTHER_HIT_DOT,
-						attacker->GetTarget()->GetCleanName(),
-						itoa(damage),
-						attacker->GetCleanName(),
-						spells[spell_id].name);
-				}
-			}
-			entity_list.QueueCloseClients(
-				this, /* Sender */
-				outapp, /* packet */
-				true, /* Skip Sender */
-				RuleI(Range, SpellMessages),
-				skip, /* Skip this mob */
-				true, /* Packet ACK */
-				filter /* eqFilterType filter */
-			);
 
-			//send the damage to ourself if we are a client
-			if (IsClient()) {
+			// Determine message range based on spell/other-damage
+			int range;
+			if (IsValidSpell(spell_id)) {
+				range = RuleI(Range, SpellMessages);
+			}
+			else {
+				range = RuleI(Range, DamageMessages);
+			}
+
+			// If an "innate" spell, change to spell type to
+			// produce a spell message.  Send to everyone.
+			// This fixes issues with npc-procs like 1002 and 918 and
+			// damage based disciplines which need to spit out extra spell color.
+			if (IsValidSpell(spell_id) &&
+				(skill_used == EQ::skills::SkillTigerClaw ||
+					(IsDamageSpell(spell_id) && IsDiscipline(spell_id)))
+				) {
+				a->type = DamageTypeSpell;
+				entity_list.QueueCloseClients(
+					this, /* Sender */
+					outapp, /* packet */
+					false, /* Skip Sender */
+					range, /* distance packet travels at the speed of sound */
+					0, /* don't skip anyone on spell */
+					true, /* Packet ACK */
+					filter /* eqFilterType filter */
+				);
+			}
+			else {
 				//I dont think any filters apply to damage affecting us
-				CastToClient()->QueuePacket(outapp);
+				if (IsClient()) {
+					CastToClient()->QueuePacket(outapp);
+				}
+
+				// Send normal message to observers
+				// Exclude damage done by client pets as that's handled
+				// elsewhere using proper "my pet damage filter"
+				Mob* owner = attacker->GetOwner();
+				if (!owner || (owner && !owner->IsClient())) {
+					entity_list.QueueCloseClients(
+						this, /* Sender */
+						outapp, /* packet */
+						true, /* Skip Sender */
+						range, /* distance packet travels at the speed of sound */
+						(IsValidSpell(spell_id) && skill_used != EQ::skills::SkillTigerClaw) ? 0 : skip,
+						true, /* Packet ACK */
+						filter /* eqFilterType filter */
+					);
+				}
 			}
 		}
 
