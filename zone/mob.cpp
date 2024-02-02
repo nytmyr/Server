@@ -3846,7 +3846,8 @@ bool Mob::PlotBotPositionAroundTarget(Mob* target, float& x_dest, float& y_dest,
 			temp_m_Position.x = tempX;
 			temp_m_Position.y = tempY;
 			temp_m_Position.z = tempZ;
-			tar_distance = DistanceNoZ(target->GetPosition(), temp_m_Position);	
+			//tar_distance = DistanceNoZ(target->GetPosition(), temp_m_Position);	
+			tar_distance = Distance(target->GetPosition(), temp_m_Position);
 
 			if (tar_distance > max_distance || tar_distance < min_distance) {
 				//TestDebug("{} - Plot Failed Distance - Try #[{}]. Target LOCs XYZ - [{}], [{}], [{}] - Temp LOCs [{}], [{}], [{}] - Distance between = [{}] - Melee Distance = [{}] - Difference = [{}]", GetCleanName(), (counter + 1), target->GetX(), target->GetY(), target->GetZ(), tempX, tempY, tempZ, tar_distance, max_distance, (tar_distance / max_distance));
