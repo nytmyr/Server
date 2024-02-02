@@ -214,6 +214,7 @@ RULE_BOOL(Character, LeaveCursorMoneyOnCorpse, false, "Enable or disable leaving
 RULE_INT(Character, MaxNumberRaidMembersEXPModifier, 72, "If EnableRaidMemberEXPModifier is enabled, this is the maximum number of members that exp will be reduced by, default is 72")
 RULE_BOOL(Character, EnableRaidMemberEXPMultiplier, false, "Enable or disable the raid member experience modifier, default is false")
 RULE_REAL(Character, RaidMemberEXPMultiplier, 1.0, "This controls how much EXP each member will reduce the split exp by. If set to .5, only 50% of exp will be lost per member, default is 1.0")
+RULE_INT(Character, CorpseSummonRange, 100, "Maximum range to be able to /corpse, default is 100")
 
 /*
 * CUSTOM CHARACTER RULES

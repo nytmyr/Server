@@ -1804,7 +1804,8 @@ uint16 Corpse::GetFirstSlotByItemID(uint32 item_id) {
 }
 
 bool Corpse::Summon(Client* client, bool spell, bool CheckDistance) {
-	uint32 dist2 = 10000; // pow(100, 2);
+	//uint32 dist2 = 10000; // pow(100, 2);
+	uint32 dist2 = pow(RuleI(Character, CorpseSummonRange), 2);
 	if (!spell) {
 		if (GetCharID() == client->CharacterID()) {
 			if (IsLocked() && client->Admin() < AccountStatus::GMAdmin) {
