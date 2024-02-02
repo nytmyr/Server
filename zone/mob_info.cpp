@@ -264,6 +264,9 @@ inline std::string GetMobAttributeByString(Mob *mob, const std::string &attribut
 		if (attribute == "spawngroup") {
 			return std::to_string(npc->GetSpawnGroupId());
 		}
+		if (attribute == "spawnpoint") {
+			return std::to_string(npc->GetSpawnPointID());
+		}
 		if (attribute == "grid") {
 			return std::to_string(npc->GetGrid());
 		}
@@ -765,6 +768,7 @@ void Mob::DisplayInfo(Mob *mob)
 				"runspeed",
 				"walkspeed",
 				"spawngroup",
+				"spawnpoint",
 				"grid",
 				"emote",
 				"see_invis",
