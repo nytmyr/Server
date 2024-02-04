@@ -177,7 +177,7 @@ std::string GetDumpDate()
 	struct tm time_struct{};
 	char      buf[80];
 	time_struct = *localtime(&now);
-	strftime(buf, sizeof(buf), "%Y-%m-%d", &time_struct);
+	strftime(buf, sizeof(buf), "%m-%d-%Y-%H-%M-%S", &time_struct);
 
 	std::string time = buf;
 
