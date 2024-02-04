@@ -18920,8 +18920,8 @@ void bot_subcommand_bot_stance(Client *c, const Seperator *sep)
 	if (helper_command_alias_fail(c, "bot_subcommand_bot_stance", sep->arg[0], "botstance"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s [current | value: 1-9] ([actionable: target | byname] ([actionable_name]))", sep->arg[0]);
-		c->Message(Chat::White, "value: %u(%s), %u(%s), %u(%s), %u(%s), %u(%s), %u(%s), %u(%s)",
+		c->Message(Chat::White, "usage: %s [current | value: 1-9] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "value: %u (%s), %u (%s), %u (%s), %u (%s), %u (%s), %u (%s), %u (%s)",
 			EQ::constants::stancePassive, EQ::constants::GetStanceName(EQ::constants::stancePassive),
 			EQ::constants::stanceBalanced, EQ::constants::GetStanceName(EQ::constants::stanceBalanced),
 			EQ::constants::stanceEfficient, EQ::constants::GetStanceName(EQ::constants::stanceEfficient),
@@ -18934,45 +18934,89 @@ void bot_subcommand_bot_stance(Client *c, const Seperator *sep)
 		);
 		return;
 	}
-	int ab_mask = (ActionableBots::ABM_Target | ActionableBots::ABM_ByName);
+	const int ab_mask = ActionableBots::ABM_Type1;
 
-	bool current_flag = false;
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
 	auto bst = EQ::constants::stanceUnknown;
 
-	if (!strcasecmp(sep->arg[1], "current"))
-		current_flag = true;
-	else if (sep->IsNumber(1)) {
+	if (sep->IsNumber(1)) {
+		ab_arg = 2;
 		bst = (EQ::constants::StanceType)Strings::ToInt(sep->arg[1]);
-		if (bst < EQ::constants::stanceUnknown || bst > EQ::constants::stanceBurnAE)
+		if (bst < EQ::constants::stanceUnknown || bst > EQ::constants::stanceBurnAE) {
 			bst = EQ::constants::stanceUnknown;
+		}
+	}
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
 	}
 
-	if (!current_flag && bst == EQ::constants::stanceUnknown) {
+	if (!current_check && bst == EQ::constants::stanceUnknown) {
 		c->Message(Chat::White, "A [current] argument or valid numeric [value] is required to use this command");
 		return;
 	}
 
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
 	std::list<Bot*> sbl;
-	if (ActionableBots::PopulateSBL(c, sep->arg[2], sbl, ab_mask, sep->arg[3]) == ActionableBots::ABT_None)
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
 		return;
+	}
+	sbl.remove(nullptr);
 
-	for (auto bot_iter : sbl) {
-		if (!bot_iter)
-			continue;
-
-		if (!current_flag) {
-			bot_iter->SetBotStance(bst);
-			bot_iter->Save();
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!first_found) {
+			first_found = my_bot;
 		}
-
-		Bot::BotGroupSay(
-			bot_iter,
-			fmt::format(
-				"My current stance is {} ({}).",
-				EQ::constants::GetStanceName(bot_iter->GetBotStance()),
-				bot_iter->GetBotStance()
-			).c_str()
-		);
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My current stance is {} ({}).",
+					my_bot->GetCleanName(),
+					EQ::constants::GetStanceName(my_bot->GetBotStance()),
+					my_bot->GetBotStance()
+				).c_str()
+			);
+			continue;
+		}
+		else {
+			my_bot->SetBotStance(bst);
+			my_bot->Save();
+			++success_count;
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My stance has been set to {} ({}).",
+					first_found->GetCleanName(),
+					EQ::constants::GetStanceName(bst),
+					bst
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their stance to {} ({}).",
+					success_count,
+					EQ::constants::GetStanceName(bst),
+					bst
+				).c_str()
+			);
+		}
 	}
 }
 
