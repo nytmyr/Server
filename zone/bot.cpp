@@ -7932,7 +7932,8 @@ bool Bot::IsArcheryRange(Mob *target) {
 	if(target) {
 		float range = (GetBotArcheryRange() + 5.0);
 		range *= range;
-		float targetDistance = DistanceSquaredNoZ(m_Position, target->GetPosition());
+		//float targetDistance = DistanceSquaredNoZ(m_Position, target->GetPosition());
+		float targetDistance = DistanceSquared(m_Position, target->GetPosition());
 		float minRuleDistance = (RuleI(Combat, MinRangedAttackDist) * RuleI(Combat, MinRangedAttackDist));
 		if((targetDistance > range) || (targetDistance < minRuleDistance))
 			result = false;
@@ -9410,16 +9411,16 @@ bool Bot::GetNeedsCured(Mob *tar) {
 	if(tar) {
 		if(tar->FindType(SE_PoisonCounter) || tar->FindType(SE_DiseaseCounter) || tar->FindType(SE_CurseCounter) || tar->FindType(SE_CorruptionCounter)) {
 			uint32 buff_count = tar->GetMaxTotalSlots();
-			int buffsWithCounters = 0;
-			needCured = true;
+			//int buffsWithCounters = 0;
+			//needCured = true;
 			for (unsigned int j = 0; j < buff_count; j++) {
 				if(IsValidSpell(tar->GetBuffs()[j].spellid)) {
 					if(CalculateCounters(tar->GetBuffs()[j].spellid) > 0) {
-						buffsWithCounters++;
-						if(buffsWithCounters == 1 && tar->GetBuffs()[j].ticsremaining < 2) {// (tar->GetBuffs()[j].ticsremaining < 2 || (int32)((tar->GetBuffs()[j].ticsremaining * 6) / tar->GetBuffs()[j].counters) < 2)) {
-							needCured = false;
-							break;
+						if (tar->GetBuffs()[j].ticsremaining < 1) {// (tar->GetBuffs()[j].ticsremaining < 2 || (int32)((tar->GetBuffs()[j].ticsremaining * 6) / tar->GetBuffs()[j].counters) < 2)) {
+							continue;
 						}
+						needCured = true;
+						//buffsWithCounters++;
 					}
 				}
 			}

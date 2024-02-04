@@ -1141,16 +1141,9 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 		}
 		case SpellType_Cure: {
 			if (CanCastBySpellType(this, tar, SpellType_Cure)) {
-				if (GetNeedsCured(tar) && !(GetNumberNeedingHealedInGroup(25, false) > 0) && !(GetNumberNeedingHealedInGroup(40, false) > 2))
+				if (GetNeedsCured(tar))// && !(GetNumberNeedingHealedInGroup(25, false) > 0) && !(GetNumberNeedingHealedInGroup(40, false) > 2))
 				{
 					botSpell = GetBestBotSpellForCure(this, tar, false);
-
-					if (botSpell.SpellId == 0)
-						break;
-
-					if (!IsValidSpellRange(botSpell.SpellId, tar) && IsGroupSpell(botSpell.SpellId)) {
-						botSpell = GetBestBotSpellForCure(this, tar, true);
-					}
 
 					if (botSpell.SpellId == 0)
 						break;
@@ -1166,7 +1159,11 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 					}
 
 					if (castedSpell) {
-						BotGroupSay(this, "Attempting to cure %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
+						std::string cureType = "cure";
+						if (IsGroupSpell(botSpell.SpellId)) {
+							cureType = "group cure";
+						}
+						BotGroupSay(this, "Attempting to %s %s with [%s].", cureType, tar->GetCleanName(), GetSpellName(botSpell.SpellId));
 						if (tar->IsBot()) {
 							uint32 currentTime = Timer::GetCurrentTime();
 							uint32 cureDelay = tar->CastToBot()->GetCureDelay();
@@ -3035,58 +3032,131 @@ BotSpell Bot::GetBestBotSpellForCure(Bot* botCaster, Mob *tar, bool skipGroup) {
 	if (!tar)
 		return result;
 
+	Mob* owner = tar;
 	int countNeedsCured = 0;
+	int countCorrupted = 0;
+	int countCursed = 0;
+	int countPoisoned = 0;
+	int countDiseased = 0;
+	bool isCorrupted = tar->FindType(SE_CorruptionCounter);
+	bool isCursed = tar->FindType(SE_CurseCounter);
 	bool isPoisoned = tar->FindType(SE_PoisonCounter);
 	bool isDiseased = tar->FindType(SE_DiseaseCounter);
-	bool isCursed = tar->FindType(SE_CurseCounter);
-	bool isCorrupted = tar->FindType(SE_CorruptionCounter);
 
 	if (botCaster && botCaster->AI_HasSpells()) {
-		std::list<BotSpell_wPriority> cureList = GetPrioritizedBotSpellsBySpellType(botCaster, SpellType_Cure);
-		if (tar->IsRaidGrouped()) {
-			Raid* raid = tar->GetRaid();
-			if (raid) {
-				std::vector<RaidMember> raid_group_members = raid->GetMembers();
-				for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
-					if (iter->member && entity_list.IsMobInZone(iter->member)) {
-						if (botCaster->GetNeedsCured(iter->member)) {
-							countNeedsCured++;
+		// find valid targets for group cures
+		if (RuleB(Bots, AllowGroupCures)) {
+			if (tar->IsPet() && tar->GetOwner()) {
+				owner = tar->GetOwner();
+			}
+
+			if (owner->IsRaidGrouped()) {
+				Raid* raid = owner->GetRaid();
+				if (raid) {
+					std::vector<RaidMember> raid_group_members = raid->GetMembers();
+					for (std::vector<RaidMember>::iterator iter = raid_group_members.begin(); iter != raid_group_members.end(); ++iter) {
+						if (iter->member && entity_list.IsMobInZone(iter->member)) {
+							if (Distance(botCaster->GetPosition(), iter->member->GetPosition()) > RuleI(Bots, MaxDistanceForCureCounts)) {
+								continue;
+							}
+							if (botCaster->GetNeedsCured(iter->member)) {
+								countNeedsCured++;
+								if (iter->member->FindType(SE_CorruptionCounter)) {
+									countCorrupted++;
+								}
+								if (iter->member->FindType(SE_CurseCounter)) {
+									countCursed++;
+								}
+								if (iter->member->FindType(SE_PoisonCounter)) {
+									countPoisoned++;
+								}
+								if (iter->member->FindType(SE_DiseaseCounter)) {
+									countDiseased++;
+								}
+							}
+							if (!botCaster->GetHoldPetHeals() && iter->member->GetPet() && (Distance(botCaster->GetPosition(), iter->member->GetPet()->GetPosition()) <= RuleI(Bots, MaxDistanceForCureCounts)) && (!RuleB(Bots, AllowCharmedPetBuffs) && iter->member->GetPet()->IsPet() && iter->member->GetPet()->IsCharmed()) && botCaster->GetNeedsCured(iter->member->GetPet())) {
+								countNeedsCured++;
+								if (iter->member->GetPet()->FindType(SE_CorruptionCounter)) {
+									countCorrupted++;
+								}
+								if (iter->member->GetPet()->FindType(SE_CurseCounter)) {
+									countCursed++;
+								}
+								if (iter->member->GetPet()->FindType(SE_PoisonCounter)) {
+									countPoisoned++;
+								}
+								if (iter->member->GetPet()->FindType(SE_DiseaseCounter)) {
+									countDiseased++;
+								}
+							}
+						}
+					}
+				}
+			}
+			else if (owner->HasGroup()) {
+				Group* g = owner->GetGroup();
+				if (g) {
+					for (int i = 0; i < MAX_GROUP_MEMBERS; i++) {
+						if (g->members[i] && !g->members[i]->qglobal) {
+							if (Distance(botCaster->GetPosition(), g->members[i]->GetPosition()) > RuleI(Bots, MaxDistanceForCureCounts)) {
+								continue;
+							}
+							if (botCaster->GetNeedsCured(g->members[i])) {
+								countNeedsCured++;
+								if (g->members[i]->FindType(SE_CorruptionCounter)) {
+									countCorrupted++;
+								}
+								if (g->members[i]->FindType(SE_CurseCounter)) {
+									countCursed++;
+								}
+								if (g->members[i]->FindType(SE_PoisonCounter)) {
+									countPoisoned++;
+								}
+								if (g->members[i]->FindType(SE_DiseaseCounter)) {
+									countDiseased++;
+								}
+							}
+							if (!botCaster->GetHoldPetHeals() && g->members[i]->GetPet() && (Distance(botCaster->GetPosition(), g->members[i]->GetPet()->GetPosition()) <= RuleI(Bots, MaxDistanceForCureCounts)) && (!RuleB(Bots, AllowCharmedPetBuffs) && g->members[i]->GetPet()->IsPet() && g->members[i]->GetPet()->IsCharmed()) && botCaster->GetNeedsCured(g->members[i]->GetPet())) {
+								countNeedsCured++;
+								if (g->members[i]->GetPet()->FindType(SE_CorruptionCounter)) {
+									countCorrupted++;
+								}
+								if (g->members[i]->GetPet()->FindType(SE_CurseCounter)) {
+									countCursed++;
+								}
+								if (g->members[i]->GetPet()->FindType(SE_PoisonCounter)) {
+									countPoisoned++;
+								}
+								if (g->members[i]->GetPet()->FindType(SE_DiseaseCounter)) {
+									countDiseased++;
+								}
+							}
 						}
 					}
 				}
 			}
 		}
-		else if (tar->HasGroup()) {
-			Group *g = tar->GetGroup();
-			if (g) {
-				for( int i = 0; i<MAX_GROUP_MEMBERS; i++) {
-					if (g->members[i] && !g->members[i]->qglobal) {
-						if (botCaster->GetNeedsCured(g->members[i]))
-							countNeedsCured++;
-					}
-				}
-			}
-		}
 
+		std::list<BotSpell_wPriority> cureList = GetPrioritizedBotSpellsBySpellType(botCaster, SpellType_Cure);
 		//Check for group cure first
-		if (countNeedsCured > 2 && !skipGroup) {
+		if (!skipGroup && countNeedsCured >= RuleI(Bots,MinTargetsForAECure)) {
 			for (std::list<BotSpell_wPriority>::iterator itr = cureList.begin(); itr != cureList.end(); ++itr) {
 				BotSpell_wPriority selectedBotSpell = *itr;
 
-				if (IsGroupSpell(itr->SpellId) && botCaster->CheckSpellRecastTimer(itr->SpellId)) {
+				if (IsGroupSpell(itr->SpellId) && botCaster->CheckSpellRecastTimer(itr->SpellId) && botCaster->IsValidSpellRange(itr->SpellId, tar)) {
 					if (selectedBotSpell.SpellId == 0)
 						continue;
 
-					if (isPoisoned && IsEffectInSpell(itr->SpellId, SE_PoisonCounter)) {
+					if (countCorrupted > 2 && IsEffectInSpell(itr->SpellId, SE_CorruptionCounter)) {
 						spellSelected = true;
 					}
-					else if (isDiseased && IsEffectInSpell(itr->SpellId, SE_DiseaseCounter)) {
+					else if (countCursed > 2 && IsEffectInSpell(itr->SpellId, SE_CurseCounter)) {
 						spellSelected = true;
 					}
-					else if (isCursed && IsEffectInSpell(itr->SpellId, SE_CurseCounter)) {
+					else if (countPoisoned > 2 && IsEffectInSpell(itr->SpellId, SE_PoisonCounter)) {
 						spellSelected = true;
 					}
-					else if (isCorrupted && IsEffectInSpell(itr->SpellId, SE_CorruptionCounter)) {
+					else if (countDiseased > 2 && IsEffectInSpell(itr->SpellId, SE_DiseaseCounter)) {
 						spellSelected = true;
 					}
 					else if (IsEffectInSpell(itr->SpellId, SE_DispelDetrimental)) {
@@ -3110,20 +3180,20 @@ BotSpell Bot::GetBestBotSpellForCure(Bot* botCaster, Mob *tar, bool skipGroup) {
 			for(std::list<BotSpell_wPriority>::iterator itr = cureList.begin(); itr != cureList.end(); ++itr) {
 				BotSpell_wPriority selectedBotSpell = *itr;
 
-				if (botCaster->CheckSpellRecastTimer(itr->SpellId)) {
+				if (botCaster->CheckSpellRecastTimer(itr->SpellId) && botCaster->IsValidSpellRange(itr->SpellId, tar)) {
 					if (selectedBotSpell.SpellId == 0)
 						continue;
 
-					if (isPoisoned && IsEffectInSpell(itr->SpellId, SE_PoisonCounter)) {
-						spellSelected = true;
-					}
-					else if (isDiseased && IsEffectInSpell(itr->SpellId, SE_DiseaseCounter)) {
+					if (isCorrupted && IsEffectInSpell(itr->SpellId, SE_CorruptionCounter)) {
 						spellSelected = true;
 					}
 					else if (isCursed && IsEffectInSpell(itr->SpellId, SE_CurseCounter)) {
 						spellSelected = true;
 					}
-					else if (isCorrupted && IsEffectInSpell(itr->SpellId, SE_CorruptionCounter)) {
+					else if (isPoisoned && IsEffectInSpell(itr->SpellId, SE_PoisonCounter)) {
+						spellSelected = true;
+					}
+					else if (isDiseased && IsEffectInSpell(itr->SpellId, SE_DiseaseCounter)) {
 						spellSelected = true;
 					}
 					else if (IsEffectInSpell(itr->SpellId, SE_DispelDetrimental)) {

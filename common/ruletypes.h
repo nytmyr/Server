@@ -679,7 +679,7 @@ RULE_BOOL(Bots, AllowGroupCures, true, "Whether or not bots are allowed to cast 
 RULE_BOOL(Bots, AllowCharmedPetBuffs, true, "Whether or not bots are allowed to cast buff charmed pets, default true.")
 RULE_BOOL(Bots, AllowCharmedPetHeals, true, "Whether or not bots are allowed to cast heal charmed pets, default true.")
 RULE_BOOL(Bots, AllowCharmedPetCures, true, "Whether or not bots are allowed to cast cure charmed pets, default true.")
-RULE_INT(Bots, MaxDistanceForCureCureCounts, 70, "Maximum distance group or raid members can be from the caster to count towards group heal counts, default 70")
+RULE_INT(Bots, MaxDistanceForCureCounts, 70, "Maximum distance group or raid members can be from the caster to count towards group heal counts, default 70")
 
 /*
 * CUSTOM BOT RULES

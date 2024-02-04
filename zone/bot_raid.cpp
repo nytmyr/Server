@@ -2533,16 +2533,9 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 	}
 	case SpellType_Cure: {
 		if (CanCastBySpellType(this, tar, SpellType_Cure)) {
-			if (GetNeedsCured(tar) && !(GetNumberNeedingHealedInRaidGroup(25, false) > 0) && !(GetNumberNeedingHealedInRaidGroup(40, false) > 2))
+			if (GetNeedsCured(tar))// && !(GetNumberNeedingHealedInRaidGroup(25, false) > 0) && !(GetNumberNeedingHealedInRaidGroup(40, false) > 2))
 			{
 				botSpell = GetBestBotSpellForCure(this, tar, false);
-
-				if (botSpell.SpellId == 0)
-					break;
-
-				if (!IsValidSpellRange(botSpell.SpellId, tar) && IsGroupSpell(botSpell.SpellId)) {
-					botSpell = GetBestBotSpellForCure(this, tar, true);
-				}
 
 				if (botSpell.SpellId == 0)
 					break;
@@ -2558,7 +2551,11 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 				}
 
 				if (castedSpell) {
-					BotGroupSay(this, "Attempting to cure %s with [%s].", tar->GetCleanName(), GetSpellName(botSpell.SpellId));
+					std::string cureType = "cure";
+					if (IsGroupSpell(botSpell.SpellId)) {
+						cureType = "group cure";
+					}
+					BotGroupSay(this, "Attempting to %s %s with [%s].", cureType, tar->GetCleanName(), GetSpellName(botSpell.SpellId));
 					if (tar->IsBot()) {
 						uint32 currentTime = Timer::GetCurrentTime();
 						uint32 cureDelay = tar->CastToBot()->GetCureDelay();
