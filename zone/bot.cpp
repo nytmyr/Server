@@ -9446,22 +9446,22 @@ bool Bot::GetNeedsHateRedux(Mob *tar) {
 	//else if (tar->IsBot()) {
 	if (tar->IsBot()) {
 		switch (tar->GetClass()) {
-		case ROGUE:
-			if (tar->CastToBot()->m_evade_timer.Check(false))
+			case ROGUE:
+				if (tar->CastToBot()->m_evade_timer.Check(false))
+					return false;
+			case MONK:
+				if (tar->CastToBot()->m_monk_evade_timer.Check(false))
+					return false;
+			case CLERIC:
+			case DRUID:
+			case SHAMAN:
+			case NECROMANCER:
+			case WIZARD:
+			case MAGICIAN:
+			case ENCHANTER:
+				return true;
+			default:
 				return false;
-		case MONK:
-			if (tar->CastToBot()->m_monk_evade_timer.Check(false))
-				return false;
-		case CLERIC:
-		case DRUID:
-		case SHAMAN:
-		case NECROMANCER:
-		case WIZARD:
-		case MAGICIAN:
-		case ENCHANTER:
-			return true;
-		default:
-			return false;
 		}
 	}
 
@@ -11156,7 +11156,7 @@ bool Bot::CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 
 
 	switch (spellType) {
 		case SpellType_Buff:
-			if (((!tar->IsPet() && GetHoldBuffs()) || (tar->IsPet() && GetHoldPetBuffs())) || targetHP < GetBuffMinThreshold() || targetHP > GetBuffThreshold() || m_buff_delay_timer.GetRemainingTime() /*|| !m_buff_delay_timer.Check()*/) {
+			if (((tar->IsOfClientBotMerc() && GetHoldBuffs()) || (tar->IsPet() && GetHoldPetBuffs()) || (!RuleB(Bots, AllowCharmedPetBuffs) && tar->IsPet() && tar->IsCharmed())) || targetHP < GetBuffMinThreshold() || targetHP > GetBuffThreshold() || m_buff_delay_timer.GetRemainingTime() /*|| !m_buff_delay_timer.Check()*/) {
 				return false;
 			}
 			return true;
@@ -11168,7 +11168,7 @@ bool Bot::CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 
 			return true;
 			break;
 		case SpellType_Cure:
-			if (GetHoldCures() || tar->IsPet() && GetHoldPetHeals()) {
+			if (GetHoldCures() || ((tar->IsPet() && GetHoldPetHeals()) || (!RuleB(Bots, AllowCharmedPetCures) && tar->IsPet() && tar->IsCharmed()))) {
 				return false;
 			}
 			else if (tar->IsBot()) {
@@ -11218,7 +11218,7 @@ bool Bot::CanCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, uint16 
 			break;
 		case SpellType_Heal:
 		{
-			if ((!tar->IsPet() && GetHoldHeals()) || (tar->IsPet() && GetHoldPetHeals())) {
+			if ((tar->IsOfClientBotMerc() && GetHoldHeals()) || (tar->IsPet() && GetHoldPetHeals()) || (!RuleB(Bots, AllowCharmedPetHeals) && tar->IsPet() && tar->IsCharmed())) {
 				return false;
 			}
 			if (healType != "None") {
@@ -11353,150 +11353,150 @@ bool Bot::CanCommandCastBySpellType(Bot* botCaster, Mob* tar, uint32 spellType, 
 	}
 
 	switch (spellType) {
-	case SpellType_Buff:
-		if ((!tar->IsPet() && GetHoldBuffs()) || (tar->IsPet() && GetHoldPetBuffs())) {
-			return false;
+		case SpellType_Buff:
+			if ((tar->IsOfClientBotMerc() && GetHoldBuffs()) || (tar->IsPet() && GetHoldPetBuffs()) || (!RuleB(Bots, AllowCharmedPetBuffs) && tar->IsPet() && tar->IsCharmed())) {
+				return false;
+			}
+			return true;
+			break;
+		case SpellType_Charm:
+			if (GetHoldCharms()) {
+				return false;
+			}
+			return true;
+			break;
+		case SpellType_Cure:
+			if (GetHoldCures() || ((tar->IsPet() && GetHoldPetHeals()) || (!RuleB(Bots, AllowCharmedPetCures) && tar->IsPet() && tar->IsCharmed()))) {
+				return false;
+			}
+			return true;
+			break;
+		case SpellType_Debuff:
+			if (GetHoldDebuffs()) {
+				return false;
+			}
+			return true;
+			break;
+		case SpellType_Dispel:
+			if (GetHoldDispels()) {
+				return false;
+			}
+			return true;
+			break;
+		case SpellType_DOT:
+			if (GetHoldDoTs()) {
+				return false;
+			}
+			return true;
+			break;
+		case SpellType_Escape:
+			if (GetHoldEscapes()) {
+				return false;
+			}
+			return true;
+			break;
+		case SpellType_HateRedux:
+			if (GetHoldHateRedux()) {
+				return false;
+			}
+			return true;
+			break;
+		case SpellType_Heal:
+		{
+			if ((tar->IsOfClientBotMerc() && GetHoldHeals()) || (tar->IsPet() && GetHoldPetHeals()) || (!RuleB(Bots, AllowCharmedPetHeals) && tar->IsPet() && tar->IsCharmed())) {
+				return false;
+			}
+			return true;
+			break;
 		}
-		return true;
-		break;
-	case SpellType_Charm:
-		if (GetHoldCharms()) {
-			return false;
-		}
-		return true;
-		break;
-	case SpellType_Cure:
-		if (GetHoldCures() || tar->IsPet() && GetHoldPetHeals()) {
-			return false;
-		}
-		return true;
-		break;
-	case SpellType_Debuff:
-		if (GetHoldDebuffs()) {
-			return false;
-		}
-		return true;
-		break;
-	case SpellType_Dispel:
-		if (GetHoldDispels()) {
-			return false;
-		}
-		return true;
-		break;
-	case SpellType_DOT:
-		if (GetHoldDoTs()) {
-			return false;
-		}
-		return true;
-		break;
-	case SpellType_Escape:
-		if (GetHoldEscapes()) {
-			return false;
-		}
-		return true;
-		break;
-	case SpellType_HateRedux:
-		if (GetHoldHateRedux()) {
-			return false;
-		}
-		return true;
-		break;
-	case SpellType_Heal:
-	{
-		if ((!tar->IsPet() && GetHoldHeals()) || (tar->IsPet() && GetHoldPetHeals())) {
-			return false;
-		}
-		return true;
-		break;
-	}
-	case SpellType_InCombatBuff:
-		if (GetHoldInCombatBuffs()) {
-		}
-		return true;
-		break;
-	case SpellType_InCombatBuffSong:
-		if (GetHoldInCombatBuffSongs()) {
-			return false;
-		}
-		return true;
-		break;
-	case SpellType_Lifetap:
-		if (GetHoldLifetaps()) {
-			return false;
-		}
-		return true;
-		break;
-	case SpellType_Lull:
-		if (GetHoldLulls()) {
-			return false;
-		}
-		return true;
-		break;
-	case SpellType_Mez:
-		if (GetHoldMez()) {
-			return false;
-		}
-		return true;
-		break;
-	case SpellType_Misc:
-		return true;
-		break;
-	case SpellType_Nuke:
-		if (GetHoldNukes()) {
-			return false;
-		}
-		return true;
-		break;
-	case SpellType_OutOfCombatBuffSong:
-		if (GetHoldOutOfCombatBuffSongs()) {
-			return false;
-		}
-		return true;
-		break;
-	case SpellType_Pet:
-		if (GetHoldPets()) {
-			return false;
-		}
-		return true;
-		break;
-	case SpellType_PreCombatBuff:
-		if (GetHoldPreCombatBuffs()) {
-			return false;
-		}
-		return true;
-		break;
-	case SpellType_PreCombatBuffSong:
-		if (GetHoldPreCombatBuffSongs()) {
-			return false;
-		}
-		return true;
-		break;
-	case SpellType_Resurrect:
-		if (GetHoldRez()) {
-			return false;
-		}
-		return true;
-		break;
-	case SpellType_Root:
-		if (GetHoldRoots()) {
-			return false;
-		}
-		return true;
-		break;
-	case SpellType_Slow:
-		if (GetHoldSlows()) {
-			return false;
-		}
-		return true;
-		break;
-	case SpellType_Snare:
-		if (GetHoldSnares()) {
-			return false;
-		}
-		return true;
-		break;
-	default:
-		return true;
+		case SpellType_InCombatBuff:
+			if (GetHoldInCombatBuffs()) {
+			}
+			return true;
+			break;
+		case SpellType_InCombatBuffSong:
+			if (GetHoldInCombatBuffSongs()) {
+				return false;
+			}
+			return true;
+			break;
+		case SpellType_Lifetap:
+			if (GetHoldLifetaps()) {
+				return false;
+			}
+			return true;
+			break;
+		case SpellType_Lull:
+			if (GetHoldLulls()) {
+				return false;
+			}
+			return true;
+			break;
+		case SpellType_Mez:
+			if (GetHoldMez()) {
+				return false;
+			}
+			return true;
+			break;
+		case SpellType_Misc:
+			return true;
+			break;
+		case SpellType_Nuke:
+			if (GetHoldNukes()) {
+				return false;
+			}
+			return true;
+			break;
+		case SpellType_OutOfCombatBuffSong:
+			if (GetHoldOutOfCombatBuffSongs()) {
+				return false;
+			}
+			return true;
+			break;
+		case SpellType_Pet:
+			if (GetHoldPets()) {
+				return false;
+			}
+			return true;
+			break;
+		case SpellType_PreCombatBuff:
+			if (GetHoldPreCombatBuffs()) {
+				return false;
+			}
+			return true;
+			break;
+		case SpellType_PreCombatBuffSong:
+			if (GetHoldPreCombatBuffSongs()) {
+				return false;
+			}
+			return true;
+			break;
+		case SpellType_Resurrect:
+			if (GetHoldRez()) {
+				return false;
+			}
+			return true;
+			break;
+		case SpellType_Root:
+			if (GetHoldRoots()) {
+				return false;
+			}
+			return true;
+			break;
+		case SpellType_Slow:
+			if (GetHoldSlows()) {
+				return false;
+			}
+			return true;
+			break;
+		case SpellType_Snare:
+			if (GetHoldSnares()) {
+				return false;
+			}
+			return true;
+			break;
+		default:
+			return true;
 	}
 }
 

@@ -127,7 +127,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 
 					uint8 hpr = tar->GetHPRatio();
 					std::string spellType = "None";
-					std::string targetName = tar->GetCleanName();
+					auto targetName = tar->GetCleanName();
 					std::string myName = GetCleanName();
 					uint8 fasthealThreshold = 35;
 					uint8 regularhealThreshold = 55;
