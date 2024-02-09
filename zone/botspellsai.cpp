@@ -3074,7 +3074,7 @@ BotSpell Bot::GetBestBotSpellForCure(Bot* botCaster, Mob *tar, bool skipGroup) {
 									countDiseased++;
 								}
 							}
-							if (!botCaster->GetHoldPetHeals() && iter->member->GetPet() && (Distance(botCaster->GetPosition(), iter->member->GetPet()->GetPosition()) <= RuleI(Bots, MaxDistanceForCureCounts)) && (!RuleB(Bots, AllowCharmedPetBuffs) && iter->member->GetPet()->IsPet() && iter->member->GetPet()->IsCharmed()) && botCaster->GetNeedsCured(iter->member->GetPet())) {
+							if (!botCaster->GetHoldPetHeals() && iter->member->GetPet() && Distance(botCaster->GetPosition(), iter->member->GetPet()->GetPosition()) <= RuleI(Bots, MaxDistanceForCureCounts) && (!iter->member->GetPet()->IsCharmed() || (!RuleB(Bots, AllowCharmedPetBuffs) && iter->member->GetPet()->IsCharmed())) && botCaster->GetNeedsCured(iter->member->GetPet())) {
 								countNeedsCured++;
 								if (iter->member->GetPet()->FindType(SE_CorruptionCounter)) {
 									countCorrupted++;
@@ -3116,7 +3116,7 @@ BotSpell Bot::GetBestBotSpellForCure(Bot* botCaster, Mob *tar, bool skipGroup) {
 									countDiseased++;
 								}
 							}
-							if (!botCaster->GetHoldPetHeals() && g->members[i]->GetPet() && (Distance(botCaster->GetPosition(), g->members[i]->GetPet()->GetPosition()) <= RuleI(Bots, MaxDistanceForCureCounts)) && (!RuleB(Bots, AllowCharmedPetBuffs) && g->members[i]->GetPet()->IsPet() && g->members[i]->GetPet()->IsCharmed()) && botCaster->GetNeedsCured(g->members[i]->GetPet())) {
+							if (!botCaster->GetHoldPetHeals() && g->members[i]->GetPet() && Distance(botCaster->GetPosition(), g->members[i]->GetPet()->GetPosition()) <= RuleI(Bots, MaxDistanceForCureCounts) && (!g->members[i]->GetPet()->IsCharmed() || (!RuleB(Bots, AllowCharmedPetBuffs) && g->members[i]->GetPet()->IsCharmed())) && botCaster->GetNeedsCured(g->members[i]->GetPet())) {
 								countNeedsCured++;
 								if (g->members[i]->GetPet()->FindType(SE_CorruptionCounter)) {
 									countCorrupted++;
