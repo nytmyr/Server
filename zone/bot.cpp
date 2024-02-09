@@ -3638,8 +3638,8 @@ void Bot::AI_Process()
 			float archeryRange = GetBotArcheryRange() * GetBotArcheryRange();
 			float casterRange = GetBotCasterRange() * GetBotCasterRange();
 			float minArcheryRange = RuleI(Combat, MinRangedAttackDist) * RuleI(Combat, MinRangedAttackDist);
-			melee_distance = std::min(std::max(archeryRange, casterRange), archeryRange);
-			melee_distance_min = std::min(std::max(minArcheryRange, casterRange), archeryRange);
+			melee_distance = std::min(archeryRange, (casterRange * 4));
+			melee_distance_min = std::max(std::max(minArcheryRange, melee_distance_max), std::min(casterRange, archeryRange));
 		}
 
 		if (tar_distance <= melee_distance) {
@@ -3649,7 +3649,7 @@ void Bot::AI_Process()
 //#pragma endregion
 
 //#pragma region ENGAGED AT COMBAT RANGE
-
+		//TestDebug("{} - {} - Min Range {} Max Range {}", (taunting ? "Taunting" : GetMaxMeleeRange() ? "MMR" : stop_melee_level ? "Caster/SML" : IsBotArcher() ? "Archer" : "Melee"), GetCleanName(), sqrt(melee_distance_min), sqrt(melee_distance)); //deleteme
 		// We can fight
 		if (atCombatRange) {
 
@@ -11603,22 +11603,22 @@ void Bot::DoCombatPositioning(Mob* tar, glm::vec3 Goal, bool stop_melee_level, f
 				if (PlotBotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z, melee_distance_min, melee_distance, GetBehindMob(), taunting)) {
 					RunToGoalWithJitter(Goal);
 				}
-				else {
-					if (stop_melee_level || IsBotArcher()) {
-						if (IsBotArcher()) {
-							float minArcheryRange = RuleI(Combat, MinRangedAttackDist) * RuleI(Combat, MinRangedAttackDist);
-							if (PlotBotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z, minArcheryRange, melee_distance, false, taunting)) {
-								RunToGoalWithJitter(Goal);
-							}
-						}
-						else {
-							if (PlotBotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z, melee_distance_max + 1, melee_distance, false, taunting)) {
-								RunToGoalWithJitter(Goal);
-							}
-						}
-					}
-					DoFaceCheckWithJitter(tar);
-				}
+				//else {
+				//	if (stop_melee_level || IsBotArcher()) {
+				//		if (IsBotArcher()) {
+				//			float minArcheryRange = RuleI(Combat, MinRangedAttackDist) * RuleI(Combat, MinRangedAttackDist);
+				//			if (PlotBotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z, minArcheryRange, melee_distance, false, taunting)) {
+				//				RunToGoalWithJitter(Goal);
+				//			}
+				//		}
+				//		else {
+				//			if (PlotBotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z, melee_distance_max + 1, melee_distance, false, taunting)) {
+				//				RunToGoalWithJitter(Goal);
+				//			}
+				//		}
+				//	}
+				//	DoFaceCheckWithJitter(tar);
+				//}
 			}
 			DoFaceCheckNoJitter(tar);
 		}

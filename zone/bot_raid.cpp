@@ -767,8 +767,8 @@ void Bot::AI_Process_Raid()
 			float archeryRange = GetBotArcheryRange() * GetBotArcheryRange();
 			float casterRange = GetBotCasterRange() * GetBotCasterRange();
 			float minArcheryRange = RuleI(Combat, MinRangedAttackDist) * RuleI(Combat, MinRangedAttackDist);
-			melee_distance = std::min(std::max(archeryRange, casterRange), archeryRange);
-			melee_distance_min = std::min(std::max(minArcheryRange, casterRange), archeryRange);
+			melee_distance = std::min(archeryRange, (casterRange * 4));
+			melee_distance_min = std::max(std::max(minArcheryRange, melee_distance_max), std::min(casterRange, archeryRange));
 		}
 
 		if (tar_distance <= melee_distance) {
@@ -778,7 +778,7 @@ void Bot::AI_Process_Raid()
 //#pragma endregion
 
 //#pragma region ENGAGED AT COMBAT RANGE
-
+		//TestDebug("{} - {} - Min Range {} Max Range {}", (taunting ? "Taunting" : GetMaxMeleeRange() ? "MMR" : stop_melee_level ? "Caster/SML" : IsBotArcher() ? "Archer" : "Melee"), GetCleanName(), sqrt(melee_distance_min), sqrt(melee_distance)); //deleteme
 		// We can fight
 		if (atCombatRange) {
 
