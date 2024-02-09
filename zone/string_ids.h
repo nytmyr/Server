@@ -536,6 +536,8 @@
 #define DUEL_INPROGRESS				13251	//You have already accepted a duel with someone else cowardly dog.
 #define OTHER_HIT_DOT				13327	//%1 has taken %2 damage from %3 by %4.
 #define GENERIC_MISS				15041	//%1 missed %2
+#define SPELL_BLOCKED_BY			20000	//Your %1 did not take hold on %2. (Blocked by %3.)
+#define BOT_SPELL_BLOCKED_BY		20001	//%1 says, 'My %2 did not take hold on %3. (Blocked by %4.)'
 
 #endif
 

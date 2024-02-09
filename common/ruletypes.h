@@ -761,6 +761,7 @@ RULE_INT(Bots, MezFailDelay, 2000, "2000 (2 sec) Default. Delay between failed M
 RULE_INT(Bots, PlaneOfKnowledgeSpawnLimit, 45, "45 Default. Number of bots allowed to be spawned in The Plane of Knowledge.")
 RULE_INT(Bots, PlaneOfTranquilitySpawnLimit, 45, "45 Default. Number of bots allowed to be spawned in The Plane of Tranquility.")
 RULE_BOOL(Bots, BotSoftDeletes, true, "When bots are deleted, they are only soft deleted")
+RULE_BOOL(Bots, SendBlockedMessages, false, "Setting whether bots will send their owners detailed spell block messages should be used as on the live servers")
 
 RULE_CATEGORY_END()
 

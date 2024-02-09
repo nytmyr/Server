@@ -3470,8 +3470,15 @@ int Mob::AddBuff(Mob *caster, uint16 spell_id, int duration, int32 level_overrid
 			if (ret == -1) {	// stop the spell
 				LogSpells("Adding buff [{}] failed: stacking prevented by spell [{}] in slot [{}] with caster level [{}]",
 						spell_id, curbuf.spellid, buffslot, curbuf.casterlevel);
-				if (caster && caster->IsClient() && RuleB(Client, UseLiveBlockedMessage)) {
-					caster->Message(Chat::Red, "Your %s did not take hold on %s. (Blocked by %s.)", spells[spell_id].name, GetName(), spells[curbuf.spellid].name);
+				if (caster && caster->IsClient() && RuleB(Client, UseLiveBlockedMessage) && 
+					(spells[spell_id].target_type != ST_AEClientV1 && spells[spell_id].target_type != ST_AECaster && spells[spell_id].target_type != ST_AETarget && spells[spell_id].target_type != ST_TargetAETap && spells[spell_id].target_type != ST_UndeadAE && spells[spell_id].target_type != ST_SummonedAE && spells[spell_id].target_type != ST_AETargetHateList && spells[spell_id].target_type != ST_AEBard && spells[spell_id].target_type != ST_TargetAENoPlayersPets)
+					) {
+					caster->MessageString(Chat::SpellFailure, SPELL_BLOCKED_BY, spells[spell_id].name, GetName(), spells[curbuf.spellid].name);
+				}
+				if (caster && caster->IsBot() && RuleB(Bot, SendBlockedMessages) &&
+					(spells[spell_id].target_type != ST_AEClientV1 && spells[spell_id].target_type != ST_AECaster && spells[spell_id].target_type != ST_AETarget && spells[spell_id].target_type != ST_TargetAETap && spells[spell_id].target_type != ST_UndeadAE && spells[spell_id].target_type != ST_SummonedAE && spells[spell_id].target_type != ST_AETargetHateList && spells[spell_id].target_type != ST_AEBard && spells[spell_id].target_type != ST_TargetAENoPlayersPets)
+					) {
+					caster->GetOwner()->MessageString(Chat::SpellFailure, BOT_SPELL_BLOCKED_BY, caster->GetCleanName(), spells[spell_id].name, GetName(), spells[curbuf.spellid].name);
 				}
 				return -1;
 			}
