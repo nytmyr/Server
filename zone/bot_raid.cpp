@@ -815,6 +815,9 @@ void Bot::AI_Process_Raid()
 				TEST_COMBATANTS();
 				if (GetTarget()->GetHPRatio() <= 99.0f) {
 					BotRangedAttack(tar);
+					if (CheckDoubleRangedAttack()) {
+						BotRangedAttack(tar, true);
+					}
 				}
 			}
 			else if (!IsBotArcher() && GetLevel() < GetStopMeleeLevel()) {
@@ -883,9 +886,7 @@ void Bot::AI_Process_Raid()
 						(spellbonuses.ExtraAttackChance[0] + itembonuses.ExtraAttackChance[0] +
 							aabonuses.ExtraAttackChance[0]);
 					if (ExtraAttackChanceBonus) {
-
 						if (p_item && p_item->GetItem()->IsType2HWeapon()) {
-
 							if (zone->random.Int(0, 100) < ExtraAttackChanceBonus) {
 								Attack(tar, EQ::invslot::slotPrimary, false);
 							}
@@ -924,7 +925,6 @@ void Bot::AI_Process_Raid()
 
 							float random = zone->random.Real(0, 1);
 							if (random < DualWieldProbability) { // Max 78% of DW
-
 								Attack(tar, EQ::invslot::slotSecondary);	// Single attack with offhand
 
 								TEST_COMBATANTS();
@@ -932,7 +932,6 @@ void Bot::AI_Process_Raid()
 
 								TEST_COMBATANTS();
 								if (CanThisClassDoubleAttack() && CheckBotDoubleAttack()) {
-
 									if (tar->GetHP() > -10) {
 										Attack(tar, EQ::invslot::slotSecondary);	// Single attack with offhand
 									}

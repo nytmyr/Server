@@ -885,7 +885,7 @@ public:
 	~Bot() override;
 
 	// Publicized protected functions
-	void BotRangedAttack(Mob* other);
+	void BotRangedAttack(Mob* other, bool CanDoubleAttack = false);
 
 	// Publicized private functions
 	static NPCType *FillNPCTypeStruct(
@@ -979,6 +979,7 @@ protected:
 	void PetAIProcess();
 	void BotMeditate(bool isSitting);
 	bool CheckBotDoubleAttack(bool Triple = false);
+	bool CheckDoubleRangedAttack();
 	void PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client* client);
 	bool AIDoSpellCast(uint8 i, Mob* tar, int32 mana_cost, uint32* oDontDoAgainBefore = 0) override;
 

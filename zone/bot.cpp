@@ -1783,7 +1783,6 @@ void Bot::LoadAAs() {
 
 		id = ability->first->id;
 		points = 0;
-
 		AA::Rank *current = ability->first;
 
 		if (current->level_req > GetLevel()) {
@@ -2406,10 +2405,10 @@ void Bot::BotMeditate(bool isSitting) {
 	}
 }
 
-void Bot::BotRangedAttack(Mob* other) {
+void Bot::BotRangedAttack(Mob* other, bool CanDoubleAttack) {
 	//make sure the attack and ranged timers are up
 	//if the ranged timer is disabled, then they have no ranged weapon and shouldent be attacking anyhow
-	if((attack_timer.Enabled() && !attack_timer.Check(false)) || (ranged_timer.Enabled() && !ranged_timer.Check())) {
+	if(!CanDoubleAttack && ((attack_timer.Enabled() && !attack_timer.Check(false)) || (ranged_timer.Enabled() && !ranged_timer.Check()))) {
 		LogCombatDetail("Bot Archery attack canceled. Timer not up. Attack [{}] ranged [{}]", attack_timer.GetRemainingTime(), ranged_timer.GetRemainingTime());
 		Message(0, "Error: Timer not up. Attack %d, ranged %d", attack_timer.GetRemainingTime(), ranged_timer.GetRemainingTime());
 		return;
@@ -2502,6 +2501,14 @@ bool Bot::CheckBotDoubleAttack(bool tripleAttack) {
 	}
 
 	if((zone->random.Real(0, 1) < chance))
+		return true;
+
+	return false;
+}
+
+bool Bot::CheckDoubleRangedAttack() {
+	int32 chance = spellbonuses.DoubleRangedAttack + itembonuses.DoubleRangedAttack + aabonuses.DoubleRangedAttack;
+	if (chance && zone->random.Roll(chance))
 		return true;
 
 	return false;
@@ -3679,6 +3686,9 @@ void Bot::AI_Process()
 				TEST_COMBATANTS();
 				if (GetTarget()->GetHPRatio() <= 99.0f) {
 					BotRangedAttack(tar);
+					if (CheckDoubleRangedAttack()) {
+						BotRangedAttack(tar, true);
+					}
 				}
 			}
 			else if (!IsBotArcher() && GetLevel() < GetStopMeleeLevel()) {
@@ -3747,9 +3757,7 @@ void Bot::AI_Process()
 						(spellbonuses.ExtraAttackChance[0] + itembonuses.ExtraAttackChance[0] +
 						aabonuses.ExtraAttackChance[0]);
 					if (ExtraAttackChanceBonus) {
-
 						if (p_item && p_item->GetItem()->IsType2HWeapon()) {
-
 							if (zone->random.Int(0, 100) < ExtraAttackChanceBonus) {
 								Attack(tar, EQ::invslot::slotPrimary, false);
 							}
@@ -3788,7 +3796,6 @@ void Bot::AI_Process()
 
 							float random = zone->random.Real(0, 1);
 							if (random < DualWieldProbability) { // Max 78% of DW
-
 								Attack(tar, EQ::invslot::slotSecondary);	// Single attack with offhand
 
 								TEST_COMBATANTS();
@@ -3796,7 +3803,6 @@ void Bot::AI_Process()
 
 								TEST_COMBATANTS();
 								if (CanThisClassDoubleAttack() && CheckBotDoubleAttack()) {
-
 									if (tar->GetHP() > -10) {
 										Attack(tar, EQ::invslot::slotSecondary);	// Single attack with offhand
 									}
