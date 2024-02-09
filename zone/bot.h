@@ -199,6 +199,7 @@ public:
 	inline bool HasOwner() override { return (GetBotOwner() ? true : false); }
 	int64 CalcMaxMana() override;
 	void SetAttackTimer() override;
+	int GetQuiverHaste(int delay);
 	uint64 GetClassHPFactor();
 	int64 CalcMaxHP() override;
 	bool DoFinishedSpellAETarget(uint16 spell_id, Mob* spellTarget, EQ::spells::CastingSlot slot, bool &stopLogic);
@@ -303,7 +304,8 @@ public:
 	void TryItemClick(uint16 slot_id);
 	EQ::ItemInstance* GetClickItem(uint16 slot_id);
 	void DoItemClick(const EQ::ItemData* inst, uint16 slot_id);
-
+	const EQ::ItemData* GetEquippedQuiver() { return GetEquippedQuiver(this); };
+	static const EQ::ItemData* GetEquippedQuiver(Bot* my_bot);
 	float GetTotalGearScore();
 
 	bool AI_AddBotSpells(uint32 bot_spell_id);

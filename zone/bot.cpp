@@ -26,6 +26,7 @@
 #include "../common/say_link.h"
 #include "../common/repositories/bot_spell_settings_repository.h"
 #include "../common/data_verification.h"
+#include "data_bucket.h"
 
 extern volatile bool is_zone_loaded;
 extern bool Critical;
@@ -6715,25 +6716,70 @@ void Bot::SetAttackTimer() {
 		}
 
 		if (ItemToUse != nullptr) {
-			if (!ItemToUse->IsClassCommon() || ItemToUse->Damage == 0 || ItemToUse->Delay == 0 || ((ItemToUse->ItemType > EQ::item::ItemTypeLargeThrowing) && (ItemToUse->ItemType != EQ::item::ItemTypeMartial) && (ItemToUse->ItemType != EQ::item::ItemType2HPiercing)))
+			if (!ItemToUse->IsClassCommon()
+				|| ItemToUse->Damage == 0
+				|| ItemToUse->Delay == 0) {
+				//no weapon
 				ItemToUse = nullptr;
+			}
+			//Check to see if skill is valid
+			else if ((ItemToUse->ItemType > EQ::item::ItemTypeLargeThrowing) &&
+				(ItemToUse->ItemType != EQ::item::ItemTypeMartial) &&
+				(ItemToUse->ItemType != EQ::item::ItemType2HPiercing)) {
+				//no weapon
+				ItemToUse = nullptr;
+			}
 		}
 
-		int hhe = (itembonuses.HundredHands + spellbonuses.HundredHands);
+		int hhe = itembonuses.HundredHands + spellbonuses.HundredHands;
 		int speed = 0;
-		int delay = 36;
+		int delay = 3600;
+
+		//if we have no weapon..
 		if (ItemToUse == nullptr) {
-			delay = GetHandToHandDelay();
-		} else {
-			delay = ItemToUse->Delay;
+			delay = 100 * GetHandToHandDelay();
+		}
+		else {
+			//we have a weapon, use its delay
+			delay = 100 * ItemToUse->Delay;
 		}
 
-		speed = (RuleB(Spells, Jun182014HundredHandsRevamp) ? static_cast<int>(((delay / haste_mod) + ((hhe / 1000.0f) * (delay / haste_mod))) * 100) : static_cast<int>(((delay / haste_mod) + ((hhe / 100.0f) * delay)) * 100));
-		TimerToUse->SetAtTrigger(std::max(RuleI(Combat, MinHastedDelay), speed), true, true);
+		speed = delay / haste_mod;
 
+		if (ItemToUse && ItemToUse->ItemType == EQ::item::ItemTypeBow) {
+			// Live actually had a bug here where they would return the non-modified attack speed
+			// rather than the cap ...
+			// TestDebug("Original attack timer for {} - {} is {}", GetCleanName(), EQ::invslot::GetInvPossessionsSlotName(i), std::max(RuleI(Combat, MinHastedDelay), speed) / 100.0); //deleteme
+			speed = std::max(speed - GetQuiverHaste(speed), RuleI(Combat, QuiverHasteCap));
+		}
+		else {
+			if (RuleB(Spells, Jun182014HundredHandsRevamp))
+				speed = static_cast<int>(speed + ((hhe / 1000.0f) * speed));
+			else
+				speed = static_cast<int>(speed + ((hhe / 100.0f) * delay));
+		}
+
+		TimerToUse->SetAtTrigger(std::max(RuleI(Combat, MinHastedDelay), speed), true, true);
+		// TestDebug("Attack timer for {} - {} is {}", GetCleanName(), EQ::invslot::GetInvPossessionsSlotName(i), std::max(RuleI(Combat, MinHastedDelay), speed) / 100.0); //deleteme
 		if (i == EQ::invslot::slotPrimary)
 			PrimaryWeapon = ItemToUse;
 	}
+}
+
+int Bot::GetQuiverHaste(int delay)
+{
+	const EQ::ItemData* item = nullptr;
+	item = GetEquippedQuiver();
+
+	if (item && 
+		(item->IsClassBag() && 
+			item->BagType == EQ::item::BagTypeQuiver && 
+			item->BagWR > 0)
+		) {
+		return (item->BagWR * 0.0025f * delay) + 1;
+	}
+
+	return 0;
 }
 
 int32 Bot::GetActSpellDuration(uint16 spell_id, int32 duration) {
@@ -12266,4 +12312,28 @@ float Bot::GetTotalGearScore() {
 	}
 
 	return total_score;
+}
+
+const EQ::ItemData* Bot::GetEquippedQuiver(Bot* my_bot) {
+	if (!my_bot) {
+		return nullptr;
+	}
+
+	std::string key;
+	std::string bucket_value;
+	key = "BotQuiver-" + std::to_string(my_bot->GetBotID());
+	bucket_value = DataBucket::GetData(key);
+	const EQ::ItemData* equippedQuiver = nullptr;
+	uint32 equippedQuiverID = 0;
+	EQ::SayLinkEngine linkerEquipped;
+
+	if (Strings::IsNumber(bucket_value) && Strings::ToUnsignedInt(bucket_value) > 0) {
+		equippedQuiverID = Strings::ToUnsignedInt(bucket_value);
+	}
+
+	if (equippedQuiverID > 0) { // lore check for owner on swap
+		equippedQuiver = database.GetItem(equippedQuiverID);
+	}
+
+	return equippedQuiver;
 }

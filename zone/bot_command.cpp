@@ -72,6 +72,7 @@
 #include "water_map.h"
 #include "worldserver.h"
 #include "dialogue_window.h"
+#include "data_bucket.h"
 
 #include <fmt/format.h>
 
@@ -12172,16 +12173,27 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 		return;
 	}
 
+	bool isQuiver = false;
 	if (item_data->ItemClass != EQ::item::ItemClassCommon || item_data->Slots == 0) {
-		c->Message(Chat::White, "'%s' is not an equippable item!", item_data->Name);
-		return;
+		if (item_data->IsClassBag() && item_data->BagType == EQ::item::BagTypeQuiver && item_data->BagWR > 0) {
+			isQuiver = true;
+		}
+		else {
+			c->Message(Chat::White, "'%s' is not an equippable item!", item_data->Name);
+			return;
+		}
 	}
 
 	std::list<int16> equipable_slot_list;
 
-	for (int16 equipable_slot = EQ::invslot::EQUIPMENT_BEGIN; equipable_slot <= EQ::invslot::EQUIPMENT_END; ++equipable_slot) {
-		if (item_data->Slots & (1 << equipable_slot)) {
-			equipable_slot_list.push_back(equipable_slot);
+	if (isQuiver) {
+		equipable_slot_list.push_back(EQ::invslot::EQUIPMENT_END + 1);
+	}
+	else {
+		for (int16 equipable_slot = EQ::invslot::EQUIPMENT_BEGIN; equipable_slot <= EQ::invslot::EQUIPMENT_END; ++equipable_slot) {
+			if (item_data->Slots & (1 << equipable_slot)) {
+				equipable_slot_list.push_back(equipable_slot);
+			}
 		}
 	}
 
@@ -12189,7 +12201,7 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 	std::string text_link;
 
 	EQ::SayLinkEngine linker;
-	linker.SetLinkType(EQ::saylink::SayLinkItemInst);
+	linker.SetLinkType(EQ::saylink::SayLinkItemData);
 
 	std::list<Bot*> sbl;
 	MyBots::PopulateSBL_BySpawnedBots(c, sbl);
@@ -12229,7 +12241,7 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 		if (cloth_only && !IsClothClass(bot_iter->GetClass())) {
 			continue;
 		}
-		if (((~item_data->Races) & GetPlayerRaceBit(bot_iter->GetRace())) || ((~item_data->Classes) & GetPlayerClassBit(bot_iter->GetClass()))) {
+		if (!isQuiver && (((~item_data->Races) & GetPlayerRaceBit(bot_iter->GetRace())) || ((~item_data->Classes) & GetPlayerClassBit(bot_iter->GetClass())))) {
 			continue;
 		}
 		if (item_data->ReqLevel > bot_iter->GetLevel()) {
@@ -12247,41 +12259,75 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 
 		bool skip_bot = false;
 		haste_value = 0;
+		const EQ::ItemData* equipped_item = nullptr;
+		const EQ::ItemInstance* equipped_inst = nullptr;
+
+		if (haste_only) {
+			for (int16 equipable_slot = EQ::invslot::EQUIPMENT_BEGIN; equipable_slot <= EQ::invslot::EQUIPMENT_END; ++equipable_slot) {
+				equipped_inst = bot_iter->GetInv()[equipable_slot];
+				if (equipped_inst && equipped_inst->GetItem()) {
+					equipped_item = equipped_inst->GetItem();
+					if (equipped_item->Haste > haste_value) {
+						haste_value = equipped_item->Haste;
+					}
+				}
+			}
+		}
+
+		if (item_data->Haste < haste_value) {
+			continue;
+		}
 
 		std::list<int16> refined_equipable_slot_list;
 
 		for (auto slot_iter : equipable_slot_list) {
-			auto equipped_item = bot_iter->GetInv()[slot_iter];
-
+			equipped_item = nullptr;
+			equipped_inst = nullptr;
+			if (isQuiver) {
+				equipped_item = bot_iter->GetEquippedQuiver();
+			}
+			else {
+				equipped_inst = bot_iter->GetInv()[slot_iter];
+				if (equipped_inst && equipped_inst->GetItem()) {
+					equipped_item = equipped_inst->GetItem();
+				}
+			}
+			
 			if (equipped_item) {
 				if (empty_only) {
 					continue;
 				}
-				if (item_data->CheckLoreConflict(equipped_item->GetItem())) {
+				if (item_data->CheckLoreConflict(equipped_item)) {
 					skip_bot = true;
 					break;
 				}
 				if (haste_only) {
-					if (equipped_item->GetItem()->Haste > haste_value) {
-						haste_value = equipped_item->GetItem()->Haste;
-					}
-					if (equipped_item->GetItem()->Haste > item_data->Haste) {
-						continue;
-					}
-					if (gear_score) {
-						if (equipped_item->GetItem()->Haste == item_data->Haste && equipped_item->GetItem()->GearScore >= item_data->GearScore) {
+					if (isQuiver) {
+						if (equipped_item->BagWR >= item_data->BagWR) {
 							continue;
 						}
 					}
 					else {
-						if (equipped_item->GetItem()->Haste >= item_data->Haste) {
+						if (equipped_item->Haste > item_data->Haste) {
 							continue;
+						}
+						if (gear_score) {
+							if (equipped_item->Haste == item_data->Haste && equipped_item->GearScore >= item_data->GearScore) {
+								continue;
+							}
 						}
 					}
 				}
 				else {
-					if (gear_score && equipped_item->GetItem()->GearScore >= item_data->GearScore) {
-						continue;
+					if (isQuiver) {
+						if (gear_score && equipped_item->BagWR >= item_data->BagWR) {
+							continue;
+						}
+					}
+					else {
+						if (gear_score && equipped_item->GearScore >= item_data->GearScore) {
+							continue;
+						}
 					}
 				}
 			}
@@ -12302,10 +12348,20 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 		//	}
 		//}
 		for (auto slot_iter : refined_equipable_slot_list) {
-			auto equipped_item = bot_iter->GetInv()[slot_iter];
+			const EQ::ItemData* equipped_item = nullptr;
+			const EQ::ItemInstance* equipped_inst = nullptr;
+			if (isQuiver) {
+				equipped_item = bot_iter->GetEquippedQuiver();
+			}
+			else {
+				equipped_inst = bot_iter->GetInv()[slot_iter];
+				if (equipped_inst && equipped_inst->GetItem()) {
+					equipped_item = equipped_inst->GetItem();
+				}
+			}
 
 			if (equipped_item) {
-				linker.SetItemInst(equipped_item);
+				linker.SetItemData(equipped_item);
 			}
 
 			c->Message(
@@ -12313,7 +12369,7 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 				fmt::format(
 					"{} says, 'I can use that for my {}{} Would you like to {}?'",
 					text_link,
-					EQ::invslot::GetInvPossessionsSlotName(slot_iter),
+					isQuiver ? "Quiver" : EQ::invslot::GetInvPossessionsSlotName(slot_iter),
 					(
 						equipped_item ? 
 							fmt::format(
@@ -20790,7 +20846,88 @@ void bot_subcommand_inventory_give(Client *c, const Seperator *sep)
 		return;
 	}
 
-	my_bot->FinishTrade(c, Bot::BotTradeClientNoDropNoTrade);
+	const auto inst = c->GetInv().GetItem(EQ::invslot::slotCursor);
+	if (!inst) {
+		c->Message(Chat::Red, "No item found on cursor!");
+		return;
+	}
+	else {
+		const auto item = inst->GetItem();
+		if (item) {
+			if (!item->NoRent) {
+				c->Message(Chat::Red, "You cannot give bots No Rent items!");
+				return;
+			}
+			else if (item->IsClassBag() && item->BagType == EQ::item::BagTypeQuiver && item->BagWR > 0) {
+				EQ::SayLinkEngine linker;
+				linker.SetLinkType(EQ::saylink::SayLinkItemInst);
+				linker.SetItemInst(inst);
+				const EQ::ItemData* equippedQuiver = nullptr;
+				equippedQuiver = my_bot->GetEquippedQuiver();
+				bool quiverSwap = false;
+				if (equippedQuiver) {
+					if (equippedQuiver->ID == item->ID) {
+						c->Message(
+							Chat::Yellow,
+							fmt::format(
+								"{} says, 'I already have {}'.",
+								my_bot->GetCleanName(),
+								linker.GenerateLink()
+							).c_str()
+						);
+						return;
+					}
+
+					EQ::SayLinkEngine linkerEquipped;
+					if (!c->CheckLoreConflict(equippedQuiver)) {
+						quiverSwap = true;
+						linkerEquipped.SetLinkType(EQ::saylink::SayLinkItemData);
+						linkerEquipped.SetItemData(equippedQuiver);
+						c->Message(
+							Chat::Yellow,
+							fmt::format(
+								"{} tells you, 'I have returned {}.'",
+								my_bot->GetCleanName(),
+								linkerEquipped.GenerateLink()
+							).c_str()
+						);
+					}
+					else {
+						c->Message(
+							Chat::Yellow,
+							fmt::format(
+								"You already have {}, the trade has been cancelled!",
+								linkerEquipped.GenerateLink()
+							).c_str()
+						);
+						return;
+					}
+				}
+
+				c->DeleteItemInInventory(EQ::invslot::slotCursor, 1, true);
+				std::string key;
+				key = "BotQuiver-" + std::to_string(my_bot->GetBotID());
+				DataBucket::SetData(key, std::to_string(item->ID));
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} tells you, 'I have accepted {}.'",
+						my_bot->GetCleanName(),
+						linker.GenerateLink()
+					).c_str()
+				);
+
+				if (quiverSwap) {
+					c->SummonItem(equippedQuiver->ID, -1, 0, 0, 0, 0, 0, false, EQ::invslot::slotCursor);
+				}
+
+				return;
+			}
+			else {
+				my_bot->FinishTrade(c, Bot::BotTradeClientNoDropNoTrade);
+			}
+		}
+	}	
 }
 
 void bot_subcommand_inventory_list(Client *c, const Seperator *sep)
@@ -20895,6 +21032,37 @@ void bot_subcommand_inventory_list(Client *c, const Seperator *sep)
 			).c_str()
 		);
 	}
+
+	const EQ::ItemData* equippedQuiver = nullptr;
+	equippedQuiver = my_bot->GetEquippedQuiver();
+
+	if (equippedQuiver) {
+		linker.SetLinkType(EQ::saylink::SayLinkItemData);
+		linker.SetItemData(equippedQuiver);
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Slot {} ({}) | {} | {}",
+				EQ::invslot::EQUIPMENT_END + 1,
+				"Quiver",
+				linker.GenerateLink(),
+				Saylink::Silent(
+					fmt::format("^inventoryremove {}", EQ::invslot::EQUIPMENT_END + 1),
+					"Remove"
+				)
+			).c_str()
+		);
+	}
+	else {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Slot {} ({}) | Empty",
+				EQ::invslot::EQUIPMENT_END + 1,
+				"Quiver"
+			).c_str()
+		);
+	}
 }
 
 void bot_subcommand_inventory_remove(Client *c, const Seperator *sep)
@@ -20938,8 +21106,64 @@ void bot_subcommand_inventory_remove(Client *c, const Seperator *sep)
 	}
 
 	auto slot_id = static_cast<uint16>(Strings::ToUnsignedInt(sep->arg[1]));
-	if (slot_id > EQ::invslot::EQUIPMENT_END || slot_id < EQ::invslot::EQUIPMENT_BEGIN) {
-		c->Message(Chat::White, "Valid slots are 0 to 22.");
+	if (slot_id > EQ::invslot::EQUIPMENT_END + 1 || slot_id < EQ::invslot::EQUIPMENT_BEGIN) {
+		c->Message(Chat::White, "Valid slots are 0 to {}.", EQ::invslot::EQUIPMENT_END + 1);
+		return;
+	}
+
+	if (slot_id == EQ::invslot::EQUIPMENT_END + 1) {
+		const EQ::ItemData* equippedQuiver = nullptr;
+		equippedQuiver = my_bot->GetEquippedQuiver();
+		
+		if (equippedQuiver) {
+			EQ::SayLinkEngine linkerEquipped;
+			linkerEquipped.SetLinkType(EQ::saylink::SayLinkItemData);
+			linkerEquipped.SetItemData(equippedQuiver);
+
+			if (!c->CheckLoreConflict(equippedQuiver)) {
+				c->SummonItem(equippedQuiver->ID, -1, 0, 0, 0, 0, 0, false, EQ::invslot::slotCursor);
+				std::string key;
+				key = "BotQuiver-" + std::to_string(my_bot->GetBotID());
+				DataBucket::DeleteData(key);
+
+				my_bot->OwnerMessage(
+					fmt::format(
+						"I have unequipped {} from my Quiver (Slot {}).",
+						linkerEquipped.GenerateLink(),
+						slot_id
+					)
+				);
+
+				if (parse->BotHasQuestSub(EVENT_UNEQUIP_ITEM_BOT)) {
+					const auto& export_string = fmt::format(
+						"1 {}",
+						slot_id
+					);
+					std::vector<std::any> args = { equippedQuiver };
+
+					parse->EventBot(EVENT_UNEQUIP_ITEM_BOT, my_bot, nullptr, export_string, equippedQuiver->ID, &args);
+				}
+			}
+			else {
+				c->Message(
+					Chat::Yellow,
+					fmt::format(
+						"You cannot pick up {} because it is a lore item you already possess.",
+						linkerEquipped.GenerateLink()
+					).c_str()
+				);
+				return;
+			}
+		}
+		else {
+			my_bot->OwnerMessage(
+				fmt::format(
+					"My Quiver (Slot {}) is already unequipped.", 
+					slot_id
+				)
+			);
+		}
+		
 		return;
 	}
 
