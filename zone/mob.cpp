@@ -3634,10 +3634,17 @@ bool Mob::CanThisClassDoubleAttack(void) const
 
 bool Mob::CanThisClassTripleAttack() const
 {
-	if (!IsClient())
+	if (!IsOfClientBot()) {
 		return false; // When they added the real triple attack skill, mobs lost the ability to triple
-	else
-		return CastToClient()->HasSkill(EQ::skills::SkillTripleAttack);
+	}
+	else {
+		if (IsClient()) {
+			return CastToClient()->HasSkill(EQ::skills::SkillTripleAttack);
+		}
+		else {
+			return (GetSkill(EQ::skills::SkillTripleAttack) > 0);
+		}
+	}
 }
 
 bool Mob::IsWarriorClass(void) const

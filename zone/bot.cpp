@@ -3716,7 +3716,7 @@ void Bot::AI_Process()
 						}
 
 						TEST_COMBATANTS();
-						if (GetSpecialAbility(SPECATK_TRIPLE) && CheckBotDoubleAttack(true)) {
+						if (CanThisClassTripleAttack() && CheckBotDoubleAttack(true)) {
 							// tripleSuccess = true;
 							Attack(tar, EQ::invslot::slotPrimary, true);
 						}
