@@ -868,14 +868,13 @@ void Bot::AI_Process_Raid()
 					// Live AA - Flurry, Rapid Strikes ect (Flurry does not require Triple Attack).
 					int32 flurrychance = (aabonuses.FlurryChance + spellbonuses.FlurryChance + itembonuses.FlurryChance);
 					if (flurrychance) {
-
 						if (zone->random.Int(0, 100) < flurrychance) {
-
-							MessageString(Chat::NPCFlurry, YOU_FLURRY);
 							Attack(tar, EQ::invslot::slotPrimary, false);
 
 							TEST_COMBATANTS();
-							Attack(tar, EQ::invslot::slotPrimary, false);
+							if (zone->random.Roll(flurrychance)) {
+								Attack(tar, EQ::invslot::slotPrimary, false);
+							}
 						}
 					}
 
