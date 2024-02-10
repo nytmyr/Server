@@ -573,6 +573,7 @@ bool BotDatabase::LoadBot(const uint32 bot_id, Bot*& loaded_bot)
 		loaded_bot->SetRootMinThreshold(l.root_min_threshold);
 		loaded_bot->SetSlowMinThreshold(l.slow_min_threshold);
 		loaded_bot->SetSnareMinThreshold(l.snare_min_threshold);
+		loaded_bot->SetIllusionBlock(l.illusion_block);
 	}
 
 	return true;
@@ -720,6 +721,7 @@ bool BotDatabase::SaveNewBot(Bot* bot_inst, uint32& bot_id)
 	e.root_min_threshold			= 15;
 	e.slow_min_threshold			= 25;
 	e.snare_min_threshold			= 0;
+	e.illusion_block				= 0;
 	auto b = BotDataRepository::InsertOne(database, e);
 	if (!b.bot_id) {
 		return false;
@@ -875,6 +877,7 @@ bool BotDatabase::SaveBot(Bot* bot_inst)
 	l.root_min_threshold			= bot_inst->GetRootMinThreshold();
 	l.slow_min_threshold			= bot_inst->GetSlowMinThreshold();
 	l.snare_min_threshold			= bot_inst->GetSnareMinThreshold();
+	l.illusion_block			    = bot_inst->GetIllusionBlock();
 
 	const auto updated = BotDataRepository::UpdateOne(database, l);
 	if (!updated) {
@@ -2365,7 +2368,8 @@ bool BotDatabase::CreateCloneBot(const uint32 owner_id, const uint32 bot_id, con
 		" `nuke_min_threshold`,"
 		" `root_min_threshold`,"
 		" `slow_min_threshold`,"
-		" `snare_min_threshold`"
+		" `snare_min_threshold`,"
+		" `illusion_block`"
 		")"
 		" SELECT"
 		" bd.`owner_id`,"
@@ -2497,7 +2501,8 @@ bool BotDatabase::CreateCloneBot(const uint32 owner_id, const uint32 bot_id, con
 		" bd.`nuke_min_threshold`,"
 		" bd.`root_min_threshold`,"
 		" bd.`slow_min_threshold`,"
-		" bd.`snare_min_threshold`"
+		" bd.`snare_min_threshold`,"
+		" bd.`illusion_block`"
 		" FROM `bot_data` bd"
 		" WHERE"
 		" bd.`owner_id` = '%u'"
@@ -3958,6 +3963,27 @@ bool BotDatabase::SaveHotHealThreshold(const uint32 owner_id, const uint32 bot_i
 		" WHERE `owner_id` = '%u'"
 		" AND `bot_id` = '%u'",
 		hotheal_threshold_value,
+		owner_id,
+		bot_id
+	);
+	auto results = database.QueryDatabase(query);
+	if (!results.Success())
+		return false;
+
+	return true;
+}
+
+bool BotDatabase::SaveIllusionBlock(const uint32 owner_id, const uint32 bot_id, const bool illusionBlock)
+{
+	if (!owner_id || !bot_id)
+		return false;
+
+	query = StringFormat(
+		"UPDATE `bot_data`"
+		" SET `illusion_block` = '%u'"
+		" WHERE `owner_id` = '%u'"
+		" AND `bot_id` = '%u'",
+		(illusionBlock ? 1 : 0),
 		owner_id,
 		bot_id
 	);
@@ -5614,6 +5640,7 @@ const char* BotDatabase::fail::SaveNukeMinThreshold() { return "Failed to save m
 const char* BotDatabase::fail::SaveRootMinThreshold() { return "Failed to save minimum root threshold"; }
 const char* BotDatabase::fail::SaveSlowMinThreshold() { return "Failed to save minimum slow threshold"; }
 const char* BotDatabase::fail::SaveSnareMinThreshold() { return "Failed to save minimum snare threshold"; }
+const char* BotDatabase::fail::SaveIllusionBlock() { return "Failed to save illusion block"; }
 
 /* fail::Bot heal rotation functions   */
 const char* BotDatabase::fail::LoadHealRotationIDByBotID() { return "Failed to load heal rotation ID by bot ID"; }

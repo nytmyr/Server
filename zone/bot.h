@@ -408,6 +408,7 @@ public:
 	bool GetHoldSlows() { return _holdSlows; }
 	bool GetHoldSnares() { return _holdSnares; }
 	bool GetBehindMob() { return _behindMobStatus; }
+	bool GetIllusionBlock() { return _illusionBlock; }
 	uint32 GetBuffDelay() { return _buffDelay; }
 	uint32 GetCompleteHealDelay() { return _chealDelay; }
 	uint32 GetCureDelay() { return _cureDelay; }
@@ -543,6 +544,7 @@ public:
 	void SetSlowMinThreshold(uint8 slowminthreshold);
 	void SetSnareThreshold(uint8 snarethreshold);
 	void SetSnareMinThreshold(uint8 snareminthreshold);
+	void SetIllusionBlock(bool illusionBlock);
 
 	// Bot AI Methods
 	void AI_Bot_Init();
@@ -1128,6 +1130,7 @@ private:
 	bool _holdSlows;
 	bool _holdSnares;
 	bool _behindMobStatus;
+	bool _illusionBlock;
 	uint32 _buffDelay;
 	uint32 _cureDelay;
 	uint32 _chealDelay;

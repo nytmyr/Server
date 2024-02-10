@@ -156,6 +156,7 @@ public:
 		uint8_t		root_min_threshold;
 		uint8_t		slow_min_threshold;
 		uint8_t		snare_min_threshold;
+		uint8_t		illusion_block;
 	};
 
 	static std::string PrimaryKey()
@@ -303,6 +304,7 @@ public:
 			"root_min_threshold",
 			"slow_min_threshold",
 			"snare_min_threshold",
+			"illusion_block",
 		};
 	}
 
@@ -446,6 +448,7 @@ public:
 			"root_min_threshold",
 			"slow_min_threshold",
 			"snare_min_threshold",
+			"illusion_block",
 		};
 	}
 
@@ -623,6 +626,7 @@ public:
 		e.root_min_threshold		 = 15;
 		e.slow_min_threshold		 = 25;
 		e.snare_min_threshold		 = 0;
+		e.illusion_block			 = 0;
 
 		return e;
 	}
@@ -796,6 +800,7 @@ public:
 			e.root_min_threshold			= static_cast<uint8_t>(strtoul(row[134], nullptr, 10));
 			e.slow_min_threshold			= static_cast<uint8_t>(strtoul(row[135], nullptr, 10));
 			e.snare_min_threshold			= static_cast<uint8_t>(strtoul(row[136], nullptr, 10));
+			e.illusion_block				= static_cast<uint8_t>(strtoul(row[137], nullptr, 10));
 
 			return e;
 		}
@@ -965,6 +970,7 @@ public:
 		v.push_back(columns[134] + " = " + std::to_string(e.root_min_threshold));
 		v.push_back(columns[135] + " = " + std::to_string(e.slow_min_threshold));
 		v.push_back(columns[136] + " = " + std::to_string(e.snare_min_threshold));
+		v.push_back(columns[137] + " = " + std::to_string(e.illusion_block));
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -1123,6 +1129,7 @@ public:
 		v.push_back(std::to_string(e.root_min_threshold));
 		v.push_back(std::to_string(e.slow_min_threshold));
 		v.push_back(std::to_string(e.snare_min_threshold));
+		v.push_back(std::to_string(e.illusion_block));
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -1289,6 +1296,7 @@ public:
 			v.push_back(std::to_string(e.root_min_threshold));
 			v.push_back(std::to_string(e.slow_min_threshold));
 			v.push_back(std::to_string(e.snare_min_threshold));
+			v.push_back(std::to_string(e.illusion_block));
 
 			insert_chunks.push_back("(" + Strings::Implode(",", v) + ")");
 		}
@@ -1459,6 +1467,7 @@ public:
 			e.root_min_threshold			= static_cast<uint8_t>(strtoul(row[134], nullptr, 10));
 			e.slow_min_threshold			= static_cast<uint8_t>(strtoul(row[135], nullptr, 10));
 			e.snare_min_threshold			= static_cast<uint8_t>(strtoul(row[136], nullptr, 10));
+			e.illusion_block				= static_cast<uint8_t>(strtoul(row[137], nullptr, 10));
 
 			all_entries.push_back(e);
 		}
@@ -1620,6 +1629,7 @@ public:
 			e.root_min_threshold			= static_cast<uint8_t>(strtoul(row[134], nullptr, 10));
 			e.slow_min_threshold			= static_cast<uint8_t>(strtoul(row[135], nullptr, 10));
 			e.snare_min_threshold			= static_cast<uint8_t>(strtoul(row[136], nullptr, 10));
+			e.illusion_block				= static_cast<uint8_t>(strtoul(row[137], nullptr, 10));
 
 			all_entries.push_back(e);
 		}

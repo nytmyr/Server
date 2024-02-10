@@ -327,6 +327,9 @@ Bot::Bot(
 				switch (spell.effect_id[x1]) {
 				case SE_IllusionCopy:
 				case SE_Illusion: {
+					if (HasIllusionsBlocked()) {
+						break;
+					}
 					if (spell.base_value[x1] == -1) {
 						if (gender == 1)
 							gender = 0;
@@ -2744,6 +2747,10 @@ void Bot::SetHealDelay(uint32 healdelay) {
 
 void Bot::SetHotHealDelay(uint32 hothealdelay) {
 	_hothealDelay = hothealdelay;
+}
+
+void Bot::SetIllusionBlock(bool illusionblock) {
+	_illusionBlock = illusionblock;
 }
 
 void Bot::SetInCombatBuffDelay(uint32 incombatbuffdelay) {

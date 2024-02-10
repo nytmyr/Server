@@ -228,6 +228,7 @@ public:
 	bool SaveRootMinThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 root_min_threshold_value);
 	bool SaveSlowMinThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 slow_min_threshold_value);
 	bool SaveSnareMinThreshold(const uint32 owner_id, const uint32 bot_id, const uint8 snare_min_threshold_value);
+	bool SaveIllusionBlock(const uint32 owner_id, const uint32 bot_id, const bool illusion_block);
 
 	bool LoadOwnerOptions(Client *owner);
 	bool SaveOwnerOption(const uint32 owner_id, size_t type, const bool flag);
@@ -427,6 +428,7 @@ public:
 		static const char* SaveRootMinThreshold();
 		static const char* SaveSlowMinThreshold();
 		static const char* SaveSnareMinThreshold();
+		static const char* SaveIllusionBlock();
 
 		/* fail::Bot bot-group functions   */
 		static const char* QueryBotGroupExistence();

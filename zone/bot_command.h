@@ -719,6 +719,7 @@ void bot_command_max_melee_range(Client* c, const Seperator* sep);
 void bot_command_remove_from_raid(Client* c, const Seperator* sep);
 void bot_command_click_item(Client* c, const Seperator* sep);
 void bot_command_timer(Client* c, const Seperator* sep);
+void bot_command_illusion_block(Client* c, const Seperator* sep);
 
 void ListBotHoldSettings(Bot* b, bool show_options = false);
 void bot_command_hold_settings(Client* c, const Seperator* sep);

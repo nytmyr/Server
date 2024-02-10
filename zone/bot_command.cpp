@@ -1574,6 +1574,7 @@ int bot_command_init(void)
 		bot_command_add("removefromraid", "This will remove a bot from a raid, can be used for stuck bots.", AccountStatus::Player, bot_command_remove_from_raid) ||
 		bot_command_add("clickitem", "Orders your targeted bot to click the item in the provided inventory slot.", AccountStatus::Player, bot_command_click_item) ||
 		bot_command_add("timer", "Checks or clears timers of the chosen type.", AccountStatus::GMMgmt, bot_command_timer) ||
+		bot_command_add("illusionblock", "Control whether or not illusion effects will land on the bot", AccountStatus::Player, bot_command_illusion_block) ||
 		//bot_command_add("combatmed", "Allows your bot to med in combat as long as it thinks it won't get aggro.", AccountStatus::Player, bot_command_combat_med) ||
 
 		bot_command_add("copysettings", "Will copy the targeted bots settings to the named bot.", AccountStatus::Player, bot_command_copy_settings) ||
@@ -11515,6 +11516,108 @@ void bot_command_hot_heal_threshold(Client* c, const Seperator* sep)
 					"{} of your bots set their Heal Over Time Threshold to {}%%.'",
 					success_count,
 					thresholddata
+				).c_str()
+			);
+		}
+	}
+}
+
+void bot_command_illusion_block(Client* c, const Seperator* sep)
+{
+	if (helper_command_alias_fail(c, "bot_command_illusion_block", sep->arg[0], "illusionblock"))
+		return;
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(Chat::White, "usage: %s [current | value: 0-1] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
+		c->Message(Chat::White, "note: Used to control whether or not illusion effects will land on the bot.");
+		c->Message(Chat::White, "note: A value of 0 is disabled (Allow Illusions), 1 is enabled (Block Illusions).");
+		c->Message(Chat::White, "note: Use [current] to check the current setting.");
+		return;
+	}
+
+	const int ab_mask = ActionableBots::ABM_Type1;
+
+	std::string arg1 = sep->arg[1];
+	int ab_arg = 1;
+	bool current_check = false;
+	uint32 argCheck = 0;
+	if (sep->IsNumber(1)) {
+		ab_arg = 2;
+		argCheck = atoi(sep->arg[1]);
+		if (argCheck != 0 && argCheck != 1) {
+			c->Message(Chat::White, "You must enter either 0 for disabled or 1 for enabled.");
+			return;
+		}
+	}
+	else if (!arg1.compare("current")) {
+		ab_arg = 2;
+		current_check = true;
+	}
+	else {
+		c->Message(Chat::White, "Incorrect argument, use %s help for a list of options.", sep->arg[0]);
+		return;
+	}
+
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
+	}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
+	}
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	for (auto my_bot : sbl) {
+		if (!first_found) {
+			first_found = my_bot;
+		}
+		if (current_check) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'I am currently {} illusions.'",
+					my_bot->GetCleanName(),
+					my_bot->GetIllusionBlock() ? "blocking" : "allowing"
+				).c_str()
+			);
+		}
+		else {
+			my_bot->SetIllusionBlock(argCheck);
+			++success_count;
+			if (!database.botdb.SaveIllusionBlock(c->CharacterID(), my_bot->GetBotID(), argCheck)) {
+				c->Message(
+					Chat::White,
+					fmt::format(
+						"{} for '{}'",
+						BotDatabase::fail::SaveIllusionBlock(),
+						my_bot->GetCleanName()
+					).c_str()
+				);
+			}
+		}
+	}
+	if (!current_check) {
+		if (success_count == 1 && first_found) {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} says, 'My Illusion Block was {}.'",
+					first_found->GetCleanName(),
+					argCheck ? "enabled" : "disabled"
+				).c_str()
+			);
+		}
+		else {
+			c->Message(
+				Chat::White,
+				fmt::format(
+					"{} of your bots set their Illusion Block to {}.",
+					success_count,
+					argCheck ? "enabled" : "disabled"
 				).c_str()
 			);
 		}

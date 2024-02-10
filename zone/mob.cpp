@@ -7412,11 +7412,10 @@ int Mob::DispatchZoneControllerEvent(
 
 bool Mob::HasIllusionsBlocked() {
 	if (IsClient()) {
-		return CastToClient()->m_pp.illusion_block;
+		return CastToClient()->GetIllusionBlock();
 	}
 	if (IsBot()) {
-		//return CastToBot()->_illusionBlock;
-		TestDebug("Bot check TODO"); //deleteme
+		return CastToBot()->GetIllusionBlock();
 	}
 	
 	return false;
