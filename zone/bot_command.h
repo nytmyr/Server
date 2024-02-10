@@ -542,6 +542,7 @@ typedef std::map<BCEnum::SpType, bcst_levels> bcst_levels_map;
 #define COPY_MIN_THRESHOLDS 3
 #define COPY_MAX_THRESHOLDS 4
 #define COPY_MISC 5
+#define COPY_SPELL_SETTINGS 6
 
 //option types for DefaultSettings command
 #define DEFAULT_ALL 6
@@ -550,6 +551,7 @@ typedef std::map<BCEnum::SpType, bcst_levels> bcst_levels_map;
 #define DEFAULT_MIN_THRESHOLDS 3
 #define DEFAULT_MAX_THRESHOLDS 4
 #define DEFAULT_MISC 5
+#define DEFAULT_SPELL_SETTINGS 6
 
 typedef void (*BotCmdFuncPtr)(Client *,const Seperator *);
 

@@ -878,6 +878,8 @@ public:
 	bool UpdateBotSpellSetting(uint16 spell_id, BotSpellSetting* bs);
 	void SetBotEnforceSpellSetting(bool enforcespellsettings, bool save = false);
 	bool GetBotEnforceSpellSetting() const { return m_enforce_spell_settings; }
+	void CopyBotSpellSettings(Bot* from_bot);
+	void ResetBotSpellSettings();
 
 	static void SpawnBotGroupByName(Client* c, std::string botgroup_name, uint32 leader_id);
 

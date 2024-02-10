@@ -10415,6 +10415,58 @@ bool Bot::UpdateBotSpellSetting(uint16 spell_id, BotSpellSetting* bs)
 	return true;
 }
 
+void Bot::CopyBotSpellSettings(Bot* from_bot)
+{
+	ResetBotSpellSettings();
+	bot_spell_settings.clear();
+
+	auto s = BotSpellSettingsRepository::GetWhere(content_db, fmt::format("bot_id = {}", from_bot->GetBotID()));
+	if (s.empty()) {
+		return;
+	}
+
+	auto* spell_list = content_db.GetBotSpells(GetBotSpellID());
+
+	for (const auto& e : s) {
+		BotSpellSetting b;
+
+		b.priority = e.priority;
+		b.min_hp = e.min_hp;
+		b.max_hp = e.max_hp;
+		b.is_enabled = e.is_enabled;
+
+		if (IsSpellInBotList(spell_list, e.spell_id)) {
+			for (auto& se : spell_list->entries) {
+				if (se.spellid == e.spell_id) {
+					if (EQ::ValueWithin(GetLevel(), se.minlevel, se.maxlevel) && se.spellid) {
+						AddBotSpellSetting(e.spell_id, &b);
+					}
+				}
+			}
+		}
+	}
+
+	LoadBotSpellSettings();
+	AI_AddBotSpells(GetBotSpellID());
+	SetBotEnforceSpellSetting(from_bot->GetBotEnforceSpellSetting(), true);
+}
+
+void Bot::ResetBotSpellSettings()
+{
+	auto s = BotSpellSettingsRepository::GetWhere(content_db, fmt::format("bot_id = {}", GetBotID()));
+	if (s.empty()) {
+		return;
+	}
+
+	for (const auto& e : s) {
+		DeleteBotSpellSetting(e.spell_id);
+	}
+
+	LoadBotSpellSettings();
+	AI_AddBotSpells(GetBotSpellID());
+	SetBotEnforceSpellSetting(false, true);
+}
+
 std::string Bot::GetHPString(int8 min_hp, int8 max_hp)
 {
 	std::string hp_string = "Any";

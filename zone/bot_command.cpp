@@ -4427,13 +4427,14 @@ void bot_command_copy_settings(Client* c, const Seperator* sep)
 	}
 
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: (<target_member>) %s ([member_name]) ([option: all | misc | holds | delays | minthresholds | maxthresholds] [default: all])", sep->arg[0]);
+		c->Message(Chat::White, "usage: (<target_member>) %s ([member_name]) ([option: all | misc | holds | delays | minthresholds | maxthresholds | spellsettings] [default: all])", sep->arg[0]);
 		c->Message(Chat::White, "example: target the bot you want to copy from and then type %s [name of bot to copy to] (ie target Clericbotone and type %s Clericbottwo.", sep->arg[0], sep->arg[0]);
 		c->Message(Chat::White, "note: optional argument 'misc' will copy show helm, follow distance, stop melee level, archery settings, pet type, hold damage shields, hold resists, behind mob status and caster range.");
 		c->Message(Chat::White, "note: optional argument 'holds' will copy all hold settings by spell type.");
 		c->Message(Chat::White, "note: optional argument 'delays' will copy all delay settings by spell type.");
 		c->Message(Chat::White, "note: optional argument 'minthresholds' will copy all minimum threshold settings by spell type.");
 		c->Message(Chat::White, "note: optional argument 'maxthresholds' will copy all maximum threshold settings by spell type.");
+		c->Message(Chat::White, "note: optional argument 'spellsettings' will copy ^spellsettings.");
 		return;
 	}
 
@@ -4479,9 +4480,12 @@ void bot_command_copy_settings(Client* c, const Seperator* sep)
 	else if (!strcasecmp(sep->arg[2], "Misc")) {
 		chosen_type = COPY_MISC;
 	}
+	else if (!strcasecmp(sep->arg[2], "SpellSettings")) {
+		chosen_type = COPY_SPELL_SETTINGS;
+	}
 
 	CopyBotSettings(from, to, chosen_type);
-	c->Message(Chat::White, "%s settings have been copied from %s to %s.", chosen_type == COPY_HOLDS ? "Hold" : chosen_type == COPY_DELAYS ? "Delay" : chosen_type == COPY_MIN_THRESHOLDS ? "Minimum Threshold" : chosen_type == COPY_MAX_THRESHOLDS ? "Maximum Threshold" : chosen_type == COPY_MISC ? "Miscellaneous" : "All", from->GetCleanName(), to->GetCleanName());
+	c->Message(Chat::White, "%s settings have been copied from %s to %s.", chosen_type == COPY_HOLDS ? "Hold" : chosen_type == COPY_DELAYS ? "Delay" : chosen_type == COPY_MIN_THRESHOLDS ? "Minimum Threshold" : chosen_type == COPY_MAX_THRESHOLDS ? "Maximum Threshold" : chosen_type == COPY_MISC ? "Miscellaneous" : chosen_type == COPY_SPELL_SETTINGS ? "Spell Settings" : "All", from->GetCleanName(), to->GetCleanName());
 }
 
 
@@ -5067,6 +5071,7 @@ void bot_command_default_settings(Client* c, const Seperator* sep)
 		c->Message(Chat::White, "note: optional argument 'delays' will default all delay settings by spell type.");
 		c->Message(Chat::White, "note: optional argument 'minthresholds' will default all minimum threshold settings by spell type.");
 		c->Message(Chat::White, "note: optional argument 'maxthresholds' will default all maximum threshold settings by spell type.");
+		c->Message(Chat::White, "note: optional argument 'spellsettings' will default all ^spellsettings.");
 		return;
 	}
 
@@ -5093,6 +5098,9 @@ void bot_command_default_settings(Client* c, const Seperator* sep)
 	else if (!strcasecmp(sep->arg[1], "Misc")) {
 		chosen_type = DEFAULT_MISC;
 	}
+	else if (!strcasecmp(sep->arg[1], "SpellSettings")) {
+		chosen_type = DEFAULT_SPELL_SETTINGS;
+	}
 	else if (!strcasecmp(sep->arg[1], "All")) {
 		chosen_type = DEFAULT_ALL;
 	}
@@ -5103,7 +5111,7 @@ void bot_command_default_settings(Client* c, const Seperator* sep)
 	}
 
 	DefaultBotSettings(my_bot, chosen_type);
-	c->Message(Chat::White, "%s settings have been default for %s.", chosen_type == DEFAULT_HOLDS ? "Hold" : chosen_type == DEFAULT_DELAYS ? "Delay" : chosen_type == DEFAULT_MIN_THRESHOLDS ? "Minimum Threshold" : chosen_type == DEFAULT_MAX_THRESHOLDS ? "Maximum Threshold" : chosen_type == DEFAULT_MISC ? "Miscellaneous" : "All", my_bot->GetCleanName());
+	c->Message(Chat::White, "%s settings have been default for %s.", chosen_type == DEFAULT_HOLDS ? "Hold" : chosen_type == DEFAULT_DELAYS ? "Delay" : chosen_type == DEFAULT_MIN_THRESHOLDS ? "Minimum Threshold" : chosen_type == DEFAULT_MAX_THRESHOLDS ? "Maximum Threshold" : chosen_type == DEFAULT_MISC ? "Miscellaneous" : chosen_type == DEFAULT_SPELL_SETTINGS ? "Spell Settings" : "All", my_bot->GetCleanName());
 }
 
 void bot_command_defensive(Client *c, const Seperator *sep)
@@ -23224,6 +23232,9 @@ void CopyBotSettings(Bot* from, Bot* to, uint8 chosen_type)
 		to->SetSlowThreshold(from->GetSlowThreshold());
 		to->SetSnareThreshold(from->GetSnareThreshold());
 	}
+	if (chosen_type == COPY_SPELL_SETTINGS || chosen_type == COPY_ALL) {
+		to->CopyBotSpellSettings(from);
+	}
 }
 
 void DefaultBotSettings(Bot* my_bot, uint8 chosen_type)
@@ -23339,5 +23350,8 @@ void DefaultBotSettings(Bot* my_bot, uint8 chosen_type)
 		my_bot->SetRootThreshold(95);
 		my_bot->SetSlowThreshold(95);
 		my_bot->SetSnareThreshold(95);
+	}
+	if (chosen_type == DEFAULT_SPELL_SETTINGS || chosen_type == DEFAULT_ALL) {
+		my_bot->ResetBotSpellSettings();
 	}
 }
