@@ -1631,6 +1631,7 @@ public:
 	inline void SetClientCureMinThreshold(uint8 cure_min_threshold) { m_pp.cure_min_threshold = cure_min_threshold; }
 	inline void SetClientCureThreshold(uint8 cure_threshold) { m_pp.cure_threshold = cure_threshold; }
 	inline void SetClientCureDelay(uint32 cure_delay) { m_pp.cure_delay = cure_delay; }
+	inline void SetIllusionBlock(bool illusion_block) { m_pp.illusion_block = illusion_block; }
 	inline uint8 GetClientFastHealThreshold() { return m_pp.fast_heal_threshold; }
 	inline uint8 GetClientHealThreshold() { return m_pp.heal_threshold; }
 	inline uint8 GetClientCompleteHealThreshold() { return m_pp.complete_heal_threshold; }
@@ -1642,6 +1643,7 @@ public:
 	inline uint8 GetClientCureMinThreshold() { return m_pp.cure_min_threshold; }
 	inline uint8 GetClientCureThreshold() { return m_pp.cure_threshold; }
 	inline uint32 GetClientCureDelay() { return m_pp.cure_delay; }
+	inline bool GetIllusionBlock() { return m_pp.illusion_block; }
 
 	float GetTotalGearScore();
 

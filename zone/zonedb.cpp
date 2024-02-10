@@ -631,7 +631,8 @@ bool ZoneDatabase::LoadCharacterData(uint32 character_id, PlayerProfile_Struct* 
 		"hot_heal_delay,			"
 		"cure_delay,				"
 		"cure_min_threshold,		"
-		"cure_threshold				"
+		"cure_threshold,			"
+		"illusion_block				"
 		"FROM                       "
 		"character_data             "
 		"WHERE `id` = %i         ", character_id);
@@ -741,6 +742,7 @@ bool ZoneDatabase::LoadCharacterData(uint32 character_id, PlayerProfile_Struct* 
 		pp->cure_delay = atoi(row[r]); r++;										 // "`cure_delay`		"
 		pp->cure_min_threshold = atoi(row[r]); r++;								 // "`cure_min_threshold`		"
 		pp->cure_threshold = atoi(row[r]); r++;									 // "`cure_threshold`		"
+		pp->illusion_block = atoi(row[r]); r++;									 // "`illusion_block`		"
 
 	}
 	return true;
@@ -1270,7 +1272,8 @@ bool ZoneDatabase::SaveCharacterData(
 		" hot_heal_delay,			 "
 		" cure_delay,				 "
 		" cure_min_threshold,		 "
-		" cure_threshold			 "
+		" cure_threshold,			 "
+		" illusion_block			 "
 		")							 "
 		"VALUES ("
 		"{},"  // id																" id,                        "
@@ -1379,7 +1382,8 @@ bool ZoneDatabase::SaveCharacterData(
 		"{},"  // hot_heal_delay
 		"{},"  // cure_delay
 		"{},"  // cure_min_threshold
-		"{}"  // cure_threshold
+		"{},"  // cure_threshold
+		"{}"   // illusion_lock
 		")",
 		c->CharacterID(),				  // " id,                        "
 		c->AccountID(),					  // " account_id,                "
@@ -1487,7 +1491,8 @@ bool ZoneDatabase::SaveCharacterData(
 		pp->hot_heal_delay,
 		pp->cure_delay,
 		pp->cure_min_threshold,
-		pp->cure_threshold
+		pp->cure_threshold,
+		pp->illusion_block
 	);
 	auto results = database.QueryDatabase(query);
 	LogDebug(

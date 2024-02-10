@@ -1478,6 +1478,12 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 						}
 					}
 				}
+
+				TestDebug("Illusion block is currently {}", (HasIllusionsBlocked() ? "enabled" : "disabled")); //deleteme
+				if (caster && (caster->IsClient() || caster->IsBot()) && HasIllusionsBlocked()) {
+					break;
+				}
+				
 				ApplySpellEffectIllusion(spell_id, caster, buffslot, spells[spell_id].base_value[i], spells[spell_id].limit_value[i], spells[spell_id].max_value[i]);
 				break;
 			}

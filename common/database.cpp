@@ -561,7 +561,8 @@ bool Database::SaveCharacterCreate(uint32 character_id, uint32 account_id, Playe
 		"hot_heal_delay,"
 		"cure_delay,"
 		"cure_min_threshold,"
-		"cure_threshold) "
+		"cure_threshold,"
+		"illusion_block) "
 		"VALUES ("
 		"%u,"  // id
 		"%u,"  // account_id
@@ -663,7 +664,8 @@ bool Database::SaveCharacterCreate(uint32 character_id, uint32 account_id, Playe
 		"%u,"   // hot_heal_delay
 		"%u,"  // cure_delay
 		"%u,"  // cure_min_threshold
-		"%u"   // cure_threshold
+		"%u,"   // cure_threshold
+		"%u"   // illusion_block
 		")",
 		character_id,					  // " id,                        "
 		account_id,						  // " account_id,                "
@@ -765,7 +767,8 @@ bool Database::SaveCharacterCreate(uint32 character_id, uint32 account_id, Playe
 		22000,							  // " hot_heal_delay             "
 		1,								  // " cure_delay	              "
 		0,								  // " cure_min_threshold         "
-		150								  // " cure_threshold             "
+		150,							  // " cure_threshold             "
+		0								  // "illusion_block			  "
 	);
 	auto results = QueryDatabase(query);
 

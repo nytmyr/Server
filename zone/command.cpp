@@ -391,7 +391,8 @@ int command_init(void)
 		command_add("cureminthreshold", "Sets a threshold to when you will stop receiving from bots", AccountStatus::Player, command_cureminthreshold) ||
 		command_add("curethreshold", "Sets a threshold to when you will start receiving Cures from bots", AccountStatus::Player, command_curethreshold) ||
 		command_add("charchange", "Change your race, class and or deity", AccountStatus::Player, command_char_change) ||
-		command_add("market", "View, Sell or Buy items on the Market", AccountStatus::Player, command_market)
+		command_add("market", "View, Sell or Buy items on the Market", AccountStatus::Player, command_market) ||
+		command_add("illusionblock", "Controls whether or not illusion effects will land on you.", AccountStatus::Player, command_illusion_block)
 
 	) {
 		command_deinit();
@@ -1255,3 +1256,4 @@ void command_bot(Client *c, const Seperator *sep)
 #include "gm_commands/curethreshold.cpp"
 #include "gm_commands/charchange.cpp"
 #include "gm_commands/market.cpp"
+#include "gm_commands/illusion_block.cpp"

@@ -1109,6 +1109,7 @@ struct PlayerProfile_Struct
 			uint32				cure_delay; /* Used */
 			uint8				cure_min_threshold; /* Used */
 			uint8				cure_threshold; /* Used */
+			bool				illusion_block;
 /*19568*/
 
 	// All player profile packets are translated and this overhead is ignored in out-bound packets

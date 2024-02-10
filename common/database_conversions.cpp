@@ -385,8 +385,9 @@ namespace Convert {
 					uint32							complete_heal_delay; /* Used */
 					uint32							hot_heal_delay; /* Used */
 					uint32							cure_delay; /* Used */
-					uint8							cure_threshold; /* Used */
 					uint8							cure_min_threshold; /* Used */
+					uint8							cure_threshold; /* Used */					
+					uint8							illusion_block; /* Used */
 		/*19568*/
 	};
 
@@ -661,6 +662,7 @@ bool Database::CheckDatabaseConvertPPDeblob(){
 				"`cure_delay` int(11) UNSIGNED NOT NULL DEFAULT 1,					"
 				"`cure_min_threshold` int(11) UNSIGNED NOT NULL DEFAULT 0,			"
 				"`cure_threshold` int(11) UNSIGNED NOT NULL DEFAULT 150,			"
+				"`illusion_block` int(3) UNSIGNED NOT NULL DEFAULT 0,				"
 				"PRIMARY KEY(`id`),													"
 				"UNIQUE KEY `name` (`name`),										"
 				"KEY `account_id` (`account_id`)									"
@@ -1137,7 +1139,8 @@ bool Database::CheckDatabaseConvertPPDeblob(){
 					"hot_heal_delay,"
 					"cure_delay,"
 					"cure_min_threshold,"
-					"cure_threshold"
+					"cure_threshold,"
+					"illusion_block"
 					")"
 					"VALUES ("
 					"%u,"		// id
@@ -1248,7 +1251,8 @@ bool Database::CheckDatabaseConvertPPDeblob(){
 					"%u,"		// hot_heal_delay
 					"%u,"		// cure_delay
 					"%u,"		// cure_min_threshold
-					"%u"		// cure_threshold
+					"%u,"		// cure_threshold
+					"%u"		// illusion_block
 					")",
 					character_id,
 					account_id,
@@ -1358,7 +1362,8 @@ bool Database::CheckDatabaseConvertPPDeblob(){
 					pp->hot_heal_delay,
 					pp->cure_delay,
 					pp->cure_min_threshold,
-					pp->cure_threshold
+					pp->cure_threshold,
+					pp->illusion_block
 					);
 				results = QueryDatabase(rquery);
 
