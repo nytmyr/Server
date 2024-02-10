@@ -1404,11 +1404,6 @@ bool Bot::AIDoSpellCast(uint8 i, Mob* tar, int32 mana_cost, uint32* oDontDoAgain
 		SetMana(hasMana);
 		extraMana = false;
 	}
-	else {
-		if (CalcSpellRecastTimer(AIBot_spells[i].spellid) > 0) {
-			SetSpellRecastTimer(AIBot_spells[i].spellid);
-		}
-	}
 
 	return result;
 }
