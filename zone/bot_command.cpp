@@ -4464,6 +4464,11 @@ void bot_command_copy_settings(Client* c, const Seperator* sep)
 		return;
 	}
 
+	if (to == from) {
+		c->Message(Chat::Yellow, "You cannot copy to the same bot that you're copying from.");
+		return;
+	}
+
 	uint8 chosen_type = COPY_ALL;
 
 	if (!strcasecmp(sep->arg[2], "Holds")) {
