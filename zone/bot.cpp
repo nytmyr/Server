@@ -3559,6 +3559,17 @@ void Bot::AI_Process()
 				size_mod *= (size_mod * 4.0f);
 			}
 
+			if (tar->GetRace() == RACE_VELIOUS_DRAGON_184)		// Lord Vyemm and other velious dragons
+			{
+				size_mod *= 1.75;
+			}
+			if (tar->GetRace() == RACE_DRAGON_SKELETON_122)		// Dracoliche in Fear.  Skeletal Dragon
+			{
+				size_mod *= 2.25;
+			}
+
+			size_mod *= RuleR(Combat, HitBoxMod);		// used for testing sizemods on different races.
+
 			// Prevention of ridiculously sized hit boxes
 			if (size_mod > 10000.0f) {
 				size_mod = (size_mod / 7.0f);
