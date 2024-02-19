@@ -3507,6 +3507,7 @@ void Bot::AI_Process()
 //#pragma region COMBAT RANGE CALCS
 
 		bool atCombatRange = false;
+		bool resquareDistance = false;
 		bool jitterCooldown = false;
 		if (m_combat_jitter_timer.GetRemainingTime() > 1 && m_combat_jitter_timer.Enabled()) {
 			jitterCooldown = true;
@@ -3625,19 +3626,32 @@ void Bot::AI_Process()
 				}
 			} 
 			else {
+				resquareDistance = true;
+				melee_distance_max = sqrt(melee_distance_max);
 				melee_distance = melee_distance_max * RuleR(Bots, NormalMeleeRangeDistance);
 			}
 		}
 
+		if (resquareDistance && melee_distance > RuleR(Bots, MaxDistanceForMelee)) {
+			melee_distance = RuleR(Bots, MaxDistanceForMelee);
+		}
+
 		float melee_distance_min = melee_distance * RuleR(Bots, PercentMinMeleeDistance);
 		if (taunting) {
-			melee_distance = melee_distance_max * RuleR(Bots, TauntNormalMeleeRangeDistance);
+			melee_distance = melee_distance * RuleR(Bots, TauntNormalMeleeRangeDistance);
 			melee_distance_min = melee_distance * RuleR(Bots, PercentTauntMinMeleeDistance);
 		}
 
 		if (!taunting && !IsBotArcher() && GetMaxMeleeRange()) {
 			melee_distance = melee_distance_max * RuleR(Bots, PercentMaxMeleeRangeDistance);
-			melee_distance_min = melee_distance_max * RuleR(Bots, PercentMinMaxMeleeRangeDistance);
+			melee_distance_min = melee_distance * RuleR(Bots, PercentMinMaxMeleeRangeDistance);
+		}
+
+		if (resquareDistance) {
+			melee_distance = pow(melee_distance, 2);
+			melee_distance_min = pow(melee_distance_min, 2);
+			melee_distance_max = pow(melee_distance_max, 2);
+
 		}
 
 		/* Caster Range Checks */
@@ -3657,7 +3671,7 @@ void Bot::AI_Process()
 			float archeryRange = GetBotArcheryRange() * GetBotArcheryRange();
 			float casterRange = GetBotCasterRange() * GetBotCasterRange();
 			float minArcheryRange = RuleI(Combat, MinRangedAttackDist) * RuleI(Combat, MinRangedAttackDist);
-			melee_distance = std::min(archeryRange, (casterRange * 4));
+			melee_distance = std::min(archeryRange, (casterRange * 4)); // * 4 is due to squared so it's double
 			melee_distance_min = std::max(std::max(minArcheryRange, melee_distance_max), std::min(casterRange, archeryRange));
 		}
 
@@ -11673,25 +11687,19 @@ void Bot::DoCombatPositioning(Mob* tar, glm::vec3 Goal, bool stop_melee_level, f
 					return;
 				}
 			}
-			if (tar->IsRooted() && !taunting) { // Move non-taunters out of range - Above already checks if bot is targeted, otherwise they would stay
-				if (tar_distance <= melee_distance_max) {
-					if (PlotBotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z, (melee_distance_max + 1), (melee_distance_max * 2), false, false, true)) {
-						RunToGoalWithJitter(Goal);
-					}
-				}
-				else {
-					DoFaceCheckWithJitter(tar);
+		}
+		if (tar->IsRooted() && !taunting) { // Move non-taunters out of range - Above already checks if bot is targeted, otherwise they would stay
+			if (tar_distance <= melee_distance_max) {
+				if (PlotBotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z, (melee_distance_max + 1), (melee_distance_max * 2), false, false, true)) {
+					RunToGoalWithJitter(Goal);
 				}
 			}
-			//else if (tar_distance < melee_distance_min)  { // Back up any bots too close
-			//	if (PlotBotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z, melee_distance_min, melee_distance, false, taunting)) {
-			//		RunToGoalWithJitter(Goal);
-			//	}
-			//	else {
-			//		DoFaceCheckWithJitter(tar);
-			//	}
-			//}
-			DoFaceCheckNoJitter(tar);
+		}
+
+		if (taunting && tar_distance < melee_distance_min) { // Back up any taunting bots that are too close
+			if (PlotBotPositionAroundTarget(tar, Goal.x, Goal.y, Goal.z, melee_distance_min, melee_distance, false, taunting)) {
+				RunToGoalWithJitter(Goal);
+			}
 		}
 	}
 	else {
@@ -11736,14 +11744,17 @@ void Bot::DoCombatPositioning(Mob* tar, glm::vec3 Goal, bool stop_melee_level, f
 				//	DoFaceCheckWithJitter(tar);
 				//}
 			}
-			DoFaceCheckNoJitter(tar);
 		}
-		DoFaceCheckNoJitter(tar);
 	}
+	DoFaceCheckNoJitter(tar);
 }
 
 void Bot::DoFaceCheckWithJitter(Mob* tar) {
 	if (!tar) {
+		return;
+	}
+
+	if (IsMoving()) {
 		return;
 	}
 
@@ -11757,6 +11768,10 @@ void Bot::DoFaceCheckWithJitter(Mob* tar) {
 
 void Bot::DoFaceCheckNoJitter(Mob* tar) {
 	if (!tar) {
+		return;
+	}
+
+	if (IsMoving()) {
 		return;
 	}
 

@@ -627,6 +627,7 @@ void Bot::AI_Process_Raid()
 //#pragma region COMBAT RANGE CALCS
 
 		bool atCombatRange = false;
+		bool resquareDistance = false;
 		bool jitterCooldown = false;
 		if (m_combat_jitter_timer.GetRemainingTime() > 1 && m_combat_jitter_timer.Enabled()) {
 			jitterCooldown = true;
@@ -637,8 +638,7 @@ void Bot::AI_Process_Raid()
 
 		bool behind_mob = false;
 		bool backstab_weapon = false;
-		if (/*GetClass() == ROGUE || */GetBehindMob()) {
-
+		if (GetBehindMob()) {
 			behind_mob = BehindMob(tar, GetX(), GetY()); // Can be separated for other future use
 			if (GetClass() == ROGUE) {
 				backstab_weapon = p_item && p_item->GetItemBackstabDamage();
@@ -680,6 +680,17 @@ void Bot::AI_Process_Raid()
 				size_mod *= (size_mod * 4.0f);
 			}
 
+			if (tar->GetRace() == RACE_VELIOUS_DRAGON_184)		// Lord Vyemm and other velious dragons
+			{
+				size_mod *= 1.75;
+			}
+			if (tar->GetRace() == RACE_DRAGON_SKELETON_122)		// Dracoliche in Fear.  Skeletal Dragon
+			{
+				size_mod *= 2.25;
+			}
+
+			size_mod *= RuleR(Combat, HitBoxMod);		// used for testing sizemods on different races.
+
 			// Prevention of ridiculously sized hit boxes
 			if (size_mod > 10000.0f) {
 				size_mod = (size_mod / 7.0f);
@@ -689,65 +700,78 @@ void Bot::AI_Process_Raid()
 
 			if (!RuleB(Bots, UseFlatNormalMeleeRange)) {
 				switch (GetClass()) {
-					case WARRIOR:
-					case PALADIN:
-					case SHADOWKNIGHT:
-						if (p_item && p_item->GetItem()->IsType2HWeapon()) {
-							melee_distance = melee_distance_max * 0.45f;
-						}
-						else if ((s_item && s_item->GetItem()->IsTypeShield()) || (!p_item && !s_item)) {
-							melee_distance = melee_distance_max * 0.35f;
-						}
-						else {
-							melee_distance = melee_distance_max * 0.40f;
-						}
-						break;
-					case NECROMANCER:
-					case WIZARD:
-					case MAGICIAN:
-					case ENCHANTER:
-						if (p_item && p_item->GetItem()->IsType2HWeapon()) {
-							melee_distance = melee_distance_max * 0.95f;
-						}
-						else {
-							melee_distance = melee_distance_max * 0.75f;
-						}
-						break;
-					case ROGUE:
-						if (behind_mob && backstab_weapon) {
-							if (p_item->GetItem()->IsType2HWeapon()) { // 'p_item' tested in 'backstab_weapon' check above
-								melee_distance = melee_distance_max * 0.30f;
-							}
-							else {
-								melee_distance = melee_distance_max * 0.25f;
-							}
-							break;
-						}
-						// Fall-through
-					default:
-						if (p_item && p_item->GetItem()->IsType2HWeapon()) {
-							melee_distance = melee_distance_max * 0.70f;
+				case WARRIOR:
+				case PALADIN:
+				case SHADOWKNIGHT:
+					if (p_item && p_item->GetItem()->IsType2HWeapon()) {
+						melee_distance = melee_distance_max * 0.45f;
+					}
+					else if ((s_item && s_item->GetItem()->IsTypeShield()) || (!p_item && !s_item)) {
+						melee_distance = melee_distance_max * 0.35f;
+					}
+					else {
+						melee_distance = melee_distance_max * 0.40f;
+					}
+					break;
+				case NECROMANCER:
+				case WIZARD:
+				case MAGICIAN:
+				case ENCHANTER:
+					if (p_item && p_item->GetItem()->IsType2HWeapon()) {
+						melee_distance = melee_distance_max * 0.95f;
+					}
+					else {
+						melee_distance = melee_distance_max * 0.75f;
+					}
+					break;
+				case ROGUE:
+					if (behind_mob && backstab_weapon) {
+						if (p_item->GetItem()->IsType2HWeapon()) { // 'p_item' tested in 'backstab_weapon' check above
+							melee_distance = melee_distance_max * 0.30f;
 						}
 						else {
-							melee_distance = melee_distance_max * 0.50f;
+							melee_distance = melee_distance_max * 0.25f;
 						}
 						break;
+					}
+					// Fall-through
+				default:
+					if (p_item && p_item->GetItem()->IsType2HWeapon()) {
+						melee_distance = melee_distance_max * 0.70f;
+					}
+					else {
+						melee_distance = melee_distance_max * 0.50f;
+					}
+					break;
 				}
 			}
 			else {
-				melee_distance = melee_distance_max * float(RuleR(Bots, NormalMeleeRangeDistance));
+				resquareDistance = true;
+				melee_distance_max = sqrt(melee_distance_max);
+				melee_distance = melee_distance_max * RuleR(Bots, NormalMeleeRangeDistance);
 			}
 		}
 
-		float melee_distance_min = melee_distance * float(RuleR(Bots, PercentMinMeleeDistance));
+		if (resquareDistance && melee_distance > RuleR(Bots, MaxDistanceForMelee)) {
+			melee_distance = RuleR(Bots, MaxDistanceForMelee);
+		}
+
+		float melee_distance_min = melee_distance * RuleR(Bots, PercentMinMeleeDistance);
 		if (taunting) {
-			melee_distance = melee_distance_max * float(RuleR(Bots, TauntNormalMeleeRangeDistance));
-			melee_distance_min = melee_distance * float(RuleR(Bots, PercentTauntMinMeleeDistance));
+			melee_distance = melee_distance * RuleR(Bots, TauntNormalMeleeRangeDistance);
+			melee_distance_min = melee_distance * RuleR(Bots, PercentTauntMinMeleeDistance);
 		}
 
 		if (!taunting && !IsBotArcher() && GetMaxMeleeRange()) {
-			melee_distance = melee_distance_max * float(RuleR(Bots, PercentMaxMeleeRangeDistance));
-			melee_distance_min = melee_distance_max * float(RuleR(Bots, PercentMinMaxMeleeRangeDistance));
+			melee_distance = melee_distance_max * RuleR(Bots, PercentMaxMeleeRangeDistance);
+			melee_distance_min = melee_distance * RuleR(Bots, PercentMinMaxMeleeRangeDistance);
+		}
+
+		if (resquareDistance) {
+			melee_distance = pow(melee_distance, 2);
+			melee_distance_min = pow(melee_distance_min, 2);
+			melee_distance_max = pow(melee_distance_max, 2);
+
 		}
 
 		/* Caster Range Checks */
@@ -758,7 +782,7 @@ void Bot::AI_Process_Raid()
 				melee_distance_min = melee_distance_max + 1;
 			}
 			else {
-				melee_distance_min = melee_distance * float(RuleR(Bots, PercentMinCasterRangeDistance));
+				melee_distance_min = melee_distance * RuleR(Bots, PercentMinCasterRangeDistance);
 			}
 		}
 
@@ -767,7 +791,7 @@ void Bot::AI_Process_Raid()
 			float archeryRange = GetBotArcheryRange() * GetBotArcheryRange();
 			float casterRange = GetBotCasterRange() * GetBotCasterRange();
 			float minArcheryRange = RuleI(Combat, MinRangedAttackDist) * RuleI(Combat, MinRangedAttackDist);
-			melee_distance = std::min(archeryRange, (casterRange * 4));
+			melee_distance = std::min(archeryRange, (casterRange * 4)); // * 4 is due to squared so it's double
 			melee_distance_min = std::max(std::max(minArcheryRange, melee_distance_max), std::min(casterRange, archeryRange));
 		}
 
@@ -775,10 +799,10 @@ void Bot::AI_Process_Raid()
 			atCombatRange = true;
 		}
 
-//#pragma endregion
+		//#pragma endregion
 
-//#pragma region ENGAGED AT COMBAT RANGE
-		//TestDebug("{} - {} - Min Range {} Max Range {}", (taunting ? "Taunting" : GetMaxMeleeRange() ? "MMR" : stop_melee_level ? "Caster/SML" : IsBotArcher() ? "Archer" : "Melee"), GetCleanName(), sqrt(melee_distance_min), sqrt(melee_distance)); //deleteme
+		//#pragma region ENGAGED AT COMBAT RANGE
+		TestDebug("{} - {} - Min Range {} Max Range {}", (taunting ? "Taunting" : GetMaxMeleeRange() ? "MMR" : stop_melee_level ? "Caster/SML" : IsBotArcher() ? "Archer" : "Melee"), GetCleanName(), sqrt(melee_distance_min), sqrt(melee_distance)); //deleteme
 		// We can fight
 		if (atCombatRange) {
 

@@ -762,6 +762,7 @@ RULE_INT(Bots, PlaneOfKnowledgeSpawnLimit, 45, "45 Default. Number of bots allow
 RULE_INT(Bots, PlaneOfTranquilitySpawnLimit, 45, "45 Default. Number of bots allowed to be spawned in The Plane of Tranquility.")
 RULE_BOOL(Bots, BotSoftDeletes, true, "When bots are deleted, they are only soft deleted")
 RULE_BOOL(Bots, SendBlockedMessages, false, "Setting whether bots will send their owners detailed spell block messages should be used as on the live servers")
+RULE_REAL(Bots, MaxDistanceForMelee, 29.99, "Maximum distance bots will stand for melee. Default 29.99 to allow all special attacks to land.")
 
 RULE_CATEGORY_END()
 
