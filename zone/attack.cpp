@@ -2718,6 +2718,9 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 					if (kill_eligible) {
 						AddVegasItemLoot(top_client);
 					}
+					else {
+						Emote("'s fortunes decay away.");
+					}
 				}
 				if (RuleB(Vegas, EnableVegasKillAchievements) && top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasKillAchievements)) {
 					DoFirstKillChecks(top_client);

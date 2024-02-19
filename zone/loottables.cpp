@@ -1071,7 +1071,7 @@ bool NPC::IsVegasLootEligible(Mob* top_client) {
 			}
 			else {
 				VegasLootDetail("[{}] on [{}]:::Failed level checks [{}] - [{}] - [{} - {} = {}]", top_client->GetCleanName(), GetCleanName(), raid ? "has raid" : "no raid", group ? "has group" : "no group", raid ? raid->GetHighestLevel() : group ? group->GetHighestLevel() : top_client->CastToClient()->GetLevel(), GetLevel(), raid ? raid->GetHighestLevel() - GetLevel() : group ? group->GetHighestLevel() - GetLevel() : top_client->CastToClient()->GetLevel() - GetLevel());
-				Emote("'s fortunes decay away.");
+				//Emote("'s fortunes decay away.");
 				return false;
 			}
 		}
