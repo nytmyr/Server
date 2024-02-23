@@ -606,7 +606,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						break;
 					}
 				}
-				else {
+				if (botSpell.SpellId == 0) {
 					std::list<BotSpell_wPriority> spellList = GetPrioritizedBotSpellsBySpellType(this, SpellType_Nuke);
 					for (std::list<BotSpell_wPriority>::iterator itr = spellList.begin(); itr != spellList.end(); ++itr) {
 						BotSpell_wPriority botSpell = *itr;
