@@ -307,6 +307,7 @@ public:
 	const EQ::ItemData* GetEquippedQuiver() { return GetEquippedQuiver(this); };
 	static const EQ::ItemData* GetEquippedQuiver(Bot* my_bot);
 	float GetTotalGearScore();
+	bool BotHasEnoughMana(uint16 spell_id);
 
 	bool AI_AddBotSpells(uint32 bot_spell_id);
 	void AddSpellToBotList(

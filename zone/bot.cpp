@@ -12422,3 +12422,17 @@ const EQ::ItemData* Bot::GetEquippedQuiver(Bot* my_bot) {
 
 	return equippedQuiver;
 }
+
+bool Bot::BotHasEnoughMana(uint16 spell_id) {
+	if (!IsValidSpell(spell_id)) {
+		return false;
+	}
+
+	int32 manaCost = GetActSpellCost(spell_id, spells[spell_id].mana);
+
+	if (GetMana() < manaCost) {
+		return false;
+	}
+
+	return true;
+}
