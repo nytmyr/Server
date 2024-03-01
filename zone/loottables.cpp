@@ -1241,6 +1241,12 @@ int NPC::GetRaidRollCount(float npc_diff) {
 		if (npc_diff < RuleR(Vegas, RaidTargetTierOneThreshold)) {
 			return RuleI(Vegas, RaidTargetBaseRaidRollsCount);
 		}
+		else if (npc_diff >= RuleR(Vegas, RaidTargetTierFiveThreshold)) {
+			return RuleI(Vegas, RaidTargetTierFiveRaidRollsCount);
+		}
+		else if (npc_diff >= RuleR(Vegas, RaidTargetTierFourThreshold)) {
+			return RuleI(Vegas, RaidTargetTierFourRaidRollsCount);
+		}
 		else if (npc_diff >= RuleR(Vegas, RaidTargetTierThreeThreshold)) {
 			return RuleI(Vegas, RaidTargetTierThreeRaidRollsCount);
 		}
