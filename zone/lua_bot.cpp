@@ -450,6 +450,11 @@ void Lua_Bot::Camp(bool save_to_database) {
 	self->Camp(save_to_database);
 }
 
+void Lua_Bot::DeleteBot() {
+	Lua_Safe_Call_Void();
+	self->DeleteBot();
+}
+
 Lua_ItemInst Lua_Bot::GetAugmentAt(int16 slot_id, uint8 augment_index)
 {
 	Lua_Safe_Call_Class(Lua_ItemInst);
@@ -578,6 +583,7 @@ luabind::scope lua_register_bot() {
 	.def("ClearSpellRecastTimer", (void(Lua_Bot::*)(uint16))&Lua_Bot::ClearSpellRecastTimer)
 	.def("CountBotItem", (uint32(Lua_Bot::*)(uint32))&Lua_Bot::CountBotItem)
 	.def("CountItemEquippedByID", (int(Lua_Bot::*)(uint32))&Lua_Bot::CountItemEquippedByID)
+	.def("DeleteBot", (void(Lua_Bot::*)(void))&Lua_Bot::DeleteBot)
 	.def("Escape", (void(Lua_Bot::*)(void))&Lua_Bot::Escape)
 	.def("Fling", (void(Lua_Bot::*)(float,float,float))&Lua_Bot::Fling)
 	.def("Fling", (void(Lua_Bot::*)(float,float,float,bool))&Lua_Bot::Fling)

@@ -475,6 +475,11 @@ void Perl_Bot_Camp(Bot* self, bool save_to_database) // @categories Script Utili
 	self->Camp(save_to_database);
 }
 
+void Perl_Bot_DeleteBot(Bot* self) // @categories Script Utility
+{
+	self->DeleteBot();
+}
+
 perl::array Perl_Bot_GetAugmentIDsBySlotID(Bot* self, int16 slot_id)
 {
 	perl::array result;
@@ -573,6 +578,7 @@ void perl_register_bot()
 	package.add("CountAugmentEquippedByID", &Perl_Bot_CountAugmentEquippedByID);
 	package.add("CountBotItem", &Perl_Bot_CountBotItem);
 	package.add("CountItemEquippedByID", &Perl_Bot_CountItemEquippedByID);
+	package.add("DeleteBot", (void(*)(Bot*)) &Perl_Bot_DeleteBot);
 	package.add("Escape", &Perl_Bot_Escape);
 	package.add("Fling", (void(*)(Bot*, float, float, float))&Perl_Bot_Fling);
 	package.add("Fling", (void(*)(Bot*, float, float, float, bool))&Perl_Bot_Fling);
