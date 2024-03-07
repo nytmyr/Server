@@ -250,6 +250,7 @@ Client::Client(EQStreamInterface *ieqs) : Mob(
 	autosave_timer.Disable();
 	GetMercTimer()->Disable();
 	instalog = false;
+	camp_cheat_bypass = false;
 	m_pp.autosplit = false;
 	// initialise haste variable
 	m_tradeskill_object = nullptr;

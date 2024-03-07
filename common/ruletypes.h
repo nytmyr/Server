@@ -306,6 +306,7 @@ RULE_BOOL(World, StartZoneSameAsBindOnCreation, true, "Should the start zone alw
 RULE_BOOL(World, EnforceCharacterLimitAtLogin, false, "Enforce the limit for characters that are online at login")
 RULE_BOOL(World, EnableDevTools, true, "Enable or Disable the Developer Tools globally (Most of the time you want this enabled)")
 RULE_BOOL(World, EnableChecksumVerification, false, "Enable or Disable the Checksum Verification for eqgame.exe and spells_us.txt")
+RULE_BOOL(World, HardDisconnectOnCamp, false, "When enabled, if a client camps to character select they will have a hard disconnect dropping then from CLE")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(Zone)
