@@ -1923,11 +1923,6 @@ bool Bot::DeleteBot()
 		return false;
 	}
 
-	if (!DeletePet()) {
-		bot_owner->Message(Chat::White, "Failed to delete pet for '%s'", GetCleanName());
-		return false;
-	}
-
 	if (GetGroup()) {
 		RemoveBotFromGroup(this, GetGroup());
 	}
@@ -1935,8 +1930,6 @@ bool Bot::DeleteBot()
 	if (GetRaid()) {
 		RemoveBotFromRaid(this);
 	}
-
-	std::string error_message;
 
 	if (!database.botdb.RemoveMemberFromBotGroup(GetBotID())) {
 		bot_owner->Message(
@@ -1950,6 +1943,11 @@ bool Bot::DeleteBot()
 	}
 
 	if (!RuleB(Bots, BotSoftDeletes)) {
+		if (!DeletePet()) {
+			bot_owner->Message(Chat::White, "Failed to delete pet for '%s'", GetCleanName());
+			return false;
+		}
+
 		if (!database.botdb.DeleteItems(GetBotID())) {
 			bot_owner->Message(
 				Chat::White,
@@ -1973,21 +1971,19 @@ bool Bot::DeleteBot()
 			);
 			return false;
 		}
-	}
 
-	if (!database.botdb.DeleteBuffs(GetBotID())) {
-		bot_owner->Message(
-			Chat::White,
-			fmt::format(
-				"{} for '{}'.",
-				BotDatabase::fail::DeleteBuffs(),
-				GetCleanName()
-			).c_str()
-		);
-		return false;
-	}
-	
-	if (!RuleB(Bots, BotSoftDeletes)) {
+		if (!database.botdb.DeleteBuffs(GetBotID())) {
+			bot_owner->Message(
+				Chat::White,
+				fmt::format(
+					"{} for '{}'.",
+					BotDatabase::fail::DeleteBuffs(),
+					GetCleanName()
+				).c_str()
+			);
+			return false;
+		}
+
 		if (!database.botdb.DeleteStance(GetBotID())) {
 			bot_owner->Message(
 				Chat::White,
@@ -2040,16 +2036,17 @@ bool Bot::DeleteBot()
 			);
 			return false;
 		}
-		LogInfo(
-			"[DeleteBot] bot_name [{}] ({}) belonging to [{}] ({}) has been [{}]",
-			GetCleanName(),
-			GetBotID(),
-			GetOwner()->GetCleanName(),
-			GetBotOwnerCharacterID(),
-			delete_type
-		);
+		
 	}
-	LogInfo("bot_name [{}] ({}) is being [{}]", GetCleanName(), GetBotID(), delete_type);
+
+	LogInfo(
+		"[DeleteBot] bot_name [{}] ({}) belonging to [{}] ({}) has been [{}]",
+		GetCleanName(),
+		GetBotID(),
+		GetOwner()->GetCleanName(),
+		GetBotOwnerCharacterID(),
+		delete_type
+	);
 
 	return true;
 }
