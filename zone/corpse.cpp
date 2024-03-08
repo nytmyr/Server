@@ -1447,6 +1447,7 @@ void Corpse::LootItem(Client *client, const EQApplicationPacket *app)
 						"{} {} {} {}",
 						inst->GetItem()->ID,
 						inst->GetCharges(),
+						(!IsPlayerCorpse() ? GetNPCTypeID() : 0),
 						EntityList::RemoveNumbers(corpse_name),
 						GetID()
 					);
@@ -1464,6 +1465,7 @@ void Corpse::LootItem(Client *client, const EQApplicationPacket *app)
 				"{} {} {} {}",
 				inst->GetItem()->ID,
 				inst->GetCharges(),
+				(!IsPlayerCorpse() ? GetNPCTypeID() : 0),
 				EntityList::RemoveNumbers(corpse_name),
 				GetID()
 			);
@@ -1503,6 +1505,7 @@ void Corpse::LootItem(Client *client, const EQApplicationPacket *app)
 				"{} {} {} {}",
 				inst->GetItem()->ID,
 				inst->GetCharges(),
+				(!IsPlayerCorpse() ? GetNPCTypeID() : 0),
 				EntityList::RemoveNumbers(corpse_name),
 				GetID()
 			);

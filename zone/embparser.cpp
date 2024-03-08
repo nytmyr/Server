@@ -1629,8 +1629,9 @@ void PerlembParser::ExportEventVariables(
 			Seperator sep(data);
 			ExportVar(package_name.c_str(), "looted_id", sep.arg[0]);
 			ExportVar(package_name.c_str(), "looted_charges", sep.arg[1]);
-			ExportVar(package_name.c_str(), "corpse_name", sep.arg[2]);
-			ExportVar(package_name.c_str(), "corpse_id", sep.arg[3]);
+			ExportVar(package_name.c_str(), "npc_id", sep.arg[2]);
+			ExportVar(package_name.c_str(), "corpse_name", sep.arg[3]);
+			ExportVar(package_name.c_str(), "corpse_id", sep.arg[4]);
 
 			if (extra_pointers && extra_pointers->size() >= 1) {
 				ExportVar(package_name.c_str(), "item", "QuestItem", std::any_cast<EQ::ItemInstance*>(extra_pointers->at(0)));
