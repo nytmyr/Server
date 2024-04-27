@@ -298,6 +298,19 @@ bool Database::ReserveName(uint32 account_id, const std::string& name)
 		return false;
 	}
 
+	const auto& b = BotDataRepository::GetWhere(
+		*this,
+		fmt::format(
+			"`name` = '{}'",
+			Strings::Escape(name)
+		)
+	);
+
+	if (!b.empty()) {
+		LogInfo("Account: [{}] tried to request name: [{}], but it is already taken by a bot", account_id, name);
+		return false;
+	}
+
 	auto e = CharacterDataRepository::NewEntity();
 
 	e.account_id = account_id;

@@ -1249,8 +1249,8 @@ int bot_command_init(void)
 		bot_command_add("actionable", "Lists actionable command arguments and use descriptions", AccountStatus::Player, bot_command_actionable) ||
 		bot_command_add("aggressive", "Orders a bot to use a aggressive discipline", AccountStatus::Player, bot_command_aggressive) ||
 		bot_command_add("applypoison", "Applies cursor-held poison to a rogue bot's weapon", AccountStatus::Player, bot_command_apply_poison) ||
-		bot_command_add("applypotion", "Applies cursor-held potion to a bot's effects", AccountStatus::Player, bot_command_apply_potion) ||
 		bot_command_add("attack", "Orders bots to attack a designated target", AccountStatus::Player, bot_command_attack) ||
+		bot_command_add("behindmob", "Toggles whether or not your bot tries to stay behind a mob", AccountStatus::Player, bot_command_behind_mob) ||
 		bot_command_add("bindaffinity", "Orders a bot to attempt an affinity binding", AccountStatus::Player, bot_command_bind_affinity) ||
 		bot_command_add("bot", "Lists the available bot management [subcommands]", AccountStatus::Player, bot_command_bot) ||
 		bot_command_add("botappearance", "Lists the available bot appearance [subcommands]", AccountStatus::Player, bot_command_appearance) ||
@@ -1272,6 +1272,7 @@ int bot_command_init(void)
 		bot_command_add("botlist", "Lists the bots that you own", AccountStatus::Player, bot_command_list_bots) ||
 		bot_command_add("botoutofcombat", "Toggles your bot between standard and out-of-combat spell/skill use - if any specialized behaviors exist", AccountStatus::Player, bot_command_out_of_combat) ||
 		bot_command_add("botreport", "Orders a bot to report its readiness", AccountStatus::Player, bot_command_report) ||
+		bot_command_add("botsettings", "Lists settings related to spell types and bot combat", AccountStatus::Player, bot_command_bot_settings) ||
 		bot_command_add("botspawn", "Spawns a created bot", AccountStatus::Player, bot_command_spawn) ||
 		bot_command_add("botstance", "Changes the stance of a bot", AccountStatus::Player, bot_command_stance) ||
 		bot_command_add("botstopmeleelevel", "Sets the level a caster or spell-casting fighter bot will stop melee combat", AccountStatus::Player, bot_command_stop_melee_level) ||
@@ -1279,16 +1280,20 @@ int bot_command_init(void)
 		bot_command_add("botsummon", "Summons bot(s) to your location", AccountStatus::Player, bot_command_summon) ||
 		bot_command_add("botsurname", "Sets a bots surname (last name)", AccountStatus::Player, bot_command_surname) ||
 		bot_command_add("bottattoo", "Changes the Drakkin tattoo of a bot", AccountStatus::Player, bot_command_tattoo) ||
-		bot_command_add("bottogglearcher", "Toggles a archer bot between melee and ranged weapon use", AccountStatus::Player, bot_command_toggle_archer) ||
 		bot_command_add("bottogglehelm", "Toggles the helm visibility of a bot between shown and hidden", AccountStatus::Player, bot_command_toggle_helm) ||
+		bot_command_add("bottoggleranged", "Toggles a ranged bot between melee and ranged weapon use", AccountStatus::Player, bot_command_toggle_ranged) ||
 		bot_command_add("bottitle", "Sets a bots title", AccountStatus::Player, bot_command_title) ||
 		bot_command_add("botupdate", "Updates a bot to reflect any level changes that you have experienced", AccountStatus::Player, bot_command_update) ||
 		bot_command_add("botwoad", "Changes the Barbarian woad of a bot", AccountStatus::Player, bot_command_woad) ||
+		bot_command_add("cast", "Tells the first found specified bot to cast the given spell type", AccountStatus::Player, bot_command_cast) ||
 		bot_command_add("casterrange", "Controls the range casters will try to stay away from a mob (if too far, they will skip spells that are out-of-range)", AccountStatus::Player, bot_command_caster_range) ||
 		bot_command_add("charm", "Attempts to have a bot charm your target", AccountStatus::Player, bot_command_charm) ||
 		bot_command_add("circle", "Orders a Druid bot to open a magical doorway to a specified destination", AccountStatus::Player, bot_command_circle) ||
+		bot_command_add("classracelist", "Lists the classes and races and their appropriate IDs", AccountStatus::Player, bot_command_class_race_list) ||
 		bot_command_add("clickitem", "Orders your targeted bot to click the item in the provided inventory slot.", AccountStatus::Player, bot_command_click_item) ||
+		bot_command_add("copysettings", "Copies settings from one bot to another", AccountStatus::Player, bot_command_copy_settings) ||
 		bot_command_add("cure", "Orders a bot to remove any ailments", AccountStatus::Player, bot_command_cure) ||
+		bot_command_add("defaultsettings", "Restores a bot back to default settings", AccountStatus::Player, bot_command_default_settings) ||
 		bot_command_add("defensive", "Orders a bot to use a defensive discipline", AccountStatus::Player, bot_command_defensive) ||
 		bot_command_add("depart", "Orders a bot to open a magical doorway to a specified destination", AccountStatus::Player, bot_command_depart) ||
 		bot_command_add("enforcespellsettings", "Toggles your Bot to cast only spells in their spell settings list.", AccountStatus::Player, bot_command_enforce_spell_list) ||
@@ -1320,6 +1325,7 @@ int bot_command_init(void)
 		bot_command_add("help", "List available commands and their description - specify partial command as argument to search", AccountStatus::Player, bot_command_help) ||
 		bot_command_add("hold", "Prevents a bot from attacking until released", AccountStatus::Player, bot_command_hold) ||
 		bot_command_add("identify", "Orders a bot to cast an item identification spell", AccountStatus::Player, bot_command_identify) ||
+		bot_command_add("illusionblock", "Control whether or not illusion effects will land on the bot if casted by another player or bot", AccountStatus::Player, bot_command_illusion_block) ||
 		bot_command_add("inventory", "Lists the available bot inventory [subcommands]", AccountStatus::Player, bot_command_inventory) ||
 		bot_command_add("inventorygive", "Gives the item on your cursor to a bot", AccountStatus::Player, bot_command_inventory_give) ||
 		bot_command_add("inventorylist", "Lists all items in a bot's inventory", AccountStatus::Player, bot_command_inventory_list) ||
@@ -1329,6 +1335,7 @@ int bot_command_init(void)
 		bot_command_add("itemuse", "Elicits a report from spawned bots that can use the item on your cursor (option 'empty' yields only empty slots)", AccountStatus::Player, bot_command_item_use) ||
 		bot_command_add("levitation", "Orders a bot to cast a levitation spell", AccountStatus::Player, bot_command_levitation) ||
 		bot_command_add("lull", "Orders a bot to cast a pacification spell", AccountStatus::Player, bot_command_lull) ||
+		bot_command_add("maxmeleerange", "Toggles whether your bot is at max melee range or not. This will disable all special abilities, including taunt.", AccountStatus::Player, bot_command_max_melee_range) ||		
 		bot_command_add("mesmerize", "Orders a bot to cast a mesmerization spell", AccountStatus::Player, bot_command_mesmerize) ||
 		bot_command_add("movementspeed", "Orders a bot to cast a movement speed enhancement spell", AccountStatus::Player, bot_command_movement_speed) ||
 		bot_command_add("owneroption", "Sets options available to bot owners", AccountStatus::Player, bot_command_owner_option) ||
@@ -1346,7 +1353,23 @@ int bot_command_init(void)
 		bot_command_add("resurrect", "Orders a bot to resurrect a player's (players') corpse(s)", AccountStatus::Player, bot_command_resurrect) ||
 		bot_command_add("rune", "Orders a bot to cast a rune of protection", AccountStatus::Player, bot_command_rune) ||
 		bot_command_add("sendhome", "Orders a bot to open a magical doorway home", AccountStatus::Player, bot_command_send_home) ||
-		bot_command_add("size", "Orders a bot to change a player's size", AccountStatus::Player, bot_command_size) ||
+		bot_command_add("sithppercent", "HP threshold for a bot to start sitting in combat if allowed", AccountStatus::Player, bot_command_sit_hp_percent) ||
+		bot_command_add("sitincombat", "Toggles whether or a not a bot will attempt to med or sit to heal in combat", AccountStatus::Player, bot_command_sit_in_combat) ||
+		bot_command_add("sitmanapercent", "Mana threshold for a bot to start sitting in combat if allowed", AccountStatus::Player, bot_command_sit_mana_percent) ||
+		bot_command_add("size", "Orders a bot to change a player's size", AccountStatus::Player, bot_command_size) ||		
+		bot_command_add("spellaggrochecks", "Toggles whether or not bots will cast a spell type if they think it will get them aggro", AccountStatus::Player, bot_command_spell_aggro_checks) ||
+		bot_command_add("spellengagedpriority", "Controls the order of casts by spell type when engaged in combat", AccountStatus::Player, bot_command_spell_engaged_priority) ||
+		bot_command_add("spelldelays", "Controls the delay between casts for a specific spell type", AccountStatus::Player, bot_command_spell_delays) ||
+		bot_command_add("spellholds", "Controls whether a bot holds the specified spell type or not", AccountStatus::Player, bot_command_spell_holds) ||
+		bot_command_add("spellidlepriority", "Controls the order of casts by spell type when out of combat", AccountStatus::Player, bot_command_spell_idle_priority) ||
+		bot_command_add("spellmaxhppct", "Controls at what HP % a bot will stop casting different spell types", AccountStatus::Player, bot_command_spell_max_hp_pct) ||
+		bot_command_add("spellmaxmanapct", "Controls at what mana % a bot will stop casting different spell types", AccountStatus::Player, bot_command_spell_max_mana_pct) ||
+		bot_command_add("spellmaxthresholds", "Controls the minimum target HP threshold for a spell to be cast for a specific type", AccountStatus::Player, bot_command_spell_max_thresholds) ||
+		bot_command_add("spellminhppct", "Controls at what HP % a bot will start casting different spell types", AccountStatus::Player, bot_command_spell_min_hp_pct) ||		
+		bot_command_add("spellminmanapct", "Controls at what mana % a bot will start casting different spell types", AccountStatus::Player, bot_command_spell_min_mana_pct) ||
+		bot_command_add("spellminthresholds", "Controls the maximum target HP threshold for a spell to be cast for a specific type", AccountStatus::Player, bot_command_spell_min_thresholds) ||		
+		bot_command_add("spellpursuepriority", "Controls the order of casts by spell type when pursuing in combat", AccountStatus::Player, bot_command_spell_pursue_priority) ||				
+		bot_command_add("spelltargetcount", "Sets the required target amount for group/AE spells by spell type", AccountStatus::Player, bot_command_spell_target_count) ||
 		bot_command_add("spellinfo", "Opens a dialogue window with spell info", AccountStatus::Player, bot_spell_info_dialogue_window) ||
 		bot_command_add("spells", "Lists all Spells learned by the Bot.", AccountStatus::Player, bot_command_spell_list) ||
 		bot_command_add("spellsettings", "Lists a bot's spell setting entries", AccountStatus::Player, bot_command_spell_settings_list) ||
@@ -1360,7 +1383,7 @@ int bot_command_init(void)
 		bot_command_add("timer", "Checks or clears timers of the chosen type.", AccountStatus::GMMgmt, bot_command_timer) ||
 		bot_command_add("track", "Orders a capable bot to track enemies", AccountStatus::Player, bot_command_track) ||
 		bot_command_add("viewcombos", "Views bot race class combinations", AccountStatus::Player, bot_command_view_combos) ||
-		bot_command_add("waterbreathing", "Orders a bot to cast a water breathing spell", AccountStatus::Player, bot_command_water_breathing)
+		bot_command_add("waterbreathing", "Orders a bot to cast a water breathing spell", AccountStatus::Player, bot_command_water_breathing)	
 	) {
 		bot_command_deinit();
 		return -1;
@@ -1613,7 +1636,7 @@ uint32 helper_bot_create(Client *bot_owner, std::string bot_name, uint8 bot_clas
 		bot_owner->Message(
 			Chat::White,
 			fmt::format(
-				"'{}' is an invalid name. You may only use characters 'A-Z' or 'a-z'. Mixed case {} allowed.",
+				"'{}' is an invalid name. You may only use characters 'A-Z' or 'a-z' and it must be between 4 and 15 characters. Mixed case {} allowed.",
 				bot_name, RuleB(Bots, AllowCamelCaseNames) ? "is" : "is not"
 			).c_str()
 		);
@@ -1625,7 +1648,7 @@ uint32 helper_bot_create(Client *bot_owner, std::string bot_name, uint8 bot_clas
 		bot_owner->Message(
 			Chat::White,
 			fmt::format(
-				"Failed to query name availability for '{}'.",
+				"'{}' is already in use or an invalid name.",
 				bot_name
 			).c_str()
 		);
@@ -2126,18 +2149,574 @@ bool helper_spell_list_fail(Client *bot_owner, bcst_list* spell_list, BCEnum::Sp
 	return false;
 }
 
+void Bot::SendSpellTypesWindow(Client* c, std::string arg0, std::string arg1, std::string arg2, bool helpPrompt) {
+	if (helpPrompt) {
+		c->Message(
+			Chat::Yellow,
+			fmt::format(
+				"Use {}, {}, {} for a list of spell types by ID",
+				Saylink::Silent(
+					fmt::format("{} listid 0-19", arg0)
+				),
+				Saylink::Silent(
+					fmt::format("{} listid 20-39", arg0)
+				),
+				Saylink::Silent(
+					fmt::format("{} listid 40+", arg0)
+				)
+			).c_str()
+		);
+
+		c->Message(
+			Chat::Yellow,
+			fmt::format(
+				"Use {}, {}, {} for a list of spell types by short name",
+				Saylink::Silent(
+					fmt::format("{} listname 0-19", arg0)
+				),
+				Saylink::Silent(
+					fmt::format("{} listname 20-39", arg0)
+				),
+				Saylink::Silent(
+					fmt::format("{} listname 40+", arg0)
+				)
+			).c_str()
+		);
+
+		return;
+	}
+
+	uint8 minCount = 0;
+	uint8 maxCount = 0;
+
+	if (BotSpellTypes::END <= 19) {
+		minCount = BotSpellTypes::START;
+		maxCount = BotSpellTypes::END;
+	}
+	else if (!arg2.compare("0-19")) {
+		minCount = BotSpellTypes::START;
+		maxCount = 19;
+	}
+	else if (!arg2.compare("20-39")) {
+		minCount = std::min(static_cast<uint8_t>(20), static_cast<uint8_t>(BotSpellTypes::END));
+		maxCount = std::min(static_cast<uint8_t>(39), static_cast<uint8_t>(BotSpellTypes::END));
+	}
+	else if (!arg2.compare("40+")) {
+		minCount = std::min(static_cast<uint8_t>(40), static_cast<uint8_t>(BotSpellTypes::END));
+		maxCount = BotSpellTypes::END;
+	}
+	else {
+		c->Message(Chat::Yellow, "You must choose a valid range option");
+
+		return;
+	}
+
+	const std::string& indian_red = "indian_red";
+	const std::string& gold = "gold";
+	const std::string& slate_blue = "slate_blue";
+	const std::string& forest_green = "forest_green";
+	const std::string& goldenrod = "goldenrod";
+
+	std::string fillerLine = "-----------";
+	std::string spellTypeField = "Spell Type";
+	std::string pluralS = "s";
+	std::string idField = "ID";
+	std::string shortnameField = "Short Name";
+
+	std::string popup_text = DialogueWindow::TableRow(
+		DialogueWindow::TableCell(
+			fmt::format(
+				"{}",
+				DialogueWindow::ColorMessage(goldenrod, spellTypeField)
+			)
+		) +
+		DialogueWindow::TableCell(
+			fmt::format(
+				"{}",
+				(!arg1.compare("listid") ? DialogueWindow::ColorMessage(goldenrod, idField) : DialogueWindow::ColorMessage(goldenrod, shortnameField))
+			)
+		)
+	);
+
+	popup_text += DialogueWindow::TableRow(
+		DialogueWindow::TableCell(
+			fmt::format(
+				"{}",
+				DialogueWindow::ColorMessage(gold, fillerLine)
+			)
+		) +
+		DialogueWindow::TableCell(
+			fmt::format(
+				"{}",
+				DialogueWindow::ColorMessage(gold, fillerLine)
+			)
+		)
+	);
+
+	for (int i = minCount; i <= maxCount; ++i) {
+		popup_text += DialogueWindow::TableRow(
+			DialogueWindow::TableCell(
+				fmt::format(
+					"{}{}",
+					DialogueWindow::ColorMessage(forest_green, c->GetSpellTypeNameByID(i)),
+					DialogueWindow::ColorMessage(forest_green, pluralS)
+				)
+			) +
+			DialogueWindow::TableCell(
+				fmt::format(
+					"{}",
+					(!arg1.compare("listid") ? DialogueWindow::ColorMessage(slate_blue, std::to_string(i)) : DialogueWindow::ColorMessage(slate_blue, c->GetSpellTypeShortNameByID(i)))
+				)
+			)
+		);
+	}
+
+	popup_text = DialogueWindow::Table(popup_text);
+
+	c->SendPopupToClient("Spell Types", popup_text.c_str());
+}
+
+std::string Bot::SendCommandHelpWindow(
+	Client* c, 
+	std::vector <std::string> description,
+	std::vector <std::string> notes,
+	std::vector <std::string> example_format,
+	std::vector <std::string> examples_one, std::vector<std::string> examples_two, std::vector<std::string> examples_three, 
+	std::vector <std::string> actionables,
+	std::vector <std::string> options,
+	std::vector <std::string> options_one, std::vector<std::string> options_two, std::vector<std::string> options_three
+) {
+
+	const std::string& gold = "gold";
+	const std::string& header_color = "indian_red";
+	const std::string& secondary_header_color = "slate_blue";
+	const std::string& alternate_header_color = "indian_red";
+	const std::string& description_color = "light_grey";
+	const std::string& alternate_description_color = "light_grey";
+	const std::string& note_color = "dark_orange";
+	const std::string& example_color = "goldenrod";
+	const std::string& filler_color = "dark_grey";
+
+	std::string fillerLine = "--------------------------------------------------------------------";
+	std::string fillerDia = DialogueWindow::TableRow(DialogueWindow::TableCell(fmt::format("{}", DialogueWindow::ColorMessage(filler_color, fillerLine))));
+	std::string breakLine = DialogueWindow::Break();
+	std::string indent = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+	std::string bullet = "- ";
+
+	std::string popup_text = DialogueWindow::TableRow(
+		DialogueWindow::TableCell(
+			fmt::format(
+				"{}",
+				DialogueWindow::ColorMessage(header_color, "[Description]")
+			)
+		)
+	);
+
+	for (int i = 0; i < description.size(); i++) {
+		std::vector<std::string> description_split;
+
+		for (unsigned x = 0; x < description[i].length(); x += 56) {
+			description_split.emplace_back(description[i].substr(x, 56));
+		}
+
+		for (const auto& s : description_split) {
+			popup_text += DialogueWindow::TableRow(
+				DialogueWindow::TableCell(
+					fmt::format(
+						"{}",
+						DialogueWindow::ColorMessage(description_color, s)
+					)
+				)
+			);
+
+		}
+	}
+
+	if (!notes.empty()) {
+		popup_text += breakLine;
+		popup_text += breakLine;
+
+		popup_text += DialogueWindow::TableRow(
+			DialogueWindow::TableCell(
+				fmt::format(
+					"{}",
+					DialogueWindow::ColorMessage(header_color, "[Notes]")
+				)
+			)
+		);
+
+		for (int i = 0; i < notes.size(); i++) {
+			std::vector<std::string> notes_split;
+
+			for (unsigned x = 0; x < notes[i].length(); x += 56) {
+				notes_split.emplace_back(notes[i].substr(x, 56));
+			}
+
+			for (const auto& s : notes_split) {
+				popup_text += DialogueWindow::TableRow(
+					DialogueWindow::TableCell(
+						fmt::format(
+							"{}",
+							DialogueWindow::ColorMessage(note_color, s)
+						)
+					)
+				);
+
+			}
+		}
+	}
+
+	popup_text += fillerDia;
+
+	popup_text += DialogueWindow::TableRow(
+		DialogueWindow::TableCell(
+			fmt::format(
+				"{}",
+				DialogueWindow::ColorMessage(header_color, "[Examples]")
+			)
+		)
+	);
+
+	for (int i = 0; i < example_format.size(); i++) {
+		std::vector<std::string> example_split;
+
+		for (unsigned x = 0; x < example_format[i].length(); x += 56) {
+			example_split.emplace_back(example_format[i].substr(x, 56));
+		}
+
+		for (const auto& s : example_split) {
+			popup_text += DialogueWindow::TableRow(
+				DialogueWindow::TableCell(
+					fmt::format(
+						"{}",
+						DialogueWindow::ColorMessage(example_color, s)
+					)
+				)
+			);
+
+		}
+	}
+
+	if (!examples_one.empty()) {
+		popup_text += breakLine;
+		popup_text += breakLine;
+
+		for (int i = 0; i < examples_one.size(); i++) {
+			if (i == 0) {
+				std::vector<std::string> examples_one_split;
+
+				for (unsigned x = 0; x < examples_one[i].length(); x += 56) {
+					examples_one_split.emplace_back(examples_one[i].substr(x, 56));
+				}
+
+				for (const auto& s : examples_one_split) {
+					popup_text += DialogueWindow::TableRow(
+						DialogueWindow::TableCell(
+							fmt::format(
+								"{}",
+								DialogueWindow::ColorMessage(secondary_header_color, s)
+							)
+						)
+					);
+				}
+			}
+			else {
+				std::vector<std::string> examples_one_split;
+
+				for (unsigned x = 0; x < examples_one[i].length(); x += 56) {
+					examples_one_split.emplace_back(examples_one[i].substr(x, 56));
+				}
+
+				for (const auto& s : examples_one_split) {
+					popup_text += DialogueWindow::TableRow(
+						DialogueWindow::TableCell(
+							fmt::format(
+								"{}",
+								DialogueWindow::ColorMessage(example_color, s)
+							)
+						)
+					);
+				}
+			}
+		}
+	}
+	
+	if (!examples_two.empty()) {
+		for (int i = 0; i < examples_two.size(); i++) {
+			if (i == 0) {
+				std::vector<std::string> examples_two_split;
+
+				for (unsigned x = 0; x < examples_two[i].length(); x += 56) {
+					examples_two_split.emplace_back(examples_two[i].substr(x, 56));
+				}
+
+				for (const auto& s : examples_two_split) {
+					popup_text += DialogueWindow::TableRow(
+						DialogueWindow::TableCell(
+							fmt::format(
+								"{}",
+								DialogueWindow::ColorMessage(secondary_header_color, s)
+							)
+						)
+					);
+				}
+			}
+			else {
+				std::vector<std::string> examples_two_split;
+
+				for (unsigned x = 0; x < examples_two[i].length(); x += 56) {
+					examples_two_split.emplace_back(examples_two[i].substr(x, 56));
+				}
+
+				for (const auto& s : examples_two_split) {
+					popup_text += DialogueWindow::TableRow(
+						DialogueWindow::TableCell(
+							fmt::format(
+								"{}",
+								DialogueWindow::ColorMessage(example_color, s)
+							)
+						)
+					);
+				}
+			}
+		}
+	}
+
+	if (!examples_three.empty()) {
+		for (int i = 0; i < examples_three.size(); i++) {
+			if (i == 0) {
+				std::vector<std::string> examples_three_split;
+
+				for (unsigned x = 0; x < examples_three[i].length(); x += 56) {
+					examples_three_split.emplace_back(examples_three[i].substr(x, 56));
+				}
+
+				for (const auto& s : examples_three_split) {
+					popup_text += DialogueWindow::TableRow(
+						DialogueWindow::TableCell(
+							fmt::format(
+								"{}",
+								DialogueWindow::ColorMessage(secondary_header_color, s)
+							)
+						)
+					);
+				}
+			}
+			else {
+				std::vector<std::string> examples_three_split;
+
+				for (unsigned x = 0; x < examples_three[i].length(); x += 56) {
+					examples_three_split.emplace_back(examples_three[i].substr(x, 56));
+				}
+
+				for (const auto& s : examples_three_split) {
+					popup_text += DialogueWindow::TableRow(
+						DialogueWindow::TableCell(
+							fmt::format(
+								"{}",
+								DialogueWindow::ColorMessage(example_color, s)
+							)
+						)
+					);
+				}
+			}
+		}
+	}
+
+	if (!options.empty()) {
+		popup_text += fillerDia;
+
+		popup_text += DialogueWindow::TableRow(
+			DialogueWindow::TableCell(
+				fmt::format(
+					"{}",
+					DialogueWindow::ColorMessage(alternate_header_color, "Available options are:")
+				)
+			)
+		);
+
+		for (int i = 0; i < options.size(); i++) {
+			std::vector<std::string> options_split;
+
+			for (unsigned x = 0; x < options[i].length(); x += 56) {
+				options_split.emplace_back(options[i].substr(x, 56));
+			}
+
+			for (const auto& s : options_split) {
+				popup_text += DialogueWindow::TableRow(
+					DialogueWindow::TableCell(
+						fmt::format(
+							"{}",
+							DialogueWindow::ColorMessage(alternate_description_color, s)
+						)
+					)
+				);
+			}
+		}
+	}
+
+	if (!options_one.empty()) {
+		popup_text += breakLine;
+		popup_text += breakLine;
+
+		for (int i = 0; i < options_one.size(); i++) {
+			std::vector<std::string> options_one_split;
+
+			for (unsigned x = 0; x < options_one[i].length(); x += 56) {
+				options_one_split.emplace_back(options_one[i].substr(x, 56));
+			}
+
+			for (const auto& s : options_one_split) {
+				popup_text += DialogueWindow::TableRow(
+					DialogueWindow::TableCell(
+						fmt::format(
+							"{}",
+							DialogueWindow::ColorMessage(secondary_header_color, s)
+						)
+					)
+				);
+			}
+		}
+	}
+
+	if (!options_two.empty()) {
+		for (int i = 0; i < options_two.size(); i++) {
+			if (i == 0) {
+				std::vector<std::string> options_two_split;
+
+				for (unsigned x = 0; x < options_two[i].length(); x += 56) {
+					options_two_split.emplace_back(options_two[i].substr(x, 56));
+				}
+
+				for (const auto& s : options_two_split) {
+					popup_text += DialogueWindow::TableRow(
+						DialogueWindow::TableCell(
+							fmt::format(
+								"{}",
+								DialogueWindow::ColorMessage(secondary_header_color, s)
+							)
+						)
+					);
+				}
+			}
+			else {
+				std::vector<std::string> options_two_split;
+
+				for (unsigned x = 0; x < options_two[i].length(); x += 56) {
+					options_two_split.emplace_back(options_two[i].substr(x, 56));
+				}
+
+				for (const auto& s : options_two_split) {
+					popup_text += DialogueWindow::TableRow(
+						DialogueWindow::TableCell(
+							fmt::format(
+								"{}",
+								DialogueWindow::ColorMessage(alternate_description_color, s)
+							)
+						)
+					);
+				}
+			}
+		}
+	}
+
+	if (!options_three.empty()) {
+		for (int i = 0; i < options_three.size(); i++) {
+			if (i == 0) {
+				std::vector<std::string> options_three_split;
+
+				for (unsigned x = 0; x < options_three[i].length(); x += 56) {
+					options_three_split.emplace_back(options_three[i].substr(x, 56));
+				}
+
+				for (const auto& s : options_three_split) {
+					popup_text += DialogueWindow::TableRow(
+						DialogueWindow::TableCell(
+							fmt::format(
+								"{}",
+								DialogueWindow::ColorMessage(secondary_header_color, s)
+							)
+						)
+					);
+				}
+			}
+			else {
+				std::vector<std::string> options_three_split;
+
+				for (unsigned x = 0; x < options_three[i].length(); x += 56) {
+					options_three_split.emplace_back(options_three[i].substr(x, 56));
+				}
+
+				for (const auto& s : options_three_split) {
+					popup_text += DialogueWindow::TableRow(
+						DialogueWindow::TableCell(
+							fmt::format(
+								"{}",
+								DialogueWindow::ColorMessage(alternate_description_color, s)
+							)
+						)
+					);
+				}
+			}
+		}
+	}
+
+	if (!actionables.empty()) {
+		popup_text += fillerDia;
+
+		popup_text += DialogueWindow::TableRow(
+			DialogueWindow::TableCell(
+				fmt::format(
+					"{}",
+					DialogueWindow::ColorMessage(alternate_header_color, "Available actionables are:")
+				)
+			)
+		);
+
+		for (int i = 0; i < actionables.size(); i++) {
+			std::vector<std::string> actionables_split;
+
+			for (unsigned x = 0; x < actionables[i].length(); x += 56) {
+				actionables_split.emplace_back(actionables[i].substr(x, 56));
+			}
+
+			for (const auto& s : actionables_split) {
+				popup_text += DialogueWindow::TableRow(
+					DialogueWindow::TableCell(
+						fmt::format(
+							"{}",
+							DialogueWindow::ColorMessage(alternate_description_color, s)
+						)
+					)
+				);
+			}
+		}
+	}
+
+	popup_text = DialogueWindow::Table(popup_text);
+
+	return popup_text;
+}
+
+
 #include "bot_commands/actionable.cpp"
 #include "bot_commands/aggressive.cpp"
 #include "bot_commands/appearance.cpp"
 #include "bot_commands/apply_poison.cpp"
 #include "bot_commands/apply_potion.cpp"
 #include "bot_commands/attack.cpp"
+#include "bot_commands/behind_mob.cpp"
 #include "bot_commands/bind_affinity.cpp"
 #include "bot_commands/bot.cpp"
+#include "bot_commands/bot_settings.cpp"
+#include "bot_commands/cast.cpp"
 #include "bot_commands/caster_range.cpp"
 #include "bot_commands/charm.cpp"
+#include "bot_commands/class_race_list.cpp"
 #include "bot_commands/click_item.cpp"
+#include "bot_commands/copy_settings.cpp"
 #include "bot_commands/cure.cpp"
+#include "bot_commands/default_settings.cpp"
 #include "bot_commands/defensive.cpp"
 #include "bot_commands/depart.cpp"
 #include "bot_commands/escape.cpp"
@@ -2148,11 +2727,13 @@ bool helper_spell_list_fail(Client *bot_owner, bcst_list* spell_list, BCEnum::Sp
 #include "bot_commands/help.cpp"
 #include "bot_commands/hold.cpp"
 #include "bot_commands/identify.cpp"
+#include "bot_commands/illusion_block.cpp"
 #include "bot_commands/inventory.cpp"
 #include "bot_commands/invisibility.cpp"
 #include "bot_commands/item_use.cpp"
 #include "bot_commands/levitation.cpp"
 #include "bot_commands/lull.cpp"
+#include "bot_commands/max_melee_range.cpp"
 #include "bot_commands/mesmerize.cpp"
 #include "bot_commands/movement_speed.cpp"
 #include "bot_commands/name.cpp"
@@ -2167,8 +2748,24 @@ bool helper_spell_list_fail(Client *bot_owner, bcst_list* spell_list, BCEnum::Sp
 #include "bot_commands/resurrect.cpp"
 #include "bot_commands/rune.cpp"
 #include "bot_commands/send_home.cpp"
+#include "bot_commands/sit_hp_percent.cpp"
+#include "bot_commands/sit_in_combat.cpp"
+#include "bot_commands/sit_mana_percent.cpp"
 #include "bot_commands/size.cpp"
 #include "bot_commands/spell.cpp"
+#include "bot_commands/spell_aggro_checks.cpp"
+#include "bot_commands/spell_delays.cpp"
+#include "bot_commands/spell_engaged_priority.cpp"
+#include "bot_commands/spell_holds.cpp"
+#include "bot_commands/spell_idle_priority.cpp"
+#include "bot_commands/spell_max_hp_pct.cpp"
+#include "bot_commands/spell_max_mana_pct.cpp"
+#include "bot_commands/spell_max_thresholds.cpp"
+#include "bot_commands/spell_min_hp_pct.cpp"
+#include "bot_commands/spell_min_mana_pct.cpp"
+#include "bot_commands/spell_min_thresholds.cpp"
+#include "bot_commands/spell_pursue_priority.cpp"
+#include "bot_commands/spell_target_count.cpp"
 #include "bot_commands/summon.cpp"
 #include "bot_commands/summon_corpse.cpp"
 #include "bot_commands/suspend.cpp"

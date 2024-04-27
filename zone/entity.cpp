@@ -2957,6 +2957,7 @@ void EntityList::ScanCloseMobs(
 
 	for (auto &e : mob_list) {
 		auto mob = e.second;
+
 		if (mob->GetID() <= 0) {
 			continue;
 		}

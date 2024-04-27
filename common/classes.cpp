@@ -454,6 +454,31 @@ bool IsCasterClass(uint8 class_id)
 	}
 }
 
+bool IsPureCasterClass(uint8 class_id)
+{
+	switch (class_id) {
+	case Class::Necromancer:
+	case Class::Wizard:
+	case Class::Magician:
+	case Class::Enchanter:
+		return true;
+	default:
+		return false;
+	}
+}
+
+bool IsHealerClass(uint8 class_id)
+{
+	switch (class_id) {
+	case Class::Cleric:
+	case Class::Druid:
+	case Class::Shaman:
+		return true;
+	default:
+		return false;
+	}
+}
+
 bool IsINTCasterClass(uint8 class_id)
 {
 	switch (class_id) {
