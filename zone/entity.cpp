@@ -1655,7 +1655,10 @@ void EntityList::QueueClientsByTarget(Mob *sender, const EQApplicationPacket *ap
 					Send = clear_target_window;
 					if (c->GetGM() || RuleB(Spells, AlwaysSendTargetsBuffs)) {
 						if (c->GetGM()) {
-							c->Message(Chat::White, "Your GM flag allows you to always see your targets' buffs.");
+							if (!c->EntityVariableExists(SEE_BUFFS_FLAG)) {
+								c->Message(Chat::White, "Your GM flag allows you to always see your targets' buffs.");
+								c->SetEntityVariable(SEE_BUFFS_FLAG, "1");
+							}
 						}
 
 						Send = !clear_target_window;
@@ -2954,6 +2957,7 @@ void EntityList::ScanCloseMobs(
 
 	for (auto &e : mob_list) {
 		auto mob = e.second;
+
 		if (mob->GetID() <= 0) {
 			continue;
 		}

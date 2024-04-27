@@ -7,7 +7,7 @@ void bot_command_hold(Client *c, const Seperator *sep)
 	}
 	if (helper_is_help_or_usage(sep->arg[1])) {
 
-		c->Message(Chat::White, "usage: %s ([option: clear]) [actionable: byname | ownergroup | ownerraid | namesgroup | healrotation | byclass | byrace | spawned]] ([actionable_name])", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s ([option: clear]) [actionable: byname | ownergroup | ownerraid | namesgroup | healrotation | mmr | byclass | byrace | default: spawned] ([actionable_name])", sep->arg[0]);
 		return;
 	}
 	const int ab_mask = (ActionableBots::ABM_Target | ActionableBots::ABM_Type2);

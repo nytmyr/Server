@@ -1483,6 +1483,10 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 #ifdef SPELL_EFFECT_SPAM
 				snprintf(effect_desc, _EDLEN, "Illusion: race %d", effect_value);
 #endif
+				if (caster && caster->IsOfClientBot() && GetIllusionBlock()) {
+					break;
+				}
+
 				ApplySpellEffectIllusion(spell_id, caster, buffslot, spells[spell_id].base_value[i], spells[spell_id].limit_value[i], spells[spell_id].max_value[i]);
 				break;
 			}
@@ -1492,6 +1496,10 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 #ifdef SPELL_EFFECT_SPAM
 				snprintf(effect_desc, _EDLEN, "Illusion Copy");
 #endif
+				if (caster && caster->IsOfClientBot() && GetIllusionBlock()) {
+					break;
+				}
+
 				if(caster && caster->GetTarget()){
 						SendIllusionPacket
 						(

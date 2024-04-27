@@ -672,6 +672,10 @@ void Client::CompleteConnect()
 		for (int x1 = 0; x1 < EFFECT_COUNT; x1++) {
 			switch (spell.effect_id[x1]) {
 			case SE_Illusion: {
+				if (GetIllusionBlock()) {
+					break;
+				}
+
 				if (buffs[j1].persistant_buff) {
 					Mob *caster = entity_list.GetMobID(buffs[j1].casterid);
 					ApplySpellEffectIllusion(spell.id, caster, j1, spell.base_value[x1], spell.limit_value[x1], spell.max_value[x1]);
@@ -792,6 +796,8 @@ void Client::CompleteConnect()
 	if (parse->PlayerHasQuestSub(EVENT_ENTER_ZONE)) {
 		parse->EventPlayer(EVENT_ENTER_ZONE, this, "", 0);
 	}
+
+	DeleteEntityVariable(SEE_BUFFS_FLAG);
 
 	// the way that the client deals with positions during the initial spawn struct
 	// is subtly different from how it deals with getting a position update
@@ -1492,6 +1498,12 @@ void Client::Handle_Connect_OP_ZoneEntry(const EQApplicationPacket *app)
 		LogError("Error loading AA points for [{}]", GetName());
 	}
 
+	/* Load Bots */
+
+	LoadDefaultBotSettings();
+
+	database.botdb.LoadBotSettings(this);
+
 	if (SPDAT_RECORDS > 0) {
 		for (uint32 z = 0; z < EQ::spells::SPELL_GEM_COUNT; z++) {
 			if (m_pp.mem_spells[z] >= (uint32)SPDAT_RECORDS)
@@ -1588,7 +1600,6 @@ void Client::Handle_Connect_OP_ZoneEntry(const EQApplicationPacket *app)
 		LFG = false;
 	}
 
-	/* Load Bots */
 	if (RuleB(Bots, Enabled)) {
 		database.botdb.LoadOwnerOptions(this);
 		// TODO: mod below function for loading spawned botgroups

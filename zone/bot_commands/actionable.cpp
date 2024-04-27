@@ -3,6 +3,7 @@
 void bot_command_actionable(Client* c, const Seperator* sep)
 {
 	if (helper_command_alias_fail(c, "bot_command_actionable", sep->arg[0], "actionable")) {
+		c->Message(Chat::White, "note: Lists actionable command arguments and use descriptions");
 		return;
 	}
 
@@ -16,6 +17,7 @@ void bot_command_actionable(Client* c, const Seperator* sep)
 	c->Message(Chat::White, "healrotation [name] - selects all member and target bots of a heal rotation where name is a member");
 	c->Message(Chat::White, "healrotationmembers [name] - selects all member bots of a heal rotation where name is a member");
 	c->Message(Chat::White, "healrotationtargets [name] - selects all target bots of a heal rotation where name is a member");
+	c->Message(Chat::White, "mmr - selects all bots that are currently at max melee range");
 	c->Message(Chat::White, "byclass - selects all bots of the chosen class");
 	c->Message(Chat::White, "byrace - selects all bots of the chosen rsce");
 	c->Message(Chat::White, "spawned - selects all spawned bots");

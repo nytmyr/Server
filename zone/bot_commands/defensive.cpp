@@ -6,7 +6,7 @@ void bot_command_defensive(Client *c, const Seperator *sep)
 	if (helper_spell_list_fail(c, local_list, BCEnum::SpT_Stance) || helper_command_alias_fail(c, "bot_command_defensive", sep->arg[0], "defensive"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | healrotationtargets | byclass | byrace | spawned] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | healrotationtargets | mmr | byclass | byrace | spawned] ([actionable_name]))", sep->arg[0]);
 		helper_send_usage_required_bots(c, BCEnum::SpT_Stance);
 		return;
 	}

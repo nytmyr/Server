@@ -768,6 +768,8 @@ bool Client::Save(uint8 iCommitNow) {
 
 	database.SaveCharacterEXPModifier(this);
 
+	database.botdb.SaveBotSettings(this);
+
 	return true;
 }
 
@@ -12577,5 +12579,61 @@ void Client::RemoveItemBySerialNumber(uint32 serial_number, uint32 quantity)
 				}
 			}
 		}
+	}
+}
+
+void Client::LoadDefaultBotSettings() {
+	for (uint16 i = BotBaseSettings::START; i <= BotBaseSettings::END; ++i) {
+		SetBotSetting(BotSettingCategories::BaseSetting, i, GetDefaultBotSettings(i));
+		LogBotSettingsDetail("Setting default bot setting [{}] to [{}] for [{}]", i, GetDefaultBotSettings(i), GetCleanName()); //deleteme
+	}
+
+	for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+		BotSpellSettings_Struct t;
+
+		t.spellType = i;
+		t.shortName = SetSpellTypeShortNameByID(i);
+		t.name = SetSpellTypeNameByID(i);
+		t.defaultHold = SetDefaultSpellHold(i);
+		t.hold = SetDefaultSpellHold(i);
+		t.defaultDelay = SetDefaultSpellDelay(i);
+		t.delay = SetDefaultSpellDelay(i);
+		t.defaultMinThreshold = SetDefaultSpellMinThreshold(i);
+		t.minThreshold = SetDefaultSpellMinThreshold(i);
+		t.defaultMaxThreshold = SetDefaultSpellMaxThreshold(i);
+		t.maxThreshold = SetDefaultSpellMaxThreshold(i);
+
+		_spellSettings.push_back(t);
+
+		LogBotSettingsDetail("{} says, 'Setting defaults for {} ({}) [#{}]'", GetCleanName(), t.name, t.shortName, t.spellType); //deleteme
+		LogBotSettingsDetail("{} says, 'Hold = [{}] | Delay = [{}ms] | MinThreshold = [{}\%] | MaxThreshold = [{}\%]'", GetCleanName(), t.defaultHold, t.defaultDelay, t.defaultMinThreshold, t.defaultMaxThreshold); //deleteme
+	}
+}
+
+int Client::GetDefaultBotSettings(uint16 botSetting) {
+	switch (botSetting) {
+		case BotBaseSettings::IllusionBlock:
+		default:
+			return false;
+	}
+}
+
+void Client::SetBotSetting(uint8 settingType, uint16 botSetting, uint32 settingValue) {
+	switch (settingType) {
+		case BotSettingCategories::BaseSetting:
+			SetBaseSetting(botSetting, settingValue);
+			break;
+		case BotSettingCategories::SpellHold:
+			SetSpellHold(botSetting, settingValue);
+			break;
+		case BotSettingCategories::SpellDelay:
+			SetSpellDelay(botSetting, settingValue);
+			break;
+		case BotSettingCategories::SpellMinThreshold:
+			SetSpellMinThreshold(botSetting, settingValue);
+			break;
+		case BotSettingCategories::SpellMaxThreshold:
+			SetSpellMaxThreshold(botSetting, settingValue);
+			break;
 	}
 }

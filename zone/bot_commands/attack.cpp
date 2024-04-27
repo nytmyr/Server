@@ -7,7 +7,8 @@ void bot_command_attack(Client *c, const Seperator *sep)
 	}
 	if (helper_is_help_or_usage(sep->arg[1])) {
 
-		c->Message(Chat::White, "usage: <enemy_target> %s [actionable: byname | ownergroup | ownerraid | namesgroup | healrotation | byclass | byrace | default: spawned] ([actionable_name])", sep->arg[0]);
+		c->Message(Chat::White, "usage: <enemy_target> %s [actionable: byname | ownergroup | ownerraid | namesgroup | healrotation | mmr | byclass | byrace | default: spawned] ([actionable_name])", sep->arg[0]);
+		c->Message(Chat::White, "note: Orders bots to attack a designated target");
 		return;
 	}
 	const int ab_mask = ActionableBots::ABM_Type2;
@@ -44,6 +45,8 @@ void bot_command_attack(Client *c, const Seperator *sep)
 
 			if (!first_attacker) {
 				first_attacker = bot_iter;
+				target_mob->SetBotAttackFlag(c->CharacterID());
+				target_mob->bot_attack_flag_timer.Start(10000);
 			}
 			++attacker_count;
 

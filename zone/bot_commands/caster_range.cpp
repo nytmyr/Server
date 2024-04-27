@@ -7,7 +7,7 @@ void bot_command_caster_range(Client* c, const Seperator* sep)
 	}
 
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s [current | value: 0 - 300] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | healrotationtargets | byclass | byrace | spawned] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "usage: %s [current | value: 0 - 300] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | healrotationtargets | mmr | byclass | byrace | spawned] ([actionable_name]))", sep->arg[0]);
 		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
 		c->Message(Chat::White, "note: Use [current] to check the current setting.");
 		c->Message(Chat::White, "note: Set the value to the minimum distance you want your bot to try to remain from its target.");
@@ -78,8 +78,6 @@ void bot_command_caster_range(Client* c, const Seperator* sep)
 		else {
 			my_bot->SetBotCasterRange(crange);
 			++success_count;
-
-			database.botdb.SaveBotCasterRange(my_bot->GetBotID(), crange);
 		}
 	}
 	if (!current_check) {

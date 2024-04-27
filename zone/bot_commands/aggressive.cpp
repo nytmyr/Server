@@ -8,11 +8,8 @@ void bot_command_aggressive(Client* c, const Seperator* sep)
 		return;
 	}
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(
-			Chat::White,
-			"usage: %s ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | healrotationtargets | byclass | byrace | spawned] ([actionable_name]))",
-			sep->arg[0]
-		);
+		c->Message(Chat::White, "usage: %s ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | healrotationtargets | mmr | byclass | byrace | spawned] ([actionable_name]))", sep->arg[0]);
+		c->Message(Chat::White, "note: Orders a bot to use a aggressive discipline");
 		helper_send_usage_required_bots(c, BCEnum::SpT_Stance);
 		return;
 	}

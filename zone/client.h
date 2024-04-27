@@ -2172,10 +2172,27 @@ public:
 	void CampAllBots(uint8 class_id = Class::None);
 	void SpawnRaidBotsOnConnect(Raid* raid);
 
+	void LoadDefaultBotSettings();
+	int GetDefaultBotSettings(uint16 botSetting);
+	void SetBotSetting(uint8 settingType, uint16 botSetting, uint32 settingValue);
+
 private:
 	bool bot_owner_options[_booCount];
 	bool m_bot_pulling;
 	bool m_bot_precombat;
+
+	uint8 fast_heal_threshold;
+	uint8 heal_threshold;
+	uint8 complete_heal_threshold;
+	uint8 hot_heal_threshold;
+	uint32 fast_heal_delay;
+	uint32 heal_delay;
+	uint32 complete_heal_delay;
+	uint32 hot_heal_delay;
+	uint32 cure_delay;
+	uint8 cure_min_threshold;
+	uint8 cure_threshold;
+	bool illusion_block;
 
 	bool CanTradeFVNoDropItem();
 	void SendMobPositions();
