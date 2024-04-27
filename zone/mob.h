@@ -207,6 +207,42 @@ public:
 	Timer                             mob_close_scan_timer;
 	Timer                             mob_check_moving_timer;
 
+	// Bot attack flag
+	Timer							  bot_attack_flag_timer;
+
+	Timer							  m_botSpellType_Nuke;
+	Timer							  m_botSpellType_Heal;
+	Timer							  m_botSpellType_Root;
+	Timer							  m_botSpellType_Buff;
+	Timer							  m_botSpellType_Escape;
+	Timer							  m_botSpellType_Pet;
+	Timer							  m_botSpellType_Lifetap;
+	Timer							  m_botSpellType_Snare;
+	Timer							  m_botSpellType_Dot;
+	Timer							  m_botSpellType_Dispel;
+	Timer							  m_botSpellType_InCombatBuff;
+	Timer							  m_botSpellType_Mez;
+	Timer							  m_botSpellType_Charm;
+	Timer							  m_botSpellType_Slow;
+	Timer							  m_botSpellType_Debuff;
+	Timer							  m_botSpellType_Cure;
+	Timer							  m_botSpellType_Resurrect;
+	Timer							  m_botSpellType_HateRedux;
+	Timer							  m_botSpellType_InCombatBuffSong;
+	Timer							  m_botSpellType_OutOfCombatBuffSong;
+	Timer							  m_botSpellType_PreCombatBuff;
+	Timer							  m_botSpellType_PreCombatBuffSong;
+	Timer							  m_botSpellType_RegularHeals;
+	Timer							  m_botSpellType_CompleteHeals;
+	Timer							  m_botSpellType_FastHeals;
+	Timer							  m_botSpellType_VeryFastHeals;
+	Timer							  m_botSpellType_GroupHeals;
+	Timer							  m_botSpellType_GroupHoTHeals;
+	Timer							  m_botSpellType_HoTHeals;
+	Timer							  m_botSpellType_AENukes;
+	Timer							  m_botSpellType_AERains;
+	Timer							  m_botSpellType_PetBuffs;
+
 	//Somewhat sorted: needs documenting!
 
 	//Attack
@@ -402,6 +438,9 @@ public:
 	virtual bool CheckFizzle(uint16 spell_id);
 	virtual bool CheckSpellLevelRestriction(Mob *caster, uint16 spell_id);
 	virtual bool IsImmuneToSpell(uint16 spell_id, Mob *caster);
+	virtual bool IsImmuneToBotSpell(uint16 spell_id, Mob* caster);
+	bool DelayChecks(uint32 spellType, uint16 spellid, Mob* tar, bool preCast = false);
+	bool WithinSpellThreshold(Mob* tar, uint32 spellType, uint32 subType = 0xFFFFFFFF);
 	virtual float GetAOERange(uint16 spell_id);
 	void InterruptSpell(uint16 spellid = SPELL_UNKNOWN);
 	void InterruptSpell(uint16, uint16, uint16 spellid = SPELL_UNKNOWN);
@@ -1096,6 +1135,10 @@ public:
 	bool invulnerable;
 	bool qglobal;
 
+	//bot attack flag
+	inline bool HasBotAttackFlag() const { return bot_attack_flag; }
+	inline void SetBotAttackFlag(int32 value) { bot_attack_flag = value; }
+
 	virtual void SetAttackTimer();
 	inline void SetInvul(bool invul) { invulnerable=invul; }
 	inline bool GetInvul(void) { return invulnerable; }
@@ -1230,13 +1273,28 @@ public:
 
 	void				NPCSpecialAttacks(const char* parse, int permtag, bool reset = true, bool remove = false);
 	inline uint32		DontHealMeBefore() const { return pDontHealMeBefore; }
+	inline uint32		DontGroupHealMeBefore() const { return pDontGroupHealMeBefore; }
+	inline uint32		DontGroupHoTHealMeBefore() const { return pDontGroupHoTHealMeBefore; }
+	inline uint32		DontRegularHealMeBefore() const { return pDontRegularHealMeBefore; }
+	inline uint32		DontVeryFastHealMeBefore() const { return pDontVeryFastHealMeBefore; }
+	inline uint32		DontFastHealMeBefore() const { return pDontFastHealMeBefore; }
+	inline uint32		DontCompleteHealMeBefore() const { return pDontCompleteHealMeBefore; }
+	inline uint32		DontHotHealMeBefore() const { return pDontHotHealMeBefore; }
 	inline uint32		DontBuffMeBefore() const { return pDontBuffMeBefore; }
 	inline uint32		DontDotMeBefore() const { return pDontDotMeBefore; }
 	inline uint32		DontRootMeBefore() const { return pDontRootMeBefore; }
 	inline uint32		DontSnareMeBefore() const { return pDontSnareMeBefore; }
 	inline uint32		DontCureMeBefore() const { return pDontCureMeBefore; }
+	
 	void				SetDontRootMeBefore(uint32 time) { pDontRootMeBefore = time; }
 	void				SetDontHealMeBefore(uint32 time) { pDontHealMeBefore = time; }
+	void				SetDontGroupHealMeBefore(uint32 time) { pDontGroupHealMeBefore = time; }
+	void				SetDontGroupHoTHealMeBefore(uint32 time) { pDontGroupHoTHealMeBefore = time; }
+	void				SetDontRegularHealMeBefore(uint32 time) { pDontRegularHealMeBefore = time; }
+	void				SetDontVeryFastHealMeBefore(uint32 time) { pDontVeryFastHealMeBefore = time; }
+	void				SetDontFastHealMeBefore(uint32 time) { pDontFastHealMeBefore = time; }
+	void				SetDontCompleteHealMeBefore(uint32 time) { pDontCompleteHealMeBefore = time; }
+	void				SetDontHotHealMeBefore(uint32 time) { pDontHotHealMeBefore = time; }
 	void				SetDontBuffMeBefore(uint32 time) { pDontBuffMeBefore = time; }
 	void				SetDontDotMeBefore(uint32 time) { pDontDotMeBefore = time; }
 	void				SetDontSnareMeBefore(uint32 time) { pDontSnareMeBefore = time; }
@@ -1826,6 +1884,13 @@ protected:
 	bool pause_timer_complete;
 	bool DistractedFromGrid;
 	uint32 pDontHealMeBefore;
+	uint32 pDontGroupHealMeBefore;
+	uint32 pDontGroupHoTHealMeBefore;
+	uint32 pDontRegularHealMeBefore;
+	uint32 pDontVeryFastHealMeBefore;
+	uint32 pDontFastHealMeBefore;
+	uint32 pDontCompleteHealMeBefore;
+	uint32 pDontHotHealMeBefore;
 	uint32 pDontBuffMeBefore;
 	uint32 pDontDotMeBefore;
 	uint32 pDontRootMeBefore;
@@ -1844,6 +1909,9 @@ protected:
 	bool pet_owner_client; // Flags pets as belonging to a Client
 	bool pet_owner_npc;    // Flags pets as belonging to an NPC
 	uint32 pet_targetlock_id;
+
+	//bot attack flags
+	int32 bot_attack_flag;
 
 	glm::vec3 m_TargetRing;
 

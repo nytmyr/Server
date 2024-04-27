@@ -647,6 +647,17 @@ enum SpellTypes : uint32
 	SpellType_PreCombatBuffSong = (1 << 21)
 };
 
+enum HealTypes : uint8
+{
+	HealType_Regular = 1,
+	HealType_Fast = 2,
+	HealType_VeryFast = 3,
+	HealType_Complete = 4,
+	HealType_CompleteGroup = 5,
+	HealType_HoT = 6,
+	HealType_HotGroup = 7,
+};
+
 const uint32 SPELL_TYPE_MIN = (SpellType_Nuke << 1) - 1;
 const uint32 SPELL_TYPE_MAX = (SpellType_PreCombatBuffSong << 1) - 1;
 const uint32 SPELL_TYPE_ANY = 0xFFFFFFFF;
@@ -1624,5 +1635,7 @@ bool IsSpellUsableInThisZoneType(uint16 spell_id, uint8 zone_type);
 const char *GetSpellName(uint16 spell_id);
 int GetSpellStatValue(uint16 spell_id, const char* stat_identifier, uint8 slot = 0);
 bool IsCastRestrictedSpell(uint16 spell_id);
+int8 SpellEffectsCount(uint16 spell_id);
+bool IsLichSpell(uint16 spell_id);
 
 #endif

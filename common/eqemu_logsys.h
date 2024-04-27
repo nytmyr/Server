@@ -142,6 +142,12 @@ namespace Logs {
 		EqTime,
 		Corpses,
 		XTargets,
+		BotSettings,
+		BotPreChecks,
+		BotHoldChecks,
+		BotDelayChecks,
+		BotThresholdChecks,
+		TestDebug,
 		MaxCategoryID /* Don't Remove this */
 	};
 
@@ -242,7 +248,13 @@ namespace Logs {
 		"Zoning",
 		"EqTime",
 		"Corpses",
-		"XTargets"
+		"XTargets",
+		"Bot Settings",
+		"Bot Pre Checks",
+		"Bot Hold Checks",
+		"Bot Delay Checks",
+		"Bot Threshold Checks",
+		"Test Debug"
 	};
 }
 

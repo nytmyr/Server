@@ -35,6 +35,7 @@
 #include "../common/repositories/bot_pet_buffs_repository.h"
 #include "../common/repositories/bot_pet_inventories_repository.h"
 #include "../common/repositories/bot_spell_casting_chances_repository.h"
+#include "../common/repositories/bot_settings_repository.h"
 #include "../common/repositories/bot_stances_repository.h"
 #include "../common/repositories/bot_timers_repository.h"
 #include "../common/repositories/character_data_repository.h"
@@ -438,14 +439,18 @@ bool BotDatabase::LoadBot(const uint32 bot_id, Bot*& loaded_bot)
 		auto bfd = EQ::Clamp(e.follow_distance, static_cast<uint32>(1), BOT_FOLLOW_DISTANCE_DEFAULT_MAX);
 
 		loaded_bot->SetFollowDistance(bfd);
-
+		
 		loaded_bot->SetStopMeleeLevel(e.stop_melee_level);
-
+		
 		loaded_bot->SetBotEnforceSpellSetting(e.enforce_spell_settings);
-
+		
 		loaded_bot->SetBotArcherySetting(e.archery_setting);
-
+		
 		loaded_bot->SetBotCasterRange(e.caster_range);
+
+		loaded_bot->LoadDefaultBotSettings();
+
+		database.botdb.LoadBotSettings(loaded_bot);
 	}
 
 	return true;
@@ -2379,4 +2384,119 @@ const uint16 BotDatabase::GetBotRaceByID(const uint32 bot_id)
 	const auto& e = BotDataRepository::FindOne(database, bot_id);
 
 	return e.bot_id ? e.race : Race::Doug;
+}
+
+bool BotDatabase::LoadBotSettings(Bot* b)
+{
+	if (!b) {
+		return false;
+	}
+
+	const auto& l = BotSettingsRepository::GetWhere(
+		database,
+		fmt::format(
+			"`bot_id` = {}",
+			b->GetBotID()
+		)
+	);
+
+	if (l.empty()) {
+		return true;
+	}
+
+	for (const auto& e : l) {
+		LogBotSettings("Loading [{}] type [{}] to [{}] for [{}]", e.setting_id, e.setting_type, e.value, b->GetCleanName()); //deleteme
+		b->SetBotSetting(e.setting_id, e.setting_type, e.value);
+	}
+
+	return true;
+}
+
+bool BotDatabase::SaveBotSettings(Bot* b)
+{
+	if (!b) {
+		return false;
+	}
+	
+	std::vector<BotSettingsRepository::BotSettings> v;
+	
+	for (uint16 i = Bot::BOT_SETTINGS_START; i <= Bot::BOT_SETTINGS_END; ++i) {
+		if (b->GetBotBaseSetting(i) != b->GetDefaultBotBaseSetting(i)) {
+			LogBotSettings("Saving bot setting [{}] to [{}] default [{}] for [{}]", i, b->GetBotBaseSetting(i), b->GetDefaultBotBaseSetting(i), b->GetCleanName()); //deleteme
+			auto e = BotSettingsRepository::BotSettings{
+			.bot_id = b->GetBotID(),
+			.setting_id = static_cast<uint8_t>(i),
+			.setting_type = static_cast<uint32_t>(Bot::botSettingCategory_BaseSetting),
+			.value = static_cast<uint32_t>(b->GetBotBaseSetting(i))
+			};
+
+			v.emplace_back(e);
+		}
+	}
+
+	for (int i = Bot::BOT_SPELL_TYPE_START; i <= Bot::BOT_SPELL_TYPE_END; ++i) {
+		if (b->GetSpellHold(i) != b->GetDefaultSpellHold(i)) {
+			LogBotSettings("Saving {} spell hold [{}] to [{}] default [{}] for [{}]", b->GetSpellTypeNameByID(i), i, b->GetSpellHold(i), b->GetDefaultSpellHold(i), b->GetCleanName()); //deleteme
+			auto e = BotSettingsRepository::BotSettings{
+			.bot_id = b->GetBotID(),
+			.setting_id = static_cast<uint8_t>(i),
+			.setting_type = static_cast<uint32_t>(Bot::botSettingCategory_Hold),
+			.value = b->GetSpellHold(i)
+			};
+
+			v.emplace_back(e);
+		}
+	}
+
+	for (int i = Bot::BOT_SPELL_TYPE_START; i <= Bot::BOT_SPELL_TYPE_FULL_CUSTOMIZE_END; ++i) {
+		if (b->GetSpellDelay(i) != b->GetDefaultSpellDelay(i)) {
+			LogBotSettings("Saving {} spell delay [{}] to [{}] default [{}] for [{}]", b->GetSpellTypeNameByID(i), i, b->GetSpellDelay(i), b->GetDefaultSpellDelay(i), b->GetCleanName()); //deleteme
+			auto e = BotSettingsRepository::BotSettings{
+			.bot_id = b->GetBotID(),
+			.setting_id = static_cast<uint8_t>(i),
+			.setting_type = static_cast<uint32_t>(Bot::botSettingCategory_Delay),
+			.value = b->GetSpellDelay(i)
+			};
+
+			v.emplace_back(e);
+		}
+	}
+
+	for (int i = Bot::BOT_SPELL_TYPE_START; i <= Bot::BOT_SPELL_TYPE_FULL_CUSTOMIZE_END; ++i) {
+		if (b->GetSpellMinThreshold(i) != b->GetDefaultSpellMinThreshold(i)) {
+			LogBotSettings("Saving {} spell min threshold [{}] to [{}] default [{}] for [{}]", b->GetSpellTypeNameByID(i), i, b->GetSpellMinThreshold(i), b->GetDefaultSpellMinThreshold(i), b->GetCleanName()); //deleteme
+			auto e = BotSettingsRepository::BotSettings{
+			.bot_id = b->GetBotID(),
+			.setting_id = static_cast<uint8_t>(i),
+			.setting_type = static_cast<uint32_t>(Bot::botSettingCategory_MinThreshold),
+			.value = b->GetSpellMinThreshold(i)
+			};
+
+			v.emplace_back(e);
+		}
+	}
+
+	for (int i = Bot::BOT_SPELL_TYPE_START; i <= Bot::BOT_SPELL_TYPE_FULL_CUSTOMIZE_END; ++i) {
+		if (b->GetSpellMaxThreshold(i) != b->GetDefaultSpellMaxThreshold(i)) {
+			LogBotSettings("Saving {} spell max threshold [{}] to [{}] default [{}] for [{}]", b->GetSpellTypeNameByID(i), i, b->GetSpellMaxThreshold(i), b->GetDefaultSpellMaxThreshold(i), b->GetCleanName()); //deleteme
+			auto e = BotSettingsRepository::BotSettings{
+			.bot_id = b->GetBotID(),
+			.setting_id = static_cast<uint8_t>(i),
+			.setting_type = static_cast<uint32_t>(Bot::botSettingCategory_MaxThreshold),
+			.value = b->GetSpellMaxThreshold(i)
+			};
+
+			v.emplace_back(e);
+		}
+	}
+
+	if (!v.empty()) {
+		const int inserted = BotSettingsRepository::ReplaceMany(database, v);
+
+		if (!inserted) {
+			return false;
+		}
+	}
+
+	return true;
 }

@@ -2315,3 +2315,38 @@ bool IsCastNotStandingSpell(uint16 spell_id) {
 	*/
 	return spells[spell_id].cast_not_standing;
 }
+
+int8 SpellEffectsCount(uint16 spell_id) {
+	if (!IsValidSpell(spell_id)) {
+		return false;
+	}
+	int8 i = 0;
+
+	for (int i = 0; i < EFFECT_COUNT; i++) {
+		if (!IsBlankSpellEffect(spell_id, i)) {
+			++i;
+		}
+	}
+
+	return i;
+}
+
+bool IsLichSpell(uint16 spell_id)
+{
+	if (!IsValidSpell(spell_id)) {
+		return false;
+	}
+
+	if (
+		GetSpellTargetType(spell_id) == ST_Self &&
+		IsEffectInSpell(spell_id, SE_CurrentMana) &&
+		IsEffectInSpell(spell_id, SE_CurrentHP) &&
+		spells[spell_id].base_value[GetSpellEffectIndex(spell_id, SE_CurrentMana)] > 0 &&
+		spells[spell_id].base_value[GetSpellEffectIndex(spell_id, SE_CurrentHP)] < 0 &&
+		spells[spell_id].buff_duration > 0
+		) {
+		return true;
+	}
+
+	return false;
+}

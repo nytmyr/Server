@@ -1347,6 +1347,10 @@ int bot_command_init(void)
 		bot_command_add("rune", "Orders a bot to cast a rune of protection", AccountStatus::Player, bot_command_rune) ||
 		bot_command_add("sendhome", "Orders a bot to open a magical doorway home", AccountStatus::Player, bot_command_send_home) ||
 		bot_command_add("size", "Orders a bot to change a player's size", AccountStatus::Player, bot_command_size) ||
+		bot_command_add("spelldelays", "Controls the delay between casts for a specific spell type", AccountStatus::Player, bot_command_spell_delays) ||
+		bot_command_add("spellholds", "Controls whether a bot holds the specified spell type or not", AccountStatus::Player, bot_command_spell_holds) ||
+		bot_command_add("spellmaxthresholds", "Controls the minimum target HP threshold for a spell to be cast for a specific type", AccountStatus::Player, bot_command_spell_max_thresholds) ||
+		bot_command_add("spellminthresholds", "Controls the maximum target HP threshold for a spell to be cast for a specific type", AccountStatus::Player, bot_command_spell_min_thresholds) ||
 		bot_command_add("spellinfo", "Opens a dialogue window with spell info", AccountStatus::Player, bot_spell_info_dialogue_window) ||
 		bot_command_add("spells", "Lists all Spells learned by the Bot.", AccountStatus::Player, bot_command_spell_list) ||
 		bot_command_add("spellsettings", "Lists a bot's spell setting entries", AccountStatus::Player, bot_command_spell_settings_list) ||
@@ -2169,6 +2173,10 @@ bool helper_spell_list_fail(Client *bot_owner, bcst_list* spell_list, BCEnum::Sp
 #include "bot_commands/send_home.cpp"
 #include "bot_commands/size.cpp"
 #include "bot_commands/spell.cpp"
+#include "bot_commands/spell_delays.cpp"
+#include "bot_commands/spell_holds.cpp"
+#include "bot_commands/spell_max_thresholds.cpp"
+#include "bot_commands/spell_min_thresholds.cpp"
 #include "bot_commands/summon.cpp"
 #include "bot_commands/summon_corpse.cpp"
 #include "bot_commands/suspend.cpp"

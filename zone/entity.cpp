@@ -2944,7 +2944,7 @@ void EntityList::ScanCloseMobs(
 	for (auto &e : mob_list) {
 		auto mob = e.second;
 
-		if (!mob->IsNPC() && !mob->IsClient() && !mob->IsBot() && !mob->IsMerc()) {
+		if (!mob->IsNPC() && !mob->IsOfClientBotMerc()) {
 			continue;
 		}
 

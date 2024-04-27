@@ -122,9 +122,87 @@ public:
 		spellTypeIndexPreCombatBuffSong
 	};
 
+	enum BotSettingsTypes : uint16
+	{
+		botSettings_START = 0, // Do not remove or change this
+		botSettings_FollowDistance,
+		botSettings_StopMeleeLevel,
+		botSettings_ExpansionBitmask,
+		botSettings_EnforceSpellSettings,
+		botSettings_ArcherySetting,
+		botSettings_PetSetTypeSetting,
+		botSettings_BehindMob,
+		botSettings_CasterRange,
+		botSettings_IllusionBlock,
+		botSettings_END, // Do not remove this
+	};
+
+	enum BotSpellTypeInts : uint16 // Update GetSpellTypeIDByShortName and GetSpellTypeNameByID as needed
+	{
+		botSpellType_START = 0, // Do not remove or change this
+		botSpellType_Nuke,
+		botSpellType_Heal,
+		botSpellType_Root,
+		botSpellType_Buff,
+		botSpellType_Escape,
+		botSpellType_Pet,
+		botSpellType_Lifetap,
+		botSpellType_Snare,
+		botSpellType_Dot,
+		botSpellType_Dispel,
+		botSpellType_InCombatBuff,
+		botSpellType_Mez,
+		botSpellType_Charm,
+		botSpellType_Slow,
+		botSpellType_Debuff,
+		botSpellType_Cure,
+		botSpellType_Resurrect,
+		botSpellType_HateRedux,
+		botSpellType_InCombatBuffSong,
+		botSpellType_OutOfCombatBuffSong,
+		botSpellType_PreCombatBuff,
+		botSpellType_PreCombatBuffSong,
+		botSpellType_RegularHeals,
+		botSpellType_CompleteHeals,
+		botSpellType_FastHeals,
+		botSpellType_VeryFastHeals,
+		botSpellType_GroupHeals,
+		botSpellType_GroupHoTHeals,
+		botSpellType_HoTHeals,
+		botSpellType_AENukes,
+		botSpellType_AERains,
+		botSpellType_PetBuffs,
+		botSpellType_DamageShields, // This is the start of types that can ONLY be customized by holds, leave this as first and add new below
+		botSpellType_PetHeals,
+		botSpellType_ResistSpells,
+		botSpellType_END, // Do not remove this, increment as needed
+	};
+
+	enum BotSettingCategories : uint16 // Update GetSpellTypeIDByShortName and GetSpellTypeNameByID as needed
+	{
+		botSettingCategory_BaseSetting = 0,
+		botSettingCategory_Hold,
+		botSettingCategory_Delay,
+		botSettingCategory_MinThreshold,
+		botSettingCategory_MaxThreshold,
+	};
+
 	static const uint32 SPELL_TYPE_FIRST = spellTypeIndexNuke;
 	static const uint32 SPELL_TYPE_LAST = spellTypeIndexPreCombatBuffSong;
 	static const uint32 SPELL_TYPE_COUNT = SPELL_TYPE_LAST + 1;
+
+	static const uint16 BOT_SPELL_TYPE_START = botSpellType_START + 1;
+	static const uint16 BOT_SPELL_TYPE_END = botSpellType_END - 1;
+	static const uint16 BOT_SPELL_TYPE_FULL_CUSTOMIZE_END = botSpellType_DamageShields - 1; //Do not change this, this is used to determine the limit for spelltypes than can be modified beyond just holds
+	static const uint16 BOT_SETTINGS_START = botSettings_START + 1;
+	static const uint16 BOT_SETTINGS_END = botSettings_END - 1;
+	static const uint16 BOT_SETTINGS_TYPE_ID = 1;
+	static const uint16 BOT_HOLD_TYPE_ID = 2;
+	static const uint16 BOT_DELAY_TYPE_ID = 3;
+	static const uint16 BOT_MINTHRESHHOLD_TYPE_ID = 4;
+	static const uint16 BOT_MAXTHRESHHOLD_TYPE_ID = 5;
+	static const uint8 ENABLED_INT = 1;
+	static const uint8 DISABLED_INT = 0;
 
 	// Class Constructors
 	Bot(NPCType *npcTypeData, Client* botOwner);
@@ -228,7 +306,7 @@ public:
 	uint8 GetNumberNeedingHealedInRaidGroup(uint8& need_healed, uint8 hpr, bool includePets, Raid* raid);
 	bool GetNeedsCured(Mob *tar);
 	bool GetNeedsHateRedux(Mob *tar);
-	bool HasOrMayGetAggro();
+	bool HasOrMayGetAggro(bool SitAggro = false);
 	void SetDefaultBotStance();
 	void SetSurname(std::string_view bot_surname);
 	void SetTitle(std::string_view bot_title);
@@ -378,6 +456,49 @@ public:
 		bool IsFromSpell = false, ExtraAttackOptions *opts = nullptr) override
 			{ return Mob::Attack(other, Hand, FromRiposte, IsStrikethrough, IsFromSpell, opts); }
 
+	std::vector<Mob*> GatherSpellTargets(bool entireRaid = false, bool noClients = false, bool noBots = false, bool noPets = false);
+	std::vector<Mob*> GatherGroupSpellTargets(bool useTarget = false, Mob* target = nullptr, bool noClients = false, bool noBots = false, bool noPets = false);
+	bool ThresholdChecks(uint32 spellType, uint16 spellid, Mob* tar, bool preCast = false);
+	bool PrecastChecks(uint16 spellid, Mob* tar, uint32 spellType);
+	bool CanCastSpellType(uint32 spellType, uint16 spellid, Mob* tar);	
+	bool BotHasEnoughMana(uint16 spell_id);
+	bool IsTargetAlreadyReceivingSpell(Mob* tar, uint16 spellid);
+	bool DoResistCheck(Mob* target, uint16 spellid, int32 resist_limit);
+	bool IsValidTargetType(uint16 spellid, int targetType, bodyType bodyType);
+	bool IsMobEngagedByAnyone(Mob* tar);
+	bool DoResistCheckBySpellType(Mob* tar, uint16 spellid, uint32 spellType);
+	uint16 GetSpellTypeIDByShortName(std::string spellTypeString);
+	std::string GetSpellTypeNameByID(uint16 spellTypeID);
+	std::string GetSpellTypeShortNameByID(uint16 spellTypeID);
+	bool GetSpellHold (uint16 spellType);
+	bool GetDefaultSpellHold(uint16 spellType);
+	void SetSpellHold(uint16 spellType, bool holdStatus);
+	uint32 GetSpellDelay(uint16 spellType);
+	uint32 GetDefaultSpellDelay(uint16 spellType);
+	void SetSpellDelay(uint16 spellType, uint32 delayValue);
+	uint8 GetSpellMinThreshold(uint16 spellType);
+	uint8 GetDefaultSpellMinThreshold(uint16 spellType);
+	void SetSpellMinThreshold(uint16 spellType, uint8 thresholdValue);
+	uint8 GetSpellMaxThreshold(uint16 spellType);
+	uint8 GetDefaultSpellMaxThreshold(uint16 spellType);
+	void SetSpellMaxThreshold(uint16 spellType, uint8 thresholdValue);
+	int GetBotSetting(uint8 botSetting, uint32 settingType);
+	void SetBotSetting(uint8 botSetting, uint32 settingType, uint32 settingValue);
+	int GetBotBaseSetting(uint8 botSetting);
+	int GetDefaultBotBaseSetting(uint8 botSetting);
+	void SetBotBaseSetting(uint8 botSetting, uint32 settingValue);
+	void LoadDefaultBotSettings();
+	uint32 GetBotSpellType(uint16 spellid);
+	void SetBotSpellCastDelay(uint32 iSpellTypes, Mob* spelltar, bool preCast = false);
+	void SetBehindMob(uint32 value) { _behindMobStatus = value; }
+	bool GetBehindMob() const { return _behindMobStatus; }
+	void SetIllusionBlock(uint32 value) { _illusionBlock = value; }
+	bool GetIllusionBlock() const { return _illusionBlock; }
+	uint32 GetControlledBotSpellType(uint32 spellType, uint32 subType = 0xFFFFFFFF);
+	uint8 GetStanceHealThresholds(uint32 subType, bool max = false);
+
+	BotSpell GetBestBotSpellForNukeByBodyType(Bot* botCaster, bodyType bodyType);
+
 	[[nodiscard]] int GetMaxBuffSlots() const final { return EQ::spells::LONG_BUFFS; }
 	[[nodiscard]] int GetMaxSongSlots() const final { return EQ::spells::SHORT_BUFFS; }
 	[[nodiscard]] int GetMaxDiscSlots() const final { return EQ::spells::DISC_BUFFS; }
@@ -429,6 +550,7 @@ public:
 	static std::list<BotSpell_wPriority> GetPrioritizedBotSpellsBySpellType(Bot* botCaster, uint32 spellType);
 
 	static BotSpell GetFirstBotSpellBySpellType(Bot* botCaster, uint32 spellType);
+	static BotSpell GetBestBotSpellForVeryFastHeal(Bot* botCaster);
 	static BotSpell GetBestBotSpellForFastHeal(Bot* botCaster);
 	static BotSpell GetBestBotSpellForHealOverTime(Bot* botCaster);
 	static BotSpell GetBestBotSpellForPercentageHeal(Bot* botCaster);
@@ -440,7 +562,7 @@ public:
 	static BotSpell GetBestBotSpellForMagicBasedSlow(Bot* botCaster);
 	static BotSpell GetBestBotSpellForDiseaseBasedSlow(Bot* botCaster);
 
-	static Mob* GetFirstIncomingMobToMez(Bot* botCaster, BotSpell botSpell);
+	static Mob* GetFirstIncomingMobToMez(Bot* botCaster, int16 spellid);
 	static BotSpell GetBestBotSpellForMez(Bot* botCaster);
 	static BotSpell GetBestBotMagicianPetSpell(Bot* botCaster);
 	static std::string GetBotMagicianPetType(Bot* botCaster);
@@ -881,9 +1003,11 @@ private:
 	int32	max_end;
 	int32	end_regen;
 
-	Timer m_evade_timer; // can be moved to pTimers at some point
+	Timer m_rogue_evade_timer; // Rogue evade timer
+	Timer m_monk_evade_timer; // Monk evade FD timer
 	Timer m_auto_defend_timer;
 	Timer auto_save_timer;
+
 	bool m_dirtyautohaters;
 	bool m_guard_flag;
 	bool m_hold_flag;
@@ -906,8 +1030,159 @@ private:
 	bool _showhelm;
 	bool _pauseAI;
 	uint8 _stopMeleeLevel;
+
 	int m_expansion_bitmask;
 	bool m_enforce_spell_settings;
+
+	bool _behindMobStatus;
+	bool _illusionBlock;
+
+	bool _holdDamageShields;
+	bool _holdResistSpells;
+
+	bool _holdAENukes;
+	bool _holdAERains;
+
+	bool _holdBuffs;
+	bool _holdCharms;
+	bool _holdCompleteHeals;
+	bool _holdCures;
+	bool _holdDebuffs;
+	bool _holdDispels;
+	bool _holdDoTs;
+	bool _holdEscapes;
+	bool _holdFastHeals;
+	bool _holdGroupHeals;
+	bool _holdGroupHoTHeals;
+	bool _holdHateRedux;
+	bool _holdHeals;
+	bool _holdHoTHeals;
+	bool _holdInCombatBuffs;
+	bool _holdInCombatBuffSongs;
+	bool _holdLifetaps;
+	bool _holdLulls;
+	bool _holdMez;
+	bool _holdNukes;
+	bool _holdOutOfCombatBuffSongs;
+	bool _holdPetBuffs;
+	bool _holdPetHeals;
+	bool _holdPets;
+	bool _holdPreCombatBuffs;
+	bool _holdPreCombatBuffSongs;
+	bool _holdRegularHeals;
+	bool _holdRez;
+	bool _holdRoots;
+	bool _holdSlows;
+	bool _holdSnares;
+	bool _holdVeryFastHeals;
+
+	uint16 _delayNukes;
+	uint16 _delayHeals;
+	uint16 _delayRoots;
+	uint16 _delayBuffs;
+	uint16 _delayEscapes;
+	uint16 _delayPets;
+	uint16 _delayLifetaps;
+	uint16 _delaySnares;
+	uint16 _delayDoTs;
+	uint16 _delayDispels;
+	uint16 _delayInCombatBuffs;
+	uint16 _delayMez;
+	uint16 _delayCharms;
+	uint16 _delaySlows;
+	uint16 _delayDebuffs;
+	uint16 _delayCures;
+	uint16 _delayRez;
+	uint16 _delayHateRedux;
+	uint16 _delayInCombatBuffSongs;
+	uint16 _delayOutOfCombatBuffSongs;
+	uint16 _delayPreCombatBuffs;
+	uint16 _delayPreCombatBuffSongs;
+	uint16 _delayRegularHeals;
+	uint16 _delayCompleteHeals;
+	uint16 _delayFastHeals;
+	uint16 _delayVeryFastHeals;
+	uint16 _delayGroupHeals;
+	uint16 _delayGroupHoTHeals;
+	uint16 _delayHoTHeals;
+	uint16 _delayAENukes;
+	uint16 _delayAERains;
+	uint16 _delayPetHeals;
+	uint16 _delayDamageShields;
+	uint16 _delayPetBuffs;
+	uint16 _delayResistSpells;
+
+	uint8 _minThresholdNukes;
+	uint8 _minThresholdHeals;
+	uint8 _minThresholdRoots;
+	uint8 _minThresholdBuffs;
+	uint8 _minThresholdEscapes;
+	uint8 _minThresholdPets;
+	uint8 _minThresholdLifetaps;
+	uint8 _minThresholdSnares;
+	uint8 _minThresholdDoTs;
+	uint8 _minThresholdDispels;
+	uint8 _minThresholdInCombatBuffs;
+	uint8 _minThresholdMez;
+	uint8 _minThresholdCharms;
+	uint8 _minThresholdSlows;
+	uint8 _minThresholdDebuffs;
+	uint8 _minThresholdCures;
+	uint8 _minThresholdRez;
+	uint8 _minThresholdHateRedux;
+	uint8 _minThresholdInCombatBuffSongs;
+	uint8 _minThresholdOutOfCombatBuffSongs;
+	uint8 _minThresholdPreCombatBuffs;
+	uint8 _minThresholdPreCombatBuffSongs;
+	uint8 _minThresholdRegularHeals;
+	uint8 _minThresholdCompleteHeals;
+	uint8 _minThresholdFastHeals;
+	uint8 _minThresholdVeryFastHeals;
+	uint8 _minThresholdGroupHeals;
+	uint8 _minThresholdGroupHoTHeals;
+	uint8 _minThresholdHoTHeals;
+	uint8 _minThresholdAENukes;
+	uint8 _minThresholdAERains;
+	uint8 _minThresholdPetHeals;
+	uint8 _minThresholdDamageShields;
+	uint8 _minThresholdPetBuffs;
+	uint8 _minThresholdResistSpells;
+
+	uint8 _maxThresholdNukes;
+	uint8 _maxThresholdHeals;
+	uint8 _maxThresholdRoots;
+	uint8 _maxThresholdBuffs;
+	uint8 _maxThresholdEscapes;
+	uint8 _maxThresholdPets;
+	uint8 _maxThresholdLifetaps;
+	uint8 _maxThresholdSnares;
+	uint8 _maxThresholdDoTs;
+	uint8 _maxThresholdDispels;
+	uint8 _maxThresholdInCombatBuffs;
+	uint8 _maxThresholdMez;
+	uint8 _maxThresholdCharms;
+	uint8 _maxThresholdSlows;
+	uint8 _maxThresholdDebuffs;
+	uint8 _maxThresholdCures;
+	uint8 _maxThresholdRez;
+	uint8 _maxThresholdHateRedux;
+	uint8 _maxThresholdInCombatBuffSongs;
+	uint8 _maxThresholdOutOfCombatBuffSongs;
+	uint8 _maxThresholdPreCombatBuffs;
+	uint8 _maxThresholdPreCombatBuffSongs;
+	uint8 _maxThresholdRegularHeals;
+	uint8 _maxThresholdCompleteHeals;
+	uint8 _maxThresholdFastHeals;
+	uint8 _maxThresholdVeryFastHeals;
+	uint8 _maxThresholdGroupHeals;
+	uint8 _maxThresholdGroupHoTHeals;
+	uint8 _maxThresholdHoTHeals;
+	uint8 _maxThresholdAENukes;
+	uint8 _maxThresholdAERains;
+	uint8 _maxThresholdPetHeals;
+	uint8 _maxThresholdDamageShields;
+	uint8 _maxThresholdPetBuffs;
+	uint8 _maxThresholdResistSpells;
 
 	// Private "base stats" Members
 	int32 _baseMR;

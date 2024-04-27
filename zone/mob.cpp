@@ -126,7 +126,8 @@ Mob::Mob(
 	position_update_melee_push_timer(500),
 	hate_list_cleanup_timer(6000),
 	mob_close_scan_timer(6000),
-	mob_check_moving_timer(1000)
+	mob_check_moving_timer(1000),
+	bot_attack_flag_timer(10000)
 {
 	mMovementManager = &MobMovementManager::Get();
 	mMovementManager->AddMob(this);
@@ -396,6 +397,10 @@ Mob::Mob(
 	pet_owner_client  = false;
 	pet_owner_npc     = false;
 	pet_targetlock_id = 0;
+
+	//bot attack flag
+	bot_attack_flag = 0;
+	bot_attack_flag_timer.Disable();
 
 	attacked_count = 0;
 	mezzed         = false;
@@ -8503,4 +8508,154 @@ void Mob::HandleDoorOpen()
 			d->ForceOpen(this);
 		}
 	}
+}
+
+bool Mob::DelayChecks(uint32 spellType, uint16 spellid, Mob* tar, bool preCast) {
+	if (!spellType || (!preCast && !spellid) || !tar) {
+		LogBotDelayChecks("{} says, 'DelayChecks failsafe triggered.'", GetCleanName(), CastToBot()->GetSpellTypeNameByID(CastToBot()->GetControlledBotSpellType(spellType)), tar ? tar->GetCleanName() : nullptr); //deleteme
+		return false;
+	}	
+
+	switch (spellType) {
+		case SpellType_Nuke:
+			if (preCast) {
+				return true;
+			}
+
+			if (IsAERainNukeSpell(spellid)) {
+				return m_botSpellType_AERains.GetRemainingTime() > 0 ? false : true;
+			}
+			else if (IsAENukeSpell(spellid)) {
+				return m_botSpellType_AENukes.GetRemainingTime() > 0 ? false : true;
+			}
+			else {
+				return m_botSpellType_Nuke.GetRemainingTime() > 0 ? false : true;
+			}
+			break;
+		case SpellType_Heal:
+			if (preCast) {
+				return true;
+			}
+
+			if (tar->IsOfClientBot()) {
+				if (IsVeryFastHealSpell(spellid)) {
+					return tar->m_botSpellType_VeryFastHeals.GetRemainingTime() > 0 ? false : true;
+				}
+				else if (IsFastHealSpell(spellid)) {
+					return tar->m_botSpellType_FastHeals.GetRemainingTime() > 0 ? false : true;
+				}
+				else if (IsCompleteHealSpell(spellid)) {
+					return tar->m_botSpellType_CompleteHeals.GetRemainingTime() > 0 ? false : true;
+				}
+				else if (IsHealOverTimeSpell(spellid)) {
+					return tar->m_botSpellType_HoTHeals.GetRemainingTime() > 0 ? false : true;
+				}
+				else if (IsHealOverTimeSpell(spellid) && IsGroupSpell(spellid)) {
+					return tar->m_botSpellType_GroupHoTHeals.GetRemainingTime() > 0 ? false : true;
+				}
+				else if (IsGroupSpell(spellid)) {
+					return tar->m_botSpellType_GroupHeals.GetRemainingTime() > 0 ? false : true;
+				}
+				else {
+					//return tar->m_botSpellType_Heal.GetRemainingTime() > 0 ? false : true;
+					return tar->m_botSpellType_RegularHeals.GetRemainingTime() > 0 ? false : true;
+				}
+			}
+			break;
+		case SpellType_Root:
+			return m_botSpellType_Root.GetRemainingTime() > 0 ? false : true;
+		case SpellType_Buff:
+			if (tar->IsOfClientBot() || (tar->IsPet() && tar->GetUltimateOwner()->IsOfClientBot())) {
+				if (tar->IsPet()) {
+					return m_botSpellType_PetBuffs.GetRemainingTime() > 0 ? false : true;
+				}
+				else {
+					return m_botSpellType_Buff.GetRemainingTime() > 0 ? false : true;
+				}
+			}
+			break;
+		case SpellType_Escape:
+			return m_botSpellType_Escape.GetRemainingTime() > 0 ? false : true;
+		case SpellType_Pet:
+			return m_botSpellType_Pet.GetRemainingTime() > 0 ? false : true;
+		case SpellType_Lifetap:
+			return m_botSpellType_Lifetap.GetRemainingTime() > 0 ? false : true;
+		case SpellType_Snare:
+			return m_botSpellType_Snare.GetRemainingTime() > 0 ? false : true;
+		case SpellType_DOT:
+			return m_botSpellType_Dot.GetRemainingTime() > 0 ? false : true;
+		case SpellType_Dispel:
+			return m_botSpellType_Dispel.GetRemainingTime() > 0 ? false : true;
+		case SpellType_InCombatBuff:
+			return m_botSpellType_InCombatBuff.GetRemainingTime() > 0 ? false : true;
+		case SpellType_Mez:
+			return m_botSpellType_Mez.GetRemainingTime() > 0 ? false : true;
+		case SpellType_Charm:
+			return m_botSpellType_Charm.GetRemainingTime() > 0 ? false : true;
+		case SpellType_Slow:
+			return m_botSpellType_Slow.GetRemainingTime() > 0 ? false : true;
+		case SpellType_Debuff:
+			return m_botSpellType_Debuff.GetRemainingTime() > 0 ? false : true;
+		case SpellType_Cure:
+			if (tar->IsOfClientBot()) {
+				return tar->m_botSpellType_Cure.GetRemainingTime() > 0 ? false : true;
+			}
+			break;
+		case SpellType_Resurrect:
+			return m_botSpellType_Resurrect.GetRemainingTime() > 0 ? false : true;
+		case SpellType_HateRedux:
+			return m_botSpellType_HateRedux.GetRemainingTime() > 0 ? false : true;
+		case SpellType_InCombatBuffSong:
+			return m_botSpellType_InCombatBuffSong.GetRemainingTime() > 0 ? false : true;
+		case SpellType_OutOfCombatBuffSong:
+			return m_botSpellType_OutOfCombatBuffSong.GetRemainingTime() > 0 ? false : true;
+		case SpellType_PreCombatBuff:
+			return m_botSpellType_PreCombatBuff.GetRemainingTime() > 0 ? false : true;
+		case SpellType_PreCombatBuffSong:
+			return m_botSpellType_PreCombatBuffSong.GetRemainingTime() > 0 ? false : true;
+		default:
+			return true;
+	}
+
+	return true;
+}
+
+bool Mob::WithinSpellThreshold(Mob* tar, uint32 spellType, uint32 subType) {
+	if (!tar || !spellType) {
+		return false;
+	}
+
+	switch (spellType) {
+		case SpellType_Cure: // These use the target's settings if client or bot otherwise stance of the bot for pets
+		case SpellType_Heal:
+			if (tar->IsBot()) {
+				if (tar->GetHPRatio() < tar->CastToBot()->GetSpellMinThreshold(CastToBot()->GetControlledBotSpellType(spellType, subType)) || tar->GetHPRatio() > tar->CastToBot()->GetSpellMaxThreshold(CastToBot()->GetControlledBotSpellType(spellType, subType))) {
+					return false;
+				}
+			}
+			else if (tar->IsClient()) {
+				//ClientMethods
+			}
+			else if (tar->IsPet()) {
+				if (tar->GetHPRatio() < CastToBot()->GetStanceHealThresholds(subType) || tar->GetHPRatio() > CastToBot()->GetStanceHealThresholds(subType, true)) {
+					return false;
+				}
+			}
+			break;
+		case SpellType_Escape: // These use the bot's own health threshold as a check
+		case SpellType_HateRedux:
+		case SpellType_InCombatBuff:
+		case SpellType_Lifetap:
+			if (GetHPRatio() < CastToBot()->GetSpellMinThreshold(CastToBot()->GetControlledBotSpellType(spellType)) || GetHPRatio() > CastToBot()->GetSpellMinThreshold(CastToBot()->GetControlledBotSpellType(spellType))) {
+				return false;
+			}
+			break;
+		default:  // Use the target's health for threshold checks
+			if (tar->GetHPRatio() < CastToBot()->GetSpellMinThreshold(CastToBot()->GetControlledBotSpellType(spellType, subType)) || tar->GetHPRatio() > CastToBot()->GetSpellMaxThreshold(CastToBot()->GetControlledBotSpellType(spellType, subType))) {
+				return false;
+			}
+			break;
+	}
+
+	return true;
 }

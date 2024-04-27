@@ -145,6 +145,8 @@ bool IsSpellFighterClass(uint8 class_id);
 bool IsNonSpellFighterClass(uint8 class_id);
 bool IsHybridClass(uint8 class_id);
 bool IsCasterClass(uint8 class_id);
+bool IsPureCasterClass(uint8 class_id);
+bool IsHealerClass(uint8 class_id);
 bool IsINTCasterClass(uint8 class_id);
 bool IsWISCasterClass(uint8 class_id);
 bool IsHeroicINTCasterClass(uint8 class_id);
