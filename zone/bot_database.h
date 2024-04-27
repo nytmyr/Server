@@ -139,6 +139,9 @@ public:
 	bool SaveOwnerOption(const uint32 owner_id, size_t type, const bool flag);
 	bool SaveOwnerOption(const uint32 owner_id, const std::pair<size_t, size_t> type, const std::pair<bool, bool> flag);
 
+	bool LoadBotSettings(Bot* b);
+	bool SaveBotSettings(Bot* b);
+
 	bool SaveBotCasterRange(const uint32 bot_id, const uint32 bot_caster_range_value);
 
 	/* Bot group functions   */

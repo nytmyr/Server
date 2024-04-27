@@ -151,7 +151,59 @@ ADD COLUMN `augment_six` int(11) UNSIGNED NOT NULL DEFAULT 0 AFTER `augment_five
 ALTER TABLE `bot_data`
 ADD COLUMN `extra_haste` mediumint(8) NOT NULL DEFAULT 0 AFTER `wis`;
 )"
-	}
+	},
+	ManifestEntry{
+		.version = 9045,
+		.description = "2024_05_18_bot_settings.sql",
+		.check = "SHOW TABLES LIKE bot_settings'",
+		.condition = "empty",
+		.match = "",
+		.sql = R"(
+CREATE TABLE `bot_settings` (
+	`bot_id` INT UNSIGNED NOT NULL,
+	`setting_id` INT UNSIGNED NOT NULL,
+	`setting_type` INT UNSIGNED NOT NULL,
+	`value` INT UNSIGNED NOT NULL,
+	PRIMARY KEY (`bot_id`, `setting_id`) USING BTREE)
+COLLATE='utf8mb4_general_ci';
+)"
+	},
+	ManifestEntry{
+		.version = 9046,
+		.description = "2024_05_18_bot_update_spell_types.sql",
+		.check = "SHOW COLUMNS FROM `bot_spells_entries` LIKE 'type'",
+		.condition = "empty",
+		.match = "",
+		.sql = R"(
+UPDATE bot_spells_entries b
+SET b.type = 
+	(CASE
+		WHEN b.type = 1 THEN 0
+		WHEN b.type = 2 THEN 1
+		WHEN b.type = 4 THEN 2
+		WHEN b.type = 8 THEN 3
+		WHEN b.type = 16 THEN 4
+		WHEN b.type = 32 THEN 5
+		WHEN b.type = 64 THEN 6
+		WHEN b.type = 128 THEN 7
+		WHEN b.type = 256 THEN 8
+		WHEN b.type = 512 THEN 9
+		WHEN b.type = 1024 THEN 10
+		WHEN b.type = 2048 THEN 11
+		WHEN b.type = 4096 THEN 12
+		WHEN b.type = 8192 THEN 13
+		WHEN b.type = 16384 THEN 14
+		WHEN b.type = 32768 THEN 15
+		WHEN b.type = 65536 THEN 16
+		WHEN b.type = 131072 THEN 17
+		WHEN b.type = 262144 THEN 18
+		WHEN b.type = 524288 THEN 19
+		WHEN b.type = 1048576 THEN 20
+		WHEN b.type = 2097152 THEN 21
+		ELSE 0
+	END);
+)"
+}
 // -- template; copy/paste this when you need to create a new entry
 //	ManifestEntry{
 //		.version = 9228,

@@ -129,7 +129,8 @@ Mob::Mob(
 	position_update_melee_push_timer(500),
 	hate_list_cleanup_timer(6000),
 	mob_close_scan_timer(6000),
-	mob_check_moving_timer(1000)
+	mob_check_moving_timer(1000),
+	bot_attack_flag_timer(10000)
 {
 	mMovementManager = &MobMovementManager::Get();
 	mMovementManager->AddMob(this);
@@ -399,6 +400,10 @@ Mob::Mob(
 	pet_owner_client  = false;
 	pet_owner_npc     = false;
 	pet_targetlock_id = 0;
+
+	//bot attack flag
+	bot_attack_flag = 0;
+	bot_attack_flag_timer.Disable();
 
 	attacked_count = 0;
 	mezzed         = false;
@@ -8579,4 +8584,661 @@ void Mob::SetExtraHaste(int haste, bool need_to_save)
 			CharacterDataRepository::UpdateOne(database, e);
 		}
 	}
+}
+
+
+uint16 Mob::GetSpellTypeIDByShortName(std::string spellTypeString) {
+
+	for (int i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+		if (!spellTypeString.compare(SetSpellTypeShortNameByID(i))) {
+			return i;
+		}
+	}
+
+	return UINT16_MAX;
+}
+
+std::string Mob::SetSpellTypeNameByID(uint16 spellType) {
+	std::string spellTypeName = "null";
+
+	switch (spellType) {
+		case BotSpellTypes::Nuke:
+			spellTypeName = "Nuke";
+			break;
+		case BotSpellTypes::RegularHeal:
+			spellTypeName = "Regular Heal";
+			break;
+		case BotSpellTypes::Root:
+			spellTypeName = "Root";
+			break;
+		case BotSpellTypes::Buff:
+			spellTypeName = "Buff";
+			break;
+		case BotSpellTypes::Escape:
+			spellTypeName = "Escape";
+			break;
+		case BotSpellTypes::Pet:
+			spellTypeName = "Pet";
+			break;
+		case BotSpellTypes::Lifetap:
+			spellTypeName = "Lifetap";
+			break;
+		case BotSpellTypes::Snare:
+			spellTypeName = "Snare";
+			break;
+		case BotSpellTypes::DOT:
+			spellTypeName = "DoT";
+			break;
+		case BotSpellTypes::Fear:
+			spellTypeName = "Fear";
+			break;
+		case BotSpellTypes::Stun:
+			spellTypeName = "Stun";
+			break;
+		case BotSpellTypes::Dispel:
+			spellTypeName = "Dispel";
+			break;
+		case BotSpellTypes::InCombatBuff:
+			spellTypeName = "In-Combat Buff";
+			break;
+		case BotSpellTypes::Mez:
+			spellTypeName = "Mez";
+			break;
+		case BotSpellTypes::Charm:
+			spellTypeName = "Charm";
+			break;
+		case BotSpellTypes::Slow:
+			spellTypeName = "Slow";
+			break;
+		case BotSpellTypes::Debuff:
+			spellTypeName = "Debuff";
+			break;
+		case BotSpellTypes::Cure:
+			spellTypeName = "Cure";
+			break;
+		case BotSpellTypes::Resurrect:
+			spellTypeName = "Resurrect";
+			break;
+		case BotSpellTypes::HateRedux:
+			spellTypeName = "Hate Reduction";
+			break;
+		case BotSpellTypes::InCombatBuffSong:
+			spellTypeName = "In-Combat Buff Song";
+			break;
+		case BotSpellTypes::OutOfCombatBuffSong:
+			spellTypeName = "Out-of-Combat Buff Song";
+			break;
+		case BotSpellTypes::PreCombatBuff:
+			spellTypeName = "Pre-Combat Buff";
+			break;
+		case BotSpellTypes::PreCombatBuffSong:
+			spellTypeName = "Pre-Combat Buff Song";
+			break;
+		case BotSpellTypes::CompleteHeal:
+			spellTypeName = "Complete Heal";
+			break;
+		case BotSpellTypes::FastHeals:
+			spellTypeName = "Fast Heal";
+			break;
+		case BotSpellTypes::VeryFastHeals:
+			spellTypeName = "Very Fast Heal";
+			break;
+		case BotSpellTypes::GroupHeals:
+			spellTypeName = "Group Heal";
+			break;
+		case BotSpellTypes::GroupCompleteHeals:
+			spellTypeName = "Group Complete Heal";
+			break;
+		case BotSpellTypes::GroupHoTHeals:
+			spellTypeName = "Group HoT Heal";
+			break;
+		case BotSpellTypes::HoTHeals:
+			spellTypeName = "HoT Heal";
+			break;
+		case BotSpellTypes::AENukes:
+			spellTypeName = "AE Nuke";
+			break;
+		case BotSpellTypes::AERains:
+			spellTypeName = "AE Rain";
+			break;
+		case BotSpellTypes::AEDebuff:
+			spellTypeName = "AE Debuff";
+			break;
+		case BotSpellTypes::AEFear:
+			spellTypeName = "AE Fear";
+			break;
+		case BotSpellTypes::AEMez:
+			spellTypeName = "AE Mez";
+			break;
+		case BotSpellTypes::AESlow:
+			spellTypeName = "AE Slow";
+			break;
+		case BotSpellTypes::AESnare:
+			spellTypeName = "AE Snare";
+			break;
+		case BotSpellTypes::AEStun:
+			spellTypeName = "AE Stun";
+			break;
+		case BotSpellTypes::PetBuffs:
+			spellTypeName = "Pet Buff";
+			break;
+		case BotSpellTypes::PetRegularHeals:
+			spellTypeName = "Pet Regular Heal";
+			break;
+		case BotSpellTypes::PetCompleteHeals:
+			spellTypeName = "Pet Complete Heal";
+			break;
+		case BotSpellTypes::PetFastHeals:
+			spellTypeName = "Pet Fast Heal";
+			break;
+		case BotSpellTypes::PetVeryFastHeals:
+			spellTypeName = "Pet Very Fast Heal";
+			break;
+		case BotSpellTypes::PetGroupHeals:
+			spellTypeName = "Pet Group Heal";
+			break;
+		case BotSpellTypes::PetGroupCompleteHeals:
+			spellTypeName = "Pet Group Complete Heal";
+			break;
+		case BotSpellTypes::PetGroupHoTHeals:
+			spellTypeName = "Pet Group HoT Heal";
+			break;
+		case BotSpellTypes::PetHoTHeals:
+			spellTypeName = "Pet HoT Heal";
+			break;
+		case BotSpellTypes::DamageShields:
+			spellTypeName = "Damage Shield";
+			break;
+		case BotSpellTypes::ResistBuffs:
+			spellTypeName = "Resist Buff";
+			break;
+		default:
+			break;
+	}
+
+	return spellTypeName;
+}
+
+std::string Mob::SetSpellTypeShortNameByID(uint16 spellType) {
+	std::string spellTypeName = "null";
+
+	switch (spellType) {
+		case BotSpellTypes::Nuke:
+			spellTypeName = "nukes";
+			break;
+		case BotSpellTypes::RegularHeal:
+			spellTypeName = "regularheals";
+			break;
+		case BotSpellTypes::Root:
+			spellTypeName = "roots";
+			break;
+		case BotSpellTypes::Buff:
+			spellTypeName = "buffs";
+			break;
+		case BotSpellTypes::Escape:
+			spellTypeName = "escapes";
+			break;
+		case BotSpellTypes::Pet:
+			spellTypeName = "pets";
+			break;
+		case BotSpellTypes::Lifetap:
+			spellTypeName = "lifetaps";
+			break;
+		case BotSpellTypes::Snare:
+			spellTypeName = "snares";
+			break;
+		case BotSpellTypes::DOT:
+			spellTypeName = "dots";
+			break;
+		case BotSpellTypes::Fear:
+			spellTypeName = "fears";
+			break;
+		case BotSpellTypes::Stun:
+			spellTypeName = "stuns";
+			break;
+		case BotSpellTypes::Dispel:
+			spellTypeName = "dispels";
+			break;
+		case BotSpellTypes::InCombatBuff:
+			spellTypeName = "incombatbuffs";
+			break;
+		case BotSpellTypes::Mez:
+			spellTypeName = "mez";
+			break;
+		case BotSpellTypes::Charm:
+			spellTypeName = "charms";
+			break;
+		case BotSpellTypes::Slow:
+			spellTypeName = "slows";
+			break;
+		case BotSpellTypes::Debuff:
+			spellTypeName = "debuffs";
+			break;
+		case BotSpellTypes::Cure:
+			spellTypeName = "cures";
+			break;
+		case BotSpellTypes::Resurrect:
+			spellTypeName = "resurrect";
+			break;
+		case BotSpellTypes::HateRedux:
+			spellTypeName = "hateredux";
+			break;
+		case BotSpellTypes::InCombatBuffSong:
+			spellTypeName = "incombatbuffsongs";
+			break;
+		case BotSpellTypes::OutOfCombatBuffSong:
+			spellTypeName = "outofcombatbuffsongs";
+			break;
+		case BotSpellTypes::PreCombatBuff:
+			spellTypeName = "precombatbuffs";
+			break;
+		case BotSpellTypes::PreCombatBuffSong:
+			spellTypeName = "precombatbuffsongs";
+			break;
+		case BotSpellTypes::CompleteHeal:
+			spellTypeName = "completeheals";
+			break;
+		case BotSpellTypes::FastHeals:
+			spellTypeName = "fastheals";
+			break;
+		case BotSpellTypes::VeryFastHeals:
+			spellTypeName = "veryfastheals";
+			break;
+		case BotSpellTypes::GroupHeals:
+			spellTypeName = "groupheals";
+			break;
+		case BotSpellTypes::GroupCompleteHeals:
+			spellTypeName = "groupcompleteheals";
+			break;
+		case BotSpellTypes::GroupHoTHeals:
+			spellTypeName = "grouphotheals";
+			break;
+		case BotSpellTypes::HoTHeals:
+			spellTypeName = "hotheals";
+			break;
+		case BotSpellTypes::AENukes:
+			spellTypeName = "aenukes";
+			break;
+		case BotSpellTypes::AERains:
+			spellTypeName = "aerains";
+			break;
+		case BotSpellTypes::AEDebuff:
+			spellTypeName = "aedebuffs";
+			break;
+		case BotSpellTypes::AEFear:
+			spellTypeName = "aefears";
+			break;
+		case BotSpellTypes::AEMez:
+			spellTypeName = "aemez";
+			break;
+		case BotSpellTypes::AESlow:
+			spellTypeName = "aeslows";
+			break;
+		case BotSpellTypes::AESnare:
+			spellTypeName = "aesnares";
+			break;
+		case BotSpellTypes::AEStun:
+			spellTypeName = "aestuns";
+			break;
+		case BotSpellTypes::PetBuffs:
+			spellTypeName = "petbuffs";
+			break;
+		case BotSpellTypes::PetRegularHeals:
+			spellTypeName = "petregularheals";
+			break;
+		case BotSpellTypes::PetCompleteHeals:
+			spellTypeName = "petcompleteheals";
+			break;
+		case BotSpellTypes::PetFastHeals:
+			spellTypeName = "petfastheals";
+			break;
+		case BotSpellTypes::PetVeryFastHeals:
+			spellTypeName = "petveryfastheals";
+			break;
+		case BotSpellTypes::PetGroupHeals:
+			spellTypeName = "petgroupheals";
+			break;
+		case BotSpellTypes::PetGroupCompleteHeals:
+			spellTypeName = "petgroupcompleteheals";
+			break;
+		case BotSpellTypes::PetGroupHoTHeals:
+			spellTypeName = "petgrouphotheals";
+			break;
+		case BotSpellTypes::PetHoTHeals:
+			spellTypeName = "pethotheals";
+			break;
+		case BotSpellTypes::DamageShields:
+			spellTypeName = "damageshields";
+			break;
+		case BotSpellTypes::ResistBuffs:
+			spellTypeName = "resistbuffs";
+			break;
+		default:
+			break;
+	}
+
+	return spellTypeName;
+}
+
+bool Mob::SetDefaultSpellHold(uint16 spellType) {
+	switch (spellType) {
+		case BotSpellTypes::AENukes:
+		case BotSpellTypes::AERains:
+		case BotSpellTypes::AEMez:
+		case BotSpellTypes::AEStun:
+		case BotSpellTypes::AEDebuff:
+		case BotSpellTypes::AESlow:
+		case BotSpellTypes::AESnare:
+		case BotSpellTypes::AEFear:
+		case BotSpellTypes::Root:
+		case BotSpellTypes::Dispel:
+		case BotSpellTypes::Fear:
+			return true;
+		case BotSpellTypes::Snare:
+			if (GetClass() == Class::Wizard) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		default:
+			return false;
+	}
+}
+
+uint16 Mob::SetDefaultSpellDelay(uint16 spellType) {
+	switch (spellType) {
+		case BotSpellTypes::VeryFastHeals:
+		case BotSpellTypes::PetVeryFastHeals:
+			return 1500;
+		case BotSpellTypes::FastHeals:
+		case BotSpellTypes::PetFastHeals:
+			return 2500;
+		case BotSpellTypes::DOT:
+		case BotSpellTypes::GroupHeals:
+		case BotSpellTypes::PetGroupHeals:
+		case BotSpellTypes::RegularHeal:
+		case BotSpellTypes::PetRegularHeals:
+			return 4000;
+		case BotSpellTypes::AENukes:
+		case BotSpellTypes::AERains:
+		case BotSpellTypes::AEStun:
+		case BotSpellTypes::AEDebuff:
+		case BotSpellTypes::AESlow:
+		case BotSpellTypes::AESnare:
+		case BotSpellTypes::Nuke:
+		case BotSpellTypes::Snare:
+		case BotSpellTypes::Debuff:
+		case BotSpellTypes::Slow:
+		case BotSpellTypes::Stun:
+			return 6000;
+		case BotSpellTypes::Root:
+		case BotSpellTypes::CompleteHeal:
+		case BotSpellTypes::GroupCompleteHeals:
+		case BotSpellTypes::PetCompleteHeals:
+		case BotSpellTypes::PetGroupCompleteHeals:
+			return 8000;		
+		case BotSpellTypes::Fear:
+		case BotSpellTypes::AEFear:
+			return 15000;
+		case BotSpellTypes::GroupHoTHeals:
+		case BotSpellTypes::PetGroupHoTHeals:
+		case BotSpellTypes::HoTHeals:
+		case BotSpellTypes::PetHoTHeals:
+			return 22000;
+		default:
+			return 1;
+	}
+}
+
+uint8 Mob::SetDefaultSpellMinThreshold(uint16 spellType) {
+	switch (spellType) {
+		case BotSpellTypes::AENukes:
+		case BotSpellTypes::AERains:
+		case BotSpellTypes::AEStun:
+		case BotSpellTypes::AEDebuff:
+		case BotSpellTypes::AESlow:
+		case BotSpellTypes::Nuke:
+		case BotSpellTypes::Debuff:
+		case BotSpellTypes::Dispel:
+		case BotSpellTypes::Slow:
+			return 20;
+		case BotSpellTypes::DOT:
+			return 35;
+		case BotSpellTypes::Charm:
+			return 50;
+		case BotSpellTypes::Mez:
+		case BotSpellTypes::AEMez:
+			return 85;
+		default:
+			return 0;
+	}
+}
+
+uint8 Mob::SetDefaultSpellMaxThreshold(uint16 spellType) {
+	switch (spellType) {
+		case BotSpellTypes::Lifetap:
+		case BotSpellTypes::FastHeals:
+		case BotSpellTypes::PetFastHeals:
+			return 40;
+		case BotSpellTypes::GroupHeals:
+		case BotSpellTypes::PetGroupHeals:
+		case BotSpellTypes::RegularHeal:
+		case BotSpellTypes::PetRegularHeals:
+			return 60;
+		case BotSpellTypes::CompleteHeal:
+		case BotSpellTypes::GroupCompleteHeals:
+		case BotSpellTypes::PetCompleteHeals:
+		case BotSpellTypes::PetGroupCompleteHeals:
+			return 80;
+		case BotSpellTypes::AENukes:
+		case BotSpellTypes::AERains:
+		case BotSpellTypes::AEStun:		
+		case BotSpellTypes::AESlow:
+		case BotSpellTypes::AEFear:
+		case BotSpellTypes::AESnare:		
+		case BotSpellTypes::DOT:
+		case BotSpellTypes::Nuke:
+		case BotSpellTypes::Root:
+		case BotSpellTypes::Slow:
+		case BotSpellTypes::Snare:
+		case BotSpellTypes::Fear:
+		case BotSpellTypes::Dispel:
+		case BotSpellTypes::AEDebuff:
+		case BotSpellTypes::Debuff:
+		case BotSpellTypes::Stun:
+			return 99;
+		case BotSpellTypes::Buff:
+		case BotSpellTypes::Charm:
+		case BotSpellTypes::Cure:
+		case BotSpellTypes::DamageShields:
+		case BotSpellTypes::HateRedux:
+		case BotSpellTypes::InCombatBuff:
+		case BotSpellTypes::InCombatBuffSong:
+		case BotSpellTypes::Mez:
+		case BotSpellTypes::AEMez:
+		case BotSpellTypes::OutOfCombatBuffSong:
+		case BotSpellTypes::Pet:
+		case BotSpellTypes::PetBuffs:
+		case BotSpellTypes::PreCombatBuff:
+		case BotSpellTypes::PreCombatBuffSong:
+		case BotSpellTypes::ResistBuffs:
+		case BotSpellTypes::Resurrect:
+			return 150;
+		case BotSpellTypes::GroupHoTHeals:
+		case BotSpellTypes::PetGroupHoTHeals:
+		case BotSpellTypes::HoTHeals:
+		case BotSpellTypes::PetHoTHeals:
+			if (GetClass() == Class::Necromancer || GetClass() == Class::Shaman) {
+				return 60;
+			}
+			else {
+				return 90;
+			}
+		default:
+			return 150;
+	}
+}
+
+void Mob::SetSpellHold(uint16 spellType, bool holdStatus) { 
+	_spellSettings[spellType].hold = holdStatus; 
+}
+
+void Mob::SetSpellDelay(uint16 spellType, uint16 delayValue) {
+	_spellSettings[spellType].delay = delayValue; 
+}
+
+void Mob::SetSpellMinThreshold(uint16 spellType, uint8 thresholdValue) {
+	_spellSettings[spellType].minThreshold = thresholdValue; 
+}
+
+void Mob::SetSpellMaxThreshold(uint16 spellType, uint8 thresholdValue) {
+	_spellSettings[spellType].maxThreshold = thresholdValue; 
+}
+
+void Mob::SetSpellTypeRecastTimer(uint16 spellType, uint32 recastTime) {
+	_spellSettings[spellType].recastTimer.Start(recastTime);
+	LogBotDelayChecksDetail("{} says, 'My {} Delay was to {} seconds.'"
+		, GetCleanName()
+		, GetSpellTypeNameByID(spellType)
+		, (recastTime / 1000.00)
+	); //deleteme
+}
+
+void Mob::StartBotSpellTimers() {
+	for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+		_spellSettings[i].recastTimer.Start();
+	}
+}
+
+void Mob::DisableBotSpellTimers() {
+	for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+		_spellSettings[i].recastTimer.Disable();
+	}
+}
+
+bool Mob::GetUltimateSpellHold(uint16 spellType, Mob* tar) {
+	if (!tar) {
+		return GetSpellHold(spellType);
+	}
+
+	if (tar->IsPet() && tar->GetOwner() && tar->GetOwner()->IsOfClientBot()) {
+		return tar->GetOwner()->GetSpellHold(GetPetSpellType(spellType));
+	}
+
+	if (BOT_SPELL_TYPES_OTHER_BENEFICIAL(spellType) && tar->IsOfClientBot()) {
+		return tar->GetSpellHold(spellType);
+	}
+
+	return GetSpellHold(spellType);
+}
+
+uint16 Mob::GetUltimateSpellDelay(uint16 spellType, Mob* tar) {
+	if (!tar) {
+		return GetSpellDelay(spellType);
+	}
+
+	if (tar->IsPet() && tar->GetOwner() && tar->GetOwner()->IsOfClientBot()) {
+		return tar->GetOwner()->GetSpellDelay(GetPetSpellType(spellType));
+	}
+
+	if (BOT_SPELL_TYPES_OTHER_BENEFICIAL(spellType) && tar->IsOfClientBot()) {
+		return tar->GetSpellDelay(spellType);
+	}
+
+	return GetSpellDelay(spellType);
+}
+
+bool Mob::GetUltimateSpellDelayCheck(uint16 spellType, Mob* tar) {
+	if (!tar) {
+		return SpellTypeRecastCheck(spellType);
+	}
+
+	if (tar->IsPet() && tar->GetOwner() && tar->GetOwner()->IsOfClientBot()) {
+		return tar->GetOwner()->SpellTypeRecastCheck(GetPetSpellType(spellType));
+	}
+
+	if (BOT_SPELL_TYPES_OTHER_BENEFICIAL(spellType) && tar->IsOfClientBot()) {
+		return tar->SpellTypeRecastCheck(spellType);
+	}
+
+	return SpellTypeRecastCheck(spellType);
+}
+
+uint8 Mob::GetUltimateSpellMinThreshold(uint16 spellType, Mob* tar) {
+	if (!tar) {
+		return GetSpellMinThreshold(spellType);
+	}
+
+	if (tar->IsPet() && tar->GetOwner() && tar->GetOwner()->IsOfClientBot()) {
+		return tar->GetOwner()->GetSpellMinThreshold(GetPetSpellType(spellType));
+	}
+
+	if (BOT_SPELL_TYPES_OTHER_BENEFICIAL(spellType) && tar->IsOfClientBot()) {
+		return tar->GetSpellMinThreshold(spellType);
+	}
+
+	return GetSpellMinThreshold(spellType);
+}
+
+uint8 Mob::GetUltimateSpellMaxThreshold(uint16 spellType, Mob* tar) {
+	if (!tar) {
+		return GetSpellMaxThreshold(spellType);
+	}
+
+	if (tar->IsPet() && tar->GetOwner() && tar->GetOwner()->IsOfClientBot()) {
+		return tar->GetOwner()->GetSpellMaxThreshold(GetPetSpellType(spellType));
+	}
+
+	if (BOT_SPELL_TYPES_OTHER_BENEFICIAL(spellType) && tar->IsOfClientBot()) {
+		return tar->GetSpellMaxThreshold(spellType);
+	}
+
+	return GetSpellMaxThreshold(spellType);
+}
+
+uint16 Mob::GetPetSpellType(uint16 spellType) {
+	switch (spellType) {
+		case BotSpellTypes::VeryFastHeals:
+			return BotSpellTypes::PetVeryFastHeals;
+		case BotSpellTypes::FastHeals:
+			return BotSpellTypes::PetFastHeals;
+		case BotSpellTypes::RegularHeal:
+			return BotSpellTypes::PetRegularHeals;
+		case BotSpellTypes::GroupHeals:
+			return BotSpellTypes::PetGroupHeals;
+		case BotSpellTypes::CompleteHeal:
+			return BotSpellTypes::PetCompleteHeals;
+		case BotSpellTypes::GroupCompleteHeals:
+			return BotSpellTypes::PetGroupCompleteHeals;
+		case BotSpellTypes::HoTHeals:
+			return BotSpellTypes::PetHoTHeals;
+		case BotSpellTypes::GroupHoTHeals:
+			return BotSpellTypes::PetGroupHoTHeals;
+		case BotSpellTypes::Buff:
+			return BotSpellTypes::PetBuffs;
+		default:
+			break;
+	}
+
+	return spellType;
+}
+
+uint8 Mob::GetHPRatioForSpellType(uint16 spellType, Mob* tar) {
+	switch (spellType) {
+		case BotSpellTypes::Escape:
+		case BotSpellTypes::HateRedux:
+		case BotSpellTypes::InCombatBuff:
+		case BotSpellTypes::InCombatBuffSong:
+		case BotSpellTypes::Lifetap:
+		case BotSpellTypes::OutOfCombatBuffSong:
+		case BotSpellTypes::Pet:
+		case BotSpellTypes::PreCombatBuff:
+		case BotSpellTypes::PreCombatBuffSong:
+			return GetHPRatio();
+		default:
+			return tar->GetHPRatio();
+	}
+
+	return tar->GetHPRatio();
 }

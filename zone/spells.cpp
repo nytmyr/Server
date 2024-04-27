@@ -1296,6 +1296,11 @@ void Mob::InterruptSpell(uint16 message, uint16 color, uint16 spellid)
 	EQApplicationPacket *outapp = nullptr;
 	uint16 message_other;
 	bool bard_song_mode = false; //has the bard song gone to auto repeat mode
+
+	if (IsBot()) {
+		CastToBot()->SetCastedSpellType(UINT16_MAX);
+	}
+
 	if (!IsValidSpell(spellid)) {
 		if (bardsong) {
 			spellid = bardsong;
@@ -2127,7 +2132,17 @@ bool Mob::DetermineSpellTargets(uint16 spell_id, Mob *&spell_target, Mob *&ae_ce
 		}
 		case ST_Pet:
 		{
-			spell_target = GetPet();
+			if (
+				!(
+					IsBot() &&
+					spell_target &&
+					spell_target->GetOwner() != this &&
+					RuleB(Bots, CanCastPetOnlyOnOthersPets)
+				)
+			) {
+
+				spell_target = GetPet();
+			}
 			if(!spell_target)
 			{
 				LogSpells("Spell [{}] canceled: invalid target (no pet)", spell_id);
@@ -4715,6 +4730,11 @@ bool Mob::SpellOnTarget(
 	}
 
 	LogSpells("Cast of [{}] by [{}] on [{}] complete successfully", spell_id, GetName(), spelltar->GetName());
+
+	if (IsBot() && (CastToBot()->GetCastedSpellType() != UINT16_MAX)) {
+		CastToBot()->SetBotSpellRecastTimer(CastToBot()->GetCastedSpellType(), spelltar);
+		CastToBot()->SetCastedSpellType(UINT16_MAX);
+	}
 
 	return true;
 }
@@ -7548,4 +7568,124 @@ bool Mob::CheckWaterLoS(Mob* m)
 		zone->watermap->InLiquid(GetPosition()) ==
 		zone->watermap->InLiquid(m->GetPosition())
 	);
+}
+
+bool Mob::IsImmuneToBotSpell(uint16 spell_id, Mob* caster)
+{
+	int effect_index;
+
+	if (caster == nullptr)
+		return(false);
+
+	//TODO: this function loops through the effect list for
+	//this spell like 10 times, this could easily be consolidated
+	//into one loop through with a switch statement.
+
+	LogSpells("Checking to see if we are immune to spell [{}] cast by [{}]", spell_id, caster->GetName());
+
+	if (!IsValidSpell(spell_id))
+		return true;
+
+	if (IsBeneficialSpell(spell_id) && (caster->GetNPCTypeID())) //then skip the rest, stop NPCs aggroing each other with buff spells. 2013-03-05
+		return false;
+
+	if (IsMesmerizeSpell(spell_id))
+	{
+		if (GetSpecialAbility(UNMEZABLE)) {
+			return true;
+		}
+
+		// check max level for spell
+		effect_index = GetSpellEffectIndex(spell_id, SE_Mez);
+		assert(effect_index >= 0);
+		// NPCs get to ignore the max level
+		if ((GetLevel() > spells[spell_id].max_value[effect_index]) &&
+			(!caster->IsNPC() || (caster->IsNPC() && !RuleB(Spells, NPCIgnoreBaseImmunity))))
+		{
+			return true;
+		}
+	}
+
+	// slow and haste spells
+	if (GetSpecialAbility(UNSLOWABLE) && IsEffectInSpell(spell_id, SE_AttackSpeed))
+	{
+		return true;
+	}
+
+	// client vs client fear
+	if (IsEffectInSpell(spell_id, SE_Fear))
+	{
+		effect_index = GetSpellEffectIndex(spell_id, SE_Fear);
+		if (GetSpecialAbility(UNFEARABLE)) {
+			return true;
+		}
+		else if (IsClient() && caster->IsClient() && (caster->CastToClient()->GetGM() == false))
+		{
+			LogSpells("Clients cannot fear eachother!");
+			caster->MessageString(Chat::Red, IMMUNE_FEAR);	// need to verify message type, not in MQ2Cast for easy look up
+			return true;
+		}
+		else if (GetLevel() > spells[spell_id].max_value[effect_index] && spells[spell_id].max_value[effect_index] != 0)
+		{
+			return true;
+		}
+		else if (CheckAATimer(aaTimerWarcry))
+		{
+			return true;
+		}
+	}
+
+	if (IsCharmSpell(spell_id))
+	{
+		if (GetSpecialAbility(UNCHARMABLE))
+		{
+			return true;
+		}
+
+		if (this == caster)
+		{
+			return true;
+		}
+
+		//let npcs cast whatever charm on anyone
+		if (!caster->IsNPC())
+		{
+			// check level limit of charm spell
+			effect_index = GetSpellEffectIndex(spell_id, SE_Charm);
+			assert(effect_index >= 0);
+			if (GetLevel() > spells[spell_id].max_value[effect_index] && spells[spell_id].max_value[effect_index] != 0)
+			{
+				return true;
+			}
+		}
+	}
+
+	if
+		(
+			IsEffectInSpell(spell_id, SE_Root) ||
+			IsEffectInSpell(spell_id, SE_MovementSpeed)
+			)
+	{
+		if (GetSpecialAbility(UNSNAREABLE)) {
+			return true;
+		}
+	}
+
+	if (IsLifetapSpell(spell_id))
+	{
+		if (this == caster)
+		{
+			return true;
+		}
+	}
+
+	if (IsSacrificeSpell(spell_id))
+	{
+		if (this == caster)
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
