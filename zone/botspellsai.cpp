@@ -46,7 +46,9 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 		return false;
 	}
 
-	if (GetSpellHold(iSpellTypes)) {
+	LogBotPreChecks("{} says, 'AISpellCast {} checks on {}.'", GetCleanName(), GetSpellTypeNameByID(GetControlledBotSpellType(iSpellTypes)), tar->GetCleanName()); //deleteme
+
+	if (GetSpellHold(GetControlledBotSpellType(iSpellTypes))) {
 		LogBotHoldChecks("{} says, 'Cancelling {} on {} due to GetSpellHold.'", GetCleanName(), GetSpellTypeNameByID(GetControlledBotSpellType(iSpellTypes)), tar->GetCleanName()); //deleteme
 		return false;
 	}
@@ -234,14 +236,14 @@ bool Bot::BotCastCure(Mob* tar, uint8 botClass, BotSpell& botSpell, Raid* raid) 
 
 		if (tar != this && tar->IsOfClientBot()) {
 			if (tar->IsBot()) {
-				tar->m_botSpellType_Cure.Start(tar->CastToBot()->GetSpellDelay(botSpellType_Cure));
+				tar->m_botSpellType_Cure.Start(tar->CastToBot()->GetSpellDelay(BotSpellTypes::Cure));
 			} /* TODO with client commands
 			else if (tar->IsClient()) {
-				tar->m_botSpellType_Cure.Start(tar->CastToClient()->GetSpellDelay(botSpellType_Cure));
+				tar->m_botSpellType_Cure.Start(tar->CastToClient()->GetSpellDelay(BotSpellTypes::Cure));
 			} */
 		}
 		else {
-			m_botSpellType_Cure.Start(GetSpellDelay(botSpellType_Cure));
+			m_botSpellType_Cure.Start(GetSpellDelay(BotSpellTypes::Cure));
 		}
 	}
 
@@ -717,33 +719,37 @@ bool Bot::BotCastRoot(Mob* tar, uint8 botLevel, uint32 iSpellTypes, BotSpell& bo
 bool Bot::BotCastHeal(Mob* tar, uint8 botLevel, uint8 botClass, BotSpell& botSpell, Raid* raid) { // TODO once commands are implemented
 	bool casted_spell = false;
 
+	if (GetSpellHold(BotSpellTypes::Heal)) {
+		return casted_spell;
+	}
+
 	if ((botClass == Class::Cleric) || (botClass == Class::Druid) || (botClass == Class::Shaman) || (botClass == Class::Paladin) || (botClass == Class::Beastlord) || (botClass == Class::Ranger)) {
 
 		uint8 hpr = tar->GetHPRatio();
 		std::string spellType = "None";
 		auto targetName = tar->GetCleanName();
 		std::string myName = GetCleanName();
-		uint8 veryFastHealMinThreshold = GetDefaultSpellMinThreshold(botSpellType_VeryFastHeals);
-		uint8 veryFastHealMaxThreshold = GetDefaultSpellMaxThreshold(botSpellType_VeryFastHeals);
-		uint8 fastHealMinThreshold = GetDefaultSpellMinThreshold(botSpellType_FastHeals);
-		uint8 fastHealMaxThreshold = GetDefaultSpellMaxThreshold(botSpellType_FastHeals);
-		uint8 regularHealMinThreshold = GetDefaultSpellMinThreshold(botSpellType_RegularHeals);
-		uint8 regularHealMaxThreshold = GetDefaultSpellMaxThreshold(botSpellType_RegularHeals);
-		uint8 groupHealMinThreshold = GetDefaultSpellMinThreshold(botSpellType_GroupHeals);
-		uint8 groupHealMaxThreshold = GetDefaultSpellMaxThreshold(botSpellType_GroupHeals);
-		uint8 completeHealMinThreshold = GetDefaultSpellMinThreshold(botSpellType_CompleteHeals);
-		uint8 completeHealMaxThreshold = GetDefaultSpellMaxThreshold(botSpellType_CompleteHeals);
-		uint8 groupHoTHealMinThreshold = GetDefaultSpellMinThreshold(botSpellType_GroupHoTHeals);
-		uint8 groupHoTHealMaxThreshold = GetDefaultSpellMaxThreshold(botSpellType_GroupHoTHeals);
-		uint8 hotHealMinThreshold = GetDefaultSpellMinThreshold(botSpellType_HoTHeals);
-		uint8 hotHealMaxThreshold = GetDefaultSpellMaxThreshold(botSpellType_HoTHeals);
-		uint32 veryFastHealDelay = GetDefaultSpellDelay(botSpellType_VeryFastHeals);
-		uint32 fastHealDelay = GetDefaultSpellDelay(botSpellType_FastHeals);
-		uint32 regularHealDelay = GetDefaultSpellDelay(botSpellType_RegularHeals);
-		uint32 completeHealDelay = GetDefaultSpellDelay(botSpellType_CompleteHeals);
-		uint32 hotHealDelay = GetDefaultSpellDelay(botSpellType_HoTHeals);
-		uint32 groupHealDelay = GetDefaultSpellDelay(botSpellType_GroupHeals);
-		uint32 groupHoTHealDelay = GetDefaultSpellDelay(botSpellType_GroupHoTHeals);
+		uint8 veryFastHealMinThreshold = GetDefaultSpellMinThreshold(BotSpellTypes::VeryFastHeals);
+		uint8 veryFastHealMaxThreshold = GetDefaultSpellMaxThreshold(BotSpellTypes::VeryFastHeals);
+		uint8 fastHealMinThreshold = GetDefaultSpellMinThreshold(BotSpellTypes::FastHeals);
+		uint8 fastHealMaxThreshold = GetDefaultSpellMaxThreshold(BotSpellTypes::FastHeals);
+		uint8 regularHealMinThreshold = GetDefaultSpellMinThreshold(BotSpellTypes::RegularHeals);
+		uint8 regularHealMaxThreshold = GetDefaultSpellMaxThreshold(BotSpellTypes::RegularHeals);
+		uint8 groupHealMinThreshold = GetDefaultSpellMinThreshold(BotSpellTypes::GroupHeals);
+		uint8 groupHealMaxThreshold = GetDefaultSpellMaxThreshold(BotSpellTypes::GroupHeals);
+		uint8 completeHealMinThreshold = GetDefaultSpellMinThreshold(BotSpellTypes::CompleteHeals);
+		uint8 completeHealMaxThreshold = GetDefaultSpellMaxThreshold(BotSpellTypes::CompleteHeals);
+		uint8 groupHoTHealMinThreshold = GetDefaultSpellMinThreshold(BotSpellTypes::GroupHoTHeals);
+		uint8 groupHoTHealMaxThreshold = GetDefaultSpellMaxThreshold(BotSpellTypes::GroupHoTHeals);
+		uint8 hotHealMinThreshold = GetDefaultSpellMinThreshold(BotSpellTypes::HoTHeals);
+		uint8 hotHealMaxThreshold = GetDefaultSpellMaxThreshold(BotSpellTypes::HoTHeals);
+		uint32 veryFastHealDelay = GetDefaultSpellDelay(BotSpellTypes::VeryFastHeals);
+		uint32 fastHealDelay = GetDefaultSpellDelay(BotSpellTypes::FastHeals);
+		uint32 regularHealDelay = GetDefaultSpellDelay(BotSpellTypes::RegularHeals);
+		uint32 completeHealDelay = GetDefaultSpellDelay(BotSpellTypes::CompleteHeals);
+		uint32 hotHealDelay = GetDefaultSpellDelay(BotSpellTypes::HoTHeals);
+		uint32 groupHealDelay = GetDefaultSpellDelay(BotSpellTypes::GroupHeals);
+		uint32 groupHoTHealDelay = GetDefaultSpellDelay(BotSpellTypes::GroupHoTHeals);
 		uint32 currentTime = Timer::GetCurrentTime();
 		uint32 veryFastHealTime = tar->DontVeryFastHealMeBefore();
 		uint32 fastHealTime = tar->DontFastHealMeBefore();
@@ -754,50 +760,50 @@ bool Bot::BotCastHeal(Mob* tar, uint8 botLevel, uint8 botClass, BotSpell& botSpe
 		uint32 groupHoTHealTime = tar->DontGroupHoTHealMeBefore();
 
 		if (tar->IsBot()) {
-			veryFastHealMinThreshold = tar->CastToBot()->GetSpellMinThreshold(botSpellType_VeryFastHeals);
-			veryFastHealMaxThreshold = tar->CastToBot()->GetSpellMaxThreshold(botSpellType_VeryFastHeals);
-			fastHealMinThreshold = tar->CastToBot()->GetSpellMinThreshold(botSpellType_FastHeals);
-			fastHealMaxThreshold = tar->CastToBot()->GetSpellMaxThreshold(botSpellType_FastHeals);
-			regularHealMinThreshold = tar->CastToBot()->GetSpellMinThreshold(botSpellType_RegularHeals);
-			regularHealMaxThreshold = tar->CastToBot()->GetSpellMaxThreshold(botSpellType_RegularHeals);
-			groupHealMinThreshold = tar->CastToBot()->GetSpellMinThreshold(botSpellType_GroupHeals);
-			groupHealMaxThreshold = tar->CastToBot()->GetSpellMaxThreshold(botSpellType_GroupHeals);
-			groupHoTHealMinThreshold = tar->CastToBot()->GetSpellMinThreshold(botSpellType_GroupHoTHeals);
-			groupHoTHealMaxThreshold = tar->CastToBot()->GetSpellMaxThreshold(botSpellType_GroupHoTHeals);
-			completeHealMinThreshold = tar->CastToBot()->GetSpellMinThreshold(botSpellType_CompleteHeals);
-			completeHealMaxThreshold = tar->CastToBot()->GetSpellMaxThreshold(botSpellType_CompleteHeals);
-			hotHealMinThreshold = tar->CastToBot()->GetSpellMinThreshold(botSpellType_HoTHeals);
-			hotHealMaxThreshold = tar->CastToBot()->GetSpellMaxThreshold(botSpellType_HoTHeals);
-			veryFastHealDelay = tar->CastToBot()->GetSpellDelay(botSpellType_VeryFastHeals);
-			fastHealDelay = tar->CastToBot()->GetSpellDelay(botSpellType_FastHeals);
-			regularHealDelay = tar->CastToBot()->GetSpellDelay(botSpellType_RegularHeals);
-			groupHealDelay = tar->CastToBot()->GetSpellDelay(botSpellType_GroupHeals);
-			completeHealDelay = tar->CastToBot()->GetSpellDelay(botSpellType_CompleteHeals);
-			hotHealDelay = tar->CastToBot()->GetSpellDelay(botSpellType_HoTHeals);
-			groupHoTHealDelay = tar->CastToBot()->GetSpellDelay(botSpellType_GroupHoTHeals);
+			veryFastHealMinThreshold = tar->CastToBot()->GetSpellMinThreshold(BotSpellTypes::VeryFastHeals);
+			veryFastHealMaxThreshold = tar->CastToBot()->GetSpellMaxThreshold(BotSpellTypes::VeryFastHeals);
+			fastHealMinThreshold = tar->CastToBot()->GetSpellMinThreshold(BotSpellTypes::FastHeals);
+			fastHealMaxThreshold = tar->CastToBot()->GetSpellMaxThreshold(BotSpellTypes::FastHeals);
+			regularHealMinThreshold = tar->CastToBot()->GetSpellMinThreshold(BotSpellTypes::RegularHeals);
+			regularHealMaxThreshold = tar->CastToBot()->GetSpellMaxThreshold(BotSpellTypes::RegularHeals);
+			groupHealMinThreshold = tar->CastToBot()->GetSpellMinThreshold(BotSpellTypes::GroupHeals);
+			groupHealMaxThreshold = tar->CastToBot()->GetSpellMaxThreshold(BotSpellTypes::GroupHeals);
+			groupHoTHealMinThreshold = tar->CastToBot()->GetSpellMinThreshold(BotSpellTypes::GroupHoTHeals);
+			groupHoTHealMaxThreshold = tar->CastToBot()->GetSpellMaxThreshold(BotSpellTypes::GroupHoTHeals);
+			completeHealMinThreshold = tar->CastToBot()->GetSpellMinThreshold(BotSpellTypes::CompleteHeals);
+			completeHealMaxThreshold = tar->CastToBot()->GetSpellMaxThreshold(BotSpellTypes::CompleteHeals);
+			hotHealMinThreshold = tar->CastToBot()->GetSpellMinThreshold(BotSpellTypes::HoTHeals);
+			hotHealMaxThreshold = tar->CastToBot()->GetSpellMaxThreshold(BotSpellTypes::HoTHeals);
+			veryFastHealDelay = tar->CastToBot()->GetSpellDelay(BotSpellTypes::VeryFastHeals);
+			fastHealDelay = tar->CastToBot()->GetSpellDelay(BotSpellTypes::FastHeals);
+			regularHealDelay = tar->CastToBot()->GetSpellDelay(BotSpellTypes::RegularHeals);
+			groupHealDelay = tar->CastToBot()->GetSpellDelay(BotSpellTypes::GroupHeals);
+			completeHealDelay = tar->CastToBot()->GetSpellDelay(BotSpellTypes::CompleteHeals);
+			hotHealDelay = tar->CastToBot()->GetSpellDelay(BotSpellTypes::HoTHeals);
+			groupHoTHealDelay = tar->CastToBot()->GetSpellDelay(BotSpellTypes::GroupHoTHeals);
 		}
 		/*else if (tar->IsClient()) { // TODO Add client command support
-			veryFastHealMinThreshold = tar->CastToClient()->GetSpellMinThreshold(botSpellType_VeryFastHeals);
-			veryFastHealMaxThreshold = tar->CastToClient()->GetSpellMaxThreshold(botSpellType_VeryFastHeals);
-			fastHealMinThreshold = tar->CastToClient()->GetSpellMinThreshold(botSpellType_FastHeals);
-			fastHealMaxThreshold = tar->CastToClient()->GetSpellMaxThreshold(botSpellType_FastHeals);
-			regularHealMinThreshold = tar->CastToClient()->GetSpellMinThreshold(botSpellType_RegularHeals);
-			regularHealMaxThreshold = tar->CastToClient()->GetSpellMaxThreshold(botSpellType_RegularHeals);
-			groupHealMinThreshold = tar->CastToClient()->GetSpellMinThreshold(botSpellType_GroupHeals);
-			groupHealMaxThreshold = tar->CastToClient()->GetSpellMaxThreshold(botSpellType_GroupHeals);
-			groupHoTHealMinThreshold = tar->CastToClient()->GetSpellMinThreshold(botSpellType_GroupHoTHeals);
-			groupHoTHealMaxThreshold = tar->CastToClient()->GetSpellMaxThreshold(botSpellType_GroupHoTHeals);
-			completeHealMinThreshold = tar->CastToClient()->GetSpellMinThreshold(botSpellType_CompleteHeals);
-			completeHealMaxThreshold = tar->CastToClient()->GetSpellMaxThreshold(botSpellType_CompleteHeals);
-			hotHealMinThreshold = tar->CastToClient()->GetSpellMinThreshold(botSpellType_HoTHeals);
-			hotHealMaxThreshold = tar->CastToClient()->GetSpellMaxThreshold(botSpellType_HoTHeals);
-			veryFastHealDelay = tar->CastToClient()->GetSpellDelay(botSpellType_VeryFastHeals);
-			fastHealDelay = tar->CastToClient()->GetSpellDelay(botSpellType_FastHeals);
-			regularHealDelay = tar->CastToClient()->GetSpellDelay(botSpellType_RegularHeals);
-			groupHealDelay = tar->CastToClient()->GetSpellDelay(botSpellType_GroupHeals);
-			completeHealDelay = tar->CastToClient()->GetSpellDelay(botSpellType_CompleteHeals);
-			hotHealDelay = tar->CastToClient()->GetSpellDelay(botSpellType_HoTHeals);
-			groupHoTHealDelay = tar->CastToClient()->GetSpellDelay(botSpellType_GroupHoTHeals);
+			veryFastHealMinThreshold = tar->CastToClient()->GetSpellMinThreshold(BotSpellTypes::VeryFastHeals);
+			veryFastHealMaxThreshold = tar->CastToClient()->GetSpellMaxThreshold(BotSpellTypes::VeryFastHeals);
+			fastHealMinThreshold = tar->CastToClient()->GetSpellMinThreshold(BotSpellTypes::FastHeals);
+			fastHealMaxThreshold = tar->CastToClient()->GetSpellMaxThreshold(BotSpellTypes::FastHeals);
+			regularHealMinThreshold = tar->CastToClient()->GetSpellMinThreshold(BotSpellTypes::RegularHeals);
+			regularHealMaxThreshold = tar->CastToClient()->GetSpellMaxThreshold(BotSpellTypes::RegularHeals);
+			groupHealMinThreshold = tar->CastToClient()->GetSpellMinThreshold(BotSpellTypes::GroupHeals);
+			groupHealMaxThreshold = tar->CastToClient()->GetSpellMaxThreshold(BotSpellTypes::GroupHeals);
+			groupHoTHealMinThreshold = tar->CastToClient()->GetSpellMinThreshold(BotSpellTypes::GroupHoTHeals);
+			groupHoTHealMaxThreshold = tar->CastToClient()->GetSpellMaxThreshold(BotSpellTypes::GroupHoTHeals);
+			completeHealMinThreshold = tar->CastToClient()->GetSpellMinThreshold(BotSpellTypes::CompleteHeals);
+			completeHealMaxThreshold = tar->CastToClient()->GetSpellMaxThreshold(BotSpellTypes::CompleteHeals);
+			hotHealMinThreshold = tar->CastToClient()->GetSpellMinThreshold(BotSpellTypes::HoTHeals);
+			hotHealMaxThreshold = tar->CastToClient()->GetSpellMaxThreshold(BotSpellTypes::HoTHeals);
+			veryFastHealDelay = tar->CastToClient()->GetSpellDelay(BotSpellTypes::VeryFastHeals);
+			fastHealDelay = tar->CastToClient()->GetSpellDelay(BotSpellTypes::FastHeals);
+			regularHealDelay = tar->CastToClient()->GetSpellDelay(BotSpellTypes::RegularHeals);
+			groupHealDelay = tar->CastToClient()->GetSpellDelay(BotSpellTypes::GroupHeals);
+			completeHealDelay = tar->CastToClient()->GetSpellDelay(BotSpellTypes::CompleteHeals);
+			hotHealDelay = tar->CastToClient()->GetSpellDelay(BotSpellTypes::HoTHeals);
+			groupHoTHealDelay = tar->CastToClient()->GetSpellDelay(BotSpellTypes::GroupHoTHeals);
 		}*/
 		else if (tar->IsPet()) {
 			switch (GetBotStance()) {
@@ -901,7 +907,7 @@ bool Bot::BotCastHeal(Mob* tar, uint8 botLevel, uint8 botClass, BotSpell& botSpe
 			}
 		}
 
-		if (hpr >= veryFastHealMinThreshold && hpr <= veryFastHealMaxThreshold && veryFastHealTime <= currentTime && !GetSpellHold(botSpellType_VeryFastHeals)) {
+		if (hpr >= veryFastHealMinThreshold && hpr <= veryFastHealMaxThreshold && veryFastHealTime <= currentTime && !GetSpellHold(BotSpellTypes::VeryFastHeals)) {
 			botSpell = GetBestBotSpellForVeryFastHeal(this);
 
 			if (botSpell.SpellId != 0) {
@@ -913,7 +919,7 @@ bool Bot::BotCastHeal(Mob* tar, uint8 botLevel, uint8 botClass, BotSpell& botSpe
 			}
 		}
 
-		if (botSpell.SpellId == 0 && hpr >= fastHealMinThreshold && hpr <= fastHealMaxThreshold && fastHealTime <= currentTime && !GetSpellHold(botSpellType_FastHeals)) {
+		if (botSpell.SpellId == 0 && hpr >= fastHealMinThreshold && hpr <= fastHealMaxThreshold && fastHealTime <= currentTime && !GetSpellHold(BotSpellTypes::FastHeals)) {
 			botSpell = GetBestBotSpellForFastHeal(this);
 
 			if (botSpell.SpellId != 0) {
@@ -925,7 +931,7 @@ bool Bot::BotCastHeal(Mob* tar, uint8 botLevel, uint8 botClass, BotSpell& botSpe
 			}
 		}
 
-		if (GetNumberNeedingHealedInGroup(groupHealMaxThreshold, false, GetRaid()) >= RuleI(Bots, MinGroupHealTargets) && groupHealTime <= currentTime && !GetSpellHold(botSpellType_GroupHeals)) {
+		if (GetNumberNeedingHealedInGroup(groupHealMaxThreshold, false, GetRaid()) >= RuleI(Bots, MinGroupHealTargets) && groupHealTime <= currentTime && !GetSpellHold(BotSpellTypes::GroupHeals)) {
 			botSpell = GetBestBotSpellForGroupHeal(this);
 
 			if (botSpell.SpellId != 0) {
@@ -937,7 +943,7 @@ bool Bot::BotCastHeal(Mob* tar, uint8 botLevel, uint8 botClass, BotSpell& botSpe
 			}
 		}
 
-		if (botSpell.SpellId == 0 && hpr >= regularHealMinThreshold && hpr <= regularHealMaxThreshold && regularHealTime <= currentTime && !GetSpellHold(botSpellType_RegularHeals)) {
+		if (botSpell.SpellId == 0 && hpr >= regularHealMinThreshold && hpr <= regularHealMaxThreshold && regularHealTime <= currentTime && !GetSpellHold(BotSpellTypes::RegularHeals)) {
 			botSpell = GetBestBotSpellForRegularSingleTargetHeal(this);
 
 			if (botSpell.SpellId != 0) {
@@ -949,7 +955,7 @@ bool Bot::BotCastHeal(Mob* tar, uint8 botLevel, uint8 botClass, BotSpell& botSpe
 			}
 		}
 
-		if (botSpell.SpellId == 0 && hpr >= completeHealMinThreshold && hpr <= completeHealMaxThreshold && completeHealTime <= currentTime && !GetSpellHold(botSpellType_CompleteHeals)) {
+		if (botSpell.SpellId == 0 && hpr >= completeHealMinThreshold && hpr <= completeHealMaxThreshold && completeHealTime <= currentTime && !GetSpellHold(BotSpellTypes::CompleteHeals)) {
 			botSpell = GetBestBotSpellForPercentageHeal(this);
 
 			if (botSpell.SpellId != 0 && !PrecastChecks(botSpell.SpellId, nullptr, SpellType_Heal)) {
@@ -965,7 +971,7 @@ bool Bot::BotCastHeal(Mob* tar, uint8 botLevel, uint8 botClass, BotSpell& botSpe
 			}
 		}
 
-		if (GetNumberNeedingHealedInGroup(groupHoTHealMaxThreshold, false, GetRaid()) >= RuleI(Bots, MinGroupHealTargets) && groupHoTHealTime <= currentTime && !GetSpellHold(botSpellType_GroupHoTHeals)) {
+		if (GetNumberNeedingHealedInGroup(groupHoTHealMaxThreshold, false, GetRaid()) >= RuleI(Bots, MinGroupHealTargets) && groupHoTHealTime <= currentTime && !GetSpellHold(BotSpellTypes::GroupHoTHeals)) {
 			botSpell = GetBestBotSpellForGroupHealOverTime(this);
 
 			if (botSpell.SpellId != 0) {
@@ -977,7 +983,7 @@ bool Bot::BotCastHeal(Mob* tar, uint8 botLevel, uint8 botClass, BotSpell& botSpe
 			}
 		}
 
-		if (botSpell.SpellId == 0 && hpr >= hotHealMinThreshold && hpr <= hotHealMaxThreshold && hotHealTime <= currentTime && !GetSpellHold(botSpellType_HoTHeals)) {
+		if (botSpell.SpellId == 0 && hpr >= hotHealMinThreshold && hpr <= hotHealMaxThreshold && hotHealTime <= currentTime && !GetSpellHold(BotSpellTypes::HoTHeals)) {
 			if (botSpell.SpellId == 0 && botClass == Class::Bard) {
 				botSpell = GetFirstBotSpellBySpellType(this, SpellType_Heal);
 			}
@@ -1155,6 +1161,9 @@ bool Bot::AIDoSpellCast(int32 i, Mob* tar, int32 mana_cost, uint32* oDontDoAgain
 		if (CalcSpellRecastTimer(AIBot_spells[i].spellid) > 0) {
 			SetSpellRecastTimer(AIBot_spells[i].spellid);
 		}
+
+		SetBotSpellCastDelay(AIBot_spells[i].spellid, tar);
+		LogBotDelayChecksDetail("{} says, 'Setting {} Delay for {} on {}.'", GetCleanName(), CastToBot()->GetSpellTypeNameByID(CastToBot()->GetControlledBotSpellType(CastToBot()->GetBotSpellType(spell_id))), spells[spell_id].name, spelltar->GetCleanName()); //deleteme
 	}
 
 	return result;
@@ -2274,11 +2283,13 @@ Mob* Bot::GetFirstIncomingMobToMez(Bot* botCaster, int16 spellid) {
 	Mob* result = nullptr;
 	uint32 spell_range = 0;
 	int buff_count = 0;
+	bool testBool = false;
 
 	if (botCaster && IsMesmerizeSpell(spellid)) {
 		for (auto& close_mob : botCaster->close_mobs) {
 			bool mobFound = false;
 			NPC* npc = close_mob.second->CastToNPC();
+			std::vector<Mob*> eligibleTargets;
 
 			if (npc->IsMezzed()) {
 				continue;
@@ -2300,7 +2311,7 @@ Mob* Bot::GetFirstIncomingMobToMez(Bot* botCaster, int16 spellid) {
 				continue;
 			}
 
-			if (npc->GetHPRatio() < botCaster->GetSpellMinThreshold(botSpellType_Mez) || npc->GetHPRatio() > botCaster->GetSpellMaxThreshold(botSpellType_Mez)) {
+			if (npc->GetHPRatio() < botCaster->GetSpellMinThreshold(BotSpellTypes::Mez) || npc->GetHPRatio() > botCaster->GetSpellMaxThreshold(BotSpellTypes::Mez)) {
 				continue;
 			}
 
@@ -2330,6 +2341,11 @@ Mob* Bot::GetFirstIncomingMobToMez(Bot* botCaster, int16 spellid) {
 					return result;
 				}
 			}
+
+			if (testBool) {
+				eligibleTargets.push_back(npc);
+			}
+
 			continue;
 		}
 

@@ -87,6 +87,71 @@ enum BotCastingChanceConditional : uint8
 	cntHSND = 16
 };
 
+namespace BotSettingCategories {
+	constexpr uint8 BaseSetting					= 0;
+	constexpr uint8 SpellHold					= 1;
+	constexpr uint8 SpellDelay					= 2;
+	constexpr uint8 SpellMinThreshold			= 3;
+	constexpr uint8 SpellMaxThreshold			= 4;
+};
+
+namespace BotBaseSettings {
+	constexpr uint16 START						= 0; // Do not remove or change this
+
+	constexpr uint16 FollowDistance				= 0;
+	constexpr uint16 StopMeleeLevel				= 1;
+	constexpr uint16 ExpansionBitmask			= 2;
+	constexpr uint16 EnforceSpellSettings		= 3;
+	constexpr uint16 ArcherySetting				= 4;
+	constexpr uint16 PetSetTypeSetting			= 5;
+	constexpr uint16 BehindMob					= 6;
+	constexpr uint16 CasterRange				= 7;
+	constexpr uint16 IllusionBlock				= 8;
+
+	constexpr uint16 END						= BotBaseSettings::IllusionBlock; // Do not remove this, increment as needed
+};
+
+namespace BotSpellTypes { // Update GetSpellTypeIDByShortName and GetSpellTypeNameByID as needed
+	constexpr uint16 START						= 0; // Do not remove or change this
+
+	constexpr uint16 Nuke						= 0;
+	constexpr uint16 Heal						= 1;
+	constexpr uint16 Root						= 2;
+	constexpr uint16 Buff						= 3;
+	constexpr uint16 Escape						= 4;
+	constexpr uint16 Pet						= 5;
+	constexpr uint16 Lifetap					= 6;
+	constexpr uint16 Snare						= 7;
+	constexpr uint16 Dot						= 8;
+	constexpr uint16 Dispel						= 9;
+	constexpr uint16 InCombatBuff				= 10;
+	constexpr uint16 Mez						= 11;
+	constexpr uint16 Charm						= 12;
+	constexpr uint16 Slow						= 13;
+	constexpr uint16 Debuff						= 14;
+	constexpr uint16 Cure						= 15;
+	constexpr uint16 Resurrect					= 16;
+	constexpr uint16 HateRedux					= 17;
+	constexpr uint16 InCombatBuffSong			= 18;
+	constexpr uint16 OutOfCombatBuffSong		= 19;
+	constexpr uint16 PreCombatBuff				= 20;
+	constexpr uint16 PreCombatBuffSong			= 21;
+	constexpr uint16 RegularHeals				= 22;
+	constexpr uint16 CompleteHeals				= 23;
+	constexpr uint16 FastHeals					= 24;
+	constexpr uint16 VeryFastHeals				= 25;
+	constexpr uint16 GroupHeals					= 26;
+	constexpr uint16 GroupHoTHeals				= 27;
+	constexpr uint16 HoTHeals					= 28;
+	constexpr uint16 AENukes					= 29;
+	constexpr uint16 AERains					= 30;
+	constexpr uint16 PetBuffs					= 31;
+	constexpr uint16 DamageShields				= 32;
+	constexpr uint16 PetHeals					= 33;
+	constexpr uint16 ResistSpells				= 34;
+
+	constexpr uint16 END						= BotSpellTypes::ResistSpells; // Do not remove this, increment as needed
+};
 
 class Bot : public NPC {
 	friend class Mob;
@@ -122,85 +187,10 @@ public:
 		spellTypeIndexPreCombatBuffSong
 	};
 
-	enum BotSettingsTypes : uint16
-	{
-		botSettings_START = 0, // Do not remove or change this
-		botSettings_FollowDistance,
-		botSettings_StopMeleeLevel,
-		botSettings_ExpansionBitmask,
-		botSettings_EnforceSpellSettings,
-		botSettings_ArcherySetting,
-		botSettings_PetSetTypeSetting,
-		botSettings_BehindMob,
-		botSettings_CasterRange,
-		botSettings_IllusionBlock,
-		botSettings_END, // Do not remove this
-	};
-
-	enum BotSpellTypeInts : uint16 // Update GetSpellTypeIDByShortName and GetSpellTypeNameByID as needed
-	{
-		botSpellType_START = 0, // Do not remove or change this
-		botSpellType_Nuke,
-		botSpellType_Heal,
-		botSpellType_Root,
-		botSpellType_Buff,
-		botSpellType_Escape,
-		botSpellType_Pet,
-		botSpellType_Lifetap,
-		botSpellType_Snare,
-		botSpellType_Dot,
-		botSpellType_Dispel,
-		botSpellType_InCombatBuff,
-		botSpellType_Mez,
-		botSpellType_Charm,
-		botSpellType_Slow,
-		botSpellType_Debuff,
-		botSpellType_Cure,
-		botSpellType_Resurrect,
-		botSpellType_HateRedux,
-		botSpellType_InCombatBuffSong,
-		botSpellType_OutOfCombatBuffSong,
-		botSpellType_PreCombatBuff,
-		botSpellType_PreCombatBuffSong,
-		botSpellType_RegularHeals,
-		botSpellType_CompleteHeals,
-		botSpellType_FastHeals,
-		botSpellType_VeryFastHeals,
-		botSpellType_GroupHeals,
-		botSpellType_GroupHoTHeals,
-		botSpellType_HoTHeals,
-		botSpellType_AENukes,
-		botSpellType_AERains,
-		botSpellType_PetBuffs,
-		botSpellType_DamageShields, // This is the start of types that can ONLY be customized by holds, leave this as first and add new below
-		botSpellType_PetHeals,
-		botSpellType_ResistSpells,
-		botSpellType_END, // Do not remove this, increment as needed
-	};
-
-	enum BotSettingCategories : uint16 // Update GetSpellTypeIDByShortName and GetSpellTypeNameByID as needed
-	{
-		botSettingCategory_BaseSetting = 0,
-		botSettingCategory_Hold,
-		botSettingCategory_Delay,
-		botSettingCategory_MinThreshold,
-		botSettingCategory_MaxThreshold,
-	};
-
 	static const uint32 SPELL_TYPE_FIRST = spellTypeIndexNuke;
 	static const uint32 SPELL_TYPE_LAST = spellTypeIndexPreCombatBuffSong;
 	static const uint32 SPELL_TYPE_COUNT = SPELL_TYPE_LAST + 1;
 
-	static const uint16 BOT_SPELL_TYPE_START = botSpellType_START + 1;
-	static const uint16 BOT_SPELL_TYPE_END = botSpellType_END - 1;
-	static const uint16 BOT_SPELL_TYPE_FULL_CUSTOMIZE_END = botSpellType_DamageShields - 1; //Do not change this, this is used to determine the limit for spelltypes than can be modified beyond just holds
-	static const uint16 BOT_SETTINGS_START = botSettings_START + 1;
-	static const uint16 BOT_SETTINGS_END = botSettings_END - 1;
-	static const uint16 BOT_SETTINGS_TYPE_ID = 1;
-	static const uint16 BOT_HOLD_TYPE_ID = 2;
-	static const uint16 BOT_DELAY_TYPE_ID = 3;
-	static const uint16 BOT_MINTHRESHHOLD_TYPE_ID = 4;
-	static const uint16 BOT_MAXTHRESHHOLD_TYPE_ID = 5;
 	static const uint8 ENABLED_INT = 1;
 	static const uint8 DISABLED_INT = 0;
 
@@ -468,9 +458,11 @@ public:
 	bool IsMobEngagedByAnyone(Mob* tar);
 	bool DoResistCheckBySpellType(Mob* tar, uint16 spellid, uint32 spellType);
 	uint16 GetSpellTypeIDByShortName(std::string spellTypeString);
+	std::string SetSpellTypeNameByID(uint16 spellTypeID);
 	std::string GetSpellTypeNameByID(uint16 spellTypeID);
+	std::string SetSpellTypeShortNameByID(uint16 spellTypeID);
 	std::string GetSpellTypeShortNameByID(uint16 spellTypeID);
-	bool GetSpellHold (uint16 spellType);
+	bool GetSpellHold (uint32 spellType);
 	bool GetDefaultSpellHold(uint16 spellType);
 	void SetSpellHold(uint16 spellType, bool holdStatus);
 	uint32 GetSpellDelay(uint16 spellType);

@@ -647,17 +647,6 @@ enum SpellTypes : uint32
 	SpellType_PreCombatBuffSong = (1 << 21)
 };
 
-enum HealTypes : uint8
-{
-	HealType_Regular = 1,
-	HealType_Fast = 2,
-	HealType_VeryFast = 3,
-	HealType_Complete = 4,
-	HealType_CompleteGroup = 5,
-	HealType_HoT = 6,
-	HealType_HotGroup = 7,
-};
-
 const uint32 SPELL_TYPE_MIN = (SpellType_Nuke << 1) - 1;
 const uint32 SPELL_TYPE_MAX = (SpellType_PreCombatBuffSong << 1) - 1;
 const uint32 SPELL_TYPE_ANY = 0xFFFFFFFF;

@@ -74,7 +74,7 @@ void bot_command_spell_min_thresholds(Client* c, const Seperator* sep)
 			)
 		);
 
-		for (int i = Bot::BOT_SPELL_TYPE_START; i <= Bot::BOT_SPELL_TYPE_FULL_CUSTOMIZE_END; ++i) {
+		for (int i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
 			popup_text += DialogueWindow::TableRow(
 				DialogueWindow::TableCell(
 					fmt::format(
@@ -109,13 +109,13 @@ void bot_command_spell_min_thresholds(Client* c, const Seperator* sep)
 	if (sep->IsNumber(1)) {
 		spellType = atoi(sep->arg[1]);
 
-		if (spellType < Bot::BOT_SPELL_TYPE_START || spellType > Bot::BOT_SPELL_TYPE_FULL_CUSTOMIZE_END) {
-			c->Message(Chat::Yellow, "You must choose a valid spell type. Spell types range from %i to %i", Bot::BOT_SPELL_TYPE_START, Bot::BOT_SPELL_TYPE_FULL_CUSTOMIZE_END);
+		if (spellType < BotSpellTypes::START || spellType > BotSpellTypes::END) {
+			c->Message(Chat::Yellow, "You must choose a valid spell type. Spell types range from %i to %i", BotSpellTypes::START, BotSpellTypes::END);
 
 			return;
 		}
 	}
-	else if (c->CastToBot()->GetSpellTypeIDByShortName(arg1)) {
+	else if (c->CastToBot()->GetSpellTypeIDByShortName(arg1) != INVALID_ID) {
 		spellType = c->CastToBot()->GetSpellTypeIDByShortName(arg1);
 	}
 	else {

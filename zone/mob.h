@@ -95,6 +95,22 @@ struct AppearanceStruct {
 	uint8  texture          = UINT8_MAX;
 };
 
+struct BotSpellSettings_Struct
+{
+	uint16					spellType;							// type ID of bot category
+	std::string 			shortName;							// type name of bot category
+	std::string 			name;								// type name of bot category
+	bool					hold;								// 0 = allow spell type, 1 = hold spell type
+	bool					defaultHold;						// 0 = allow spell type, 1 = hold spell type
+	uint16					delay;								// delay between casts of spell type, 1ms-60,000ms
+	uint16					defaultDelay;						// delay between casts of spell type, 1ms-60,000ms
+	uint8					minThreshold;						// minimum target health threshold to allow casting of spell type
+	uint8					defaultMinThreshold;				// minimum target health threshold to allow casting of spell type
+	uint8					maxThreshold;						// maximum target health threshold to allow casting of spell type
+	uint8					defaultMaxThreshold;				// maximum target health threshold to allow casting of spell type
+	Timer					recastTimer;						// recast timer based off delay
+};
+
 class DataBucketKey;
 class Mob : public Entity {
 public:
@@ -242,6 +258,8 @@ public:
 	Timer							  m_botSpellType_AENukes;
 	Timer							  m_botSpellType_AERains;
 	Timer							  m_botSpellType_PetBuffs;
+
+	std::vector<BotSpellSettings_Struct> _spellSettings;
 
 	//Somewhat sorted: needs documenting!
 

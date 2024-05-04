@@ -2420,13 +2420,13 @@ bool BotDatabase::SaveBotSettings(Bot* b)
 	
 	std::vector<BotSettingsRepository::BotSettings> v;
 	
-	for (uint16 i = Bot::BOT_SETTINGS_START; i <= Bot::BOT_SETTINGS_END; ++i) {
+	for (uint16 i = BotBaseSettings::START; i < BotBaseSettings::END; ++i) {
 		if (b->GetBotBaseSetting(i) != b->GetDefaultBotBaseSetting(i)) {
 			LogBotSettings("Saving bot setting [{}] to [{}] default [{}] for [{}]", i, b->GetBotBaseSetting(i), b->GetDefaultBotBaseSetting(i), b->GetCleanName()); //deleteme
 			auto e = BotSettingsRepository::BotSettings{
 			.bot_id = b->GetBotID(),
 			.setting_id = static_cast<uint8_t>(i),
-			.setting_type = static_cast<uint32_t>(Bot::botSettingCategory_BaseSetting),
+			.setting_type = static_cast<uint32_t>(BotSettingCategories::BaseSetting),
 			.value = static_cast<uint32_t>(b->GetBotBaseSetting(i))
 			};
 
@@ -2434,56 +2434,43 @@ bool BotDatabase::SaveBotSettings(Bot* b)
 		}
 	}
 
-	for (int i = Bot::BOT_SPELL_TYPE_START; i <= Bot::BOT_SPELL_TYPE_END; ++i) {
-		if (b->GetSpellHold(i) != b->GetDefaultSpellHold(i)) {
-			LogBotSettings("Saving {} spell hold [{}] to [{}] default [{}] for [{}]", b->GetSpellTypeNameByID(i), i, b->GetSpellHold(i), b->GetDefaultSpellHold(i), b->GetCleanName()); //deleteme
-			auto e = BotSettingsRepository::BotSettings{
-			.bot_id = b->GetBotID(),
-			.setting_id = static_cast<uint8_t>(i),
-			.setting_type = static_cast<uint32_t>(Bot::botSettingCategory_Hold),
-			.value = b->GetSpellHold(i)
-			};
+	uint32 botID = b->GetBotID();
+	bool needSave = false;
+	uint8 saveType;
+	uint16 saveData;	
 
-			v.emplace_back(e);
+	for (int i = BotSpellTypes::START; i < BotBaseSettings::END; ++i) {
+		if (b->_spellSettings[i].hold != b->_spellSettings[i].defaultHold) {
+			needSave = true;
+			saveType = BotSettingCategories::SpellHold;
+			saveData = b->_spellSettings[i].hold;
+			LogBotSettings("Saving {} spell hold [{}] to [{}] default [{}] for [{}]", b->GetSpellTypeNameByID(i), i, saveData, b->_spellSettings[i].hold, b->GetCleanName()); //deleteme
 		}
-	}
-
-	for (int i = Bot::BOT_SPELL_TYPE_START; i <= Bot::BOT_SPELL_TYPE_FULL_CUSTOMIZE_END; ++i) {
-		if (b->GetSpellDelay(i) != b->GetDefaultSpellDelay(i)) {
-			LogBotSettings("Saving {} spell delay [{}] to [{}] default [{}] for [{}]", b->GetSpellTypeNameByID(i), i, b->GetSpellDelay(i), b->GetDefaultSpellDelay(i), b->GetCleanName()); //deleteme
-			auto e = BotSettingsRepository::BotSettings{
-			.bot_id = b->GetBotID(),
-			.setting_id = static_cast<uint8_t>(i),
-			.setting_type = static_cast<uint32_t>(Bot::botSettingCategory_Delay),
-			.value = b->GetSpellDelay(i)
-			};
-
-			v.emplace_back(e);
+		else if (b->_spellSettings[i].delay != b->_spellSettings[i].defaultDelay) {
+			needSave = true;
+			saveType = BotSettingCategories::SpellDelay;
+			saveData = b->_spellSettings[i].delay;
+			LogBotSettings("Saving {} spell delay [{}] to [{}] default [{}] for [{}]", b->GetSpellTypeNameByID(i), i, saveData, b->_spellSettings[i].defaultDelay, b->GetCleanName()); //deleteme
 		}
-	}
-
-	for (int i = Bot::BOT_SPELL_TYPE_START; i <= Bot::BOT_SPELL_TYPE_FULL_CUSTOMIZE_END; ++i) {
-		if (b->GetSpellMinThreshold(i) != b->GetDefaultSpellMinThreshold(i)) {
-			LogBotSettings("Saving {} spell min threshold [{}] to [{}] default [{}] for [{}]", b->GetSpellTypeNameByID(i), i, b->GetSpellMinThreshold(i), b->GetDefaultSpellMinThreshold(i), b->GetCleanName()); //deleteme
-			auto e = BotSettingsRepository::BotSettings{
-			.bot_id = b->GetBotID(),
-			.setting_id = static_cast<uint8_t>(i),
-			.setting_type = static_cast<uint32_t>(Bot::botSettingCategory_MinThreshold),
-			.value = b->GetSpellMinThreshold(i)
-			};
-
-			v.emplace_back(e);
+		else if (b->_spellSettings[i].minThreshold != b->_spellSettings[i].defaultMinThreshold) {
+			needSave = true;
+			saveType = BotSettingCategories::SpellMinThreshold;
+			saveData = b->_spellSettings[i].minThreshold;
+			LogBotSettings("Saving {} spell min threshold [{}] to [{}] default [{}] for [{}]", b->GetSpellTypeNameByID(i), i, saveData, b->_spellSettings[i].defaultMinThreshold, b->GetCleanName()); //deleteme
 		}
-	}
+		else if (b->_spellSettings[i].maxThreshold != b->_spellSettings[i].defaultMaxThreshold) {
+			needSave = true;
+			saveType = BotSettingCategories::SpellMaxThreshold;
+			saveData = b->_spellSettings[i].maxThreshold;
+			LogBotSettings("Saving {} spell max threshold [{}] to [{}] default [{}] for [{}]", b->GetSpellTypeNameByID(i), i, saveData, b->_spellSettings[i].defaultMaxThreshold, b->GetCleanName()); //deleteme
+		}
 
-	for (int i = Bot::BOT_SPELL_TYPE_START; i <= Bot::BOT_SPELL_TYPE_FULL_CUSTOMIZE_END; ++i) {
-		if (b->GetSpellMaxThreshold(i) != b->GetDefaultSpellMaxThreshold(i)) {
-			LogBotSettings("Saving {} spell max threshold [{}] to [{}] default [{}] for [{}]", b->GetSpellTypeNameByID(i), i, b->GetSpellMaxThreshold(i), b->GetDefaultSpellMaxThreshold(i), b->GetCleanName()); //deleteme
+		if (needSave) {
 			auto e = BotSettingsRepository::BotSettings{
-			.bot_id = b->GetBotID(),
+			.bot_id = botID,
 			.setting_id = static_cast<uint8_t>(i),
-			.setting_type = static_cast<uint32_t>(Bot::botSettingCategory_MaxThreshold),
-			.value = b->GetSpellMaxThreshold(i)
+			.setting_type = static_cast<uint32_t>(saveType),
+			.value = saveData
 			};
 
 			v.emplace_back(e);
