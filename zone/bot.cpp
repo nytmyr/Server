@@ -12255,7 +12255,7 @@ void Bot::DoItemClick(const EQ::ItemData* item, uint16 slot_id) {
 	}
 
 	if (tar != this && !GetOwner()->CheckLosCheat(GetOwner(), tar)) {
-		GetOwner()->Message(Chat::Red, "You must have Line of Sight or move further away from the door to use this command.");
+		GetOwner()->Message(Chat::Red, "Please move further away from the door to use this command.");
 		return;
 	}
 

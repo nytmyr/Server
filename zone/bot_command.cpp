@@ -3228,7 +3228,7 @@ void bot_command_attack(Client *c, const Seperator *sep)
 		return;
 	}
 	if (!c->CastToMob()->CheckLosCheat(c, target_mob)) {
-		c->Message(Chat::Red, "You must have Line of Sight or move further away from the door to use this command.");
+		c->Message(Chat::Red, "Please move further away from the door to use this command.");
 		return;
 	}
 
@@ -3933,7 +3933,7 @@ void bot_command_charm(Client* c, const Seperator* sep)
 		return;
 	}
 	if (!c->CastToMob()->CheckLosCheat(c, c->GetTarget())) {
-		c->Message(Chat::Red, "You must have Line of Sight or move further away from the door to use this command.");
+		c->Message(Chat::Red, "Please move further away from the door to use this command.");
 		return;
 	}
 
@@ -12872,7 +12872,7 @@ void bot_command_lull(Client* c, const Seperator* sep)
 	}
 
 	if (!c->CastToMob()->CheckLosCheat(c, c->GetTarget())) {
-		c->Message(Chat::Red, "You must have Line of Sight or move further away from the door to use this command.");
+		c->Message(Chat::Red, "Please move further away from the door to use this command.");
 		return;
 	}
 
@@ -13348,7 +13348,7 @@ void bot_command_mesmerize(Client *c, const Seperator *sep)
 		return;
 	}
 	if (!c->CastToMob()->CheckLosCheat(c, c->GetTarget())) {
-		c->Message(Chat::Red, "You must have Line of Sight or move further away from the door to use this command.");
+		c->Message(Chat::Red, "Please move further away from the door to use this command.");
 		return;
 	}
 
@@ -14790,7 +14790,7 @@ void bot_command_precombat(Client* c, const Seperator* sep)
 		return;
 	}
 	if (!c->CastToMob()->CheckLosCheat(c, c->GetTarget())) {
-		c->Message(Chat::Red, "You must have Line of Sight or move further away from the door to use this command.");
+		c->Message(Chat::Red, "Please move further away from the door to use this command.");
 		return;
 	}
 
@@ -14854,7 +14854,7 @@ void bot_command_pull(Client *c, const Seperator *sep)
 		return;
 	}
 	if (!c->CastToMob()->CheckLosCheat(c, target_mob)) {
-		c->Message(Chat::Red, "You must have Line of Sight or move further away from the door to use this command.");
+		c->Message(Chat::Red, "Please move further away from the door to use this command.");
 		return;
 	}
 
@@ -15274,7 +15274,7 @@ void bot_command_root(Client *c, const Seperator *sep)
 		return;
 	}
 	if (!c->CastToMob()->CheckLosCheat(c, c->GetTarget())) {
-		c->Message(Chat::Red, "You must have Line of Sight or move further away from the door to use this command.");
+		c->Message(Chat::Red, "Please move further away from the door to use this command.");
 		return;
 	}
 
@@ -16228,7 +16228,7 @@ void bot_command_snare(Client* c, const Seperator* sep)
 		return;
 	}
 	if (!c->CastToMob()->CheckLosCheat(c, c->GetTarget())) {
-		c->Message(Chat::Red, "You must have Line of Sight or move further away from the door to use this command.");
+		c->Message(Chat::Red, "Please move further away from the door to use this command.");
 		return;
 	}
 
