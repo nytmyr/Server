@@ -12307,12 +12307,17 @@ void Bot::CheckForAETargets(Mob* tar, uint16 spell_id, bool *ae_targets) {
 	int spellRange = GetActSpellRange(spell_id, spells[spell_id].range);
 	bool valid_ae = false;
 
-	if ((GetHoldAENukes() && IsPBAENukeSpell(spell_id)) || (IsPBAENukeSpell(spell_id) && ((Distance(GetPosition(), tar->GetPosition()) > spellAERange)))) {
+	if ((GetHoldAENukes() && IsAENukeSpell(spell_id) && !IsAERainNukeSpell(spell_id)) || (GetHoldAERains() && IsAERainNukeSpell(spell_id))) {
 		*ae_targets = valid_ae;
 		return;
 	}
 
-	if ((GetHoldAERains() && !IsPBAENukeSpell(spell_id)) || (!IsPBAENukeSpell(spell_id) && ((Distance(GetPosition(), tar->GetPosition()) > spellRange)))) {
+	if (IsPBAENukeSpell(spell_id) && (Distance(GetPosition(), tar->GetPosition()) > spellAERange)) {
+		*ae_targets = valid_ae;
+		return;
+	}
+
+	if (!IsPBAENukeSpell(spell_id) && (Distance(GetPosition(), tar->GetPosition()) > spellRange)) {
 		*ae_targets = valid_ae;
 		return;
 	}
