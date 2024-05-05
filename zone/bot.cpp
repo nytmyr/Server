@@ -3118,7 +3118,6 @@ void Bot::AI_Process()
 //#pragma region PULL FLAG
 
 	else if (GetPullFlag()) { // Push owner's target onto our hate list and set flags so other bots do not aggro
-
 		SetAttackFlag(false);
 		SetAttackingFlag(false);
 		SetPullFlag(false);
@@ -3145,10 +3144,10 @@ void Bot::AI_Process()
 				SetPullingFlag();
 				bot_owner->SetBotPulling();
 				if (HasPet() && (GetClass() != ENCHANTER || GetPet()->GetPetType() != petAnimation || GetAA(aaAnimationEmpathy) >= 1)) {
-
 					GetPet()->WipeHateList();
 					GetPet()->SetTarget(nullptr);
-					m_previous_pet_order = GetPet()->GetPetOrder();
+					m_previous_pet_order = GetPet()->GetPetOrder();			
+					GetPet()->CastToNPC()->SaveGuardSpot(GetPosition());
 					GetPet()->SetPetOrder(SPO_Guard);
 				}
 			}

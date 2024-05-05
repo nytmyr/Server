@@ -286,10 +286,10 @@ void Bot::AI_Process_Raid()
 				SetPullingFlag();
 				bot_owner->SetBotPulling();
 				if (HasPet() && (GetClass() != ENCHANTER || GetPet()->GetPetType() != petAnimation || GetAA(aaAnimationEmpathy) >= 1)) {
-
 					GetPet()->WipeHateList();
 					GetPet()->SetTarget(nullptr);
 					m_previous_pet_order = GetPet()->GetPetOrder();
+					GetPet()->CastToNPC()->SaveGuardSpot(GetPosition());
 					GetPet()->SetPetOrder(SPO_Guard);
 				}
 			}
