@@ -12870,10 +12870,7 @@ void bot_command_lull(Client* c, const Seperator* sep)
 		c->Message(Chat::Yellow, "You must target an NPC for %s.", sep->arg[0]);
 		return;
 	}
-	if (!c->DoLosChecks(c, c->GetTarget())) {
-		c->Message(Chat::Red, "You must have Line of Sight to use this command.");
-		return;
-	}
+
 	if (!c->CastToMob()->CheckLosCheat(c, c->GetTarget())) {
 		c->Message(Chat::Red, "You must have Line of Sight or move further away from the door to use this command.");
 		return;
