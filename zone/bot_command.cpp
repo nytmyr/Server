@@ -19695,7 +19695,7 @@ void bot_subcommand_circle(Client *c, const Seperator *sep)
 			return;
 		}
 
-		helper_command_depart_list(c, nullptr, my_bot, local_list, single);
+		helper_command_depart_list(c, my_bot, nullptr, local_list, single);
 		return;
 	}
 	else if (destination.empty()) {
