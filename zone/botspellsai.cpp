@@ -473,30 +473,41 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						}
 					}
 
-					switch (tar->GetArchetype())
-					{
-					case ARCHETYPE_CASTER:
-						//TODO: probably more caster specific spell effects in here
-						if (tar && tar->IsBot() && IsEffectInSpell(selectedBotSpell.SpellId, SE_AttackSpeed) && tar->GetLevel() > tar->CastToBot()->GetStopMeleeLevel())
-						{
-							continue;
-						}
-						else if (IsEffectInSpell(selectedBotSpell.SpellId, SE_ReverseDS) || IsEffectInSpell(selectedBotSpell.SpellId, SE_ATK) || IsEffectInSpell(selectedBotSpell.SpellId, SE_STR)) {
-							continue;
-						}
-						break;
-					case ARCHETYPE_MELEE:
-						if (IsEffectInSpell(selectedBotSpell.SpellId, SE_IncreaseSpellHaste) || IsEffectInSpell(selectedBotSpell.SpellId, SE_ManaPool) ||
-							IsEffectInSpell(selectedBotSpell.SpellId, SE_CastingLevel) || IsEffectInSpell(selectedBotSpell.SpellId, SE_ManaRegen_v2) ||
-							IsEffectInSpell(selectedBotSpell.SpellId, SE_CurrentMana))
-						{
-							continue;
-						}
-						break;
-					case ARCHETYPE_HYBRID:
-						//Hybrids get all buffs
-					default:
-						break;
+					switch (tar->GetArchetype()) {
+						case ARCHETYPE_CASTER:
+							//TODO: probably more caster specific spell effects in here
+							if (
+								(tar->IsBot() && tar->GetLevel() > tar->CastToBot()->GetStopMeleeLevel()) ||
+								tar->IsClient() ||
+								tar->IsPet()
+							) {
+								if (
+									IsEffectInSpell(selectedBotSpell.SpellId, SE_ReverseDS) ||
+									(SpellEffectsCount(selectedBotSpell.SpellId) == 1 &&
+										(
+											IsEffectInSpell(selectedBotSpell.SpellId, SE_AttackSpeed) ||
+											IsEffectInSpell(selectedBotSpell.SpellId, SE_ATK) ||
+											IsEffectInSpell(selectedBotSpell.SpellId, SE_STR)
+											)
+										)
+								) {
+									continue;
+								}
+							}
+
+							break;
+						case ARCHETYPE_MELEE:
+							if (IsEffectInSpell(selectedBotSpell.SpellId, SE_IncreaseSpellHaste) || IsEffectInSpell(selectedBotSpell.SpellId, SE_ManaPool) ||
+								IsEffectInSpell(selectedBotSpell.SpellId, SE_CastingLevel) || IsEffectInSpell(selectedBotSpell.SpellId, SE_ManaRegen_v2) ||
+								IsEffectInSpell(selectedBotSpell.SpellId, SE_CurrentMana))
+							{
+								continue;
+							}
+							break;
+						case ARCHETYPE_HYBRID:
+							//Hybrids get all buffs
+						default:
+							break;
 					}
 
 					if ((IsEffectInSpell(selectedBotSpell.SpellId, SE_ResistMagic) ||

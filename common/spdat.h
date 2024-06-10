@@ -1618,5 +1618,7 @@ bool IsSpellUsableInThisZoneType(uint16 spell_id, uint8 zone_type);
 const char *GetSpellName(uint16 spell_id);
 int GetSpellStatValue(uint16 spell_id, const char* stat_identifier, uint8 slot = 0);
 bool IsCastRestrictedSpell(uint16 spell_id);
+uint8 SpellEffectsCount(uint16 spell_id);
+bool IsLichSpell(uint16 spell_id);
 
 #endif
