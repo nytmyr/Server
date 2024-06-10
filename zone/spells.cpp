@@ -1868,6 +1868,23 @@ bool Mob::DetermineSpellTargets(uint16 spell_id, Mob *&spell_target, Mob *&ae_ce
 				MessageString(Chat::Red, SPELL_NEED_TAR);
 				return false;	// can't cast these unless we have a target
 			}
+
+			if (IsClient()) {
+				auto zone_id = zone->GetZoneID();
+				if (RuleB(Range, DoChecksForIllusionGlitching) && (zone_id != 184 && zone_id != 185 && zone_id != 152 && zone_id != 151 && zone_id != 202 && zone_id != 77 && zone_id != 345 && zone_id != 203 && zone_id != 26)) {
+					auto& door_list = entity_list.GetDoorsList();
+					for (auto& itr : door_list) {
+						Doors* door = itr.second;
+						if (door && !door->IsDoorOpen() && (door->GetTriggerType() == 255 || door->GetLockpick() != 0 || door->GetKeyItem() != 0 || door->GetNoKeyring() != 0)) {
+							if (DistanceNoZ(GetPosition(), door->GetPosition()) <= 50) {
+								Message(Chat::Red, "Please move further away from the door to use this spell.");
+								return false;
+							}
+						}
+					}
+				}
+			}
+
 			CastAction = SingleTarget;
 			break;
 		}
