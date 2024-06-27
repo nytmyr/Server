@@ -105,6 +105,13 @@ public:
 	int GetNPCSpellsID();
 	int GetSpawnPointID();
 	int GetRespawnTime();
+	int GetRoamBoxDistance();
+	int GetRoamBoxMaxX();
+	int GetRoamBoxMinX();
+	int GetRoamBoxMaxY();
+	int GetRoamBoxMinY();
+	int GetRoamBoxMaxDelay();
+	int GetRoamBoxMinDelay();
 	float GetSpawnPointX();
 	float GetSpawnPointY();
 	float GetSpawnPointZ();

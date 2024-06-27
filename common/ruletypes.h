@@ -353,6 +353,8 @@ RULE_BOOL(Pathing, Fear, true, "Enable pathing for fear")
 RULE_REAL(Pathing, NavmeshStepSize, 100.0f, "Step size for the movement manager")
 RULE_REAL(Pathing, ShortMovementUpdateRange, 130.0f, "Range for short movement updates")
 RULE_INT(Pathing, MaxNavmeshNodes, 4092, "Maximum navmesh nodes in a traversable path")
+RULE_INT(Pathing, NumTriesToFindNextRoamPoint, 10, "Default 10. Number of tries to find the next location for a roam box.")
+RULE_INT(Pathing, RoamPointMaxZVaration, 100, "Default 100. Max allowed Z variation whwm finding new rom points.")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(Watermap)

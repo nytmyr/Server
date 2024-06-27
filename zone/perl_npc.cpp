@@ -381,6 +381,41 @@ void Perl_NPC_AI_SetRoambox(NPC* self, float distance, float max_x, float min_x,
 	self->AI_SetRoambox(distance, max_x, min_x, max_y, min_y, max_delay, min_delay);
 }
 
+int Perl_NPC_GetRoamBoxDistance(NPC* self) // @categories Script Utility, Spawns
+{
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->roamdist;
+}
+
+int Perl_NPC_GetRoamBoxMaxX(NPC* self) // @categories Script Utility, Spawns
+{
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->roambox[0];
+}
+
+int Perl_NPC_GetRoamBoxMinX(NPC* self) // @categories Script Utility, Spawns
+{
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->roambox[1];
+}
+
+int Perl_NPC_GetRoamBoxMaxY(NPC* self) // @categories Script Utility, Spawns
+{
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->roambox[2];
+}
+
+int Perl_NPC_GetRoamBoxMinY(NPC* self) // @categories Script Utility, Spawns
+{
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->roambox[3];
+}
+
+int Perl_NPC_GetRoamBoxMaxDelay(NPC* self) // @categories Script Utility, Spawns
+{
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->delay;
+}
+
+int Perl_NPC_GetRoamBoxMinDelay(NPC* self) // @categories Script Utility, Spawns
+{
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->min_delay;
+}
+
 uint32_t Perl_NPC_GetNPCSpellsID(NPC* self) // @categories Stats and Attributes
 {
 	return self->GetNPCSpellsID();
@@ -946,6 +981,13 @@ void perl_register_npc()
 	package.add("GetPrimSkill", &Perl_NPC_GetPrimSkill);
 	package.add("GetPrimaryFaction", &Perl_NPC_GetPrimaryFaction);
 	package.add("GetRaidPoints", &Perl_NPC_GetRaidPoints);
+	package.add("GetRoamBoxDistance", &Perl_NPC_GetRoamBoxDistance);
+	package.add("GetRoamBoxMaxX", &Perl_NPC_GetRoamBoxMaxX);
+	package.add("GetRoamBoxMinX", &Perl_NPC_GetRoamBoxMinX);
+	package.add("GetRoamBoxMaxY", &Perl_NPC_GetRoamBoxMaxY);
+	package.add("GetRoamBoxMinY", &Perl_NPC_GetRoamBoxMinY);
+	package.add("GetRoamBoxMaxDelay", &Perl_NPC_GetRoamBoxMaxDelay);
+	package.add("GetRoamBoxMinDelay", &Perl_NPC_GetRoamBoxMinDelay);
 	package.add("GetScore", &Perl_NPC_GetScore);
 	package.add("GetSecSkill", &Perl_NPC_GetSecSkill);
 	package.add("GetSilver", &Perl_NPC_GetSilver);

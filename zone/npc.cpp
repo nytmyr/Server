@@ -3860,14 +3860,14 @@ void NPC::HandleRoambox()
 	if (ready_to_set_new_destination) {
 		// make several attempts to find a valid next move in the box
 		bool can_path = false;
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < RuleI(Pathing, NumTriesToFindNextRoamPoint); i++) {
 			auto move_x      = static_cast<float>(zone->random.Real(-m_roambox.distance, m_roambox.distance));
 			auto move_y      = static_cast<float>(zone->random.Real(-m_roambox.distance, m_roambox.distance));
 			auto requested_x = EQ::Clamp((GetX() + move_x), m_roambox.min_x, m_roambox.max_x);
 			auto requested_y = EQ::Clamp((GetY() + move_y), m_roambox.min_y, m_roambox.max_y);
 			auto requested_z = GetGroundZ(requested_x, requested_y);
 
-			if (std::abs(requested_z - GetZ()) > 100) {
+			if (std::abs(requested_z - GetZ()) > RuleI(Pathing, RoamPointMaxZVaration)) {
 				LogNPCRoamBox("[{}] | Failed to find reasonable ground [{}]", GetCleanName(), i);
 				continue;
 			}

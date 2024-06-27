@@ -394,6 +394,42 @@ int Lua_NPC::GetRespawnTime() {
 	return self->GetRespawnTime();
 }
 
+
+int Lua_NPC::GetRoamBoxDistance() {
+	Lua_Safe_Call_Int();
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->roamdist;
+}
+
+int Lua_NPC::GetRoamBoxMaxX() {
+	Lua_Safe_Call_Int();
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->roambox[0];
+}
+
+int Lua_NPC::GetRoamBoxMinX() {
+	Lua_Safe_Call_Int();
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->roambox[1];
+}
+
+int Lua_NPC::GetRoamBoxMaxY() {
+	Lua_Safe_Call_Int();
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->roambox[2];
+}
+
+int Lua_NPC::GetRoamBoxMinY() {
+	Lua_Safe_Call_Int();
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->roambox[3];
+}
+
+int Lua_NPC::GetRoamBoxMaxDelay() {
+	Lua_Safe_Call_Int();
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->delay;
+}
+
+int Lua_NPC::GetRoamBoxMinDelay() {
+	Lua_Safe_Call_Int();
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->min_delay;
+}
+
 float Lua_NPC::GetSpawnPointX() {
 	Lua_Safe_Call_Real();
 	return self->GetSpawnPoint().x;
@@ -953,7 +989,14 @@ luabind::scope lua_register_npc() {
 	.def("GetSpawnKillCount", (int(Lua_NPC::*)(void))&Lua_NPC::GetSpawnKillCount)
 	.def("GetSpawnPointH", (float(Lua_NPC::*)(void))&Lua_NPC::GetSpawnPointH)
 	.def("GetSpawnPointID", (int(Lua_NPC::*)(void))&Lua_NPC::GetSpawnPointID)
-	.def("GetRespawnTime", (int(Lua_NPC::*)(void)) & Lua_NPC::GetRespawnTime)
+	.def("GetRespawnTime", (int(Lua_NPC::*)(void))&Lua_NPC::GetRespawnTime)
+	.def("GetRoamBoxDistance", (int(Lua_NPC::*)(void))&Lua_NPC::GetRoamBoxDistance)
+	.def("GetRoamBoxMaxX", (int(Lua_NPC::*)(void))&Lua_NPC::GetRoamBoxMaxX)
+	.def("GetRoamBoxMinX", (int(Lua_NPC::*)(void))&Lua_NPC::GetRoamBoxMinX)
+	.def("GetRoamBoxMaxY", (int(Lua_NPC::*)(void))&Lua_NPC::GetRoamBoxMaxY)
+	.def("GetRoamBoxMinY", (int(Lua_NPC::*)(void))&Lua_NPC::GetRoamBoxMinY)
+	.def("GetRoamBoxMaxDelay", (int(Lua_NPC::*)(void))&Lua_NPC::GetRoamBoxMaxDelay)
+	.def("GetRoamBoxMinDelay", (int(Lua_NPC::*)(void))&Lua_NPC::GetRoamBoxMinDelay)
 	.def("GetSpawnPointX", (float(Lua_NPC::*)(void))&Lua_NPC::GetSpawnPointX)
 	.def("GetSpawnPointY", (float(Lua_NPC::*)(void))&Lua_NPC::GetSpawnPointY)
 	.def("GetSpawnPointZ", (float(Lua_NPC::*)(void))&Lua_NPC::GetSpawnPointZ)
