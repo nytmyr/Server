@@ -105,6 +105,13 @@ public:
 	int GetNPCSpellsID();
 	int GetSpawnPointID();
 	int GetRespawnTime();
+	int GetRoamBoxDistance();
+	int GetRoamBoxMaxX();
+	int GetRoamBoxMinX();
+	int GetRoamBoxMaxY();
+	int GetRoamBoxMinY();
+	int GetRoamBoxMaxDelay();
+	int GetRoamBoxMinDelay();
 	float GetSpawnPointX();
 	float GetSpawnPointY();
 	float GetSpawnPointZ();
@@ -183,6 +190,10 @@ public:
 	int GetShardAmount();
 	void SetDifficulty(float difficulty_);
 	void AddVegasLoot(float difficulty_min, float difficulty_max, bool raid_only, uint32 bonus_chance);
+	bool IsStuck();
+	void SetIsStuck(bool currentState);
+	uint16 GetStuckCount();
+	void SetStuckCount(uint16 newCount);
 };
 
 #endif

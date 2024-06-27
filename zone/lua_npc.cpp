@@ -394,6 +394,42 @@ int Lua_NPC::GetRespawnTime() {
 	return self->GetRespawnTime();
 }
 
+
+int Lua_NPC::GetRoamBoxDistance() {
+	Lua_Safe_Call_Int();
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->roamdist;
+}
+
+int Lua_NPC::GetRoamBoxMaxX() {
+	Lua_Safe_Call_Int();
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->roambox[0];
+}
+
+int Lua_NPC::GetRoamBoxMinX() {
+	Lua_Safe_Call_Int();
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->roambox[1];
+}
+
+int Lua_NPC::GetRoamBoxMaxY() {
+	Lua_Safe_Call_Int();
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->roambox[2];
+}
+
+int Lua_NPC::GetRoamBoxMinY() {
+	Lua_Safe_Call_Int();
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->roambox[3];
+}
+
+int Lua_NPC::GetRoamBoxMaxDelay() {
+	Lua_Safe_Call_Int();
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->delay;
+}
+
+int Lua_NPC::GetRoamBoxMinDelay() {
+	Lua_Safe_Call_Int();
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->min_delay;
+}
+
 float Lua_NPC::GetSpawnPointX() {
 	Lua_Safe_Call_Real();
 	return self->GetSpawnPoint().x;
@@ -877,6 +913,26 @@ void Lua_NPC::AddVegasLoot(float difficulty_min, float difficulty_max, bool raid
 	}
 }
 
+void Lua_NPC::SetIsStuck(bool currentState) {
+	Lua_Safe_Call_Void();
+	self->SetIsStuck(currentState);
+}
+
+bool Lua_NPC::IsStuck() {
+	Lua_Safe_Call_Bool();
+	return self->IsStuck();
+}
+
+uint16 Lua_NPC::GetStuckCount() {
+	Lua_Safe_Call_Int();
+	return self->GetStuckCount();
+}
+
+void Lua_NPC::SetStuckCount(uint16 newCount) {
+	Lua_Safe_Call_Void();
+	self->SetStuckCount(newCount);
+}
+
 luabind::scope lua_register_npc() {
 	return luabind::class_<Lua_NPC, Lua_Mob>("NPC")
 	.def(luabind::constructor<>())
@@ -953,13 +1009,21 @@ luabind::scope lua_register_npc() {
 	.def("GetSpawnKillCount", (int(Lua_NPC::*)(void))&Lua_NPC::GetSpawnKillCount)
 	.def("GetSpawnPointH", (float(Lua_NPC::*)(void))&Lua_NPC::GetSpawnPointH)
 	.def("GetSpawnPointID", (int(Lua_NPC::*)(void))&Lua_NPC::GetSpawnPointID)
-	.def("GetRespawnTime", (int(Lua_NPC::*)(void)) & Lua_NPC::GetRespawnTime)
+	.def("GetRespawnTime", (int(Lua_NPC::*)(void))&Lua_NPC::GetRespawnTime)
+	.def("GetRoamBoxDistance", (int(Lua_NPC::*)(void))&Lua_NPC::GetRoamBoxDistance)
+	.def("GetRoamBoxMaxX", (int(Lua_NPC::*)(void))&Lua_NPC::GetRoamBoxMaxX)
+	.def("GetRoamBoxMinX", (int(Lua_NPC::*)(void))&Lua_NPC::GetRoamBoxMinX)
+	.def("GetRoamBoxMaxY", (int(Lua_NPC::*)(void))&Lua_NPC::GetRoamBoxMaxY)
+	.def("GetRoamBoxMinY", (int(Lua_NPC::*)(void))&Lua_NPC::GetRoamBoxMinY)
+	.def("GetRoamBoxMaxDelay", (int(Lua_NPC::*)(void))&Lua_NPC::GetRoamBoxMaxDelay)
+	.def("GetRoamBoxMinDelay", (int(Lua_NPC::*)(void))&Lua_NPC::GetRoamBoxMinDelay)
 	.def("GetSpawnPointX", (float(Lua_NPC::*)(void))&Lua_NPC::GetSpawnPointX)
 	.def("GetSpawnPointY", (float(Lua_NPC::*)(void))&Lua_NPC::GetSpawnPointY)
 	.def("GetSpawnPointZ", (float(Lua_NPC::*)(void))&Lua_NPC::GetSpawnPointZ)
 	.def("GetSpellFocusDMG", (void(Lua_NPC::*)(int))&Lua_NPC::GetSpellFocusDMG)
 	.def("GetSpellFocusHeal", (void(Lua_NPC::*)(int))&Lua_NPC::GetSpellFocusHeal)
 	.def("GetSpellScale", (float(Lua_NPC::*)(void))&Lua_NPC::GetSpellScale)
+	.def("GetStuckCount", (uint16(Lua_NPC::*)(void))&Lua_NPC::GetStuckCount)
 	.def("GetSwarmOwner", (int(Lua_NPC::*)(void))&Lua_NPC::GetSwarmOwner)
 	.def("GetSwarmTarget", (int(Lua_NPC::*)(void))&Lua_NPC::GetSwarmTarget)
 	.def("GetWaypointMax", (int(Lua_NPC::*)(void))&Lua_NPC::GetWaypointMax)
@@ -973,6 +1037,7 @@ luabind::scope lua_register_npc() {
 	.def("IsOnHatelist", (bool(Lua_NPC::*)(Lua_Mob))&Lua_NPC::IsOnHatelist)
 	.def("IsRaidTarget", (bool(Lua_NPC::*)(void))&Lua_NPC::IsRaidTarget)
 	.def("IsRareSpawn", (bool(Lua_NPC::*)(void))&Lua_NPC::IsRareSpawn)
+	.def("IsStuck", (bool(Lua_NPC::*)(void))& Lua_NPC::IsStuck)
 	.def("IsTaunting", (bool(Lua_NPC::*)(void))&Lua_NPC::IsTaunting)
 	.def("IsUnderwaterOnly", (bool(Lua_NPC::*)(void))&Lua_NPC::IsUnderwaterOnly)
 	.def("MerchantCloseShop", (void(Lua_NPC::*)(void))&Lua_NPC::MerchantCloseShop)
@@ -1004,6 +1069,7 @@ luabind::scope lua_register_npc() {
 	.def("SetFollowID", (void(Lua_NPC::*)(int))&Lua_NPC::SetFollowID)
 	.def("SetGold", (void(Lua_NPC::*)(uint32))&Lua_NPC::SetGold)
 	.def("SetGrid", (void(Lua_NPC::*)(int))&Lua_NPC::SetGrid)
+	.def("SetIsStuck", (void(Lua_NPC::*)(bool))& Lua_NPC::SetIsStuck)
 	.def("SetKeepsSoldItems", (void(Lua_NPC::*)(bool))&Lua_NPC::SetKeepsSoldItems)
 	.def("SetLDoNLocked", (void(Lua_NPC::*)(bool))&Lua_NPC::SetLDoNLocked)
 	.def("SetLDoNLockedSkill", (void(Lua_NPC::*)(uint16))&Lua_NPC::SetLDoNLockedSkill)
@@ -1024,6 +1090,7 @@ luabind::scope lua_register_npc() {
 	.def("SetSp2", (void(Lua_NPC::*)(int))&Lua_NPC::SetSp2)
 	.def("SetSpellFocusDMG", (void(Lua_NPC::*)(int))&Lua_NPC::SetSpellFocusDMG)
 	.def("SetSpellFocusHeal", (void(Lua_NPC::*)(int))&Lua_NPC::SetSpellFocusHeal)
+	.def("SetStuckCount", (void(Lua_NPC::*)(uint16))&Lua_NPC::SetStuckCount)
 	.def("SetSwarmTarget", (void(Lua_NPC::*)(int))&Lua_NPC::SetSwarmTarget)
 	.def("SetTaunting", (void(Lua_NPC::*)(bool))&Lua_NPC::SetTaunting)
 	.def("SetWaypointPause", (void(Lua_NPC::*)(void))&Lua_NPC::SetWaypointPause)

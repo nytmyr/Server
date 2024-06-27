@@ -707,6 +707,17 @@ double Lua_Mob::GetZ() {
 	return self->GetZ();
 }
 
+float Lua_Mob::GetBestZ(double x, double y, double z) {
+	Lua_Safe_Call_Real();
+	glm::vec3 cur_pos = glm::vec3(x, y, z);
+	return zone->zonemap->FindBestZ(cur_pos, nullptr);
+}
+
+float Lua_Mob::GetFixedZ() {
+	Lua_Safe_Call_Real();
+	return self->GetFixedZ(self->GetPosition());
+}
+
 double Lua_Mob::GetHeading() {
 	Lua_Safe_Call_Real();
 	return self->GetHeading();
@@ -3209,6 +3220,7 @@ luabind::scope lua_register_mob() {
 	.def("GetBaseSize", (double(Lua_Mob::*)(void))&Lua_Mob::GetBaseSize)
 	.def("GetBeard", &Lua_Mob::GetBeard)
 	.def("GetBeardColor", &Lua_Mob::GetBeardColor)
+	.def("GetBestZ", (float(Lua_Mob::*)(double, double, double))&Lua_Mob::GetBestZ)
 	.def("GetBodyType", &Lua_Mob::GetBodyType)
 	.def("GetBucket", (std::string(Lua_Mob::*)(std::string))&Lua_Mob::GetBucket)
 	.def("GetBucketExpires", (std::string(Lua_Mob::*)(std::string))&Lua_Mob::GetBucketExpires)
@@ -3237,6 +3249,7 @@ luabind::scope lua_register_mob() {
 	.def("GetEntityVariables",&Lua_Mob::GetEntityVariables)
 	.def("GetEyeColor1", &Lua_Mob::GetEyeColor1)
 	.def("GetEyeColor2", &Lua_Mob::GetEyeColor2)
+	.def("GetFixedZ", &Lua_Mob::GetFixedZ)
 	.def("GetFR", &Lua_Mob::GetFR)
 	.def("GetFcDamageAmtIncoming", &Lua_Mob::GetFcDamageAmtIncoming)
 	.def("GetFlurryChance", (int(Lua_Mob::*)(void))&Lua_Mob::GetFlurryChance)

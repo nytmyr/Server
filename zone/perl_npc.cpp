@@ -381,6 +381,41 @@ void Perl_NPC_AI_SetRoambox(NPC* self, float distance, float max_x, float min_x,
 	self->AI_SetRoambox(distance, max_x, min_x, max_y, min_y, max_delay, min_delay);
 }
 
+int Perl_NPC_GetRoamBoxDistance(NPC* self) // @categories Script Utility, Spawns
+{
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->roamdist;
+}
+
+int Perl_NPC_GetRoamBoxMaxX(NPC* self) // @categories Script Utility, Spawns
+{
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->roambox[0];
+}
+
+int Perl_NPC_GetRoamBoxMinX(NPC* self) // @categories Script Utility, Spawns
+{
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->roambox[1];
+}
+
+int Perl_NPC_GetRoamBoxMaxY(NPC* self) // @categories Script Utility, Spawns
+{
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->roambox[2];
+}
+
+int Perl_NPC_GetRoamBoxMinY(NPC* self) // @categories Script Utility, Spawns
+{
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->roambox[3];
+}
+
+int Perl_NPC_GetRoamBoxMaxDelay(NPC* self) // @categories Script Utility, Spawns
+{
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->delay;
+}
+
+int Perl_NPC_GetRoamBoxMinDelay(NPC* self) // @categories Script Utility, Spawns
+{
+	return zone->spawn_group_list.GetSpawnGroup(self->GetSpawnGroupId())->min_delay;
+}
+
 uint32_t Perl_NPC_GetNPCSpellsID(NPC* self) // @categories Stats and Attributes
 {
 	return self->GetNPCSpellsID();
@@ -874,6 +909,26 @@ void Perl_NPC_AddVegasLoot(NPC* self, float difficulty_min, float difficulty_max
 	}
 }
 
+bool Perl_NPC_IsStuck(NPC* self) // @categories Script Utility
+{
+	return self->IsStuck();
+}
+
+void Perl_NPC_SetIsStuck(NPC* self, bool currentState) // @categories Script Utility
+{
+	self->SetIsStuck(currentState);
+}
+
+uint16 Perl_NPC_GetStuckCount(NPC* self) // @categories Script Utility
+{
+	return self->GetStuckCount();
+}
+
+void Perl_NPC_SetStuckCount(NPC* self, uint16 newCount) // @categories Script Utility
+{
+	self->SetStuckCount(newCount);
+}
+
 void perl_register_npc()
 {
 	perl::interpreter perl(PERL_GET_THX);
@@ -946,6 +1001,13 @@ void perl_register_npc()
 	package.add("GetPrimSkill", &Perl_NPC_GetPrimSkill);
 	package.add("GetPrimaryFaction", &Perl_NPC_GetPrimaryFaction);
 	package.add("GetRaidPoints", &Perl_NPC_GetRaidPoints);
+	package.add("GetRoamBoxDistance", &Perl_NPC_GetRoamBoxDistance);
+	package.add("GetRoamBoxMaxX", &Perl_NPC_GetRoamBoxMaxX);
+	package.add("GetRoamBoxMinX", &Perl_NPC_GetRoamBoxMinX);
+	package.add("GetRoamBoxMaxY", &Perl_NPC_GetRoamBoxMaxY);
+	package.add("GetRoamBoxMinY", &Perl_NPC_GetRoamBoxMinY);
+	package.add("GetRoamBoxMaxDelay", &Perl_NPC_GetRoamBoxMaxDelay);
+	package.add("GetRoamBoxMinDelay", &Perl_NPC_GetRoamBoxMinDelay);
 	package.add("GetScore", &Perl_NPC_GetScore);
 	package.add("GetSecSkill", &Perl_NPC_GetSecSkill);
 	package.add("GetSilver", &Perl_NPC_GetSilver);
@@ -961,6 +1023,7 @@ void perl_register_npc()
 	package.add("GetSpellFocusDMG", &Perl_NPC_GetSpellFocusDMG);
 	package.add("GetSpellFocusHeal", &Perl_NPC_GetSpellFocusHeal);
 	package.add("GetSpellScale", &Perl_NPC_GetSpellScale);
+	package.add("GetStuckCount", &Perl_NPC_GetStuckCount);
 	package.add("GetSwarmOwner", &Perl_NPC_GetSwarmOwner);
 	package.add("GetSwarmTarget", &Perl_NPC_GetSwarmTarget);
 	package.add("GetWaypointMax", &Perl_NPC_GetWaypointMax);
@@ -975,6 +1038,7 @@ void perl_register_npc()
 	package.add("IsOnHatelist", &Perl_NPC_IsOnHatelist);
 	package.add("IsRaidTarget", &Perl_NPC_IsRaidTarget);
 	package.add("IsRareSpawn", &Perl_NPC_IsRareSpawn);
+	package.add("IsStuck", &Perl_NPC_IsStuck);
 	package.add("IsTaunting", &Perl_NPC_IsTaunting);
 	package.add("IsUnderwaterOnly", (bool(*)(NPC*))&Perl_NPC_IsUnderwaterOnly);
 	package.add("MerchantCloseShop", &Perl_NPC_MerchantCloseShop);
@@ -1017,6 +1081,7 @@ void perl_register_npc()
 	package.add("SetLDoNTrapType", &Perl_NPC_SetLDoNTrapType);
 	package.add("SetGold", &Perl_NPC_SetGold);
 	package.add("SetGrid", &Perl_NPC_SetGrid);
+	package.add("SetIsStuck", &Perl_NPC_SetIsStuck);
 	package.add("SetNPCFactionID", &Perl_NPC_SetNPCFactionID);
 	package.add("SetPetSpellID", &Perl_NPC_SetPetSpellID);
 	package.add("SetPlatinum", &Perl_NPC_SetPlatinum);
@@ -1030,6 +1095,7 @@ void perl_register_npc()
 	package.add("SetSp2", &Perl_NPC_SetSp2);
 	package.add("SetSpellFocusDMG", &Perl_NPC_SetSpellFocusDMG);
 	package.add("SetSpellFocusHeal", &Perl_NPC_SetSpellFocusHeal);
+	package.add("SetStuckCount", &Perl_NPC_SetStuckCount);
 	package.add("SetSwarmTarget", &Perl_NPC_SetSwarmTarget);
 	package.add("SetTaunting", &Perl_NPC_SetTaunting);
 	package.add("SetWaypointPause", &Perl_NPC_SetWaypointPause);

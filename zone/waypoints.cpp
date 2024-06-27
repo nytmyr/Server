@@ -804,7 +804,7 @@ float Mob::GetFixedZ(const glm::vec3 &destination, int32 z_find_offset) {
 
 		auto duration = timer.elapsed();
 
-		LogFixZ("[{}] returned [{}] at [{}] [{}] [{}] - Took [{}]",
+		LogFixZDetail("[{}] returned [{}] at [{}] [{}] [{}] - Took [{}]",
 			GetCleanName(),
 			new_z,
 			destination.x,

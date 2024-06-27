@@ -172,6 +172,8 @@ public:
 	double GetX();
 	double GetY();
 	double GetZ();
+	float GetBestZ(double x, double y, double z);
+	float GetFixedZ();
 	double GetHeading();
 	double GetWaypointX();
 	double GetWaypointY();
