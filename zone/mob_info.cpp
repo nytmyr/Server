@@ -237,6 +237,15 @@ inline std::string GetMobAttributeByString(Mob *mob, const std::string &attribut
 		return std::to_string(mob->GetMitigationAC());
 	}
 
+	if (attribute == "haste") {
+		if (mob->IsClient()) {
+			return Strings::Commify(std::to_string(mob->CastToClient()->GetHaste()));
+		}
+		else {
+			return Strings::Commify(std::to_string(mob->GetHaste()));
+		}
+	}
+
 	if (mob->IsNPC()) {
 		NPC *npc = mob->CastToNPC();
 
@@ -706,6 +715,7 @@ void Mob::DisplayInfo(Mob *mob)
 			"total_defense",
 			"offense",
 			"mitigation_ac",
+			"haste",
 		};
 		window_text += WriteDisplayInfoSection(mob, "Calculations", calculations, 1, true);
 

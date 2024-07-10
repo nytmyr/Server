@@ -236,6 +236,9 @@ RULE_INT(Mercs, AggroRadiusPuller, 25, "Determines the distance from which a mer
 RULE_INT(Mercs, ResurrectRadius, 50, "Determines the distance from which a healer merc will attempt to resurrect a group member's corpse")
 RULE_INT(Mercs, ScaleRate, 100, "Merc scale factor")
 RULE_BOOL(Mercs, AllowMercSuspendInCombat, true, "Allow merc suspend in combat")
+RULE_BOOL(Mercs, MercsIgnoreLevelBasedHasteCaps, false, "Ignores hard coded level based haste caps.")
+RULE_INT(Mercs, MercsHasteCap, 100, "Haste cap for non-v3(over haste) haste")
+RULE_INT(Mercs, MercsHastev3Cap, 25, "Haste cap for v3(over haste) haste")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(Guild)
@@ -572,6 +575,9 @@ RULE_REAL(NPC, NPCHealOnGateAmount, 25, "How much the NPC will heal on gate if e
 RULE_BOOL(NPC, AnimalsOpenDoors, true, "Determines or not whether animals open doors or not when they approach them")
 RULE_INT(NPC, MaxRaceID, 732, "Maximum Race ID, RoF2 by default supports up to 732")
 RULE_BOOL(NPC, DisableLastNames, false, "Enable to disable NPC Last Names")
+RULE_BOOL(NPC, NPCIgnoreLevelBasedHasteCaps, false, "Ignores hard coded level based haste caps.")
+RULE_INT(NPC, NPCHasteCap, 150, "Haste cap for non-v3(over haste) haste")
+RULE_INT(NPC, NPCHastev3Cap, 25, "Haste cap for v3(over haste) haste")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(Aggro)
@@ -685,6 +691,9 @@ RULE_BOOL(Bots, AllowCharmedPetBuffs, true, "Whether or not bots are allowed to 
 RULE_BOOL(Bots, AllowCharmedPetHeals, true, "Whether or not bots are allowed to cast heal charmed pets, default true.")
 RULE_BOOL(Bots, AllowCharmedPetCures, true, "Whether or not bots are allowed to cast cure charmed pets, default true.")
 RULE_INT(Bots, MaxDistanceForCureCounts, 70, "Maximum distance group or raid members can be from the caster to count towards group heal counts, default 70")
+RULE_BOOL(Bots, BotsIgnoreLevelBasedHasteCaps, false, "Ignores hard coded level based haste caps.")
+RULE_INT(Bots, BotsHasteCap, 100, "Haste cap for non-v3(over haste) haste")
+RULE_INT(Bots, BotsHastev3Cap, 25, "Haste cap for v3(over haste) haste")
 
 /*
 * CUSTOM BOT RULES
