@@ -297,8 +297,14 @@ WorldContentService::FindZoneResult WorldContentService::FindZone(uint32 zone_id
 		}
 	}
 
-	for (auto &z: m_zones) {
+	bool zoneFound = false;
+	BaseZoneRepository::Zone zF;
+
+	for (auto &z : m_zones) {
 		if (z.zoneidnumber == zone_id) {
+			zF = z;
+			zoneFound = true;
+
 			auto f = ContentFlags{
 				.min_expansion = z.min_expansion,
 				.max_expansion = z.max_expansion,
@@ -318,6 +324,11 @@ WorldContentService::FindZoneResult WorldContentService::FindZone(uint32 zone_id
 				// first pass, explicit match on public static global zone instances
 				for (auto &i: m_zone_instances) {
 					if (i.zone == zone_id && i.version == z.version) {
+
+						if (instance_id > 0 && i.id != instance_id) {
+							continue;
+						}
+
 						LogInfo(
 							"Routed player to instance [{}] of zone [{}] ({}) version [{}] long_name [{}] notes [{}]",
 							i.id,
@@ -335,26 +346,28 @@ WorldContentService::FindZoneResult WorldContentService::FindZone(uint32 zone_id
 						};
 					}
 				}
-
-				LogInfo(
-					"Routed player to non-instance zone [{}] ({}) version [{}] long_name [{}] notes [{}]",
-					z.short_name,
-					z.zoneidnumber,
-					z.version,
-					z.long_name,
-					z.note
-				);
-
-				return WorldContentService::FindZoneResult{
-					.zone_id = static_cast<uint32>(z.zoneidnumber),
-					.instance = InstanceListRepository::NewEntity(),
-					.zone = z
-				};
 			}
 		}
 	}
 
-	return WorldContentService::FindZoneResult{.zone_id = 0};
+	if (zoneFound) {
+		LogInfo(
+			"Routed player to non-instance zone [{}] ({}) version [{}] long_name [{}] notes [{}]",
+			zF.short_name,
+			zF.zoneidnumber,
+			zF.version,
+			zF.long_name,
+			zF.note
+		);
+
+		return WorldContentService::FindZoneResult{
+			.zone_id = static_cast<uint32>(zF.zoneidnumber),
+			.instance = InstanceListRepository::NewEntity(),
+			.zone = zF
+		};
+	}
+
+	return WorldContentService::FindZoneResult{ .zone_id = 0 };
 }
 
 bool WorldContentService::IsInPublicStaticInstance(uint32 instance_id)
