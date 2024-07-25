@@ -5,10 +5,244 @@ void bot_command_spell_delays(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_spell_delays", sep->arg[0], "spelldelays"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::Cyan, "usage: %s [spelltype ID | spelltype shortname] [current | value in milliseconds] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | healrotationtargets | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
-		c->Message(Chat::Magenta, "example: [%s 9 8000 spawned] or [%s dots 8000 spawned] would set the delay between casts for all DoT spells to 8 seconds.", sep->arg[0], sep->arg[0]);
-		c->Message(Chat::Yellow, "note: Use [current] to check the current setting.");
+		//c->Message(Chat::Cyan, "usage: %s [spelltype ID | spelltype shortname] [current | value in milliseconds] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | healrotationtargets | mmr | byclass | byrace | spawned] ([actionable_name]))", sep->arg[0]);
+		//c->Message(Chat::DarkGray, "----------------------------------------");
+		//c->Message(Chat::Magenta, "example: [%s 9 8000 spawned] or [%s dots 8000 spawned] would set the delay between casts for all DoT spells to 8 seconds", sep->arg[0], sep->arg[0]);
+		//c->Message(Chat::DarkGray, "----------------------------------------");
+		//c->Message(Chat::Yellow, "note: Use [current] to check the current setting");
+		//c->Message(Chat::DarkGray, "----------------------------------------");
+		//c->CastToBot()->SendSpellTypesWindow(c, sep->arg[0], "", "", true);
+
+		const std::string& color_red = "red_1";
+		const std::string& color_blue = "royal_blue";
+		const std::string& color_green = "forest_green";
+		const std::string& bright_green = "green";
+		const std::string& bright_red = "red";
+		const std::string& heroic_color = "gold";
+
+		std::string fillerLine = "--------------------------------------------------------------------";
+		std::string fillerDia = DialogueWindow::TableRow(DialogueWindow::TableCell(fmt::format("{}", DialogueWindow::ColorMessage(heroic_color, fillerLine))));
+		std::string indent = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+		std::string bullet = "- ";
+
+		std::string popup_text = DialogueWindow::TableRow(
+			DialogueWindow::TableCell(
+				fmt::format(
+					"{}",
+					DialogueWindow::ColorMessage(
+						bright_green,
+						fmt::format(
+							"{}{}{}How to use:",
+							indent,
+							indent,
+							indent
+						)
+					)
+				)
+			)
+		);
+
+		popup_text += DialogueWindow::TableRow(
+			DialogueWindow::TableCell(
+				fmt::format(
+					"{}",
+					DialogueWindow::ColorMessage(
+						bright_green,
+						fmt::format(
+							"{} [Type ID] [value] [actionable]",
+							sep->arg[0]
+						)
+					)
+				)
+			)
+		);
+
+		popup_text += DialogueWindow::TableRow(
+			DialogueWindow::TableCell(
+				fmt::format(
+					"{}",
+					DialogueWindow::ColorMessage(
+						bright_green,
+						fmt::format(
+							"{} [Type Shortname] [value] [actionable]",
+							sep->arg[0]
+						)
+					)
+				)
+			)
+		);
+
+		popup_text += fillerDia;
+
+		popup_text += DialogueWindow::TableRow(
+			DialogueWindow::TableCell(
+				fmt::format(
+					"{}",
+					DialogueWindow::ColorMessage(
+						color_blue,
+						fmt::format(
+							"{}{}{}Available actionables are:",
+							indent,
+							indent,
+							indent
+						)
+					)
+				)
+			)
+		);
+
+		popup_text += DialogueWindow::TableRow(
+			DialogueWindow::TableCell(
+				fmt::format(
+					"{}",
+					DialogueWindow::ColorMessage(
+						color_blue,
+						fmt::format(
+							"{}target | byname | ownergroup | ownerraid | targetgroup",
+							bullet
+						)
+					)
+				)
+			)
+		);
+
+		popup_text += DialogueWindow::TableRow(
+			DialogueWindow::TableCell(
+				fmt::format(
+					"{}",
+					DialogueWindow::ColorMessage(
+						color_blue,
+						fmt::format(
+							"{}namesgroup | healrotationtargets | mmr | byclass",
+							bullet
+						)
+					)
+				)
+			)
+		);
+
+		popup_text += DialogueWindow::TableRow(
+			DialogueWindow::TableCell(
+				fmt::format(
+					"{}",
+					DialogueWindow::ColorMessage(
+						color_blue,
+						fmt::format(
+							"{}byrace | spawned",
+							bullet
+						)
+					)
+				)
+			)
+		);
+
+		popup_text += fillerDia;
+
+		popup_text += DialogueWindow::TableRow(
+			DialogueWindow::TableCell(
+				fmt::format(
+					"{}",
+					DialogueWindow::ColorMessage(
+						color_blue,
+						fmt::format(
+							"To set DoTs to have an 8 second delay:",
+							indent,
+							indent,
+							indent
+						)
+					)
+				)
+			)
+		);
+
+		popup_text += DialogueWindow::TableRow(
+			DialogueWindow::TableCell(
+				fmt::format(
+					"{}",
+					DialogueWindow::ColorMessage(
+						heroic_color,
+						fmt::format(
+							"{} dots 8000 spawned",
+							sep->arg[0]
+						)
+					)
+				)
+			)
+		);
+
+		popup_text += DialogueWindow::TableRow(
+			DialogueWindow::TableCell(
+				fmt::format(
+					"{}",
+					DialogueWindow::ColorMessage(
+						heroic_color,
+						fmt::format(
+							"{} 8 8000 spawned",
+							sep->arg[0]
+						)
+					)
+				)
+			)
+		);
+
+		popup_text += fillerDia;
+
+		popup_text += DialogueWindow::TableRow(
+			DialogueWindow::TableCell(
+				fmt::format(
+					"{}",
+					DialogueWindow::ColorMessage(
+						color_green,
+						fmt::format(
+							"{}Use current to check the current setting",
+							bullet
+						)
+					)
+				)
+			)
+		);
+
+		popup_text += DialogueWindow::TableRow(
+			DialogueWindow::TableCell(
+				fmt::format(
+					"{}",
+					DialogueWindow::ColorMessage(
+						heroic_color,
+						fmt::format(
+							"{} dots current spawned",
+							sep->arg[0]
+						)
+					)
+				)
+			)
+		);
+
+		popup_text += DialogueWindow::TableRow(
+			DialogueWindow::TableCell(
+				fmt::format(
+					"{}",
+					DialogueWindow::ColorMessage(
+						heroic_color,
+						fmt::format(
+							"{} 8 current spawned",
+							sep->arg[0]
+						)
+					)
+				)
+			)
+		);
+
+		popup_text = DialogueWindow::Table(popup_text);
+
+		c->SendPopupToClient(sep->arg[0], popup_text.c_str());
 		c->CastToBot()->SendSpellTypesWindow(c, sep->arg[0], "", "", true);
+		c->Message(
+			Chat::Yellow,
+			fmt::format(
+				"Use {} for information about race/class IDs.",
+				Saylink::Silent("^classracelist")
+			).c_str()
+		);
 
 		return;
 	}
@@ -82,6 +316,14 @@ void bot_command_spell_delays(Client* c, const Seperator* sep)
 			).c_str()
 		);
 
+		c->Message(
+			Chat::Yellow,
+			fmt::format(
+				"Use {} for information about race/class IDs.",
+				Saylink::Silent("^create help")
+			).c_str()
+		);
+
 		return;
 	}
 
@@ -101,9 +343,6 @@ void bot_command_spell_delays(Client* c, const Seperator* sep)
 	Bot* first_found = nullptr;
 	int success_count = 0;
 	for (auto my_bot : sbl) {
-		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-			continue;
-		}
 		if (!first_found) {
 			first_found = my_bot;
 		}

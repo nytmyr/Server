@@ -7,29 +7,6 @@ void bot_command_default_settings(Client* c, const Seperator* sep)
 	}
 
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s (<target>) ([option: all | misc | spellsettings | spelltypesettings | holds | delays | minthresholds | maxthresholds | aggrocheck | minmanapct | maxmanapct | idlepriority | engagedpriority | pursuepriority | aegroup])", sep->arg[0]);
-		c->Message(Chat::White, "example: target the bot you want to restore default hold settings to and tope ^defaultsettings holds");
-		c->Message(Chat::White, "note: optional argument 'misc' will default show helm, follow distance, stop melee level, archery settings, pet type, hold damage shields, hold resists, behind mob status, caster range and illusion block.");
-		c->Message(Chat::White, "note: optional argument 'spellsettings' will default ^spellsettings options.");
-		c->Message(Chat::White, "note: optional argument 'spelltypesettings' will default all settings for different spell types.");
-		c->Message(Chat::White, "note: optional argument 'all' will default all settings.");
-		c->Message(Chat::White, "note: optional argument 'holds' will default all hold settings by spell type.");
-		c->Message(Chat::White, "note: optional argument 'delays' will default all delay settings by spell type.");
-		c->Message(Chat::White, "note: optional argument 'minthresholds' will default all minimum threshold settings by spell type.");
-		c->Message(Chat::White, "note: optional argument 'maxthresholds' will default all maximum threshold settings by spell type.");
-		c->Message(Chat::White, "note: optional argument 'aggrocheck' will default all aggro check settings by spell type.");
-		c->Message(Chat::White, "note: optional argument 'minmanapct' will default all Minimum Mana settings by spell type.");
-		c->Message(Chat::White, "note: optional argument 'maxmanapct' will default all Maximum Mana settings by spell type.");
-		c->Message(Chat::White, "note: optional argument 'minhppct' will default all Minimum HP settings by spell type.");
-		c->Message(Chat::White, "note: optional argument 'maxhppct' will default all Maximum HP settings by spell type.");
-		c->Message(Chat::White, "note: optional argument 'idlepriority' will default all idle spell type priority settings by spell type.");
-		c->Message(Chat::White, "note: optional argument 'engagedpriority' will default all engaged spell type priority settings by spell type.");
-		c->Message(Chat::White, "note: optional argument 'pursuepriority' will default all pursue spell type priority settings by spell type.");
-		c->Message(Chat::White, "note: optional argument 'aegroup' will default all ae/group counts for each spell type.");
-		return;
-	}
-
-	if (helper_is_help_or_usage(sep->arg[1])) {
 		const std::string& color_red = "red_1";
 		const std::string& color_blue = "royal_blue";
 		const std::string& color_green = "forest_green";
@@ -38,21 +15,23 @@ void bot_command_default_settings(Client* c, const Seperator* sep)
 		const std::string& heroic_color = "gold";
 
 		std::string fillerLine = "--------------------------------------------------------------------";
+		std::string fillerDia = DialogueWindow::TableRow(DialogueWindow::TableCell(fmt::format("{}", DialogueWindow::ColorMessage(heroic_color, fillerLine))));
 		std::string indent = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 		std::string bullet = "- ";
-
-		std::string usageLine =
-			fmt::format(
-				"usage: {} [target] [option]",
-				sep->arg[0]
-			)
-			;
 
 		std::string popup_text = DialogueWindow::TableRow(
 			DialogueWindow::TableCell(
 				fmt::format(
 					"{}",
-					DialogueWindow::ColorMessage(bright_green, usageLine)
+					DialogueWindow::ColorMessage(
+						bright_green,
+						fmt::format(
+							"{}{}{}How to use:",
+							indent,
+							indent,
+							indent
+						)
+					)
 				)
 			)
 		);
@@ -61,10 +40,81 @@ void bot_command_default_settings(Client* c, const Seperator* sep)
 			DialogueWindow::TableCell(
 				fmt::format(
 					"{}",
-					DialogueWindow::ColorMessage(heroic_color, fillerLine)
+					DialogueWindow::ColorMessage(bright_green, 
+						fmt::format(
+							"{} [option] [actionable]",
+							sep->arg[0]
+						)
+					)
 				)
 			)
 		);
+
+		popup_text += fillerDia;
+
+		popup_text += DialogueWindow::TableRow(
+			DialogueWindow::TableCell(
+				fmt::format(
+					"{}",
+					DialogueWindow::ColorMessage(
+						color_blue,
+						fmt::format(
+							"{}{}{}Available actionables are:",
+							indent,
+							indent,
+							indent
+						)
+					)
+				)
+			)
+		);
+
+		popup_text += DialogueWindow::TableRow(
+			DialogueWindow::TableCell(
+				fmt::format(
+					"{}",
+					DialogueWindow::ColorMessage(
+						color_blue,
+						fmt::format(
+							"{}target | byname | ownergroup | ownerraid | targetgroup",
+							bullet
+						)
+					)
+				)
+			)
+		);
+
+		popup_text += DialogueWindow::TableRow(
+			DialogueWindow::TableCell(
+				fmt::format(
+					"{}",
+					DialogueWindow::ColorMessage(
+						color_blue,
+						fmt::format(
+							"{}namesgroup | healrotationtargets | mmr | byclass",
+							bullet
+						)
+					)
+				)
+			)
+		);
+
+		popup_text += DialogueWindow::TableRow(
+			DialogueWindow::TableCell(
+				fmt::format(
+					"{}",
+					DialogueWindow::ColorMessage(
+						color_blue,
+						fmt::format(
+							"{}byrace | spawned",
+							bullet
+						)
+					)
+				)
+			)
+		);
+
+		popup_text += fillerDia;
 
 		popup_text += DialogueWindow::TableRow(
 			DialogueWindow::TableCell(
@@ -143,14 +193,7 @@ void bot_command_default_settings(Client* c, const Seperator* sep)
 			)
 		);
 
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(heroic_color, fillerLine)
-				)
-			)
-		);
+		popup_text += fillerDia;
 
 		popup_text += DialogueWindow::TableRow(
 			DialogueWindow::TableCell(
@@ -158,7 +201,7 @@ void bot_command_default_settings(Client* c, const Seperator* sep)
 					"{}",
 					DialogueWindow::ColorMessage(
 						color_green,
-						"Target the bot you want to restore delay settings to and type:"
+						"To restore delays for Clerics:"
 					)
 				)
 			)
@@ -170,20 +213,13 @@ void bot_command_default_settings(Client* c, const Seperator* sep)
 					"{}",
 					DialogueWindow::ColorMessage(
 						heroic_color,
-						"^defaultsettings delays"
+						"^defaultsettings delays byclass 2"
 					)
 				)
 			)
 		);
 
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(heroic_color, fillerLine)
-				)
-			)
-		);
+		popup_text += fillerDia;
 
 		popup_text += DialogueWindow::TableRow(
 			DialogueWindow::TableCell(
@@ -245,14 +281,7 @@ void bot_command_default_settings(Client* c, const Seperator* sep)
 			)
 		);
 
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(heroic_color, fillerLine)
-				)
-			)
-		);
+		popup_text += fillerDia;
 
 		popup_text += DialogueWindow::TableRow(
 			DialogueWindow::TableCell(
@@ -299,14 +328,7 @@ void bot_command_default_settings(Client* c, const Seperator* sep)
 			)
 		);
 
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(heroic_color, fillerLine)
-				)
-			)
-		);
+		popup_text += fillerDia;
 
 		popup_text += DialogueWindow::TableRow(
 			DialogueWindow::TableCell(
@@ -315,7 +337,7 @@ void bot_command_default_settings(Client* c, const Seperator* sep)
 					DialogueWindow::ColorMessage(
 						color_green,
 						fmt::format(
-							"{}The remainder restore that specific type",
+							"{}The remaining options restore that specific type",
 							bullet
 						)
 					)
@@ -326,151 +348,218 @@ void bot_command_default_settings(Client* c, const Seperator* sep)
 		popup_text = DialogueWindow::Table(popup_text);
 
 		c->SendPopupToClient(sep->arg[0], popup_text.c_str());
+
+		c->Message(
+			Chat::Yellow,
+			fmt::format(
+				"Use {} for information about race/class IDs.",
+				Saylink::Silent("^classracelist")
+			).c_str()
+		);
+
 		return;
 	}
 
-	auto tar = c->GetTarget();
+	bool validOption = false;
+	std::vector<std::string> options = { "all", "misc", "spellsettings", "spelltypesettings", "holds", "delays", "minthresholds", "maxthresholds", "aggrocheck", "minmanapct", "maxmanapct", "minhppct", "maxhppct", "idlepriority", "engagedpriority", "pursuepriority", "aegroup" };
+	for (int i = 0; i < options.size(); i++) {
+		if (sep->arg[1] == options[i]) {
+			validOption = true;
+			break;
+		}
+	}
 
-	if (!tar || !tar->IsBot() || tar->GetOwner() != c) {
-		c->Message(Chat::Yellow, "You must target a bot you own to use this command.", sep->arg[1]);
+	if (!validOption) {
+		c->Message(
+			Chat::Yellow,
+			fmt::format(
+				"Incorrect argument, use {} for information regarding this command.",
+				Saylink::Silent(
+					fmt::format("{} help", sep->arg[0])
+				)
+			).c_str()
+		);
+
 		return;
 	}
 
-	if (!strcasecmp(sep->arg[1], "misc")) {
-		for (uint16 i = BotBaseSettings::START; i <= BotBaseSettings::END; ++i) {
-			tar->CastToBot()->SetBotBaseSetting(i, tar->CastToBot()->GetDefaultBotBaseSetting(i));
-			c->Message(Chat::Yellow, "%s's miscellanous settings were restored.", tar->GetCleanName());
-		}
+	const int ab_mask = ActionableBots::ABM_Type1;
+	int ab_arg = 2;
+	std::string class_race_arg = sep->arg[ab_arg];
+	bool class_race_check = false;
+	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
+		class_race_check = true;
 	}
-	else if (!strcasecmp(sep->arg[1], "holds")) {
-		for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-			tar->CastToBot()->SetSpellHold(i, tar->CastToBot()->GetDefaultSpellHold(i));
-			c->Message(Chat::Yellow, "%s's hold settings were restored.", tar->GetCleanName());
-		}
+
+	std::list<Bot*> sbl;
+	if (ActionableBots::PopulateSBL(c, sep->arg[ab_arg], sbl, ab_mask, !class_race_check ? sep->arg[ab_arg + 1] : nullptr, class_race_check ? atoi(sep->arg[ab_arg + 1]) : 0) == ActionableBots::ABT_None) {
+		return;
 	}
-	else if (!strcasecmp(sep->arg[1], "delays")) {
-		for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-			tar->CastToBot()->SetSpellDelay(i, tar->CastToBot()->GetDefaultSpellDelay(i));
-			c->Message(Chat::Yellow, "%s's delay settings were restored.", tar->GetCleanName());
-		}
-	}
-	else if (!strcasecmp(sep->arg[1], "minthresholds")) {
-		for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-			tar->CastToBot()->SetSpellMinThreshold(i, tar->CastToBot()->GetDefaultSpellMinThreshold(i));
-			c->Message(Chat::Yellow, "%s's minimum threshold settings were restored.", tar->GetCleanName());
-		}
-	}
-	else if (!strcasecmp(sep->arg[1], "maxthresholds")) {
-		for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-			tar->CastToBot()->SetSpellMaxThreshold(i, tar->CastToBot()->GetDefaultSpellMaxThreshold(i));
-			c->Message(Chat::Yellow, "%s's maximum threshold settings were restored.", tar->GetCleanName());
-		}
-	}
-	else if (!strcasecmp(sep->arg[1], "aggrocheck")) {
-		for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-			tar->CastToBot()->SetSpellTypeAggroCheck(i, tar->CastToBot()->GetDefaultSpellTypeAggroCheck(i));
-			c->Message(Chat::Yellow, "%s's aggro check settings were restored.", tar->GetCleanName());
-		}
-	}
-	else if (!strcasecmp(sep->arg[1], "minmanapct")) {
-		for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-			tar->CastToBot()->SetSpellTypeMinManaLimit(i, tar->CastToBot()->GetDefaultSpellTypeMinManaLimit(i));
-			c->Message(Chat::Yellow, "%s's min mana settings were restored.", tar->GetCleanName());
-		}
-	}
-	else if (!strcasecmp(sep->arg[1], "maxmanapct")) {
-		for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-			tar->CastToBot()->SetSpellTypeMaxManaLimit(i, tar->CastToBot()->GetDefaultSpellTypeMaxManaLimit(i));
-			c->Message(Chat::Yellow, "%s's max mana settings were restored.", tar->GetCleanName());
-		}
-	}
-	else if (!strcasecmp(sep->arg[1], "minhppct")) {
-		for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-			tar->CastToBot()->SetSpellTypeMinHPLimit(i, tar->CastToBot()->GetDefaultSpellTypeMinHPLimit(i));
-			c->Message(Chat::Yellow, "%s's min hp settings were restored.", tar->GetCleanName());
-		}
-	}
-	else if (!strcasecmp(sep->arg[1], "maxhppct")) {
-		for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-			tar->CastToBot()->SetSpellTypeMaxHPLimit(i, tar->CastToBot()->GetDefaultSpellTypeMaxHPLimit(i));
-			c->Message(Chat::Yellow, "%s's max hp settings were restored.", tar->GetCleanName());
-		}
-	}
-	else if (!strcasecmp(sep->arg[1], "idlepriority")) {
-		for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-			tar->CastToBot()->SetSpellTypePriority(i, BotPriorityCategories::Idle, tar->CastToBot()->GetDefaultSpellTypePriority(i, BotPriorityCategories::Idle, tar->GetClass()));
-			c->Message(Chat::Yellow, "%s's idle priority settings were restored.", tar->GetCleanName());
-		}
-	}
-	else if (!strcasecmp(sep->arg[1], "engagedpriority")) {
-		for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-			tar->CastToBot()->SetSpellTypePriority(i, BotPriorityCategories::Engaged, tar->CastToBot()->GetDefaultSpellTypePriority(i, BotPriorityCategories::Engaged, tar->GetClass()));
-			c->Message(Chat::Yellow, "%s's engaged priority settings were restored.", tar->GetCleanName());
-		}
-	}
-	else if (!strcasecmp(sep->arg[1], "pursuepriority")) {
-		for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-			tar->CastToBot()->SetSpellTypePriority(i, BotPriorityCategories::Pursue, tar->CastToBot()->GetDefaultSpellTypePriority(i, BotPriorityCategories::Pursue, tar->GetClass()));
-			c->Message(Chat::Yellow, "%s's pursue priority settings were restored.", tar->GetCleanName());
-		}
-	}
-	else if (!strcasecmp(sep->arg[1], "aegroup")) {
-		for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-			tar->CastToBot()->SetSpellTypeAEOrGroupTargetCount(i, tar->CastToBot()->GetDefaultSpellTypeAEOrGroupTargetCount(i));
-			c->Message(Chat::Yellow, "%s's ae/group count settings were restored.", tar->GetCleanName());
-		}
-	}
-	else if (!strcasecmp(sep->arg[1], "spellsettings")) {
-		tar->CastToBot()->ResetBotSpellSettings();
-		c->Message(Chat::Yellow, "%s's ^spellsettings were restored.", tar->GetCleanName());
-	}
-	else if (!strcasecmp(sep->arg[1], "spelltypesettings")) { //TODO
-		for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-			tar->CastToBot()->SetSpellHold(i, tar->CastToBot()->GetDefaultSpellHold(i));
-			tar->CastToBot()->SetSpellDelay(i, tar->CastToBot()->GetDefaultSpellDelay(i));
-			tar->CastToBot()->SetSpellMinThreshold(i, tar->CastToBot()->GetDefaultSpellMinThreshold(i));
-			tar->CastToBot()->SetSpellMaxThreshold(i, tar->CastToBot()->GetDefaultSpellMaxThreshold(i));
-			tar->CastToBot()->SetSpellTypeAggroCheck(i, tar->CastToBot()->GetDefaultSpellTypeAggroCheck(i));
-			tar->CastToBot()->SetSpellTypeMinManaLimit(i, tar->CastToBot()->GetDefaultSpellTypeMinManaLimit(i));
-			tar->CastToBot()->SetSpellTypeMaxManaLimit(i, tar->CastToBot()->GetDefaultSpellTypeMaxManaLimit(i));
-			tar->CastToBot()->SetSpellTypeMinHPLimit(i, tar->CastToBot()->GetDefaultSpellTypeMinHPLimit(i));
-			tar->CastToBot()->SetSpellTypeMaxHPLimit(i, tar->CastToBot()->GetDefaultSpellTypeMaxHPLimit(i));
-			tar->CastToBot()->SetSpellTypePriority(i, BotPriorityCategories::Idle, tar->CastToBot()->GetDefaultSpellTypePriority(i, BotPriorityCategories::Idle, tar->GetClass()));
-			tar->CastToBot()->SetSpellTypePriority(i, BotPriorityCategories::Engaged, tar->CastToBot()->GetDefaultSpellTypePriority(i, BotPriorityCategories::Engaged, tar->GetClass()));
-			tar->CastToBot()->SetSpellTypePriority(i, BotPriorityCategories::Pursue, tar->CastToBot()->GetDefaultSpellTypePriority(i, BotPriorityCategories::Pursue, tar->GetClass()));
-			tar->CastToBot()->SetSpellTypeAEOrGroupTargetCount(i, tar->CastToBot()->GetDefaultSpellTypeAEOrGroupTargetCount(i));
-			c->Message(Chat::Yellow, "%s's spell type settings were restored.", tar->GetCleanName());
-		}
-	}
-	else if (!strcasecmp(sep->arg[1], "all")) { //TODO
-		for (uint16 i = BotBaseSettings::START; i <= BotBaseSettings::END; ++i) {
-			tar->CastToBot()->SetBotBaseSetting(i, tar->CastToBot()->GetDefaultBotBaseSetting(i));
+
+	sbl.remove(nullptr);
+
+	Bot* first_found = nullptr;
+	int success_count = 0;
+	std::string output = "";
+	for (auto my_bot : sbl) {
+		if (!first_found) {
+			first_found = my_bot;
 		}
 
-		for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-			tar->CastToBot()->SetSpellHold(i, tar->CastToBot()->GetDefaultSpellHold(i));
-			tar->CastToBot()->SetSpellDelay(i, tar->CastToBot()->GetDefaultSpellDelay(i));
-			tar->CastToBot()->SetSpellMinThreshold(i, tar->CastToBot()->GetDefaultSpellMinThreshold(i));
-			tar->CastToBot()->SetSpellMaxThreshold(i, tar->CastToBot()->GetDefaultSpellMaxThreshold(i));
-			tar->CastToBot()->SetSpellTypeAggroCheck(i, tar->CastToBot()->GetDefaultSpellTypeAggroCheck(i));
-			tar->CastToBot()->SetSpellTypeMinManaLimit(i, tar->CastToBot()->GetDefaultSpellTypeMinManaLimit(i));
-			tar->CastToBot()->SetSpellTypeMaxManaLimit(i, tar->CastToBot()->GetDefaultSpellTypeMaxManaLimit(i));
-			tar->CastToBot()->SetSpellTypeMinHPLimit(i, tar->CastToBot()->GetDefaultSpellTypeMinHPLimit(i));
-			tar->CastToBot()->SetSpellTypeMaxHPLimit(i, tar->CastToBot()->GetDefaultSpellTypeMaxHPLimit(i));
-			tar->CastToBot()->SetSpellTypePriority(i, BotPriorityCategories::Idle, tar->CastToBot()->GetDefaultSpellTypePriority(i, BotPriorityCategories::Idle, tar->GetClass()));
-			tar->CastToBot()->SetSpellTypePriority(i, BotPriorityCategories::Engaged, tar->CastToBot()->GetDefaultSpellTypePriority(i, BotPriorityCategories::Engaged, tar->GetClass()));
-			tar->CastToBot()->SetSpellTypePriority(i, BotPriorityCategories::Pursue, tar->CastToBot()->GetDefaultSpellTypePriority(i, BotPriorityCategories::Pursue, tar->GetClass()));
-			tar->CastToBot()->SetSpellTypeAEOrGroupTargetCount(i, tar->CastToBot()->GetDefaultSpellTypeAEOrGroupTargetCount(i));
-		};
+		if (!strcasecmp(sep->arg[1], "misc")) {
+			for (uint16 i = BotBaseSettings::START; i <= BotBaseSettings::END; ++i) {
+				my_bot->SetBotBaseSetting(i, my_bot->GetDefaultBotBaseSetting(i));
+				output = "miscellanous settings";
+			}
+		}
+		else if (!strcasecmp(sep->arg[1], "holds")) {
+			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+				my_bot->SetSpellHold(i, my_bot->GetDefaultSpellHold(i));
+				output = "hold settings";
+			}
+		}
+		else if (!strcasecmp(sep->arg[1], "delays")) {
+			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+				my_bot->SetSpellDelay(i, my_bot->GetDefaultSpellDelay(i));
+				output = "delay settings";
+			}
+		}
+		else if (!strcasecmp(sep->arg[1], "minthresholds")) {
+			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+				my_bot->SetSpellMinThreshold(i, my_bot->GetDefaultSpellMinThreshold(i));
+				output = "minimum threshold settings";
+			}
+		}
+		else if (!strcasecmp(sep->arg[1], "maxthresholds")) {
+			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+				my_bot->SetSpellMaxThreshold(i, my_bot->GetDefaultSpellMaxThreshold(i));
+				output = "maximum threshold settings";
+			}
+		}
+		else if (!strcasecmp(sep->arg[1], "aggrocheck")) {
+			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+				my_bot->SetSpellTypeAggroCheck(i, my_bot->GetDefaultSpellTypeAggroCheck(i));
+				output = "aggro check settings";
+			}
+		}
+		else if (!strcasecmp(sep->arg[1], "minmanapct")) {
+			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+				my_bot->SetSpellTypeMinManaLimit(i, my_bot->GetDefaultSpellTypeMinManaLimit(i));
+				output = "min mana settings";
+			}
+		}
+		else if (!strcasecmp(sep->arg[1], "maxmanapct")) {
+			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+				my_bot->SetSpellTypeMaxManaLimit(i, my_bot->GetDefaultSpellTypeMaxManaLimit(i));
+				output = "max mana settings";
+			}
+		}
+		else if (!strcasecmp(sep->arg[1], "minhppct")) {
+			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+				my_bot->SetSpellTypeMinHPLimit(i, my_bot->GetDefaultSpellTypeMinHPLimit(i));
+				output = "min hp settings";
+			}
+		}
+		else if (!strcasecmp(sep->arg[1], "maxhppct")) {
+			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+				my_bot->SetSpellTypeMaxHPLimit(i, my_bot->GetDefaultSpellTypeMaxHPLimit(i));
+				output = "max hp settings";
+			}
+		}
+		else if (!strcasecmp(sep->arg[1], "idlepriority")) {
+			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+				my_bot->SetSpellTypePriority(i, BotPriorityCategories::Idle, my_bot->GetDefaultSpellTypePriority(i, BotPriorityCategories::Idle, my_bot->GetClass()));
+				output = "idle priority settings";
+			}
+		}
+		else if (!strcasecmp(sep->arg[1], "engagedpriority")) {
+			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+				my_bot->SetSpellTypePriority(i, BotPriorityCategories::Engaged, my_bot->GetDefaultSpellTypePriority(i, BotPriorityCategories::Engaged, my_bot->GetClass()));
+				output = "engaged priority settings";
+			}
+		}
+		else if (!strcasecmp(sep->arg[1], "pursuepriority")) {
+			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+				my_bot->SetSpellTypePriority(i, BotPriorityCategories::Pursue, my_bot->GetDefaultSpellTypePriority(i, BotPriorityCategories::Pursue, my_bot->GetClass()));
+				output = "pursue priority settings";
+			}
+		}
+		else if (!strcasecmp(sep->arg[1], "aegroup")) {
+			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+				my_bot->SetSpellTypeAEOrGroupTargetCount(i, my_bot->GetDefaultSpellTypeAEOrGroupTargetCount(i));
+				output = "ae/group count settings";
+			}
+		}
+		else if (!strcasecmp(sep->arg[1], "spellsettings")) {
+			my_bot->ResetBotSpellSettings();
+			output = "^spellsettings";
+		}
+		else if (!strcasecmp(sep->arg[1], "spelltypesettings")) {
+			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+				my_bot->SetSpellHold(i, my_bot->GetDefaultSpellHold(i));
+				my_bot->SetSpellDelay(i, my_bot->GetDefaultSpellDelay(i));
+				my_bot->SetSpellMinThreshold(i, my_bot->GetDefaultSpellMinThreshold(i));
+				my_bot->SetSpellMaxThreshold(i, my_bot->GetDefaultSpellMaxThreshold(i));
+				my_bot->SetSpellTypeAggroCheck(i, my_bot->GetDefaultSpellTypeAggroCheck(i));
+				my_bot->SetSpellTypeMinManaLimit(i, my_bot->GetDefaultSpellTypeMinManaLimit(i));
+				my_bot->SetSpellTypeMaxManaLimit(i, my_bot->GetDefaultSpellTypeMaxManaLimit(i));
+				my_bot->SetSpellTypeMinHPLimit(i, my_bot->GetDefaultSpellTypeMinHPLimit(i));
+				my_bot->SetSpellTypeMaxHPLimit(i, my_bot->GetDefaultSpellTypeMaxHPLimit(i));
+				my_bot->SetSpellTypePriority(i, BotPriorityCategories::Idle, my_bot->GetDefaultSpellTypePriority(i, BotPriorityCategories::Idle, my_bot->GetClass()));
+				my_bot->SetSpellTypePriority(i, BotPriorityCategories::Engaged, my_bot->GetDefaultSpellTypePriority(i, BotPriorityCategories::Engaged, my_bot->GetClass()));
+				my_bot->SetSpellTypePriority(i, BotPriorityCategories::Pursue, my_bot->GetDefaultSpellTypePriority(i, BotPriorityCategories::Pursue, my_bot->GetClass()));
+				my_bot->SetSpellTypeAEOrGroupTargetCount(i, my_bot->GetDefaultSpellTypeAEOrGroupTargetCount(i));
+				output = "spell type settings";
+			}
+		}
+		else if (!strcasecmp(sep->arg[1], "all")) {
+			for (uint16 i = BotBaseSettings::START; i <= BotBaseSettings::END; ++i) {
+				my_bot->SetBotBaseSetting(i, my_bot->GetDefaultBotBaseSetting(i));
+			}
 
-		tar->CastToBot()->ResetBotSpellSettings();
+			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+				my_bot->SetSpellHold(i, my_bot->GetDefaultSpellHold(i));
+				my_bot->SetSpellDelay(i, my_bot->GetDefaultSpellDelay(i));
+				my_bot->SetSpellMinThreshold(i, my_bot->GetDefaultSpellMinThreshold(i));
+				my_bot->SetSpellMaxThreshold(i, my_bot->GetDefaultSpellMaxThreshold(i));
+				my_bot->SetSpellTypeAggroCheck(i, my_bot->GetDefaultSpellTypeAggroCheck(i));
+				my_bot->SetSpellTypeMinManaLimit(i, my_bot->GetDefaultSpellTypeMinManaLimit(i));
+				my_bot->SetSpellTypeMaxManaLimit(i, my_bot->GetDefaultSpellTypeMaxManaLimit(i));
+				my_bot->SetSpellTypeMinHPLimit(i, my_bot->GetDefaultSpellTypeMinHPLimit(i));
+				my_bot->SetSpellTypeMaxHPLimit(i, my_bot->GetDefaultSpellTypeMaxHPLimit(i));
+				my_bot->SetSpellTypePriority(i, BotPriorityCategories::Idle, my_bot->GetDefaultSpellTypePriority(i, BotPriorityCategories::Idle, my_bot->GetClass()));
+				my_bot->SetSpellTypePriority(i, BotPriorityCategories::Engaged, my_bot->GetDefaultSpellTypePriority(i, BotPriorityCategories::Engaged, my_bot->GetClass()));
+				my_bot->SetSpellTypePriority(i, BotPriorityCategories::Pursue, my_bot->GetDefaultSpellTypePriority(i, BotPriorityCategories::Pursue, my_bot->GetClass()));
+				my_bot->SetSpellTypeAEOrGroupTargetCount(i, my_bot->GetDefaultSpellTypeAEOrGroupTargetCount(i));
+			};
 
-		c->Message(Chat::Yellow, "%s's settings were restored.", tar->GetCleanName());
+			my_bot->ResetBotSpellSettings();
 
+			output = "settings";
+
+		}
+
+		++success_count;
+	}
+
+	if (success_count == 1) {
+		c->Message(
+			Chat::Green,
+			fmt::format(
+				"{} says, 'My {} were restored.'",
+				first_found->GetCleanName(),
+				output
+			).c_str()
+		);
 	}
 	else {
-		c->Message(Chat::Yellow, "Invalid argument, use %s help for more information.", sep->arg[0]);
-		return;
+		c->Message(
+			Chat::Green,
+			fmt::format(
+				"{} of your bot's {} were restored.",
+				success_count,
+				output
+			).c_str()
+		);
 	}
 }
-//LoadDefaultBotSettings

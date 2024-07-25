@@ -1288,6 +1288,7 @@ int bot_command_init(void)
 		bot_command_add("casterrange", "Controls the range casters will try to stay away from a mob (if too far, they will skip spells that are out-of-range)", AccountStatus::Player, bot_command_caster_range) ||
 		bot_command_add("charm", "Attempts to have a bot charm your target", AccountStatus::Player, bot_command_charm) ||
 		bot_command_add("circle", "Orders a Druid bot to open a magical doorway to a specified destination", AccountStatus::Player, bot_command_circle) ||
+		bot_command_add("classracelist", "Lists the classes and races and their appropriate IDs", AccountStatus::Player, bot_command_class_race_list) ||
 		bot_command_add("clickitem", "Orders your targeted bot to click the item in the provided inventory slot.", AccountStatus::Player, bot_command_click_item) ||
 		bot_command_add("copysettings", "Copies settings from one bot to another", AccountStatus::Player, bot_command_copy_settings) ||
 		bot_command_add("cure", "Orders a bot to remove any ailments", AccountStatus::Player, bot_command_cure) ||
@@ -2138,9 +2139,9 @@ bool helper_spell_list_fail(Client *bot_owner, bcst_list* spell_list, BCEnum::Sp
 void Bot::SendSpellTypesWindow(Client* c, std::string arg0, std::string arg1, std::string arg2, bool helpPrompt) {
 	if (helpPrompt) {
 		c->Message(
-			Chat::White,
+			Chat::Yellow,
 			fmt::format(
-				"note: Use {}, {}, {} for a list of spell types by ID or {}, {}, {} for a list of spell types by short name.",
+				"Use {}, {}, {} for a list of spell types by ID",
 				Saylink::Silent(
 					fmt::format("{} listid 0-19", arg0)
 				),
@@ -2149,7 +2150,14 @@ void Bot::SendSpellTypesWindow(Client* c, std::string arg0, std::string arg1, st
 				),
 				Saylink::Silent(
 					fmt::format("{} listid 40+", arg0)
-				),
+				)
+			).c_str()
+		);
+
+		c->Message(
+			Chat::Yellow,
+			fmt::format(
+				"Use {}, {}, {} for a list of spell types by short name",
 				Saylink::Silent(
 					fmt::format("{} listname 0-19", arg0)
 				),
@@ -2197,7 +2205,8 @@ void Bot::SendSpellTypesWindow(Client* c, std::string arg0, std::string arg1, st
 	const std::string& bright_red = "red";
 	const std::string& heroic_color = "gold";
 
-	std::string fillerLine = "-----------";
+	std::string fillerLine = "--------------------------------------------------------------------";
+	std::string fillerDia = DialogueWindow::TableRow(DialogueWindow::TableCell(fmt::format("{}", DialogueWindow::ColorMessage(heroic_color, fillerLine))));
 	std::string spellTypeField = "Spell Type";
 	std::string pluralS = "s";
 	std::string idField = "ID";
@@ -2218,20 +2227,7 @@ void Bot::SendSpellTypesWindow(Client* c, std::string arg0, std::string arg1, st
 		)
 	);
 
-	popup_text += DialogueWindow::TableRow(
-		DialogueWindow::TableCell(
-			fmt::format(
-				"{}",
-				DialogueWindow::ColorMessage(heroic_color, fillerLine)
-			)
-		) +
-		DialogueWindow::TableCell(
-			fmt::format(
-				"{}",
-				DialogueWindow::ColorMessage(heroic_color, fillerLine)
-			)
-		)
-	);
+	popup_text += fillerDia + fillerDia;
 
 	for (int i = minCount; i <= maxCount; ++i) {
 		popup_text += DialogueWindow::TableRow(
@@ -2269,6 +2265,7 @@ void Bot::SendSpellTypesWindow(Client* c, std::string arg0, std::string arg1, st
 #include "bot_commands/cast.cpp"
 #include "bot_commands/caster_range.cpp"
 #include "bot_commands/charm.cpp"
+#include "bot_commands/class_race_list.cpp"
 #include "bot_commands/click_item.cpp"
 #include "bot_commands/copy_settings.cpp"
 #include "bot_commands/cure.cpp"

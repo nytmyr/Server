@@ -13,23 +13,40 @@ void bot_command_copy_settings(Client* c, const Seperator* sep)
 		const std::string& bright_green = "green";
 		const std::string& bright_red = "red";
 		const std::string& heroic_color = "gold";
+		const std::string& magenta = "magenta";
 
 		std::string fillerLine = "--------------------------------------------------------------------";
+		std::string fillerDia = DialogueWindow::TableRow(DialogueWindow::TableCell(fmt::format("{}", DialogueWindow::ColorMessage(heroic_color, fillerLine))));
 		std::string indent = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 		std::string bullet = "- ";
 
-		std::string usageLine = 
-			fmt::format(
-				"usage: {} [from] [to] [option]",
-				sep->arg[0]
-			)
-		;
+		//std::string popup_text = DialogueWindow::TableRow(
+		//	DialogueWindow::TableCell(
+		//		fmt::format(
+		//			"{}",
+		//			DialogueWindow::ColorMessage(
+		//				bright_green,
+		//				fmt::format(
+		//					"{}{}{}How to use:",
+		//					indent,
+		//					indent,
+		//					indent
+		//				)
+		//			)
+		//		)
+		//	)
+		//);
 
 		std::string popup_text = DialogueWindow::TableRow(
 			DialogueWindow::TableCell(
 				fmt::format(
 					"{}",
-					DialogueWindow::ColorMessage(bright_green, usageLine)
+					DialogueWindow::ColorMessage(
+						bright_green,
+						fmt::format(
+							"Copies settings from one bot to another"
+						)
+					)
 				)
 			)
 		);
@@ -38,10 +55,17 @@ void bot_command_copy_settings(Client* c, const Seperator* sep)
 			DialogueWindow::TableCell(
 				fmt::format(
 					"{}",
-					DialogueWindow::ColorMessage(heroic_color, fillerLine)
+					DialogueWindow::ColorMessage(magenta,
+						fmt::format(
+							"{} [from] [to] [option]",
+							sep->arg[0]
+						)
+					)
 				)
 			)
 		);
+
+		popup_text += fillerDia;
 
 		popup_text += DialogueWindow::TableRow(
 			DialogueWindow::TableCell(
@@ -120,14 +144,7 @@ void bot_command_copy_settings(Client* c, const Seperator* sep)
 			)
 		);
 
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(heroic_color, fillerLine)
-				)
-			)
-		);
+		popup_text += fillerDia;
 
 		popup_text += DialogueWindow::TableRow(
 			DialogueWindow::TableCell(
@@ -146,21 +163,17 @@ void bot_command_copy_settings(Client* c, const Seperator* sep)
 				fmt::format(
 					"{}",
 					DialogueWindow::ColorMessage(
-						heroic_color,
-						"^copysettings all Bota Botb"
+						magenta,
+						fmt::format(
+							"{} all Bota Botb",
+							sep->arg[0]
+						)
 					)
 				)
 			)
 		);
 
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(heroic_color, fillerLine)
-				)
-			)
-		);
+		popup_text += fillerDia;
 
 		popup_text += DialogueWindow::TableRow(
 			DialogueWindow::TableCell(
@@ -222,14 +235,7 @@ void bot_command_copy_settings(Client* c, const Seperator* sep)
 			)
 		);
 
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(heroic_color, fillerLine)
-				)
-			)
-		);
+		popup_text += fillerDia;
 
 		popup_text += DialogueWindow::TableRow(
 			DialogueWindow::TableCell(
@@ -276,14 +282,7 @@ void bot_command_copy_settings(Client* c, const Seperator* sep)
 			)
 		);
 
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(heroic_color, fillerLine)
-				)
-			)
-		);
+		popup_text += fillerDia;
 
 		popup_text += DialogueWindow::TableRow(
 			DialogueWindow::TableCell(
@@ -292,7 +291,7 @@ void bot_command_copy_settings(Client* c, const Seperator* sep)
 					DialogueWindow::ColorMessage(
 						color_green,
 						fmt::format(
-							"{}The remainder copy that specific type",
+							"{}The remaining options copy that specific type",
 							bullet
 						)
 					)
@@ -303,6 +302,38 @@ void bot_command_copy_settings(Client* c, const Seperator* sep)
 		popup_text = DialogueWindow::Table(popup_text);
 		
 		c->SendPopupToClient(sep->arg[0], popup_text.c_str());
+
+		c->Message(
+			Chat::Yellow,
+			fmt::format(
+				"Use {} for information about race/class IDs.",
+				Saylink::Silent("^classracelist")
+			).c_str()
+		);
+
+		return;
+	}
+
+	bool validOption = false;
+	std::vector<std::string> options = { "all", "misc", "spellsettings", "spelltypesettings", "holds", "delays", "minthresholds", "maxthresholds", "aggrocheck", "minmanapct", "maxmanapct", "minhppct", "maxhppct", "idlepriority", "engagedpriority", "pursuepriority", "aegroup" };
+	for (int i = 0; i < options.size(); i++) {
+		if (sep->arg[3] == options[i]) {
+			validOption = true;
+			break;
+		}
+	}
+
+	if (!validOption) {
+		c->Message(
+			Chat::Yellow,
+			fmt::format(
+				"Incorrect argument, use {} for information regarding this command.",
+				Saylink::Silent(
+					fmt::format("{} help", sep->arg[0])
+				)
+			).c_str()
+		);
+
 		return;
 	}
 
@@ -453,7 +484,14 @@ void bot_command_copy_settings(Client* c, const Seperator* sep)
 		c->Message(Chat::Yellow, "%s's settings were copied to %s.", from->GetCleanName(), to->GetCleanName());
 	}
 	else {
-		c->Message(Chat::Yellow, "Invalid argument, use %s help for more information.", sep->arg[0]);
-		return;
+		c->Message(
+			Chat::Yellow,
+			fmt::format(
+				"Incorrect argument, use {} for information regarding this command.",
+				Saylink::Silent(
+					fmt::format("{} help", sep->arg[0])
+				)
+			).c_str()
+		);
 	}
 }
