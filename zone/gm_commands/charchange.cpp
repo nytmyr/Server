@@ -35,7 +35,7 @@ void command_char_change(Client* c, const Seperator* sep)
 	if (!arguments) {
 		c->Message(Chat::White, "Usage: #charchange [Class] [Race] [Deity] [Gender]");
 		c->Message(Chat::White, "Use '#charchange help' for a list of class, race, deity and gender numbers.");
-		c->Message(Chat::White, "Set each option to what you want, they must be compatibile and available combinations.");
+		c->Message(Chat::White, "Set each option to what you want, they must be compatible and available combinations.");
 		c->Message(Chat::White, "If you choose to keep a setting, you will not be charged for it.");
 		c->Message(Chat::White, "All incompatible items must be unequipped prior to changing.");
 		c->Message(Chat::White, "This will unscribe all Disciplines, all unusable spells by your new class (spells that are usable at higher levels will remain in your spellbook although unmemmed if they are  currently memmed). Deity limited spells will be removed on a deity mismatch.");
