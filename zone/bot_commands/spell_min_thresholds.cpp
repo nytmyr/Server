@@ -5,97 +5,118 @@ void bot_command_spell_min_thresholds(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_spell_min_thresholds", sep->arg[0], "spellminthresholds"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: %s [spelltype ID | spelltype Shortname] [current | %% value of target's health] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | healrotationtargets | mmr | byclass | byrace | spawned] ([actionable_name])).", sep->arg[0]);
-		c->Message(Chat::White, "example: [%s 9 15 spawned] or [%s dots 15 spawned] would tell the bot to stop casting DoTs when the target's health reaches 95 %%.", sep->arg[0], sep->arg[0]);
-		c->Message(Chat::White, "note: Can only be used for Casters or Hybrids.");
-		c->Message(Chat::White, "note: Use [current] to check the current setting.");
-		c->Message(
-			Chat::White,
+			//12345678901234567892123456789312345678941234567895123456 //56 character max per line
+		std::vector <std::string> description =
+		{
+			"Controls at what target HP % the bot will stop",
+			"casting different spell types"
+		};
+		std::vector <std::string> notes =
+		{
+			"- All pet types are based off the pet's owner's setting",
+			"- Any remaining types use the owner's setting when a",
+			"pet is the target",
+			"- All Heals, Cures, Buffs (DS and resists included)",
+			"are based off the target's setting, not the caster",
+			"- e.g., BotA is healing BotB using BotB's settings",
+		};
+		std::vector <std::string> example_format =
+		{
 			fmt::format(
-				"note: Use {} for a list of spell types by ID or {} for a list of spell types by short name.",
-				Saylink::Silent(
-					fmt::format("{} listid", sep->arg[0])
-				),
-				Saylink::Silent(
-					fmt::format("{} listname", sep->arg[0])
-				)
-			).c_str()
-		);
-		//TODO add list of types
-		return;
-	}
-
-	const int ab_mask = ActionableBots::ABM_Type1;
-
-	std::string arg1 = sep->arg[1];
-
-	// List output
-	if (!arg1.compare("listid") || !arg1.compare("listname")) {
-		const std::string& color_red = "red_1";
-		const std::string& color_blue = "royal_blue";
-		const std::string& color_green = "forest_green";
-		const std::string& bright_green = "green";
-		const std::string& bright_red = "red";
-		const std::string& heroic_color = "gold";
-
-		std::string fillerLine = "-----------";
-		std::string spellTypeField = "Spell Type";
-		std::string pluralS = "s";
-		std::string idField = "ID";
-		std::string shortnameField = "Short Name";
-
-		std::string popup_text = DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(bright_green, spellTypeField)
-				)
-			) +
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					(!arg1.compare("listid") ? DialogueWindow::ColorMessage(bright_green, idField) : DialogueWindow::ColorMessage(bright_green, shortnameField))
-				)
+				"{} [Type Shortname] [value] [actionable]"
+				, sep->arg[0]
+			),
+			fmt::format(
+				"{} [Type ID] [value] [actionable]"
+				, sep->arg[0]
 			)
-		);
-
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(heroic_color, fillerLine)
-				)
-			) +
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(heroic_color, fillerLine)
-				)
+		};
+		//12345678901234567892123456789312345678941234567895123456 //56 character max per line
+		std::vector<std::string> examples_one =
+		{
+			"To set all bots to stop debuffing at 10%:",
+			fmt::format(
+				"{} {} 10 spawned",
+				sep->arg[0],
+				c->GetSpellTypeShortNameByID(BotSpellTypes::Debuff)
+			),
+			fmt::format(
+				"{} {} 10 spawned",
+				sep->arg[0],
+				BotSpellTypes::Debuff
 			)
-		);
+		};
+		std::vector<std::string> examples_two =
+		{
+			"To set all Druids to stop casting DoTs at 15%:",
+			fmt::format(
+				"{} {} 15 byclass 6",
+				sep->arg[0],
+				c->GetSpellTypeShortNameByID(BotSpellTypes::DOT)
+			),
+			fmt::format(
+				"{} {} 15 byclass 6",
+				sep->arg[0],
+				BotSpellTypes::DOT
+			)
+		};
+		std::vector<std::string> examples_three =
+		{
+			"To check current Fast Heal min threshold on all bots:",
+			fmt::format(
+				"{} {} current spawned",
+				sep->arg[0],
+				c->GetSpellTypeShortNameByID(BotSpellTypes::FastHeals)
+			),
+			fmt::format(
+				"{} {} current spawned",
+				sep->arg[0],
+				BotSpellTypes::FastHeals
+			)
+		};
+		//12345678901234567892123456789312345678941234567895123456 //56 character max per line
+		std::vector <std::string> actionables =
+		{
+			"target, byname, ownergroup, ownerraid",
+			"targetgroup, namesgroup, healrotationtargets",
+			"mmr, byclass, byrace, spawned"
+		};
+		std::vector <std::string> options = { };
+		std::vector<std::string> options_one = { };
+		//12345678901234567892123456789312345678941234567895123456 //56 character max per line
+		std::vector<std::string> options_two = { };
+		std::vector<std::string> options_three = { };
 
-		for (int i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-			popup_text += DialogueWindow::TableRow(
-				DialogueWindow::TableCell(
-					fmt::format(
-						"{}{}",
-						DialogueWindow::ColorMessage(color_green, c->GetSpellTypeNameByID(i)),
-						DialogueWindow::ColorMessage(color_green, pluralS)
-					)
-				) +
-				DialogueWindow::TableCell(
-					fmt::format(
-						"{}",
-						(!arg1.compare("listid") ? DialogueWindow::ColorMessage(color_blue, std::to_string(i)) : DialogueWindow::ColorMessage(color_blue, c->GetSpellTypeShortNameByID(i)))
-					)
-				)
-			);
-		}
+		std::string popup_text = c->CastToBot()->SendCommandHelpWindow(
+			c,
+			description,
+			notes,
+			example_format,
+			examples_one, examples_two, examples_three,
+			actionables,
+			options,
+			options_one, options_two, options_three
+		);
 
 		popup_text = DialogueWindow::Table(popup_text);
 
-		c->SendPopupToClient("Spell Types", popup_text.c_str());
+		c->SendPopupToClient(sep->arg[0], popup_text.c_str());
+		c->CastToBot()->SendSpellTypesWindow(c, sep->arg[0], "", "", true);
+		c->Message(
+			Chat::Yellow,
+			fmt::format(
+				"Use {} for information about race/class IDs.",
+				Saylink::Silent("^classracelist")
+			).c_str()
+		);
 
+		return;
+	}
+
+	std::string arg1 = sep->arg[1];
+
+	if (!arg1.compare("listid") || !arg1.compare("listname")) {
+		c->CastToBot()->SendSpellTypesWindow(c, sep->arg[0], sep->arg[1], sep->arg[2]);
 		return;
 	}
 
@@ -134,7 +155,6 @@ void bot_command_spell_min_thresholds(Client* c, const Seperator* sep)
 		}
 	}
 
-	// Enable/Disable/Current checks
 	if (sep->IsNumber(2)) {
 		typeValue = atoi(sep->arg[2]);
 		++ab_arg;
@@ -159,9 +179,18 @@ void bot_command_spell_min_thresholds(Client* c, const Seperator* sep)
 			).c_str()
 		);
 
+		c->Message(
+			Chat::Yellow,
+			fmt::format(
+				"Use {} for information about race/class IDs.",
+				Saylink::Silent("^create help")
+			).c_str()
+		);
+
 		return;
 	}
 
+	const int ab_mask = ActionableBots::ABM_Type1;
 	std::string class_race_arg = sep->arg[ab_arg];
 	bool class_race_check = false;
 	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
@@ -178,9 +207,6 @@ void bot_command_spell_min_thresholds(Client* c, const Seperator* sep)
 	Bot* first_found = nullptr;
 	int success_count = 0;
 	for (auto my_bot : sbl) {
-		if (!IsCasterClass(my_bot->GetClass()) && !IsHybridClass(my_bot->GetClass())) {
-			continue;
-		}
 		if (!first_found) {
 			first_found = my_bot;
 		}
@@ -188,7 +214,7 @@ void bot_command_spell_min_thresholds(Client* c, const Seperator* sep)
 			c->Message(
 				Chat::Green,
 				fmt::format(
-					"{} says, 'My current min threshold for {}s is {}%%.'",
+					"{} says, 'My [{}] minimum threshold is currently [{}%%].'",
 					my_bot->GetCleanName(),
 					c->GetSpellTypeNameByID(spellType),
 					my_bot->GetSpellMinThreshold(spellType)
@@ -205,7 +231,7 @@ void bot_command_spell_min_thresholds(Client* c, const Seperator* sep)
 			c->Message(
 				Chat::Green,
 				fmt::format(
-					"{} says, 'My min threshold for {}s was set to {}%%.'",
+					"{} says, 'My [{}] minimum threshold was set to [{}%%].'",
 					first_found->GetCleanName(),
 					c->GetSpellTypeNameByID(spellType),
 					first_found->GetSpellMinThreshold(spellType)
@@ -216,7 +242,7 @@ void bot_command_spell_min_thresholds(Client* c, const Seperator* sep)
 			c->Message(
 				Chat::Green,
 				fmt::format(
-					"{} of your bots set min threshold for {}s to {}%%.",
+					"{} of your bots set their [{}] minimum threshold to [{}%%].",
 					success_count,
 					c->GetSpellTypeNameByID(spellType),
 					typeValue

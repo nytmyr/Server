@@ -7,302 +7,97 @@ void bot_command_copy_settings(Client* c, const Seperator* sep)
 	}
 
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		const std::string& color_red = "red_1";
-		const std::string& color_blue = "royal_blue";
-		const std::string& color_green = "forest_green";
-		const std::string& bright_green = "green";
-		const std::string& bright_red = "red";
-		const std::string& heroic_color = "gold";
-		const std::string& magenta = "magenta";
-
-		std::string fillerLine = "--------------------------------------------------------------------";
-		std::string fillerDia = DialogueWindow::TableRow(DialogueWindow::TableCell(fmt::format("{}", DialogueWindow::ColorMessage(heroic_color, fillerLine))));
-		std::string indent = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-		std::string bullet = "- ";
-
-		//std::string popup_text = DialogueWindow::TableRow(
-		//	DialogueWindow::TableCell(
-		//		fmt::format(
-		//			"{}",
-		//			DialogueWindow::ColorMessage(
-		//				bright_green,
-		//				fmt::format(
-		//					"{}{}{}How to use:",
-		//					indent,
-		//					indent,
-		//					indent
-		//				)
-		//			)
-		//		)
-		//	)
-		//);
-
-		std::string popup_text = DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						bright_green,
-						fmt::format(
-							"Copies settings from one bot to another"
-						)
-					)
-				)
+			//1234567890123456789212345678931234567894123456789512345 //55 character max per line
+		std::vector <std::string> description =
+		{
+			"Copies settings from one bot to another bot"
+		};
+		std::vector <std::string> notes =
+		{
+			"You can put a spell type ID or shortname after",
+			"any option except [all], [misc] and [spellsettings]",
+			"to restore that specifc spell type only"
+		};
+		std::vector <std::string> example_format =
+		{
+			fmt::format(
+				"{} [from] [to] [option]"
+				, sep->arg[0]
 			)
+		};
+		std::vector<std::string> examples_one =
+		{
+			"To copy all settings from BotA to BotB:",
+			fmt::format(
+				"{} BotA BotB all",
+				sep->arg[0]
+			)
+		};
+		std::vector<std::string> examples_two =
+		{
+			"To copy only Nuke spelltypesettings from BotA to BotB:",
+			fmt::format(
+				"{} BotA BotB spelltypesettings {}",
+				sep->arg[0],
+				c->GetSpellTypeShortNameByID(BotSpellTypes::Nuke)
+			),
+			fmt::format(
+				"{} BotA BotB spelltypesettings {}",
+				sep->arg[0],
+				c->GetSpellTypeShortNameByID(BotSpellTypes::Nuke)
+			),
+		};
+		std::vector <std::string> examples_three = { };
+			//1234567890123456789212345678931234567894123456789512345 //55 character max per line
+		std::vector <std::string> actionables =
+		{
+			"target, byname, ownergroup, ownerraid",
+			"targetgroup, namesgroup, healrotationtargets",
+			"mmr, byclass, byrace, spawned"
+		};
+		std::vector <std::string> options =
+		{
+			"all, misc, spellsettings, spelltypesettings",
+			"holds, delays, minthresholds, maxthresholds",
+			"minmanapct, maxmanapct, minhppct, maxhppct",
+			"idlepriority, engagedpriority, pursuepriority",
+			"aggrocheck, aegroup"
+		};
+		std::vector<std::string> options_one =
+		{
+			"[spellsettings] will copy ^spellsettings options",
+			"[spelltypesettings] copies all spell type settings",
+			"[all] copies all settings"
+		};
+			//1234567890123456789212345678931234567894123456789512345 //55 character max per line
+		std::vector<std::string> options_two =
+		{
+			"[misc] copies all miscellaneous options such as:",
+			"- ^showhelm, ^followd, ^stopmeleelevel",
+			"- ^enforcespellsettings, ^bottoggleranged, ^petsettype",
+			"- ^behindmob, ^casterrange and ^illusionblock"
+
+		};
+		std::vector<std::string> options_three =
+		{
+			"The remaining options copy that specific type"
+		};
+
+		std::string popup_text = c->CastToBot()->SendCommandHelpWindow(
+			c,
+			description,
+			notes,
+			example_format,
+			examples_one, examples_two, examples_three,
+			actionables,
+			options,
+			options_one, options_two, options_three
 		);
 
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(magenta,
-						fmt::format(
-							"{} [from] [to] [option]",
-							sep->arg[0]
-						)
-					)
-				)
-			)
-		);
-
-		popup_text += fillerDia;
-
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						color_blue,
-						fmt::format(
-							"{}{}{}Available options are:",
-							indent,
-							indent,
-							indent
-						)
-					)
-				)
-			)
-		);
-
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						color_blue,
-						fmt::format(
-							"{}all | misc | spellsettings | spelltypesettings | holds",
-							bullet
-						)
-					)
-				)
-			)
-		);
-
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						color_blue,
-						fmt::format(
-							"{}delays | minthresholds | maxthresholds | aggrocheck",
-							bullet
-						)
-					)
-				)
-			)
-		);
-
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						color_blue,
-						fmt::format(
-							"{}minmanapct | maxmanapct | minhppct | maxhppct",
-							bullet
-						)
-					)
-				)
-			)
-		); 
-
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						color_blue,
-						fmt::format(
-							"{}idlepriority | engagedpriority | pursuepriority | aegroup",
-							bullet
-						)
-					)
-				)
-			)
-		);
-
-		popup_text += fillerDia;
-
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						color_green,
-						"To copy all settings from Bota to Botb:"
-					)
-				)
-			)
-		);
-
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						magenta,
-						fmt::format(
-							"{} all Bota Botb",
-							sep->arg[0]
-						)
-					)
-				)
-			)
-		);
-
-		popup_text += fillerDia;
-
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						color_green,
-						fmt::format(
-							"{}[misc] copies all miscellaneous options such as:",
-							bullet
-						)
-					)
-				)
-			)
-		);
-
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						color_blue,
-						fmt::format(
-							"{}^showhelm, ^followd, ^stopmeleelevel",
-							bullet
-						)
-					)
-				)
-			)
-		);
-
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						color_blue,
-						fmt::format(
-							"{}^enforcespellsettings, ^bottoggleranged, ^petsettype",
-							bullet
-						)
-					)
-				)
-			)
-		);
-
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						color_blue,
-						fmt::format(
-							"{}^behindmob, ^casterrange and ^illusionblock",
-							bullet
-						)
-					)
-				)
-			)
-		);
-
-		popup_text += fillerDia;
-
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						color_green,
-						fmt::format(
-							"{}[spellsettings] will copy ^spellsettings options",
-							bullet
-						)
-					)
-				)
-			)
-		);
-
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						color_green,
-						fmt::format(
-							"{}[spelltypesettings] copies all spell type settings",
-							bullet
-						)
-					)
-				)
-			)
-		);
-
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						color_green,
-						fmt::format(
-							"{}[all] copies all settings",
-							bullet
-						)
-					)
-				)
-			)
-		);
-
-		popup_text += fillerDia;
-
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						color_green,
-						fmt::format(
-							"{}The remaining options copy that specific type",
-							bullet
-						)
-					)
-				)
-			)
-		);
-		
 		popup_text = DialogueWindow::Table(popup_text);
-		
-		c->SendPopupToClient(sep->arg[0], popup_text.c_str());
 
+		c->SendPopupToClient(sep->arg[0], popup_text.c_str());
+		c->CastToBot()->SendSpellTypesWindow(c, sep->arg[0], "", "", true);
 		c->Message(
 			Chat::Yellow,
 			fmt::format(
@@ -314,10 +109,64 @@ void bot_command_copy_settings(Client* c, const Seperator* sep)
 		return;
 	}
 
+	std::string arg1 = sep->arg[1];
+
+	if (!arg1.compare("listid") || !arg1.compare("listname")) {
+		c->CastToBot()->SendSpellTypesWindow(c, sep->arg[0], sep->arg[1], sep->arg[2]);
+		return;
+	}
+
+	int ab_arg = 2;
 	bool validOption = false;
-	std::vector<std::string> options = { "all", "misc", "spellsettings", "spelltypesettings", "holds", "delays", "minthresholds", "maxthresholds", "aggrocheck", "minmanapct", "maxmanapct", "minhppct", "maxhppct", "idlepriority", "engagedpriority", "pursuepriority", "aegroup" };
+	uint16 spellType = UINT16_MAX;
+	std::vector<std::string> options =
+	{
+		"all",
+		"misc"
+		"spellsettings",
+		"spelltypesettings",
+		"holds",
+		"delays",
+		"minthresholds",
+		"maxthresholds",
+		"aggrocheck",
+		"minmanapct",
+		"maxmanapct",
+		"minhppct",
+		"maxhppct",
+		"idlepriority",
+		"engagedpriority",
+		"pursuepriority",
+		"aegroup"
+	};
+
 	for (int i = 0; i < options.size(); i++) {
 		if (sep->arg[3] == options[i]) {
+			if (options[i] != "all" && options[i] != "misc" && options[i] != "spellsettings") {
+
+				if (sep->IsNumber(4) || c->GetSpellTypeIDByShortName(sep->arg[4]) != UINT16_MAX) {
+					if (sep->IsNumber(4)) {
+						spellType = atoi(sep->arg[4]);
+					}
+
+					if (c->GetSpellTypeIDByShortName(sep->arg[4]) != UINT16_MAX) {
+						spellType = c->GetSpellTypeIDByShortName(sep->arg[4]);
+					}
+
+					if (spellType < BotSpellTypes::START || spellType > BotSpellTypes::END) {
+						c->Message(Chat::Yellow, "You must choose a valid spell type. Spell types range from %i to %i", BotSpellTypes::START, BotSpellTypes::END);
+
+						return;
+					}
+				}
+			}
+			else if (
+				(options[i] == "all" || options[i] == "misc" || options[i] == "spellsettings") &&
+				((sep->IsNumber(2) || c->GetSpellTypeIDByShortName(sep->arg[4]) != UINT16_MAX))
+			) {
+				break;
+			}
+
 			validOption = true;
 			break;
 		}
@@ -389,99 +238,100 @@ void bot_command_copy_settings(Client* c, const Seperator* sep)
 		return;
 	}
 
+	std::string output = "";
+
 	if (!strcasecmp(sep->arg[3], "misc")) {
 		from->CopySettings(to, BotSettingCategories::BaseSetting);
-		c->Message(Chat::Yellow, "%s's miscellaneous settings were copied to %s.", from->GetCleanName(), to->GetCleanName());
+		output = "Miscellaneous";
 	}
 	else if (!strcasecmp(sep->arg[3], "holds")) {
-		from->CopySettings(to, BotSettingCategories::SpellHold);
-		c->Message(Chat::Yellow, "%s's hold settings were copied to %s.", from->GetCleanName(), to->GetCleanName());
+		from->CopySettings(to, BotSettingCategories::SpellHold, spellType);
+		output = from->GetBotSpellCategoryName(BotSettingCategories::SpellHold);
 	}
 	else if (!strcasecmp(sep->arg[3], "delays")) {
-		from->CopySettings(to, BotSettingCategories::SpellDelay);
-		c->Message(Chat::Yellow, "%s's delay settings were copied to %s.", from->GetCleanName(), to->GetCleanName());
+		from->CopySettings(to, BotSettingCategories::SpellDelay, spellType);
+		output = from->GetBotSpellCategoryName(BotSettingCategories::SpellDelay);
 	}
 	else if (!strcasecmp(sep->arg[3], "minthresholds")) {
-		from->CopySettings(to, BotSettingCategories::SpellMinThreshold);
-		c->Message(Chat::Yellow, "%s's minimum threshold settings were copied to %s.", from->GetCleanName(), to->GetCleanName());
+		from->CopySettings(to, BotSettingCategories::SpellMinThreshold, spellType);
+		output = from->GetBotSpellCategoryName(BotSettingCategories::SpellMinThreshold);
 	}
 	else if (!strcasecmp(sep->arg[3], "maxthresholds")) {
-		from->CopySettings(to, BotSettingCategories::SpellMaxThreshold);
-		c->Message(Chat::Yellow, "%s's maximum threshold settings were copied to %s.", from->GetCleanName(), to->GetCleanName());
+		from->CopySettings(to, BotSettingCategories::SpellMaxThreshold, spellType);
+		output = from->GetBotSpellCategoryName(BotSettingCategories::SpellMaxThreshold);
 	}
 	else if (!strcasecmp(sep->arg[3], "aggrocheck")) {
-		from->CopySettings(to, BotSettingCategories::SpellTypeAggroCheck);
-		c->Message(Chat::Yellow, "%s's aggro check settings were copied to %s.", from->GetCleanName(), to->GetCleanName());
+		from->CopySettings(to, BotSettingCategories::SpellTypeAggroCheck, spellType);
+		output = from->GetBotSpellCategoryName(BotSettingCategories::SpellTypeAggroCheck);
 	}
 	else if (!strcasecmp(sep->arg[3], "minmanapct")) {
-		from->CopySettings(to, BotSettingCategories::SpellTypeMinManaPct);
-		c->Message(Chat::Yellow, "%s's min mana settings were copied to %s.", from->GetCleanName(), to->GetCleanName());
+		from->CopySettings(to, BotSettingCategories::SpellTypeMinManaPct, spellType);
+		output = from->GetBotSpellCategoryName(BotSettingCategories::SpellTypeMinManaPct);
 	}
 	else if (!strcasecmp(sep->arg[3], "maxmanapct")) {
-		from->CopySettings(to, BotSettingCategories::SpellTypeMaxManaPct);
-		c->Message(Chat::Yellow, "%s's max mana settings were copied to %s.", from->GetCleanName(), to->GetCleanName());
+		from->CopySettings(to, BotSettingCategories::SpellTypeMaxManaPct, spellType);
+		output = from->GetBotSpellCategoryName(BotSettingCategories::SpellTypeMaxManaPct);
 	}
 	else if (!strcasecmp(sep->arg[3], "minhppct")) {
-		from->CopySettings(to, BotSettingCategories::SpellTypeMinHPPct);
-		c->Message(Chat::Yellow, "%s's min hp settings were copied to %s.", from->GetCleanName(), to->GetCleanName());
+		from->CopySettings(to, BotSettingCategories::SpellTypeMinHPPct, spellType);
+		output = from->GetBotSpellCategoryName(BotSettingCategories::SpellTypeMinHPPct);
 	}
 	else if (!strcasecmp(sep->arg[3], "maxhppct")) {
-		from->CopySettings(to, BotSettingCategories::SpellTypeMaxHPPct);
-		c->Message(Chat::Yellow, "%s's max hp settings were copied to %s.", from->GetCleanName(), to->GetCleanName());
+		from->CopySettings(to, BotSettingCategories::SpellTypeMaxHPPct, spellType);
+		output = from->GetBotSpellCategoryName(BotSettingCategories::SpellTypeMaxHPPct);
 	}
 	else if (!strcasecmp(sep->arg[3], "idlepriority")) {
-		from->CopySettings(to, BotSettingCategories::SpellTypeIdlePriority);
-		c->Message(Chat::Yellow, "%s's idle priority settings were copied to %s.", from->GetCleanName(), to->GetCleanName());
+		from->CopySettings(to, BotSettingCategories::SpellTypeIdlePriority, spellType);
+		output = from->GetBotSpellCategoryName(BotSettingCategories::SpellTypeIdlePriority);
 	}
 	else if (!strcasecmp(sep->arg[3], "engagedpriority")) {
-		from->CopySettings(to, BotSettingCategories::SpellTypeEngagedPriority);
-		c->Message(Chat::Yellow, "%s's engaged priority settings were copied to %s.", from->GetCleanName(), to->GetCleanName());
+		from->CopySettings(to, BotSettingCategories::SpellTypeEngagedPriority, spellType);
+		output = from->GetBotSpellCategoryName(BotSettingCategories::SpellTypeEngagedPriority);
 	}
 	else if (!strcasecmp(sep->arg[3], "pursuepriority")) {
-		from->CopySettings(to, BotSettingCategories::SpellTypePursuePriority);
-		c->Message(Chat::Yellow, "%s's pursue priority settings were copied to %s.", from->GetCleanName(), to->GetCleanName());
+		from->CopySettings(to, BotSettingCategories::SpellTypePursuePriority, spellType);
+		output = from->GetBotSpellCategoryName(BotSettingCategories::SpellTypePursuePriority);
 	}
 	else if (!strcasecmp(sep->arg[3], "aegroup")) {
-		from->CopySettings(to, BotSettingCategories::SpellTypeAEOrGroupTargetCount);
-		c->Message(Chat::Yellow, "%s's ae/group count settings were copied to %s.", from->GetCleanName(), to->GetCleanName());
+		from->CopySettings(to, BotSettingCategories::SpellTypeAEOrGroupTargetCount, spellType);
+		output = from->GetBotSpellCategoryName(BotSettingCategories::SpellTypeAEOrGroupTargetCount);
 	}
 	else if (!strcasecmp(sep->arg[3], "spellsettings")) { //TODO		
 		from->CopyBotSpellSettings(to);
-		c->Message(Chat::Yellow, "%s's ^spellsettings were copied to %s.", from->GetCleanName(), to->GetCleanName());
+		output = "^spellsettings";
 	}
 	else if (!strcasecmp(sep->arg[3], "spelltypesettings")) { //TODO		
-		from->CopySettings(to, BotSettingCategories::SpellHold);
-		from->CopySettings(to, BotSettingCategories::SpellDelay);
-		from->CopySettings(to, BotSettingCategories::SpellMinThreshold);
-		from->CopySettings(to, BotSettingCategories::SpellMaxThreshold);
-		from->CopySettings(to, BotSettingCategories::SpellTypeAggroCheck);
-		from->CopySettings(to, BotSettingCategories::SpellTypeMinManaPct);
-		from->CopySettings(to, BotSettingCategories::SpellTypeMaxManaPct);
-		from->CopySettings(to, BotSettingCategories::SpellTypeMinHPPct);
-		from->CopySettings(to, BotSettingCategories::SpellTypeMaxHPPct);
-		from->CopySettings(to, BotSettingCategories::SpellTypeIdlePriority);
-		from->CopySettings(to, BotSettingCategories::SpellTypeEngagedPriority);
-		from->CopySettings(to, BotSettingCategories::SpellTypePursuePriority);
-		from->CopySettings(to, BotSettingCategories::SpellTypeAEOrGroupTargetCount);
-		c->Message(Chat::Yellow, "%s's spell type settings were copied to %s.", from->GetCleanName(), to->GetCleanName());
+		from->CopySettings(to, BotSettingCategories::SpellHold, spellType);
+		from->CopySettings(to, BotSettingCategories::SpellDelay, spellType);
+		from->CopySettings(to, BotSettingCategories::SpellMinThreshold, spellType);
+		from->CopySettings(to, BotSettingCategories::SpellMaxThreshold, spellType);
+		from->CopySettings(to, BotSettingCategories::SpellTypeAggroCheck, spellType);
+		from->CopySettings(to, BotSettingCategories::SpellTypeMinManaPct, spellType);
+		from->CopySettings(to, BotSettingCategories::SpellTypeMaxManaPct, spellType);
+		from->CopySettings(to, BotSettingCategories::SpellTypeMinHPPct, spellType);
+		from->CopySettings(to, BotSettingCategories::SpellTypeMaxHPPct, spellType);
+		from->CopySettings(to, BotSettingCategories::SpellTypeIdlePriority, spellType);
+		from->CopySettings(to, BotSettingCategories::SpellTypeEngagedPriority, spellType);
+		from->CopySettings(to, BotSettingCategories::SpellTypePursuePriority, spellType);
+		from->CopySettings(to, BotSettingCategories::SpellTypeAEOrGroupTargetCount, spellType);
+		output = "spell type";
 	}
 	else if (!strcasecmp(sep->arg[3], "all")) {
 		from->CopySettings(to, BotSettingCategories::BaseSetting);
-		from->CopySettings(to, BotSettingCategories::SpellHold);
-		from->CopySettings(to, BotSettingCategories::SpellDelay);
-		from->CopySettings(to, BotSettingCategories::SpellMinThreshold);
-		from->CopySettings(to, BotSettingCategories::SpellMaxThreshold);
-		from->CopySettings(to, BotSettingCategories::SpellTypeAggroCheck);
-		from->CopySettings(to, BotSettingCategories::SpellTypeMinManaPct);
-		from->CopySettings(to, BotSettingCategories::SpellTypeMaxManaPct);
-		from->CopySettings(to, BotSettingCategories::SpellTypeMinHPPct);
-		from->CopySettings(to, BotSettingCategories::SpellTypeMaxHPPct);
-		from->CopySettings(to, BotSettingCategories::SpellTypeIdlePriority);
-		from->CopySettings(to, BotSettingCategories::SpellTypeEngagedPriority);
-		from->CopySettings(to, BotSettingCategories::SpellTypePursuePriority);
-		from->CopySettings(to, BotSettingCategories::SpellTypeAEOrGroupTargetCount);
+		from->CopySettings(to, BotSettingCategories::SpellHold, spellType);
+		from->CopySettings(to, BotSettingCategories::SpellDelay, spellType);
+		from->CopySettings(to, BotSettingCategories::SpellMinThreshold, spellType);
+		from->CopySettings(to, BotSettingCategories::SpellMaxThreshold, spellType);
+		from->CopySettings(to, BotSettingCategories::SpellTypeAggroCheck, spellType);
+		from->CopySettings(to, BotSettingCategories::SpellTypeMinManaPct, spellType);
+		from->CopySettings(to, BotSettingCategories::SpellTypeMaxManaPct, spellType);
+		from->CopySettings(to, BotSettingCategories::SpellTypeMinHPPct, spellType);
+		from->CopySettings(to, BotSettingCategories::SpellTypeMaxHPPct, spellType);
+		from->CopySettings(to, BotSettingCategories::SpellTypeIdlePriority, spellType);
+		from->CopySettings(to, BotSettingCategories::SpellTypeEngagedPriority, spellType);
+		from->CopySettings(to, BotSettingCategories::SpellTypePursuePriority, spellType);
+		from->CopySettings(to, BotSettingCategories::SpellTypeAEOrGroupTargetCount, spellType);
 		from->CopyBotSpellSettings(to);
-		c->Message(Chat::Yellow, "%s's settings were copied to %s.", from->GetCleanName(), to->GetCleanName());
 	}
 	else {
 		c->Message(
@@ -493,5 +343,24 @@ void bot_command_copy_settings(Client* c, const Seperator* sep)
 				)
 			).c_str()
 		);
+
+		return;
 	}
+
+	c->Message(
+		Chat::Green,
+		fmt::format(
+			"{}'s{}{} settings were copied to {}.",
+			from->GetCleanName(),
+			(
+				spellType != UINT16_MAX ?
+				fmt::format(" [{}] ",
+					c->GetSpellTypeNameByID(spellType)
+				)
+				: " "
+			),
+			output,
+			to->GetCleanName()
+		).c_str()
+	);
 }

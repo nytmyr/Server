@@ -436,7 +436,7 @@ public:
 	bool IsMobEngagedByAnyone(Mob* tar);
 	bool DoResistCheckBySpellType(Mob* tar, uint16 spellid, uint16 spellType);
 	void SetBotSetting(uint8 settingType, uint16 botSetting, int settingValue);
-	void CopySettings(Bot* to, uint8 settingType);
+	void CopySettings(Bot* to, uint8 settingType, uint16 spellType = UINT16_MAX);
 	void CopyBotSpellSettings(Bot* to);
 	void ResetBotSpellSettings();
 	int GetBotBaseSetting(uint16 botSetting);
@@ -501,9 +501,21 @@ public:
 	void SetHPWhenToMed(uint8 value) { _HPWhenToMed = value; }
 	uint8 GetManaWhenToMed() const { return _ManaWhenToMed; }
 	void SetManaWhenToMed(uint8 value) { _ManaWhenToMed = value; }
+	void SetHasLoS(bool hasLoS) { _hasLoS = hasLoS; }
+	bool HasLoS() const { return _hasLoS; }
 	
 	bool IsInGroupOrRaid(bool announce = false);
 	void SendSpellTypesWindow(Client* c, std::string arg0, std::string arg1, std::string arg2, bool helpPrompt = false);
+	std::string SendCommandHelpWindow(
+		Client* c,
+		std::vector<std::string> description,
+		std::vector<std::string> notes,
+		std::vector<std::string> example_format,
+		std::vector<std::string> examples_one, std::vector<std::string> examples_two, std::vector<std::string> examples_three,
+		std::vector<std::string> actionables,
+		std::vector<std::string> options,
+		std::vector<std::string> options_one, std::vector<std::string> options_two, std::vector<std::string> options_three
+	);
 	
 	std::list<BotSpellTypeOrder> GetSpellTypesPrioritized(uint8 priorityType);
 	uint16 GetSpellListSpellType(uint16 spellType);
@@ -1058,6 +1070,7 @@ private:
 	uint8 _HPWhenToMed;
 	uint8 _ManaWhenToMed;
 	uint16 _castedSpellType;
+	bool _hasLoS;
 
 	// Private "base stats" Members
 	int32 _baseMR;

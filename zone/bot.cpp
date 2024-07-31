@@ -2189,15 +2189,15 @@ void Bot::AI_Process()
 				if (atCombatRange && IsBotRanged()){
 					StopMoving(CalculateHeadingToTarget(tar->GetX(), tar->GetY())); 
 
-					if (TryRangedAttack(tar)) {
-						return;
-					}
+					TryRangedAttack(tar);
 
 					if (!TargetValidation(tar)) { return; }
 
 					if (CheckDoubleRangedAttack()) {
 						BotRangedAttack(tar, true);
 					}
+
+					return;
 				}
 			}
 		}
@@ -5866,9 +5866,9 @@ bool Bot::DoFinishedSpellSingleTarget(uint16 spell_id, Mob* spellTarget, EQ::spe
 			int j = BotGetSpells(i);
 			int spelltype = BotGetSpellType(i);
 			bool spellequal = (j == thespell);
-			bool spelltypeequal = ((spelltype == 2) || (spelltype == 16) || (spelltype == 32));
-			bool spelltypetargetequal = ((spelltype == 8) && (spells[thespell].target_type == ST_Self));
-			bool spelltypeclassequal = ((spelltype == 1024) && (GetClass() == Class::Shaman));
+			bool spelltypeequal = ((spelltype == BotSpellTypes::RegularHeal) || (spelltype == BotSpellTypes::Escape) || (spelltype == BotSpellTypes::Pet));
+			bool spelltypetargetequal = ((spelltype == BotSpellTypes::Buff) && (spells[thespell].target_type == ST_Self));
+			bool spelltypeclassequal = ((spelltype == BotSpellTypes::InCombatBuff) && (GetClass() == Class::Shaman));
 			bool slotequal = (slot == EQ::spells::CastingSlot::Item);
 			if (spellequal || slotequal) {
 				if ((spelltypeequal || spelltypetargetequal) || spelltypeclassequal || slotequal) {
@@ -10912,6 +10912,7 @@ void Bot::DoCombatPositioning(Mob* tar, glm::vec3 Goal, bool stopMeleeLevel, flo
 					DoFaceCheckNoJitter(tar);
 					return;
 				}
+
 				if (RuleB(Bots, TauntingBotsFollowTopHate)) { // If enabled, taunting bots will stick to top hate
 					if ((DistanceSquared(m_Position, mobTar->GetPosition()) > pow(RuleR(Bots, DistanceTauntingBotsStickMainHate), 2))) {
 						Goal = mobTar->GetPosition();
@@ -10971,12 +10972,13 @@ bool Bot::RequiresLoSForPositioning() {
 	if (GetLevel() < GetStopMeleeLevel()) {
 		return true;
 	}
-	else if (GetClass() == Class::Cleric) { //add check to see if spell requires los
+	else if (GetClass() == Class::Bard) {
 		return false;
 	}
-	else if (GetClass() == Class::Bard && GetLevel() >= GetStopMeleeLevel()) {
+	else if (GetClass() == Class::Cleric) { //TODO add check to see if spell requires los
 		return false;
 	}
+
 	return true;
 }
 
@@ -11074,77 +11076,156 @@ bool Bot::HasValidAETarget(Bot* botCaster, uint16 spellid, uint16 spellType, Mob
 	return true;
 }
 
-void Bot::CopySettings(Bot* to, uint8 settingType) {
+void Bot::CopySettings(Bot* to, uint8 settingType, uint16 spellType) {
 	switch (settingType) {
 		case BotSettingCategories::BaseSetting:
 			for (uint16 i = BotBaseSettings::START; i <= BotBaseSettings::END; ++i) {
 				to->SetBotBaseSetting(i, GetBotBaseSetting(i));
 			}
+
 			break;
 		case BotSettingCategories::SpellHold:
-			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-				to->SetSpellHold(i, GetSpellHold(i));
+			if (spellType != UINT16_MAX) {
+				to->SetSpellHold(spellType, GetSpellHold(spellType));
 			}
+			else {
+				for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+					to->SetSpellHold(i, GetSpellHold(i));
+				}
+			}
+
 			break;
 		case BotSettingCategories::SpellDelay:
-			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-				to->SetSpellDelay(i, GetSpellDelay(i));
+			if (spellType != UINT16_MAX) {
+				to->SetSpellDelay(spellType, GetSpellDelay(spellType));
 			}
+			else {
+				for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+					to->SetSpellDelay(i, GetSpellDelay(i));
+				}
+			}
+
 			break;
 		case BotSettingCategories::SpellMinThreshold:
-			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-				to->SetSpellMinThreshold(i, GetSpellMinThreshold(i));
+			if (spellType != UINT16_MAX) {
+				to->SetSpellMinThreshold(spellType, GetSpellMinThreshold(spellType));
 			}
+			else {
+				for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+					to->SetSpellMinThreshold(i, GetSpellMinThreshold(i));
+				}
+			}
+
 			break;
 		case BotSettingCategories::SpellMaxThreshold:
-			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-				to->SetSpellMaxThreshold(i, GetSpellMaxThreshold(i));
+			if (spellType != UINT16_MAX) {
+				to->SetSpellMaxThreshold(spellType, GetSpellMaxThreshold(spellType));
 			}
+			else {
+				for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+					to->SetSpellMaxThreshold(i, GetSpellMaxThreshold(i));
+				}
+			}
+
 			break;
 		case BotSettingCategories::SpellTypeAggroCheck:
-			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-				to->SetSpellTypeAggroCheck(i, GetSpellTypeAggroCheck(i));
+			if (spellType != UINT16_MAX) {
+				to->SetSpellTypeAggroCheck(spellType, GetSpellTypeAggroCheck(spellType));
 			}
+			else {
+				for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+					to->SetSpellTypeAggroCheck(i, GetSpellTypeAggroCheck(i));
+				}
+			}
+
 			break;
 		case BotSettingCategories::SpellTypeMinManaPct:
-			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-				to->SetSpellTypeMinManaLimit(i, GetSpellDelay(i));
+			if (spellType != UINT16_MAX) {
+				to->SetSpellTypeMinManaLimit(spellType, GetSpellTypeMinManaLimit(spellType));
 			}
+			else {
+				for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+					to->SetSpellTypeMinManaLimit(i, GetSpellTypeMinManaLimit(i));
+				}
+			}
+
 			break;
 		case BotSettingCategories::SpellTypeMaxManaPct:
-			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-				to->SetSpellTypeMaxManaLimit(i, GetSpellTypeMaxManaLimit(i));
+			if (spellType != UINT16_MAX) {
+				to->SetSpellTypeMaxManaLimit(spellType, GetSpellTypeMaxManaLimit(spellType));
 			}
+			else {
+				for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+					to->SetSpellTypeMaxManaLimit(i, GetSpellTypeMaxManaLimit(i));
+				}
+			}
+
 			break;
 		case BotSettingCategories::SpellTypeMinHPPct:
-			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-				to->SetSpellTypeMinHPLimit(i, GetSpellTypeMinHPLimit(i));
+			if (spellType != UINT16_MAX) {
+				to->SetSpellTypeMinHPLimit(spellType, GetSpellTypeMinHPLimit(spellType));
 			}
+			else {
+				for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+					to->SetSpellTypeMinHPLimit(i, GetSpellTypeMinHPLimit(i));
+				}
+			}
+
 			break;
 		case BotSettingCategories::SpellTypeMaxHPPct:
-			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-				to->SetSpellTypeMaxHPLimit(i, GetSpellTypeMaxHPLimit(i));
+			if (spellType != UINT16_MAX) {
+				to->SetSpellTypeMaxHPLimit(spellType, GetSpellTypeMaxHPLimit(spellType));
 			}
+			else {
+				for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+					to->SetSpellTypeMaxHPLimit(i, GetSpellTypeMaxHPLimit(i));
+				}
+			}
+
 			break;
 		case BotSettingCategories::SpellTypeIdlePriority:
-			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-				to->SetSpellTypePriority(i, BotPriorityCategories::Idle, GetSpellTypePriority(i, BotPriorityCategories::Idle));
+			if (spellType != UINT16_MAX) {
+				to->SetSpellTypePriority(spellType, BotPriorityCategories::Idle, GetSpellTypePriority(spellType, BotPriorityCategories::Idle));
 			}
+			else {
+				for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+					to->SetSpellTypePriority(i, BotPriorityCategories::Idle, GetSpellTypePriority(i, BotPriorityCategories::Idle));
+				}
+			}
+
 			break;
 		case BotSettingCategories::SpellTypeEngagedPriority:
-			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-				to->SetSpellTypePriority(i, BotPriorityCategories::Engaged, GetSpellTypePriority(i, BotPriorityCategories::Engaged));
+			if (spellType != UINT16_MAX) {
+				to->SetSpellTypePriority(spellType, BotPriorityCategories::Engaged, GetSpellTypePriority(spellType, BotPriorityCategories::Engaged));
 			}
+			else {
+				for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+					to->SetSpellTypePriority(i, BotPriorityCategories::Engaged, GetSpellTypePriority(i, BotPriorityCategories::Engaged));
+				}
+			}
+
 			break;
 		case BotSettingCategories::SpellTypePursuePriority:
-			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-				to->SetSpellTypePriority(i, BotPriorityCategories::Pursue, GetSpellTypePriority(i, BotPriorityCategories::Pursue));
+			if (spellType != UINT16_MAX) {
+				to->SetSpellTypePriority(spellType, BotPriorityCategories::Pursue, GetSpellTypePriority(spellType, BotPriorityCategories::Pursue));
 			}
+			else {
+				for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+					to->SetSpellTypePriority(i, BotPriorityCategories::Pursue, GetSpellTypePriority(i, BotPriorityCategories::Pursue));
+				}
+			}
+
 			break;
 		case BotSettingCategories::SpellTypeAEOrGroupTargetCount:
-			for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-				to->SetSpellTypeAEOrGroupTargetCount(i, GetSpellTypeAEOrGroupTargetCount(i));
+			if (spellType != UINT16_MAX) {
+				to->SetSpellTypeAEOrGroupTargetCount(spellType, GetSpellTypeAEOrGroupTargetCount(spellType));
 			}
+			else {
+				for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+					to->SetSpellTypeAEOrGroupTargetCount(i, GetSpellTypeAEOrGroupTargetCount(i));
+				}
+			}
+
 			break;
 	}
 }

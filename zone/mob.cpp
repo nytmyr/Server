@@ -8682,7 +8682,7 @@ void Mob::SetExtraHaste(int haste, bool need_to_save)
 uint16 Mob::GetSpellTypeIDByShortName(std::string spellTypeString) {
 
 	for (int i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
-		if (!spellTypeString.compare(SetSpellTypeShortNameByID(i))) {
+		if (!Strings::ToLower(spellTypeString).compare(SetSpellTypeShortNameByID(i))) {
 			return i;
 		}
 	}

@@ -728,6 +728,7 @@ bool IS_GROUP_BOT_SPELL_TYPE(uint16 spellType);
 bool IS_PET_SPELL_TYPE(uint16 spellType);
 bool IS_CLIENT_SPELL_TYPE(uint16 spellType);
 bool IS_HEAL_SPELL_TYPE(uint16 spellType);
+bool SpellTypeRequiresLoS(uint16 spellType);
 
 // These should not be used to determine spell category..
 // They are a graphical affects (effects?) index only
@@ -1625,6 +1626,7 @@ bool IsEffectInSpell(uint16 spell_id, int effect_id);
 uint16 GetSpellTriggerSpellID(uint16 spell_id, int effect_id);
 bool IsBlankSpellEffect(uint16 spell_id, int effect_index);
 bool IsValidSpell(uint32 spell_id);
+bool IsValidSpellAndLoS(uint32 spell_id, bool hasLoS = true);
 bool IsSummonSpell(uint16 spell_id);
 bool IsDamageSpell(uint16 spell_id);
 bool IsDamageOverTimeSpell(uint16 spell_i);

@@ -56,7 +56,6 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint16 spellType) {
 
 	uint8 botClass = GetClass();
 
-	bool check_los = false;	//we do not check LOS until we are absolutely sure we need to, and we only do it once.
 	SetCastedSpellType(UINT16_MAX);
 
 	BotSpell botSpell;
@@ -64,13 +63,23 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint16 spellType) {
 	botSpell.SpellIndex = 0;
 	botSpell.ManaCost = 0;
 
+	bool needsLoSCheck = false;
+	SetHasLoS(true);
+
+	if (SpellTypeRequiresLoS(spellType)) {
+		needsLoSCheck = true;
+	}
+
+	if (needsLoSCheck && tar != this) {
+		SetHasLoS(CheckLosCheat(this, tar));
+	}
+
 	switch (spellType) {
 		case BotSpellTypes::AESlow:
 		case BotSpellTypes::Slow:
 		case BotSpellTypes::Escape:
 		case BotSpellTypes::AELifetap:
 		case BotSpellTypes::Lifetap:
-			break;
 		case BotSpellTypes::AESnare:
 		case BotSpellTypes::Snare:
 		case BotSpellTypes::AEDebuff:
@@ -79,7 +88,6 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint16 spellType) {
 		case BotSpellTypes::DOT:
 		case BotSpellTypes::AERoot:
 		case BotSpellTypes::Root:
-			check_los = true;
 			break;
 		case BotSpellTypes::AEFear:
 		case BotSpellTypes::Fear:
@@ -87,7 +95,6 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint16 spellType) {
 				return false;
 			}
 
-			check_los = true;
 			break;
 		case BotSpellTypes::AEDispel:
 		case BotSpellTypes::Dispel:
@@ -95,7 +102,6 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint16 spellType) {
 				return false;
 			}
 
-			check_los = true;
 			break;
 		case BotSpellTypes::HateRedux:
 		case BotSpellTypes::InCombatBuff:
@@ -150,7 +156,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint16 spellType) {
 
 			return BotCastHeal(tar, botClass, botSpell, spellType);
 		case BotSpellTypes::GroupCures:
-		case BotSpellTypes::Cure:		
+		case BotSpellTypes::Cure:
 			if (!tar->IsOfClientBot() && !(tar->IsPet() && tar->GetOwner() && tar->GetOwner()->IsOfClientBot())) {
 				return false;
 			}
@@ -169,15 +175,10 @@ bool Bot::AICastSpell(Mob* tar, uint8 iChance, uint16 spellType) {
 			break;
 	}
 
-	if (check_los && !CheckLosCheat(this, tar)) {
-		LogTestDebug("{} says, '{} failed LoS checks for {}.'", GetCleanName(), tar->GetCleanName(), GetSpellTypeNameByID(spellType)); //deleteme
-		return false;
-	}
-
 	std::list<BotSpell_wPriority> botSpellList = GetPrioritizedBotSpellsBySpellType(this, spellType, tar, IS_AE_BOT_SPELL_TYPE(spellType));
 
 	for (const auto& s : botSpellList) {
-		if (!IsValidSpell(s.SpellId)) {
+		if (!IsValidSpellAndLoS(s.SpellId, HasLoS())) {
 			continue;
 		}
 
@@ -235,7 +236,7 @@ bool Bot::BotCastCure(Mob* tar, uint8 botClass, BotSpell& botSpell, uint16 spell
 
 	botSpell = GetBestBotSpellForCure(this, tar, spellType);
 
-	if (!IsValidSpell(botSpell.SpellId)) {
+	if (!IsValidSpellAndLoS(botSpell.SpellId, HasLoS())) {
 		return false;
 	}
 
@@ -308,7 +309,7 @@ bool Bot::BotCastPet(Mob* tar, uint8 botClass, BotSpell& botSpell, uint16 spellT
 		botSpell = GetFirstBotSpellBySpellType(this, spellType);
 	}
 
-	if (!IsValidSpell(botSpell.SpellId)) {
+	if (!IsValidSpellAndLoS(botSpell.SpellId, HasLoS())) {
 		return false;
 	}
 
@@ -329,10 +330,6 @@ bool Bot::BotCastPet(Mob* tar, uint8 botClass, BotSpell& botSpell, uint16 spellT
 }
 
 bool Bot::BotCastNuke(Mob* tar, uint8 botClass, BotSpell& botSpell, uint16 spellType) {
-	if (!CheckLosCheat(this, tar)) {
-		return false;
-	}
-
 	if (spellType == BotSpellTypes::Stun || spellType == BotSpellTypes::AEStun) {
 		uint8 stunChance = (tar->IsCasting() ? RuleI(Bots, StunCastChanceIfCasting) : RuleI(Bots, StunCastChanceNormal));
 
@@ -341,27 +338,27 @@ bool Bot::BotCastNuke(Mob* tar, uint8 botClass, BotSpell& botSpell, uint16 spell
 		}
 
 		if (!tar->GetSpecialAbility(SpecialAbility::StunImmunity) && !tar->IsStunned() && (zone->random.Int(1, 100) <= stunChance)) {
-			botSpell = GetBestBotSpellForStunByTargetType(this, (!IS_AE_BOT_SPELL_TYPE(spellType) ? ST_Target : ST_TargetOptional), IS_AE_BOT_SPELL_TYPE(spellType));
+			botSpell = GetBestBotSpellForStunByTargetType(this, ST_TargetOptional, spellType, IS_AE_BOT_SPELL_TYPE(spellType));
 		}
 		
-		if (!IsValidSpell(botSpell.SpellId)) {
+		if (!IsValidSpellAndLoS(botSpell.SpellId, HasLoS())) {
 			return false;
 		}
 	}
 
-	if (!IsValidSpell(botSpell.SpellId)) {
-		botSpell = GetBestBotSpellForNukeByBodyType(this, tar->GetBodyType(), IS_AE_BOT_SPELL_TYPE(spellType));
+	if (!IsValidSpellAndLoS(botSpell.SpellId, HasLoS())) {
+		botSpell = GetBestBotSpellForNukeByBodyType(this, tar->GetBodyType(), spellType, IS_AE_BOT_SPELL_TYPE(spellType));
 	}
 
-	if (!IsValidSpell(botSpell.SpellId) && spellType == BotSpellTypes::Nuke && botClass == Class::Wizard) {
+	if (!IsValidSpellAndLoS(botSpell.SpellId, HasLoS()) && spellType == BotSpellTypes::Nuke && botClass == Class::Wizard) {
 		botSpell = GetBestBotWizardNukeSpellByTargetResists(this, tar, spellType);
 	}
 
-	if (!IsValidSpell(botSpell.SpellId)) {
+	if (!IsValidSpellAndLoS(botSpell.SpellId, HasLoS())) {
 		std::list<BotSpell_wPriority> botSpellList = GetPrioritizedBotSpellsBySpellType(this, spellType, tar, IS_AE_BOT_SPELL_TYPE(spellType));
 
 		for (const auto& s : botSpellList) {
-			if (!IsValidSpell(s.SpellId)) {
+			if (!IsValidSpellAndLoS(s.SpellId, HasLoS())) {
 				continue;
 			}
 
@@ -735,7 +732,7 @@ std::list<BotSpell> Bot::GetBotSpellsForSpellEffect(Bot* botCaster, uint16 spell
 		std::vector<BotSpells_Struct> botSpellList = botCaster->AIBot_spells;
 
 		for (int i = botSpellList.size() - 1; i >= 0; i--) {
-			if (!IsValidSpell(botSpellList[i].spellid)) {
+			if (!IsValidSpellAndLoS(botSpellList[i].spellid, botCaster->HasLoS())) {
 				// this is both to quit early to save cpu and to avoid casting bad spells
 				// Bad info from database can trigger this incorrectly, but that should be fixed in DB, not here
 				continue;
@@ -775,7 +772,7 @@ std::list<BotSpell> Bot::GetBotSpellsForSpellEffectAndTargetType(Bot* botCaster,
 		std::vector<BotSpells_Struct> botSpellList = botCaster->AIBot_spells;
 
 		for (int i = botSpellList.size() - 1; i >= 0; i--) {
-			if (!IsValidSpell(botSpellList[i].spellid)) {
+			if (!IsValidSpellAndLoS(botSpellList[i].spellid, botCaster->HasLoS())) {
 				// this is both to quit early to save cpu and to avoid casting bad spells
 				// Bad info from database can trigger this incorrectly, but that should be fixed in DB, not here
 				continue;
@@ -818,7 +815,7 @@ std::list<BotSpell> Bot::GetBotSpellsBySpellType(Bot* botCaster, uint16 spellTyp
 		std::vector<BotSpells_Struct> botSpellList = botCaster->AIBot_spells;
 
 		for (int i = botSpellList.size() - 1; i >= 0; i--) {
-			if (!IsValidSpell(botSpellList[i].spellid)) {
+			if (!IsValidSpellAndLoS(botSpellList[i].spellid, botCaster->HasLoS())) {
 				// this is both to quit early to save cpu and to avoid casting bad spells
 				// Bad info from database can trigger this incorrectly, but that should be fixed in DB, not here
 				continue;
@@ -849,7 +846,7 @@ std::list<BotSpell_wPriority> Bot::GetPrioritizedBotSpellsBySpellType(Bot* botCa
 		std::vector<BotSpells_Struct> botSpellList = botCaster->AIBot_spells;
 
 		for (int i = botSpellList.size() - 1; i >= 0; i--) {
-			if (!IsValidSpell(botSpellList[i].spellid)) {
+			if (!IsValidSpellAndLoS(botSpellList[i].spellid, botCaster->HasLoS())) {
 				// this is both to quit early to save cpu and to avoid casting bad spells
 				// Bad info from database can trigger this incorrectly, but that should be fixed in DB, not here
 				continue;
@@ -925,7 +922,7 @@ BotSpell Bot::GetFirstBotSpellBySpellType(Bot* botCaster, uint16 spellType) {
 		std::vector<BotSpells_Struct> botSpellList = botCaster->AIBot_spells;
 
 		for (int i = botSpellList.size() - 1; i >= 0; i--) {
-			if (!IsValidSpell(botSpellList[i].spellid)) {
+			if (!IsValidSpellAndLoS(botSpellList[i].spellid, botCaster->HasLoS())) {
 				// this is both to quit early to save cpu and to avoid casting bad spells
 				// Bad info from database can trigger this incorrectly, but that should be fixed in DB, not here
 				continue;
@@ -1760,7 +1757,7 @@ BotSpell Bot::GetDebuffBotSpell(Bot* botCaster, Mob *tar) {
 		std::vector<BotSpells_Struct> botSpellList = botCaster->AIBot_spells;
 
 		for (int i = botSpellList.size() - 1; i >= 0; i--) {
-			if (!IsValidSpell(botSpellList[i].spellid)) {
+			if (!IsValidSpellAndLoS(botSpellList[i].spellid, botCaster->HasLoS())) {
 				// this is both to quit early to save cpu and to avoid casting bad spells
 				// Bad info from database can trigger this incorrectly, but that should be fixed in DB, not here
 				continue;
@@ -1808,7 +1805,7 @@ BotSpell Bot::GetBestBotSpellForResistDebuff(Bot* botCaster, Mob *tar) {
 		std::vector<BotSpells_Struct> botSpellList = botCaster->AIBot_spells;
 
 		for (int i = botSpellList.size() - 1; i >= 0; i--) {
-			if (!IsValidSpell(botSpellList[i].spellid)) {
+			if (!IsValidSpellAndLoS(botSpellList[i].spellid, botCaster->HasLoS())) {
 				// this is both to quit early to save cpu and to avoid casting bad spells
 				// Bad info from database can trigger this incorrectly, but that should be fixed in DB, not here
 				continue;

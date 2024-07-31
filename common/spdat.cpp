@@ -611,12 +611,11 @@ bool IsPBAENukeSpell(uint16 spell_id)
 
 	if (
 		IsPureNukeSpell(spell_id) &&
-		spell.aoe_range > 0 &&
-		spell.target_type == ST_AECaster
+		!IsTargetRequiredForSpell(spell_id)
 	) {
 		return true;
 	}
-
+	
 	return false;
 }
 
@@ -2918,4 +2917,42 @@ bool IS_HEAL_SPELL_TYPE(uint16 spellType) {
 	}
 
 	return false;
+}
+
+bool SpellTypeRequiresLoS(uint16 spellType) {
+	switch (spellType) {
+		case BotSpellTypes::RegularHeal:
+		case BotSpellTypes::GroupCompleteHeals:
+		case BotSpellTypes::CompleteHeal:
+		case BotSpellTypes::FastHeals:
+		case BotSpellTypes::VeryFastHeals:
+		case BotSpellTypes::GroupHeals:
+		case BotSpellTypes::GroupHoTHeals:
+		case BotSpellTypes::HoTHeals:
+		case BotSpellTypes::PetRegularHeals:
+		case BotSpellTypes::PetGroupCompleteHeals:
+		case BotSpellTypes::PetCompleteHeals:
+		case BotSpellTypes::PetFastHeals:
+		case BotSpellTypes::PetVeryFastHeals:
+		case BotSpellTypes::PetGroupHeals:
+		case BotSpellTypes::PetGroupHoTHeals:
+		case BotSpellTypes::PetHoTHeals:
+			return false;
+		default:
+			return true;
+	}
+
+	return true;
+}
+
+bool IsValidSpellAndLoS(uint32 spell_id, bool hasLoS) {
+	if (!IsValidSpell(spell_id)) {
+		return false;
+	}
+	
+	if (!hasLoS && IsTargetRequiredForSpell(spell_id)) {
+		return false;
+	}
+
+	return true;
 }

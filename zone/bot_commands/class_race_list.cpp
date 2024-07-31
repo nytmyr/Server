@@ -33,10 +33,19 @@ void bot_command_class_race_list(Client* c, const Seperator* sep)
 
 	window_text.append(
 		fmt::format(
-			"Classes{}<c \"#FFFF\">",
+			"<c \"#EDDA74\">Classes{}<c \"#357EC7\">",
 			DialogueWindow::Break()
 		)
 	);
+
+	window_text.append(
+		fmt::format(
+			"<c \"#D4A017\">--------------------------------------------------------------------<c \"#357EC7\">",
+			DialogueWindow::Break()
+		)
+	);
+
+	window_text.append(DialogueWindow::Break());
 
 	message_separator = " ";
 	object_count = 0;
@@ -63,10 +72,19 @@ void bot_command_class_race_list(Client* c, const Seperator* sep)
 
 	window_text.append(
 		fmt::format(
-			"<c \"#FFFFFF\">Races{}<c \"#FFFF\">",
+			"<c \"#EDDA74\">Races{}<c \"#357EC7\">",
 			DialogueWindow::Break()
 		)
 	);
+
+	window_text.append(
+		fmt::format(
+			"<c \"#D4A017\">--------------------------------------------------------------------<c \"#357EC7\">",
+			DialogueWindow::Break()
+		)
+	);
+
+	window_text.append(DialogueWindow::Break());
 
 	message_separator = " ";
 	object_count = 0;

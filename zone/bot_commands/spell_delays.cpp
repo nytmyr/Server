@@ -5,231 +5,97 @@ void bot_command_spell_delays(Client* c, const Seperator* sep)
 	if (helper_command_alias_fail(c, "bot_command_spell_delays", sep->arg[0], "spelldelays"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		//c->Message(Chat::Cyan, "usage: %s [spelltype ID | spelltype shortname] [current | value in milliseconds] ([actionable: target | byname | ownergroup | ownerraid | targetgroup | namesgroup | healrotationtargets | mmr | byclass | byrace | spawned] ([actionable_name]))", sep->arg[0]);
-		//c->Message(Chat::DarkGray, "----------------------------------------");
-		//c->Message(Chat::Magenta, "example: [%s 9 8000 spawned] or [%s dots 8000 spawned] would set the delay between casts for all DoT spells to 8 seconds", sep->arg[0], sep->arg[0]);
-		//c->Message(Chat::DarkGray, "----------------------------------------");
-		//c->Message(Chat::Yellow, "note: Use [current] to check the current setting");
-		//c->Message(Chat::DarkGray, "----------------------------------------");
-		//c->CastToBot()->SendSpellTypesWindow(c, sep->arg[0], "", "", true);
-
-		const std::string& color_red = "red_1";
-		const std::string& color_blue = "royal_blue";
-		const std::string& color_green = "forest_green";
-		const std::string& bright_green = "green";
-		const std::string& bright_red = "red";
-		const std::string& heroic_color = "gold";
-
-		std::string fillerLine = "--------------------------------------------------------------------";
-		std::string fillerDia = DialogueWindow::TableRow(DialogueWindow::TableCell(fmt::format("{}", DialogueWindow::ColorMessage(heroic_color, fillerLine))));
-		std::string indent = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-		std::string bullet = "- ";
-
-		std::string popup_text = DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						bright_green,
-						fmt::format(
-							"{}{}{}How to use:",
-							indent,
-							indent,
-							indent
-						)
-					)
-				)
+			//1234567890123456789212345678931234567894123456789512345 //55 character max per line
+		std::vector <std::string> description =
+		{
+			"Controls how long a bot will wait between casts",
+			"of different spell types"
+		};
+		std::vector <std::string> notes =
+		{
+			"- All pet types are based off the pet's owner's setting",
+			"- Any remaining types use the owner's setting when a",
+			"pet is the target",
+			"- All Heals, Cures, Buffs (DS and resists included)",
+			"are based off the target's setting, not the caster",
+			"- e.g., BotA is healing BotB using BotB's settings",
+		};
+		std::vector <std::string> example_format =
+		{
+			fmt::format(
+				"{} [Type Shortname] [value] [actionable]"
+				, sep->arg[0]
+			),
+			fmt::format(
+				"{} [Type ID] [value] [actionable]"
+				, sep->arg[0]
 			)
-		);
-
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						bright_green,
-						fmt::format(
-							"{} [Type ID] [value] [actionable]",
-							sep->arg[0]
-						)
-					)
-				)
+		};
+			//1234567890123456789212345678931234567894123456789512345 //55 character max per line
+		std::vector<std::string> examples_one =
+		{
+			"To set all Necromancers to an 8s DoT delay:",
+			fmt::format(
+				"{} {} 8000 byclass 11",
+				sep->arg[0],
+				c->GetSpellTypeShortNameByID(BotSpellTypes::DOT)
+			),
+			fmt::format(
+				"{} {} 8000 byclass 11",
+				sep->arg[0],
+				BotSpellTypes::DOT
 			)
-		);
-
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						bright_green,
-						fmt::format(
-							"{} [Type Shortname] [value] [actionable]",
-							sep->arg[0]
-						)
-					)
-				)
+		};
+		std::vector<std::string> examples_two =
+		{
+			"To set all Warriors to receive Fast Heals every 2.5s:",
+			fmt::format(
+				"{} {} 2500 byclass 1",
+				sep->arg[0],
+				c->GetSpellTypeShortNameByID(BotSpellTypes::FastHeals)
+			),
+			fmt::format(
+				"{} {} 2500 byclass 1",
+				sep->arg[0],
+				BotSpellTypes::FastHeals
 			)
-		);
-
-		popup_text += fillerDia;
-
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						color_blue,
-						fmt::format(
-							"{}{}{}Available actionables are:",
-							indent,
-							indent,
-							indent
-						)
-					)
-				)
+		};
+		std::vector<std::string> examples_three =
+		{
+			"To check current Nuke delay on all bots:",
+			fmt::format(
+				"{} {} current spawned",
+				sep->arg[0],
+				c->GetSpellTypeShortNameByID(BotSpellTypes::Nuke)
+			),
+			fmt::format(
+				"{} {} current spawned",
+				sep->arg[0],
+				BotSpellTypes::Nuke
 			)
-		);
+		};
+			//1234567890123456789212345678931234567894123456789512345 //55 character max per line
+		std::vector <std::string> actionables =
+		{
+			"target, byname, ownergroup, ownerraid",
+			"targetgroup, namesgroup, healrotationtargets",
+			"mmr, byclass, byrace, spawned"
+		};
+		std::vector <std::string> options = { };
+		std::vector<std::string> options_one = { };
+			//1234567890123456789212345678931234567894123456789512345 //55 character max per line
+		std::vector<std::string> options_two = { };
+		std::vector<std::string> options_three = { };
 
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						color_blue,
-						fmt::format(
-							"{}target | byname | ownergroup | ownerraid | targetgroup",
-							bullet
-						)
-					)
-				)
-			)
-		);
-
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						color_blue,
-						fmt::format(
-							"{}namesgroup | healrotationtargets | mmr | byclass",
-							bullet
-						)
-					)
-				)
-			)
-		);
-
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						color_blue,
-						fmt::format(
-							"{}byrace | spawned",
-							bullet
-						)
-					)
-				)
-			)
-		);
-
-		popup_text += fillerDia;
-
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						color_blue,
-						fmt::format(
-							"To set DoTs to have an 8 second delay:",
-							indent,
-							indent,
-							indent
-						)
-					)
-				)
-			)
-		);
-
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						heroic_color,
-						fmt::format(
-							"{} dots 8000 spawned",
-							sep->arg[0]
-						)
-					)
-				)
-			)
-		);
-
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						heroic_color,
-						fmt::format(
-							"{} 8 8000 spawned",
-							sep->arg[0]
-						)
-					)
-				)
-			)
-		);
-
-		popup_text += fillerDia;
-
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						color_green,
-						fmt::format(
-							"{}Use current to check the current setting",
-							bullet
-						)
-					)
-				)
-			)
-		);
-
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						heroic_color,
-						fmt::format(
-							"{} dots current spawned",
-							sep->arg[0]
-						)
-					)
-				)
-			)
-		);
-
-		popup_text += DialogueWindow::TableRow(
-			DialogueWindow::TableCell(
-				fmt::format(
-					"{}",
-					DialogueWindow::ColorMessage(
-						heroic_color,
-						fmt::format(
-							"{} 8 current spawned",
-							sep->arg[0]
-						)
-					)
-				)
-			)
+		std::string popup_text = c->CastToBot()->SendCommandHelpWindow(
+			c,
+			description,
+			notes,
+			example_format,
+			examples_one, examples_two, examples_three,
+			actionables,
+			options,
+			options_one, options_two, options_three
 		);
 
 		popup_text = DialogueWindow::Table(popup_text);
@@ -247,11 +113,9 @@ void bot_command_spell_delays(Client* c, const Seperator* sep)
 		return;
 	}
 
-	const int ab_mask = ActionableBots::ABM_Type1;
-
 	std::string arg1 = sep->arg[1];
 
-	if (!arg1.compare("listid") || !arg1.compare("listname")){
+	if (!arg1.compare("listid") || !arg1.compare("listname")) {
 		c->CastToBot()->SendSpellTypesWindow(c, sep->arg[0], sep->arg[1], sep->arg[2]);
 		return;
 	}
@@ -291,7 +155,6 @@ void bot_command_spell_delays(Client* c, const Seperator* sep)
 		}
 	}
 
-	// Enable/Disable/Current checks
 	if (sep->IsNumber(2)) {
 		typeValue = atoi(sep->arg[2]);
 		++ab_arg;
@@ -327,6 +190,7 @@ void bot_command_spell_delays(Client* c, const Seperator* sep)
 		return;
 	}
 
+	const int ab_mask = ActionableBots::ABM_Type1;
 	std::string class_race_arg = sep->arg[ab_arg];
 	bool class_race_check = false;
 	if (!class_race_arg.compare("byclass") || !class_race_arg.compare("byrace")) {
@@ -350,7 +214,7 @@ void bot_command_spell_delays(Client* c, const Seperator* sep)
 			c->Message(
 				Chat::Green,
 				fmt::format(
-					"{} says, 'My current {} delay is {} seconds.'",
+					"{} says, 'My [{}] spell delay is currently [{}] seconds.'",
 					my_bot->GetCleanName(),
 					c->GetSpellTypeNameByID(spellType),
 					my_bot->GetSpellDelay(spellType) / 1000.00
@@ -367,7 +231,7 @@ void bot_command_spell_delays(Client* c, const Seperator* sep)
 			c->Message(
 				Chat::Green,
 				fmt::format(
-					"{} says, 'My {} delay was set to {} seconds.'",
+					"{} says, 'My [{}] spell delay was set to [{}] seconds.'",
 					first_found->GetCleanName(),
 					c->GetSpellTypeNameByID(spellType),
 					first_found->GetSpellDelay(spellType) / 1000.00
@@ -378,8 +242,8 @@ void bot_command_spell_delays(Client* c, const Seperator* sep)
 			c->Message(
 				Chat::Green,
 				fmt::format(
-					"{} of your bots set their {} delay to {} seconds.",
-					success_count,
+					"{} of your bots set their [{}] spell delay to [{}] seconds.",
+					success_count,					
 					c->GetSpellTypeNameByID(spellType),
 					typeValue / 1000.00
 				).c_str()

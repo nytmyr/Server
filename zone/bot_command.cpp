@@ -2198,15 +2198,13 @@ void Bot::SendSpellTypesWindow(Client* c, std::string arg0, std::string arg1, st
 		return;
 	}
 
-	const std::string& color_red = "red_1";
-	const std::string& color_blue = "royal_blue";
-	const std::string& color_green = "forest_green";
-	const std::string& bright_green = "green";
-	const std::string& bright_red = "red";
-	const std::string& heroic_color = "gold";
+	const std::string& indian_red = "indian_red";
+	const std::string& gold = "gold";
+	const std::string& slate_blue = "slate_blue";
+	const std::string& forest_green = "forest_green";
+	const std::string& goldenrod = "goldenrod";
 
-	std::string fillerLine = "--------------------------------------------------------------------";
-	std::string fillerDia = DialogueWindow::TableRow(DialogueWindow::TableCell(fmt::format("{}", DialogueWindow::ColorMessage(heroic_color, fillerLine))));
+	std::string fillerLine = "-----------";
 	std::string spellTypeField = "Spell Type";
 	std::string pluralS = "s";
 	std::string idField = "ID";
@@ -2216,32 +2214,45 @@ void Bot::SendSpellTypesWindow(Client* c, std::string arg0, std::string arg1, st
 		DialogueWindow::TableCell(
 			fmt::format(
 				"{}",
-				DialogueWindow::ColorMessage(bright_green, spellTypeField)
+				DialogueWindow::ColorMessage(goldenrod, spellTypeField)
 			)
 		) +
 		DialogueWindow::TableCell(
 			fmt::format(
 				"{}",
-				(!arg1.compare("listid") ? DialogueWindow::ColorMessage(bright_green, idField) : DialogueWindow::ColorMessage(bright_green, shortnameField))
+				(!arg1.compare("listid") ? DialogueWindow::ColorMessage(goldenrod, idField) : DialogueWindow::ColorMessage(goldenrod, shortnameField))
 			)
 		)
 	);
 
-	popup_text += fillerDia + fillerDia;
+	popup_text += DialogueWindow::TableRow(
+		DialogueWindow::TableCell(
+			fmt::format(
+				"{}",
+				DialogueWindow::ColorMessage(gold, fillerLine)
+			)
+		) +
+		DialogueWindow::TableCell(
+			fmt::format(
+				"{}",
+				DialogueWindow::ColorMessage(gold, fillerLine)
+			)
+		)
+	);
 
 	for (int i = minCount; i <= maxCount; ++i) {
 		popup_text += DialogueWindow::TableRow(
 			DialogueWindow::TableCell(
 				fmt::format(
 					"{}{}",
-					DialogueWindow::ColorMessage(color_green, c->GetSpellTypeNameByID(i)),
-					DialogueWindow::ColorMessage(color_green, pluralS)
+					DialogueWindow::ColorMessage(forest_green, c->GetSpellTypeNameByID(i)),
+					DialogueWindow::ColorMessage(forest_green, pluralS)
 				)
 			) +
 			DialogueWindow::TableCell(
 				fmt::format(
 					"{}",
-					(!arg1.compare("listid") ? DialogueWindow::ColorMessage(color_blue, std::to_string(i)) : DialogueWindow::ColorMessage(color_blue, c->GetSpellTypeShortNameByID(i)))
+					(!arg1.compare("listid") ? DialogueWindow::ColorMessage(slate_blue, std::to_string(i)) : DialogueWindow::ColorMessage(slate_blue, c->GetSpellTypeShortNameByID(i)))
 				)
 			)
 		);
@@ -2250,6 +2261,428 @@ void Bot::SendSpellTypesWindow(Client* c, std::string arg0, std::string arg1, st
 	popup_text = DialogueWindow::Table(popup_text);
 
 	c->SendPopupToClient("Spell Types", popup_text.c_str());
+}
+
+std::string Bot::SendCommandHelpWindow(
+	Client* c, 
+	std::vector <std::string> description,
+	std::vector <std::string> notes,
+	std::vector <std::string> example_format,
+	std::vector <std::string> examples_one, std::vector<std::string> examples_two, std::vector<std::string> examples_three, 
+	std::vector <std::string> actionables,
+	std::vector <std::string> options,
+	std::vector <std::string> options_one, std::vector<std::string> options_two, std::vector<std::string> options_three
+) {
+
+	const std::string& gold = "gold";
+	const std::string& header_color = "indian_red";
+	const std::string& secondary_header_color = "slate_blue";
+	const std::string& alternate_header_color = "indian_red";
+	const std::string& description_color = "light_grey";
+	const std::string& alternate_description_color = "light_grey";
+	const std::string& note_color = "dark_orange";
+	const std::string& example_color = "goldenrod";
+	const std::string& filler_color = "dark_grey";
+
+	std::string fillerLine = "--------------------------------------------------------------------";
+	std::string fillerDia = DialogueWindow::TableRow(DialogueWindow::TableCell(fmt::format("{}", DialogueWindow::ColorMessage(filler_color, fillerLine))));
+	std::string breakLine = DialogueWindow::Break();
+	std::string indent = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+	std::string bullet = "- ";
+
+	std::string popup_text = DialogueWindow::TableRow(
+		DialogueWindow::TableCell(
+			fmt::format(
+				"{}",
+				DialogueWindow::ColorMessage(header_color, "[Description]")
+			)
+		)
+	);
+
+	for (int i = 0; i < description.size(); i++) {
+		std::vector<std::string> description_split;
+
+		for (unsigned x = 0; x < description[i].length(); x += 56) {
+			description_split.emplace_back(description[i].substr(x, 56));
+		}
+
+		for (const auto& s : description_split) {
+			popup_text += DialogueWindow::TableRow(
+				DialogueWindow::TableCell(
+					fmt::format(
+						"{}",
+						DialogueWindow::ColorMessage(description_color, s)
+					)
+				)
+			);
+
+		}
+	}
+
+	if (!notes.empty()) {
+		popup_text += breakLine;
+		popup_text += breakLine;
+
+		popup_text += DialogueWindow::TableRow(
+			DialogueWindow::TableCell(
+				fmt::format(
+					"{}",
+					DialogueWindow::ColorMessage(header_color, "[Notes]")
+				)
+			)
+		);
+
+		for (int i = 0; i < notes.size(); i++) {
+			std::vector<std::string> notes_split;
+
+			for (unsigned x = 0; x < notes[i].length(); x += 56) {
+				notes_split.emplace_back(notes[i].substr(x, 56));
+			}
+
+			for (const auto& s : notes_split) {
+				popup_text += DialogueWindow::TableRow(
+					DialogueWindow::TableCell(
+						fmt::format(
+							"{}",
+							DialogueWindow::ColorMessage(note_color, s)
+						)
+					)
+				);
+
+			}
+		}
+	}
+
+	popup_text += fillerDia;
+
+	popup_text += DialogueWindow::TableRow(
+		DialogueWindow::TableCell(
+			fmt::format(
+				"{}",
+				DialogueWindow::ColorMessage(header_color, "[Examples]")
+			)
+		)
+	);
+
+	for (int i = 0; i < example_format.size(); i++) {
+		std::vector<std::string> example_split;
+
+		for (unsigned x = 0; x < example_format[i].length(); x += 56) {
+			example_split.emplace_back(example_format[i].substr(x, 56));
+		}
+
+		for (const auto& s : example_split) {
+			popup_text += DialogueWindow::TableRow(
+				DialogueWindow::TableCell(
+					fmt::format(
+						"{}",
+						DialogueWindow::ColorMessage(example_color, s)
+					)
+				)
+			);
+
+		}
+	}
+
+	if (!examples_one.empty()) {
+		popup_text += breakLine;
+		popup_text += breakLine;
+
+		for (int i = 0; i < examples_one.size(); i++) {
+			if (i == 0) {
+				std::vector<std::string> examples_one_split;
+
+				for (unsigned x = 0; x < examples_one[i].length(); x += 56) {
+					examples_one_split.emplace_back(examples_one[i].substr(x, 56));
+				}
+
+				for (const auto& s : examples_one_split) {
+					popup_text += DialogueWindow::TableRow(
+						DialogueWindow::TableCell(
+							fmt::format(
+								"{}",
+								DialogueWindow::ColorMessage(secondary_header_color, s)
+							)
+						)
+					);
+				}
+			}
+			else {
+				std::vector<std::string> examples_one_split;
+
+				for (unsigned x = 0; x < examples_one[i].length(); x += 56) {
+					examples_one_split.emplace_back(examples_one[i].substr(x, 56));
+				}
+
+				for (const auto& s : examples_one_split) {
+					popup_text += DialogueWindow::TableRow(
+						DialogueWindow::TableCell(
+							fmt::format(
+								"{}",
+								DialogueWindow::ColorMessage(example_color, s)
+							)
+						)
+					);
+				}
+			}
+		}
+	}
+	
+	if (!examples_two.empty()) {
+		for (int i = 0; i < examples_two.size(); i++) {
+			if (i == 0) {
+				std::vector<std::string> examples_two_split;
+
+				for (unsigned x = 0; x < examples_two[i].length(); x += 56) {
+					examples_two_split.emplace_back(examples_two[i].substr(x, 56));
+				}
+
+				for (const auto& s : examples_two_split) {
+					popup_text += DialogueWindow::TableRow(
+						DialogueWindow::TableCell(
+							fmt::format(
+								"{}",
+								DialogueWindow::ColorMessage(secondary_header_color, s)
+							)
+						)
+					);
+				}
+			}
+			else {
+				std::vector<std::string> examples_two_split;
+
+				for (unsigned x = 0; x < examples_two[i].length(); x += 56) {
+					examples_two_split.emplace_back(examples_two[i].substr(x, 56));
+				}
+
+				for (const auto& s : examples_two_split) {
+					popup_text += DialogueWindow::TableRow(
+						DialogueWindow::TableCell(
+							fmt::format(
+								"{}",
+								DialogueWindow::ColorMessage(example_color, s)
+							)
+						)
+					);
+				}
+			}
+		}
+	}
+
+	if (!examples_three.empty()) {
+		for (int i = 0; i < examples_three.size(); i++) {
+			if (i == 0) {
+				std::vector<std::string> examples_three_split;
+
+				for (unsigned x = 0; x < examples_three[i].length(); x += 56) {
+					examples_three_split.emplace_back(examples_three[i].substr(x, 56));
+				}
+
+				for (const auto& s : examples_three_split) {
+					popup_text += DialogueWindow::TableRow(
+						DialogueWindow::TableCell(
+							fmt::format(
+								"{}",
+								DialogueWindow::ColorMessage(secondary_header_color, s)
+							)
+						)
+					);
+				}
+			}
+			else {
+				std::vector<std::string> examples_three_split;
+
+				for (unsigned x = 0; x < examples_three[i].length(); x += 56) {
+					examples_three_split.emplace_back(examples_three[i].substr(x, 56));
+				}
+
+				for (const auto& s : examples_three_split) {
+					popup_text += DialogueWindow::TableRow(
+						DialogueWindow::TableCell(
+							fmt::format(
+								"{}",
+								DialogueWindow::ColorMessage(example_color, s)
+							)
+						)
+					);
+				}
+			}
+		}
+	}
+
+	if (!options.empty()) {
+		popup_text += fillerDia;
+
+		popup_text += DialogueWindow::TableRow(
+			DialogueWindow::TableCell(
+				fmt::format(
+					"{}",
+					DialogueWindow::ColorMessage(alternate_header_color, "Available options are:")
+				)
+			)
+		);
+
+		for (int i = 0; i < options.size(); i++) {
+			std::vector<std::string> options_split;
+
+			for (unsigned x = 0; x < options[i].length(); x += 56) {
+				options_split.emplace_back(options[i].substr(x, 56));
+			}
+
+			for (const auto& s : options_split) {
+				popup_text += DialogueWindow::TableRow(
+					DialogueWindow::TableCell(
+						fmt::format(
+							"{}",
+							DialogueWindow::ColorMessage(alternate_description_color, s)
+						)
+					)
+				);
+			}
+		}
+	}
+
+	if (!options_one.empty()) {
+		popup_text += breakLine;
+		popup_text += breakLine;
+
+		for (int i = 0; i < options_one.size(); i++) {
+			std::vector<std::string> options_one_split;
+
+			for (unsigned x = 0; x < options_one[i].length(); x += 56) {
+				options_one_split.emplace_back(options_one[i].substr(x, 56));
+			}
+
+			for (const auto& s : options_one_split) {
+				popup_text += DialogueWindow::TableRow(
+					DialogueWindow::TableCell(
+						fmt::format(
+							"{}",
+							DialogueWindow::ColorMessage(secondary_header_color, s)
+						)
+					)
+				);
+			}
+		}
+	}
+
+	if (!options_two.empty()) {
+		for (int i = 0; i < options_two.size(); i++) {
+			if (i == 0) {
+				std::vector<std::string> options_two_split;
+
+				for (unsigned x = 0; x < options_two[i].length(); x += 56) {
+					options_two_split.emplace_back(options_two[i].substr(x, 56));
+				}
+
+				for (const auto& s : options_two_split) {
+					popup_text += DialogueWindow::TableRow(
+						DialogueWindow::TableCell(
+							fmt::format(
+								"{}",
+								DialogueWindow::ColorMessage(secondary_header_color, s)
+							)
+						)
+					);
+				}
+			}
+			else {
+				std::vector<std::string> options_two_split;
+
+				for (unsigned x = 0; x < options_two[i].length(); x += 56) {
+					options_two_split.emplace_back(options_two[i].substr(x, 56));
+				}
+
+				for (const auto& s : options_two_split) {
+					popup_text += DialogueWindow::TableRow(
+						DialogueWindow::TableCell(
+							fmt::format(
+								"{}",
+								DialogueWindow::ColorMessage(alternate_description_color, s)
+							)
+						)
+					);
+				}
+			}
+		}
+	}
+
+	if (!options_three.empty()) {
+		for (int i = 0; i < options_three.size(); i++) {
+			if (i == 0) {
+				std::vector<std::string> options_three_split;
+
+				for (unsigned x = 0; x < options_three[i].length(); x += 56) {
+					options_three_split.emplace_back(options_three[i].substr(x, 56));
+				}
+
+				for (const auto& s : options_three_split) {
+					popup_text += DialogueWindow::TableRow(
+						DialogueWindow::TableCell(
+							fmt::format(
+								"{}",
+								DialogueWindow::ColorMessage(secondary_header_color, s)
+							)
+						)
+					);
+				}
+			}
+			else {
+				std::vector<std::string> options_three_split;
+
+				for (unsigned x = 0; x < options_three[i].length(); x += 56) {
+					options_three_split.emplace_back(options_three[i].substr(x, 56));
+				}
+
+				for (const auto& s : options_three_split) {
+					popup_text += DialogueWindow::TableRow(
+						DialogueWindow::TableCell(
+							fmt::format(
+								"{}",
+								DialogueWindow::ColorMessage(alternate_description_color, s)
+							)
+						)
+					);
+				}
+			}
+		}
+	}
+
+	if (!actionables.empty()) {
+		popup_text += fillerDia;
+
+		popup_text += DialogueWindow::TableRow(
+			DialogueWindow::TableCell(
+				fmt::format(
+					"{}",
+					DialogueWindow::ColorMessage(alternate_header_color, "Available actionables are:")
+				)
+			)
+		);
+
+		for (int i = 0; i < actionables.size(); i++) {
+			std::vector<std::string> actionables_split;
+
+			for (unsigned x = 0; x < actionables[i].length(); x += 56) {
+				actionables_split.emplace_back(actionables[i].substr(x, 56));
+			}
+
+			for (const auto& s : actionables_split) {
+				popup_text += DialogueWindow::TableRow(
+					DialogueWindow::TableCell(
+						fmt::format(
+							"{}",
+							DialogueWindow::ColorMessage(alternate_description_color, s)
+						)
+					)
+				);
+			}
+		}
+	}
+
+	popup_text = DialogueWindow::Table(popup_text);
+
+	return popup_text;
 }
 
 
