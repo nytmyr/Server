@@ -858,6 +858,12 @@ void Perl_NPC_AddVegasLoot(NPC* self, float difficulty_min, float difficulty_max
 	if (bonus_chance) {
 		diff_min = self->GetDifficulty() * RuleR(Vegas, RaidMinDifficultyBonusMultiplier);
 		diff_max = self->GetDifficulty() * RuleR(Vegas, RaidMaxDifficultyBonusMultiplier);
+		diff_min *= RuleR(Vegas, OverallBonusDropMinDifficultyMultiplier);
+		diff_max *= RuleR(Vegas, OverallBonusDropMaxDifficultyMultiplier);
+	}
+	else {
+		diff_min *= RuleR(Vegas, OverallNormalDropMinDifficultyMultiplier);
+		diff_max *= RuleR(Vegas, OverallNormalDropMaxDifficultyMultiplier);
 	}
 
 	std::string query;

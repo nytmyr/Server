@@ -1304,6 +1304,10 @@ RULE_INT(Vegas, GuaranteedRaidDropTwo, 0, "ID of an NPC for a guaranteed Normal 
 RULE_INT(Vegas, GuaranteedRaidDropThree, 0, "ID of an NPC for a guaranteed Normal Vegas Drop.")
 RULE_INT(Vegas, GuaranteedRaidDropFour, 0, "ID of an NPC for a guaranteed Normal Vegas Drop.")
 RULE_INT(Vegas, GuaranteedRaidDropFive, 0, "ID of an NPC for a guaranteed Normal Vegas Drop.")
+RULE_REAL(Vegas, OverallNormalDropMinDifficultyMultiplier, 1.00, "This an overall multiplier to the minimum difficulty of drops. 1.00 default")
+RULE_REAL(Vegas, OverallNormalDropMaxDifficultyMultiplier, 1.00, "This an overall multiplier to the maximum difficulty of drops. 1.00 default")
+RULE_REAL(Vegas, OverallBonusDropMinDifficultyMultiplier, 1.00, "This an overall multiplier to the minimum difficulty of bonus drops. 1.00 default")
+RULE_REAL(Vegas, OverallBonusDropMaxDifficultyMultiplier, 1.00, "This an overall multiplier to the maximum difficulty of bonus drops. 1.00 default")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(CharChange)

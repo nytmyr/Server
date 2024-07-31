@@ -749,6 +749,11 @@ void NPC::AddVegasItemLoot(Mob* top_client) {
 		random_drop_multiplier_scale = 0;
 	}
 
+	difficulty_min *= RuleR(Vegas, OverallNormalDropMinDifficultyMultiplier);
+	difficulty_max *= RuleR(Vegas, OverallNormalDropMaxDifficultyMultiplier);
+	difficulty_bonus_min *= RuleR(Vegas, OverallBonusDropMinDifficultyMultiplier);
+	difficulty_bonus_max *= RuleR(Vegas, OverallBonusDropMaxDifficultyMultiplier);
+
 	auto random_drop_multiplier = RuleR(Vegas, RandomDropMultiplier) + random_drop_multiplier_scale; //1.428571428571 multiplier for drop rate - 10 ||| Normally set to 1.75
 	auto roll_count = GetRollCount(difficulty);
 	auto raid_roll_count = GetRaidRollCount(difficulty);
