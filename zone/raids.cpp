@@ -1016,8 +1016,8 @@ uint32 Raid::GetHighestLevel()
 {
 	uint32 highlvl = 0;
 	for (const auto& m : members) {
-		if (strlen(m.membername) && m.level > highlvl) {
-			highlvl = m.level;
+		if (strlen(m.membername) && m.member && m.member->GetLevel() > highlvl) {
+			highlvl = m.member->GetLevel();
 		}
 	}
 
@@ -1028,8 +1028,8 @@ uint32 Raid::GetLowestLevel()
 {
 	uint32 lowlvl = 1000;
 	for (const auto& m : members) {
-		if (strlen(m.membername) && m.level < lowlvl) {
-			lowlvl = m.level;
+		if (strlen(m.membername) && m.member && m.member->GetLevel() < lowlvl) {
+			lowlvl = m.member->GetLevel();
 		}
 	}
 
