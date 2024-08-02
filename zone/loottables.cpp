@@ -982,7 +982,21 @@ const EQ::ItemData* NPC::GetVegasItems(uint32 id_min, uint32 id_max, float diffi
 }
 
 void NPC::GetVegasZoneRange(uint16 zoneid, uint8* zone_era, uint32* zone_range_min, uint32* zone_range_max) {
-	if ((zoneid < 78 || zoneid == 187 || zoneid == 407) && (zoneid != 28 && zoneid != 43 && zoneid != 53)) { //Classic
+	if (SpecialZonePassesVegasLoot()) { //Special Zones
+		if (zoneid == RuleI(Vegas, SpecialEventZoneOne)) {
+			*zone_range_min = RuleI(Vegas, SpecialEventZoneOneIDMin);
+			*zone_range_max = RuleI(Vegas, SpecialEventZoneOneIDMax);
+		}
+		else if (zoneid == RuleI(Vegas, SpecialEventZoneTwo)) {
+			*zone_range_min = RuleI(Vegas, SpecialEventZoneTwoIDMin);
+			*zone_range_max = RuleI(Vegas, SpecialEventZoneTwoIDMax);
+		}
+		else if (zoneid == RuleI(Vegas, SpecialEventZoneThree)) {
+			*zone_range_min = RuleI(Vegas, SpecialEventZoneThreeIDMin);
+			*zone_range_max = RuleI(Vegas, SpecialEventZoneThreeIDMax);
+		}
+	}
+	else if ((zoneid < 78 || zoneid == 187 || zoneid == 407) && (zoneid != 28 && zoneid != 43 && zoneid != 53)) { //Classic
 		*zone_era = 0;
 		*zone_range_min = RuleI(Vegas, ClassicZoneNPCIDMin);
 		*zone_range_max = RuleI(Vegas, ClassicZoneNPCIDMax);
@@ -1006,20 +1020,6 @@ void NPC::GetVegasZoneRange(uint16 zoneid, uint8* zone_era, uint32* zone_range_m
 		*zone_era = 4;
 		*zone_range_min = RuleI(Vegas, PoPZoneNPCIDMin);
 		*zone_range_max = RuleI(Vegas, PoPZoneNPCIDMax);
-	}
-	else if (SpecialZonePassesVegasLoot()) { //Special Zones
-		if (zoneid == RuleI(Vegas, SpecialEventZoneOne)) {
-			*zone_range_min = RuleI(Vegas, SpecialEventZoneOneIDMin);
-			*zone_range_max = RuleI(Vegas, SpecialEventZoneOneIDMax);
-		}
-		else if (zoneid == RuleI(Vegas, SpecialEventZoneTwo)) {
-			*zone_range_min = RuleI(Vegas, SpecialEventZoneTwoIDMin);
-			*zone_range_max = RuleI(Vegas, SpecialEventZoneTwoIDMax);
-		}
-		else if (zoneid == RuleI(Vegas, SpecialEventZoneThree)) {
-			*zone_range_min = RuleI(Vegas, SpecialEventZoneThreeIDMin);
-			*zone_range_max = RuleI(Vegas, SpecialEventZoneThreeIDMax);
-		}
 	}
 }
 
@@ -1215,10 +1215,14 @@ bool NPC::SpecialNPCPassesVegasLoot() {
 
 bool NPC::SpecialZonePassesVegasLoot() {
 	uint32 ZoneIDChecks[] = { RuleI(Vegas, SpecialEventZoneOne), RuleI(Vegas, SpecialEventZoneTwo), RuleI(Vegas, SpecialEventZoneThree) };
+	uint32 ZoneVersionChecks[] = { RuleI(Vegas, SpecialEventZoneOneVersion), RuleI(Vegas, SpecialEventZoneTwoVersion), RuleI(Vegas, SpecialEventZoneThreeVersion) };
+	int count = 0;
 	for (int i : ZoneIDChecks) {
-		if (i == zone->GetZoneID()) {
+		if (i == zone->GetZoneID() && zone->GetInstanceVersion() == ZoneVersionChecks[count]) {
 			return true;
 		}
+
+		++count;
 	}
 	return false;
 }
