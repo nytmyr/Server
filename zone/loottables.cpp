@@ -1377,6 +1377,12 @@ void NPC::AddVegasShardLoot(Mob* top_client, float shard_multiplier, bool guaran
 			return;
 		}
 
+		const EQ::ItemData* shardItem = database.GetItem(RuleI(Vegas, ShardItemID));
+
+		if (!shardItem) {
+			return;
+		}
+
 		if (zone->IsHotzone()) {
 			shard_amount *= RuleR(Vegas, ShardHotZoneMultiplier);
 		}
@@ -1402,8 +1408,8 @@ void NPC::AddVegasShardLoot(Mob* top_client, float shard_multiplier, bool guaran
 
 		shard_amount = int(shard_amount);
 		
-		if (shard_amount >= 1000) {
-			shard_add_counter = int(shard_amount / 1000);
+		if (shard_amount >= shardItem->StackSize) {
+			shard_add_counter = int(shard_amount / shardItem->StackSize);
 		}
 
 		if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasLootLogging)) {
@@ -1437,18 +1443,18 @@ void NPC::AddVegasShardLoot(Mob* top_client, float shard_multiplier, bool guaran
 			QueryVegasLoot(query, top_client->CastToClient()->GetCleanName(), GetCleanName());
 		}
 
-		if (shard_amount < 1000) {
+		if (shard_amount < shardItem->StackSize) {
 			AddItem(RuleI(Vegas, ShardItemID), shard_amount, RuleB(Vegas, EquipVegasDrops));
 			VegasLoot("Added [{}x] [{}] to [{}] for [{}]", shard_amount, database.CreateItemLink(RuleI(Vegas, ShardItemID)), GetCleanName(), top_client->GetCleanName()); //deleteme
 		}
 		else {
 			while (shard_add_counter >= 1) {
-				if (shard_amount >= 1000) {
-					AddItem(RuleI(Vegas, ShardItemID), 1000, RuleB(Vegas, EquipVegasDrops));
-					VegasLoot("Added [1000]x [{}] to [{}] for [{}]", database.CreateItemLink(RuleI(Vegas, ShardItemID)), GetCleanName(), top_client->GetCleanName()); //deleteme
-					shard_amount = shard_amount - 1000;
+				if (shard_amount >= shardItem->StackSize) {
+					AddItem(RuleI(Vegas, ShardItemID), shardItem->StackSize, RuleB(Vegas, EquipVegasDrops));
+					VegasLoot("Added [{}]x [{}] to [{}] for [{}]", shardItem->StackSize, database.CreateItemLink(RuleI(Vegas, ShardItemID)), GetCleanName(), top_client->GetCleanName()); //deleteme
+					shard_amount = shard_amount - shardItem->StackSize;
 				}
-				if (shard_amount < 1000) {
+				if (shard_amount < shardItem->StackSize) {
 					AddItem(RuleI(Vegas, ShardItemID), shard_amount, RuleB(Vegas, EquipVegasDrops));
 					VegasLoot("Added [{}x] [{}] to [{}] for [{}]", shard_amount, database.CreateItemLink(RuleI(Vegas, ShardItemID)), GetCleanName(), top_client->GetCleanName()); //deleteme
 				}
