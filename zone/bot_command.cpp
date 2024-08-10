@@ -5215,10 +5215,12 @@ void bot_command_depart(Client *c, const Seperator *sep)
 		//Bot* my_wizard_bot = ActionableBots::AsGroupMember_ByClass(c, c, WIZARD);
 		Bot* my_druid_bot = ActionableBots::Select_ByMinLevelAndClass(c, BCEnum::TT_None, sbl, 1, DRUID);
 		Bot* my_wizard_bot = ActionableBots::Select_ByMinLevelAndClass(c, BCEnum::TT_None, sbl, 1, WIZARD);
-		if ((!my_druid_bot && !my_wizard_bot) || (!my_druid_bot->IsBotInGroupOrRaidGroup(true) && !my_wizard_bot->IsBotInGroupOrRaidGroup(true))) {
-			if (!my_druid_bot && !my_wizard_bot) {
-				c->Message(Chat::Yellow, "No compatible bots found for %s.", sep->arg[0]);
-			}
+		if (
+			(!my_druid_bot && !my_wizard_bot) ||
+			(my_druid_bot && !my_druid_bot->IsBotInGroupOrRaidGroup(true)) ||
+			(my_wizard_bot && !my_wizard_bot->IsBotInGroupOrRaidGroup(true))
+		) {
+			c->Message(Chat::Yellow, "No compatible bots found for %s.", sep->arg[0]);
 			return;
 		}
 
