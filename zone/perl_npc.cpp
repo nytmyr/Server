@@ -855,7 +855,7 @@ void Perl_NPC_AddVegasLoot(NPC* self, float difficulty_min, float difficulty_max
 	float diff_min = self->GetDifficulty() * RuleR(Vegas, RaidMinDifficultyMultiplier);
 	float diff_max = self->GetDifficulty() * RuleR(Vegas, RaidMaxDifficultyMultiplier);
 
-	if (bonus_chance) {
+	if (bonus_chance && (zone->random.Int(0, 100) >= bonus_chance)) {
 		diff_min = self->GetDifficulty() * RuleR(Vegas, RaidMinDifficultyBonusMultiplier);
 		diff_max = self->GetDifficulty() * RuleR(Vegas, RaidMaxDifficultyBonusMultiplier);
 		diff_min *= RuleR(Vegas, OverallBonusDropMinDifficultyMultiplier);
