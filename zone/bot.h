@@ -355,6 +355,8 @@ public:
 	void SetStopMeleeLevel(uint8 level);
 	void SetGuardMode();
 	void SetHoldMode();
+
+	//custom functions
 	uint32 GetBotCasterRange() { return m_bot_caster_range; }
 	bool IsValidSpellRange(uint16 spell_id, Mob const* tar);
 	bool IsValidAESpellRange(uint16 spell_id, Mob const* tar, Mob const* npc);

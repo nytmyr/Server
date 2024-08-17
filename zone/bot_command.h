@@ -628,6 +628,7 @@ void bot_command_water_breathing(Client *c, const Seperator *sep);
 
 // custom bot commands
 void bot_command_snare(Client* c, const Seperator* sep);
+void bot_command_type_ids(Client* c, const Seperator* sep);
 
 void bot_command_behind_mob(Client* c, const Seperator* sep);
 void bot_command_caster_range(Client* c, const Seperator* sep);

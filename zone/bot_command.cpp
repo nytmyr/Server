@@ -1484,6 +1484,7 @@ int bot_command_init(void)
 		
 		// custom bot commands
 		bot_command_add("snare", "Orders a bot to snare the target", AccountStatus::Player, bot_command_snare) ||
+		bot_command_add("typeids", "Lists the ID numbers for races, classes, deities and genders", AccountStatus::Player, bot_command_type_ids) ||
 		bot_command_add("casterrange", "Controls the range casters will try to stay away from a mob (if too far, they will skip spells that are out-of-range)", AccountStatus::Player, bot_command_caster_range) ||
 		bot_command_add("behindmob", "Toggles whether or not your bot tries to stay behind a mob", AccountStatus::Player, bot_command_behind_mob) ||
 		bot_command_add("holdaenukes", "Toggles a bot's ability to cast AE nukes", AccountStatus::Player, bot_command_hold_ae_nukes) ||
@@ -23463,4 +23464,231 @@ void DefaultBotSettings(Bot* my_bot, uint8 chosen_type)
 	if (chosen_type == DEFAULT_SPELL_SETTINGS || chosen_type == DEFAULT_ALL) {
 		my_bot->ResetBotSpellSettings();
 	}
+}
+
+void bot_command_type_ids(Client* c, const Seperator* sep)
+{
+	const std::string class_substrs[16] = {
+		"WAR", "CLR", "PAL", "RNG",
+		"SHD", "DRU", "MNK", "BRD",
+		"ROG", "SHM", "NEC", "WIZ",
+		"MAG", "ENC", "BST", "BER"
+	};
+
+	const std::string race_substrs[16] = {
+		"HUM", "BAR", "ERU", "ELF",
+		"HIE", "DEF", "HEF", "DWF",
+		"TRL", "OGR", "HFL", "GNM",
+		"IKS", "VAH", "FRG", "DRK"
+	};
+
+	const uint16 race_values[16] = {
+		HUMAN, BARBARIAN, ERUDITE, WOOD_ELF,
+		HIGH_ELF, DARK_ELF, HALF_ELF, DWARF,
+		TROLL, OGRE, HALFLING, GNOME,
+		IKSAR, VAHSHIR, FROGLOK2, DRAKKIN
+	};
+
+	const std::string deity_substrs[17] = {
+		"AGNOSTIC", "BERTOX", "BRELL", "CAZIC",
+		"EROLLISI", "BRISTLE", "INNORUUK", "KARANA",
+		"MITHANIEL", "PREXUS", "QUELLIOUS", "RALLOS",
+		"RODCET", "SOLUSEK", "TRIBUNAL", "TUNARE",
+		"VEESHAN"
+	};
+
+	const uint16 deity_values[17] = {
+		EQ::deity::DeityAgnostic,
+		EQ::deity::DeityBertoxxulous,
+		EQ::deity::DeityBrellSirilis,
+		EQ::deity::DeityCazicThule,
+		EQ::deity::DeityErollisiMarr,
+		EQ::deity::DeityBristlebane,
+		EQ::deity::DeityInnoruuk,
+		EQ::deity::DeityKarana,
+		EQ::deity::DeityMithanielMarr,
+		EQ::deity::DeityPrexus,
+		EQ::deity::DeityQuellious,
+		EQ::deity::DeityRallosZek,
+		EQ::deity::DeityRodcetNife,
+		EQ::deity::DeitySolusekRo,
+		EQ::deity::DeityTheTribunal,
+		EQ::deity::DeityTunare,
+		EQ::deity::DeityVeeshan
+	};
+
+	const std::string gender_substrs[2] = {
+		"MALE", "FEMALE"
+	};
+
+	const uint16 gender_values[2] = {
+		MALE,
+		FEMALE
+	};
+
+	std::string window_text;
+	std::string message_separator;
+	int object_count = 0;
+	const int object_max = 4;
+
+	window_text.append(
+		fmt::format(
+			"<c \"#EDDA74\">Classes{}<c \"#357EC7\">",
+			DialogueWindow::Break()
+		)
+	);
+
+	window_text.append(
+		fmt::format(
+			"<c \"#D4A017\">--------------------------------------------------------------------<c \"#357EC7\">",
+			DialogueWindow::Break()
+		)
+	);
+
+	window_text.append(DialogueWindow::Break());
+
+	message_separator = " ";
+	object_count = 0;
+
+	for (int i = WARRIOR; i <= BEASTLORD; ++i) { //TODO change to berserker
+		window_text.append(message_separator);
+
+		if (object_count >= object_max) {
+			window_text.append(DialogueWindow::Break());
+			object_count = 0;
+		}
+
+		window_text.append(
+			fmt::format("{} ({})",
+				class_substrs[i - 1],
+				(i)
+			)
+		);
+
+		++object_count;
+		message_separator = ", ";
+	}
+
+	window_text.append(DialogueWindow::Break(2));
+
+	window_text.append(
+		fmt::format(
+			"<c \"#EDDA74\">Races{}<c \"#357EC7\">",
+			DialogueWindow::Break()
+		)
+	);
+
+	window_text.append(
+		fmt::format(
+			"<c \"#D4A017\">--------------------------------------------------------------------<c \"#357EC7\">",
+			DialogueWindow::Break()
+		)
+	);
+
+	window_text.append(DialogueWindow::Break());
+
+	message_separator = " ";
+	object_count = 0;
+
+	for (int i = 1; i <= size(race_substrs); ++i) {
+		window_text.append(message_separator);
+
+		if (object_count >= object_max) {
+			window_text.append(DialogueWindow::Break());
+			object_count = 0;
+		}
+
+		window_text.append(
+			fmt::format("{} ({})",
+				race_substrs[i - 1],
+				race_values[i - 1]
+			)
+		);
+
+		++object_count;
+		message_separator = ", ";
+	}
+
+	window_text.append(DialogueWindow::Break(2));
+
+	window_text.append(
+		fmt::format(
+			"<c \"#EDDA74\">Deities{}<c \"#357EC7\">",
+			DialogueWindow::Break()
+		)
+	);
+
+	window_text.append(
+		fmt::format(
+			"<c \"#D4A017\">--------------------------------------------------------------------<c \"#357EC7\">",
+			DialogueWindow::Break()
+		)
+	);
+
+	window_text.append(DialogueWindow::Break());
+
+	message_separator = " ";
+	object_count = 0;
+
+	for (int i = 1; i <= size(deity_substrs); ++i) {
+		window_text.append(message_separator);
+
+		if (object_count >= object_max) {
+			window_text.append(DialogueWindow::Break());
+			object_count = 0;
+		}
+
+		window_text.append(
+			fmt::format("{} ({})",
+				deity_substrs[i - 1],
+				deity_values[i - 1]
+			)
+		);
+
+		++object_count;
+		message_separator = ", ";
+	}
+
+	window_text.append(DialogueWindow::Break(2));
+
+	window_text.append(
+		fmt::format(
+			"<c \"#EDDA74\">Genders{}<c \"#357EC7\">",
+			DialogueWindow::Break()
+		)
+	);
+
+	window_text.append(
+		fmt::format(
+			"<c \"#D4A017\">--------------------------------------------------------------------<c \"#357EC7\">",
+			DialogueWindow::Break()
+		)
+	);
+
+	window_text.append(DialogueWindow::Break());
+
+	message_separator = " ";
+	object_count = 0;
+
+	for (int i = 1; i <= size(gender_substrs); ++i) {
+		window_text.append(message_separator);
+
+		if (object_count >= object_max) {
+			window_text.append(DialogueWindow::Break());
+			object_count = 0;
+		}
+
+		window_text.append(
+			fmt::format("{} ({})",
+				gender_substrs[i - 1],
+				gender_values[i - 1]
+			)
+		);
+
+		++object_count;
+		message_separator = ", ";
+	}
+	c->SendPopupToClient("Type IDs", window_text.c_str());
+
+	return;
 }

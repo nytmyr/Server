@@ -281,3 +281,37 @@ uint32 EQ::SkillProfile::GetSkill(int skill_id)
 
 	return Skill[skill_id];
 }
+
+bool EQ::skills::IsTrainedSkill(int skill_id) {
+	switch (skill_id) {
+		case EQ::skills::SkillForage:
+		case EQ::skills::SkillHide:
+		case EQ::skills::SkillSafeFall:
+		case EQ::skills::SkillMeditate:
+		case EQ::skills::SkillRoundKick:
+		case EQ::skills::SkillPercussionInstruments:
+		case EQ::skills::SkillPickLock:
+		case EQ::skills::SkillPickPockets:
+		case EQ::skills::SkillStringedInstruments:
+		case EQ::skills::SkillSenseTraps:
+		case EQ::skills::SkillBackstab:
+		case EQ::skills::SkillTigerClaw:
+		case EQ::skills::SkillBrassInstruments:
+		case EQ::skills::SkillBlock:
+		case EQ::skills::SkillWindInstruments:
+		case EQ::skills::SkillDoubleAttack:
+		case EQ::skills::SkillFeignDeath:
+		case EQ::skills::SkillApplyPoison:
+		case EQ::skills::SkillEagleStrike:
+		case EQ::skills::SkillDisarmTraps:
+		case EQ::skills::SkillDragonPunch: //also SkillTailRake
+		case EQ::skills::SkillRiposte:
+		case EQ::skills::SkillDisarm:
+		case EQ::skills::SkillFlyingKick:
+			return true;
+		default:
+			return false;
+	}
+
+	return false;
+}

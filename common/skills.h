@@ -172,6 +172,9 @@ namespace EQ
 		extern const std::map<SkillType, std::string>& GetSkillTypeMap();
 
 		std::string GetSkillName(SkillType skill);
+
+		// custom
+		bool IsTrainedSkill(int skill_id);
 	} /*skills*/
 
 	struct SkillProfile { // prototype - not implemented
@@ -304,6 +307,7 @@ namespace EQ
 		uint32 GetSkill(int skill_id) const { return const_cast<SkillProfile*>(this)->GetSkill(skill_id); }
 
 		uint32 operator[](int skill_id) const { return const_cast<SkillProfile*>(this)->GetSkill(skill_id); }
+
 	};
 	
 } /*EQEmu*/

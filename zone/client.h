@@ -509,6 +509,13 @@ public:
 	inline uint8 GetBaseINT() const { return m_pp.INT; }
 	inline uint8 GetBaseAGI() const { return m_pp.AGI; }
 	inline uint8 GetBaseWIS() const { return m_pp.WIS; }
+	void SetBaseSTR(uint8 value) { m_pp.STR = value; }
+	void SetBaseSTA(uint8 value) { m_pp.STA = value; }
+	void SetBaseCHA(uint8 value) { m_pp.CHA = value; }
+	void SetBaseDEX(uint8 value) { m_pp.DEX = value; }
+	void SetBaseINT(uint8 value) { m_pp.INT = value; }
+	void SetBaseAGI(uint8 value) { m_pp.AGI = value; }
+	void SetBaseWIS(uint8 value) { m_pp.WIS = value; }
 	inline uint8 GetBaseCorrup() const { return 15; } // Same for all
 	inline uint8 GetBasePhR() const { return 0; } // Guessing at 0 as base
 
@@ -1646,6 +1653,20 @@ public:
 	inline bool GetIllusionBlock() { return m_pp.illusion_block; }
 
 	float GetTotalGearScore();
+
+	//help window format
+	std::string SendCommandHelpWindow(
+		Client* c,
+		std::vector<std::string> description,
+		std::vector<std::string> notes,
+		std::vector<std::string> example_format,
+		std::vector<std::string> examples_one, std::vector<std::string> examples_two, std::vector<std::string> examples_three,
+		std::vector<std::string> actionables,
+		std::vector<std::string> options,
+		std::vector<std::string> options_one, std::vector<std::string> options_two, std::vector<std::string> options_three
+	);
+	std::string GetCommandHelpHeader(std::string color, std::string header);
+	std::string SplitCommandHelpText(std::vector<std::string> msg, std::string color, uint16 maxLength, bool secondColor = false, std::string secondaryColor = "");
 
 	void QuestReward(Mob* target, uint32 copper = 0, uint32 silver = 0, uint32 gold = 0, uint32 platinum = 0, uint32 itemid = 0, uint32 exp = 0, bool faction = false);
 	void QuestReward(Mob* target, const QuestReward_Struct &reward, bool faction = false);
