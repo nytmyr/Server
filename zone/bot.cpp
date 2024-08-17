@@ -11785,12 +11785,25 @@ void Bot::RunToGoalWithJitter(glm::vec3 Goal) {
 }
 
 bool Bot::IsBotInGroupOrRaidGroup(bool bypassAlert) {
-	if (!((entity_list.GetGroupByClient(GetOwner()->CastToClient()) && entity_list.GetGroupByClient(GetOwner()->CastToClient())->IsGroupMember(this)) || (entity_list.GetRaidByClient(GetOwner()->CastToClient()) && entity_list.GetRaidByClient(GetOwner()->CastToClient())->IsRaidMember(this->GetName())))) {
+	if (!GetOwner()) {
+		return false;
+	}
+
+	if (!entity_list.GetGroupByClient(GetOwner()->CastToClient()) && !entity_list.GetRaidByClient(GetOwner()->CastToClient())) {
+		return false;
+	}
+	//if (!entity_list.GetGroupByClient(GetOwner()->CastToClient())->IsGroupMember(this) || entity_list.GetRaidByClient(GetOwner()->CastToClient())->IsRaidMember(this->GetName())))) {
+	if (
+		(IsRaidGrouped() && !entity_list.GetRaidByClient(GetOwner()->CastToClient())->IsRaidMember(this->GetName())) ||
+		(IsGrouped() && !entity_list.GetGroupByClient(GetOwner()->CastToClient())->IsGroupMember(this))
+	) {
 		if (!bypassAlert) {
 			GetOwner()->CastToClient()->Message(Chat::White, "Bots cannot use commands outside of a group or raid. Be sure no usable bots are outside of your group or raid.");
 		}
+
 		return false;
 	}
+
 	return true;
 }
 
