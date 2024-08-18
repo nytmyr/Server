@@ -1,15 +1,15 @@
 #include "../bot_command.h"
 
-void bot_command_spell_holds(Client* c, const Seperator* sep)
+void bot_command_spell_aggro_check(Client* c, const Seperator* sep)
 {
-	if (helper_command_alias_fail(c, "bot_command_spell_holds", sep->arg[0], "spellholds"))
+	if (helper_command_alias_fail(c, "bot_command_spell_aggro_check", sep->arg[0], "spellaggrocheck"))
 		return;
 	if (helper_is_help_or_usage(sep->arg[1])) {
 			//12345678901234567892123456789312345678941234567895123456 //56 character max per line
-		std::vector <std::string> description = 
-		{ 
-			"Toggles whether or not bots can cast or receive certain",
-			"spell types" 
+		std::vector <std::string> description =
+		{
+			"Toggles whether or not bots will cast a spell type if",
+			"they think it will get them aggro"
 		};
 		std::vector <std::string> notes =
 		{
@@ -32,23 +32,37 @@ void bot_command_spell_holds(Client* c, const Seperator* sep)
 			)
 		};
 			//12345678901234567892123456789312345678941234567895123456 //56 character max per line
-		std::vector<std::string> examples_one = 
-		{ 
-			"To set all bots to hold DoTs:", 
+		std::vector<std::string> examples_one =
+		{
+			"To set all bots to check aggro on nukes:",
 			fmt::format(
 				"{} {} 1 spawned",
 				sep->arg[0],
-				c->GetSpellTypeShortNameByID(BotSpellTypes::DOT)
+				c->GetSpellTypeShortNameByID(BotSpellTypes::Nuke)
 			),
 			fmt::format(
 				"{} {} 1 spawned",
 				sep->arg[0],
-				BotSpellTypes::DOT
+				BotSpellTypes::Nuke
 			)
 		};
 		std::vector<std::string> examples_two =
 		{
-			"To check the current DoT settings on all bots:",
+			"To set Shadowknights to ignore aggro checks on snares:",
+			fmt::format(
+				"{} {} 0 byclass 5",
+				sep->arg[0],
+				c->GetSpellTypeShortNameByID(BotSpellTypes::Snare)
+			),
+			fmt::format(
+				"{} {} 0 byclass 5",
+				sep->arg[0],
+				BotSpellTypes::Snare
+			)
+		};
+		std::vector<std::string> examples_three =
+		{
+			"To check the current DoT aggro check on all bots:",
 			fmt::format(
 				"{} {} current spawned",
 				sep->arg[0],
@@ -61,29 +75,28 @@ void bot_command_spell_holds(Client* c, const Seperator* sep)
 			)
 		};
 			//12345678901234567892123456789312345678941234567895123456 //56 character max per line
-		std::vector <std::string> examples_three = { };
-		std::vector <std::string> actionables = 
-		{ 
+		std::vector <std::string> actionables =
+		{
 			"target, byname, ownergroup, ownerraid",
 			"targetgroup, namesgroup, healrotationtargets",
-			"mmr, byclass, byrace, spawned" 
+			"mmr, byclass, byrace, spawned"
 		};
 		std::vector <std::string> options = { };
-		std::vector<std::string> options_one = { }; 
+		std::vector<std::string> options_one = { };
 			//12345678901234567892123456789312345678941234567895123456 //56 character max per line
-		std::vector<std::string> options_two = { }; 
+		std::vector<std::string> options_two = { };
 		std::vector<std::string> options_three = { };
 
 		std::string popup_text = c->CastToBot()->SendCommandHelpWindow(
-				c,
-				description,
-				notes,
-				example_format,
-				examples_one, examples_two, examples_three,
-				actionables,
-				options,
-				options_one, options_two, options_three
-			);
+			c,
+			description,
+			notes,
+			example_format,
+			examples_one, examples_two, examples_three,
+			actionables,
+			options,
+			options_one, options_two, options_three
+		);
 
 		popup_text = DialogueWindow::Table(popup_text);
 
@@ -201,15 +214,15 @@ void bot_command_spell_holds(Client* c, const Seperator* sep)
 			c->Message(
 				Chat::Green,
 				fmt::format(
-					"{} says, 'My [{}] spell hold is currently [{}].'",
+					"{} says, 'My [{}] aggro check is currently [{}].'",
 					my_bot->GetCleanName(),
 					c->GetSpellTypeNameByID(spellType),
-					my_bot->GetSpellHold(spellType) ? "enabled" : "disabled"
+					my_bot->GetSpellAggroCheck(spellType) ? "enabled" : "disabled"
 				).c_str()
 			);
 		}
 		else {
-			my_bot->SetSpellHold(spellType, typeValue);
+			my_bot->SetSpellAggroCheck(spellType, typeValue);
 			++success_count;
 		}
 	}
@@ -218,10 +231,10 @@ void bot_command_spell_holds(Client* c, const Seperator* sep)
 			c->Message(
 				Chat::Green,
 				fmt::format(
-					"{} says, 'My [{}] spell hold was [{}].'",
+					"{} says, 'My [{}] aggro check was [{}].'",
 					first_found->GetCleanName(),
 					c->GetSpellTypeNameByID(spellType),
-					first_found->GetSpellHold(spellType) ? "enabled" : "disabled"
+					first_found->GetSpellAggroCheck(spellType) ? "enabled" : "disabled"
 				).c_str()
 			);
 		}
@@ -229,10 +242,10 @@ void bot_command_spell_holds(Client* c, const Seperator* sep)
 			c->Message(
 				Chat::Green,
 				fmt::format(
-					"{} of your bots [{}] their [{}] spell hold.",
+					"{} of your bots [{}] their [{}] aggro check.",
 					success_count,
-					typeValue ? "enabled" : "disabled",
-					c->GetSpellTypeNameByID(spellType)
+					c->GetSpellTypeNameByID(spellType),
+					typeValue ? "enabled" : "disabled"
 				).c_str()
 			);
 		}

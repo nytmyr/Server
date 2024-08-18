@@ -31,7 +31,7 @@ void bot_command_spell_min_thresholds(Client* c, const Seperator* sep)
 				, sep->arg[0]
 			)
 		};
-		//12345678901234567892123456789312345678941234567895123456 //56 character max per line
+			//12345678901234567892123456789312345678941234567895123456 //56 character max per line
 		std::vector<std::string> examples_one =
 		{
 			"To set all bots to stop debuffing at 10%:",
@@ -62,7 +62,7 @@ void bot_command_spell_min_thresholds(Client* c, const Seperator* sep)
 		};
 		std::vector<std::string> examples_three =
 		{
-			"To check current Fast Heal min threshold on all bots:",
+			"To check the current Fast Heal min threshold on all bots:",
 			fmt::format(
 				"{} {} current spawned",
 				sep->arg[0],
@@ -74,7 +74,7 @@ void bot_command_spell_min_thresholds(Client* c, const Seperator* sep)
 				BotSpellTypes::FastHeals
 			)
 		};
-		//12345678901234567892123456789312345678941234567895123456 //56 character max per line
+			//12345678901234567892123456789312345678941234567895123456 //56 character max per line
 		std::vector <std::string> actionables =
 		{
 			"target, byname, ownergroup, ownerraid",
@@ -83,7 +83,7 @@ void bot_command_spell_min_thresholds(Client* c, const Seperator* sep)
 		};
 		std::vector <std::string> options = { };
 		std::vector<std::string> options_one = { };
-		//12345678901234567892123456789312345678941234567895123456 //56 character max per line
+			//12345678901234567892123456789312345678941234567895123456 //56 character max per line
 		std::vector<std::string> options_two = { };
 		std::vector<std::string> options_three = { };
 

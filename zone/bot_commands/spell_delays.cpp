@@ -62,7 +62,7 @@ void bot_command_spell_delays(Client* c, const Seperator* sep)
 		};
 		std::vector<std::string> examples_three =
 		{
-			"To check current Nuke delay on all bots:",
+			"To check the current Nuke delay on all bots:",
 			fmt::format(
 				"{} {} current spawned",
 				sep->arg[0],
