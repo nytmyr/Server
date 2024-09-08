@@ -770,7 +770,6 @@ void NPC::AddVegasItemLoot(Mob* top_client) {
 	std::string npc_name = GetCleanName();
 	//std::replace(npc_name.begin(), npc_name.end(), "\`", "\'");
 	std::string item_name;
-	
 	VegasLoot("Attempting Vegas Loot for [{}] on [{}] - [{}].", top_client->GetCleanName(), GetCleanName(), IsRaidTarget() && NPCBypassesVegasRaidLoot() ? "Raid-Bypass" : IsRaidTarget() ? "Raid" : IsRareSpawn() ? "Rare" : "Normal"); //deleteme
 	VegasLootDetail(
 		"We are looking for item IDs in ZoneID [{}] between [{}] and [{}], with a difficulty between [{}] and [{}], a bonus difficulty between [{}] and [{}], lowest_drop_ids between [{}] and [{}], with a loot drop modifier of [{}] and a scale modifier of [{}] - that [{}] raid_only."
@@ -789,6 +788,7 @@ void NPC::AddVegasItemLoot(Mob* top_client) {
 			guaranteed_shard_drop = true;
 			const EQ::ItemData* chosen_item = GetVegasItems(id_min, id_max, difficulty_bonus_min, difficulty_bonus_max, zone_range_min, zone_range_max, raid_only);
 			if (chosen_item) {
+				Emote("'s corpse shimmers as it falls to the ground.");
 				AddItem(chosen_item, chosen_item->MaxCharges, RuleB(Vegas, EquipVegasDrops));
 				VegasLoot("Added [{}] to [{}] for [{}]", database.CreateItemLink(chosen_item->ID), GetCleanName(), top_client->GetCleanName()); //deleteme
 
