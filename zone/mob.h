@@ -205,6 +205,9 @@ public:
 	Timer                             mob_close_scan_timer;
 	Timer                             mob_check_moving_timer;
 
+	// Bot attack flag
+	Timer bot_attack_flag_timer;
+
 	//Somewhat sorted: needs documenting!
 
 	//Attack
@@ -1102,6 +1105,9 @@ public:
 	bool invulnerable;
 	bool qglobal;
 
+	inline bool HasBotAttackFlag() const { return bot_attack_flag; }
+	inline void SetBotAttackFlag(int32 value) { bot_attack_flag = value; }
+
 	virtual void SetAttackTimer();
 	inline void SetInvul(bool invul) { invulnerable=invul; }
 	inline bool GetInvul(void) { return invulnerable; }
@@ -1860,6 +1866,9 @@ protected:
 	bool pet_owner_client; // Flags pets as belonging to a Client
 	bool pet_owner_npc;    // Flags pets as belonging to an NPC
 	uint32 pet_targetlock_id;
+
+	//bot attack flags
+	int32 bot_attack_flag;
 
 	glm::vec3 m_TargetRing;
 
