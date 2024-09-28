@@ -3031,6 +3031,11 @@ void Perl_Client_GrantAllAAPoints(Client* self, uint8 unlock_level)
 	self->GrantAllAAPoints(unlock_level);
 }
 
+void Perl_Client_GrantAllAAPoints(Client* self, uint8 unlock_level, bool skip_grant_only)
+{
+	self->GrantAllAAPoints(unlock_level, skip_grant_only);
+}
+
 void Perl_Client_AddEbonCrystals(Client* self, uint32 amount)
 {
 	self->AddEbonCrystals(amount);
@@ -3176,6 +3181,32 @@ uint8 Perl_Client_GetSkillTrainLevel(Client* self, int skill_id)
 	return self->GetSkillTrainLevel(static_cast<EQ::skills::SkillType>(skill_id), self->GetClass());
 }
 
+bool Perl_Client_AreTasksCompleted(Client* self, perl::array task_ids)
+{
+	std::vector<int> v;
+
+	for (const auto& e : task_ids) {
+		v.push_back(static_cast<int>(e));
+	}
+
+	return self->AreTasksCompleted(v);
+}
+
+void Perl_Client_AreaTaunt(Client* self)
+{
+	entity_list.AETaunt(self);
+}
+
+void Perl_Client_AreaTaunt(Client* self, float range)
+{
+	entity_list.AETaunt(self, range);
+}
+
+void Perl_Client_AreaTaunt(Client* self, float range, int bonus_hate)
+{
+	entity_list.AETaunt(self, range, bonus_hate);
+}
+
 void perl_register_client()
 {
 	perl::interpreter perl(PERL_GET_THX);
@@ -3225,6 +3256,10 @@ void perl_register_client()
 	package.add("ApplySpellRaid", (void(*)(Client*, int, int, int, bool))&Perl_Client_ApplySpellRaid);
 	package.add("ApplySpellRaid", (void(*)(Client*, int, int, int, bool, bool))&Perl_Client_ApplySpellRaid);
 	package.add("ApplySpellRaid", (void(*)(Client*, int, int, int, bool, bool, bool))&Perl_Client_ApplySpellRaid);
+	package.add("AreTasksCompleted", (bool(*)(Client*, perl::array))&Perl_Client_AreTasksCompleted);
+	package.add("AreaTaunt", (void(*)(Client*))&Perl_Client_AreaTaunt);
+	package.add("AreaTaunt", (void(*)(Client*, float))&Perl_Client_AreaTaunt);
+	package.add("AreaTaunt", (void(*)(Client*, float, int))&Perl_Client_AreaTaunt);
 	package.add("AssignTask", (void(*)(Client*, int))&Perl_Client_AssignTask);
 	package.add("AssignTask", (void(*)(Client*, int, int))&Perl_Client_AssignTask);
 	package.add("AssignTask", (void(*)(Client*, int, int, bool))&Perl_Client_AssignTask);
@@ -3441,6 +3476,7 @@ void perl_register_client()
 	package.add("GoFish", &Perl_Client_GoFish);
 	package.add("GrantAllAAPoints", (void(*)(Client*))&Perl_Client_GrantAllAAPoints);
 	package.add("GrantAllAAPoints", (void(*)(Client*, uint8))&Perl_Client_GrantAllAAPoints);
+	package.add("GrantAllAAPoints", (void(*)(Client*, uint8, bool))&Perl_Client_GrantAllAAPoints);
 	package.add("GrantAlternateAdvancementAbility", (bool(*)(Client*, int, int))&Perl_Client_GrantAlternateAdvancementAbility);
 	package.add("GrantAlternateAdvancementAbility", (bool(*)(Client*, int, int, bool))&Perl_Client_GrantAlternateAdvancementAbility);
 	package.add("GuildID", &Perl_Client_GuildID);

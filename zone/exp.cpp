@@ -527,7 +527,7 @@ void Client::AddEXP(ExpSource exp_source, uint64 in_add_exp, uint8 conlevel, boo
 	// Are we also doing linear AA acceleration?
 	if (RuleB(AA, ModernAAScalingEnabled) && aaexp > 0)
 	{
-		aaexp = ScaleAAXPBasedOnCurrentAATotal(GetAAPoints(), aaexp);
+		aaexp = ScaleAAXPBasedOnCurrentAATotal(GetSpentAA() + GetAAPoints(), aaexp);
 	}
 
 	// Check for AA XP Cap
@@ -837,7 +837,7 @@ void Client::SetEXP(ExpSource exp_source, uint64 set_exp, uint64 set_aaxp, bool 
 
 	//If were at max level then stop gaining experience if we make it to the cap
 	if (GetLevel() == max_level - 1){
-		uint32 expneeded = GetEXPForLevel(maxlevel);
+		uint32 expneeded = GetEXPForLevel(max_level);
 		if (set_exp > expneeded) {
 			set_exp = expneeded;
 		}

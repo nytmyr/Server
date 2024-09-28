@@ -5496,7 +5496,7 @@ int Mob::GetHaste()
 		}
 	}
 	else {
-		h += spellbonuses.hastetype3; 
+		h += spellbonuses.hastetype3;
 	}
 
 	h += extra_haste;	//GM granted haste.
@@ -8615,4 +8615,16 @@ void Mob::SetExtraHaste(int haste, bool need_to_save)
 			CharacterDataRepository::UpdateOne(database, e);
 		}
 	}
+}
+
+bool Mob::IsCloseToBanker()
+{
+	for (auto &e: entity_list.GetCloseMobList(this)) {
+		auto mob = e.second;
+		if (mob && mob->IsNPC() && mob->GetClass() == Class::Banker) {
+			return true;
+		}
+	}
+
+	return false;
 }

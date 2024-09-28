@@ -360,7 +360,7 @@ public:
 	void AssignTask(int task_id, int npc_id);
 	void AssignTask(int task_id, int npc_id, bool enforce_level_requirement);
 	void FailTask(int task);
-	bool IsTaskCompleted(int task);
+	bool IsTaskCompleted(int task_id);
 	bool IsTaskActive(int task);
 	bool IsTaskActivityActive(int task, int activity);
 	void LockSharedTask(bool lock);
@@ -487,6 +487,7 @@ public:
 	void SetBucket(std::string bucket_name, std::string bucket_value, std::string expiration);
 	void GrantAllAAPoints();
 	void GrantAllAAPoints(uint8 unlock_level);
+	void GrantAllAAPoints(uint8 unlock_level, bool skip_grant_only);
 	void AddEbonCrystals(uint32 amount);
 	void AddRadiantCrystals(uint32 amount);
 	void RemoveEbonCrystals(uint32 amount);
@@ -505,6 +506,9 @@ public:
 	void DescribeSpecialAbilities(Lua_NPC n);
 	void ResetLeadershipAA();
 	uint8 GetSkillTrainLevel(int skill_id);
+	void AreaTaunt();
+	void AreaTaunt(float range);
+	void AreaTaunt(float range, int bonus_hate);
 
 	void ApplySpell(int spell_id);
 	void ApplySpell(int spell_id, int duration);
@@ -577,6 +581,7 @@ public:
 	void CampAllBots(uint8 class_id);
 	bool RemoveAAPoints(uint32 points);
 	bool RemoveAlternateCurrencyValue(uint32 currency_id, uint32 amount);
+	bool AreTasksCompleted(luabind::object task_ids);
 
 	void DialogueWindow(std::string markdown);
 
