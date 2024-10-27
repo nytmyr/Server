@@ -545,20 +545,20 @@ void Bot::AI_Process_Raid()
 //#pragma region TARGET VALIDATION
 
 				// DOUBLE-CHECK THIS CRITERIA
-
 				// Verify that our target has attackable criteria
 		if (HOLDING ||
 			!tar->IsNPC() ||
-			tar->IsMezzed() ||
+			(tar->IsMezzed() && !tar->HasBotAttackFlag()) ||
+			(!Charmed() && tar->GetUltimateOwner()->IsOfClientBotMerc()) ||
 			lo_distance > leash_distance ||
 			tar_distance > leash_distance ||
-			(!GetAttackingFlag() && !CheckLosFN(tar) && !leash_owner->CheckLosFN(tar)) || // This is suppose to keep bots from attacking things behind walls
+			(!GetAttackingFlag() && !DoLosChecks(this, tar) && !leash_owner->DoLosChecks(leash_owner, tar)) || // This is suppose to keep bots from attacking things behind walls
 			!IsAttackAllowed(tar)
 			/* DISABLED ALT COMBAT ||
 			(bo_alt_combat &&
 				(!GetAttackingFlag() && NOT_PULLING_BOT && !leash_owner->AutoAttackEnabled() && !tar->GetHateAmount(this) && !tar->GetHateAmount(leash_owner))
-				) */
-			)
+			)*/
+		)
 		{
 			// Normally, we wouldn't want to do this without class checks..but, too many issues can arise if we let enchanter animation pets run rampant
 			if (HasPet()) {

@@ -3425,7 +3425,8 @@ void Bot::AI_Process()
 		// Verify that our target has attackable criteria
 		if (HOLDING ||
 			!tar->IsNPC() ||
-			tar->IsMezzed() ||
+			(tar->IsMezzed() && !tar->HasBotAttackFlag()) ||
+			(!Charmed() && tar->GetUltimateOwner()->IsOfClientBotMerc()) ||
 			lo_distance > leash_distance ||
 			tar_distance > leash_distance ||
 			(!GetAttackingFlag() && !DoLosChecks(this, tar) && !leash_owner->DoLosChecks(leash_owner, tar)) || // This is suppose to keep bots from attacking things behind walls
