@@ -1892,7 +1892,6 @@ bool Bot::AICastSpell_Raid(Mob* tar, uint8 iChance, uint32 iSpellTypes) {
 						//TODO: probably more caster specific spell effects in here
 						if (
 							(tar->IsBot() && tar->GetLevel() > tar->CastToBot()->GetStopMeleeLevel()) ||
-							tar->IsClient() ||
 							tar->IsPet()
 						) {
 							if (
