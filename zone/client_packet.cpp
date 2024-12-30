@@ -16941,7 +16941,7 @@ void Client::RecordKilledNPCEvent(NPC *n)
 
 	std::vector<RecordKillCheck> checks = {
 		RecordKillCheck{.event = PlayerEvent::KILLED_NPC, .check = true},
-		RecordKillCheck{.event = PlayerEvent::KILLED_NAMED_NPC, .check = is_named},
+		RecordKillCheck{.event = PlayerEvent::KILLED_NAMED_NPC, .check = n->IsRareSpawn()},
 		RecordKillCheck{.event = PlayerEvent::KILLED_RAID_NPC, .check = n->IsRaidTarget()},
 	};
 
