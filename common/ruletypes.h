@@ -233,6 +233,7 @@ RULE_BOOL(Character, SneakAlwaysSucceedOver100, false, "When sneak skill is over
 RULE_INT(Character, BandolierSwapDelay, 0, "Bandolier swap delay in milliseconds, default is 0")
 RULE_BOOL(Character, EnableHackedFastCampForGM, false, "Enables hacked fast camp for GM clients, if the GM doesn't have a hacked client they'll camp like normal")
 RULE_BOOL(Character, AlwaysAllowNameChange, false, "Enable this option to allow /changename to work without enabling a name change via scripts.")
+RULE_INT(Character, CorpseSummonRange, 100, "Maximum range to be able to /corpse, default is 100")
 RULE_BOOL(Character, EnableAutoAFK, false, "Enable or disable the auto AFK feature, cuts down on packet spam")
 RULE_BOOL(Character, AutoIdleFilterPackets, true, "Enable or disable filtering packets when auto AFK is enabled, heavily cuts down on packet spam in zones with lots of players")
 RULE_INT(Character, SecondsBeforeIdleCombatZone, 600, "Seconds before a player is considered idle in combat zones (600 = 10 minutes)")

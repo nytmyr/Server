@@ -1949,7 +1949,8 @@ uint16 Corpse::GetFirstLootSlotByItemID(uint32 item_id)
 
 bool Corpse::Summon(Client *c, bool spell, bool CheckDistance)
 {
-	uint32 dist2 = 10000; // pow(100, 2);
+	uint32 dist2 = pow(RuleI(Character, CorpseSummonRange), 2);
+
 	if (!spell) {
 		if (GetCharID() == c->CharacterID()) {
 			if (IsLocked() && c->Admin() < AccountStatus::GMAdmin) {
