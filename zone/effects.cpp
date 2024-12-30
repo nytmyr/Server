@@ -754,7 +754,8 @@ bool Client::MemorizeSpellFromItem(uint32 item_id) {
 
 	if (
 		!Strings::BeginsWith(item_name, "Spell: ") &&
-		!Strings::BeginsWith(item_name, "Song: ")
+		!Strings::BeginsWith(item_name, "Song: ") &&
+		!Strings::BeginsWith(item_name, "Ancient: ")
 	) {
 		Message(Chat::Red, "This item is not a scroll.");
 		SummonItem(item_id);
