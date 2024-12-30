@@ -32,7 +32,7 @@
 #include "types.h"
 
 static const uint32 BUFF_COUNT = 42;
-static const uint32 PET_BUFF_COUNT = 30;
+static const uint32 PET_BUFF_COUNT = 42;
 static const uint32 MAX_MERC = 100;
 static const uint32 MAX_MERC_GRADES = 10;
 static const uint32 MAX_MERC_STANCES = 10;
