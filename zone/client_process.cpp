@@ -578,7 +578,9 @@ bool Client::Process() {
 	if (client_state == DISCONNECTED) {
 		OnDisconnect(true);
 		std::cout << "Client disconnected (cs=d): " << GetName() << std::endl;
-		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = "/MQInstantCamp: Possible instant camp disconnect"});
+		if (!camp_cheat_bypass) {
+			RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{ .message = "/MQInstantCamp: Possible instant camp disconnect" });
+		} //TODO vegas - add event_warp here as needed.
 		return false;
 	}
 
@@ -673,6 +675,20 @@ bool Client::Process() {
 			}
 			OnDisconnect(false);
 			return false;
+			if (RuleB(World, HardDisconnectOnCamp)) {
+				if (instalog) {
+					camp_cheat_bypass = true;
+					OnDisconnect(true);
+				}
+				else {
+					OnDisconnect(false);
+					return false;
+				}
+			}
+			else {
+				OnDisconnect(false);
+				return false;
+			}
 		}
 		else
 		{

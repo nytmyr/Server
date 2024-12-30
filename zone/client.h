@@ -2249,6 +2249,7 @@ private:
 	bool bZoning;
 	bool tgb;
 	bool instalog;
+	bool camp_cheat_bypass;
 	int32 last_reported_mana;
 	int32 last_reported_endurance;
 
