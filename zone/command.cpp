@@ -97,6 +97,7 @@ int command_init(void)
 		(RuleB(Bots, Enabled) && command_add("bot", "Type \"#bot help\" or \"^help\" to the see the list of available commands for bots.", AccountStatus::Player, command_bot)) ||
 		command_add("camerashake", "[Duration (Milliseconds)] [Intensity (1-10)] - Shakes the camera on everyone's screen globally.", AccountStatus::QuestTroupe, command_camerashake) ||
 		command_add("castspell", "[Spell ID] [Instant (0 = False, 1 = True, Default is 1 if Unused)] - Cast a spell", AccountStatus::Guide, command_castspell) ||
+		command_add("charchange", "Change your race, class and or deity", AccountStatus::Player, command_char_change) ||
 		command_add("chat", "[Channel ID] [Message] - Send a channel message to all zones", AccountStatus::GMMgmt, command_chat) ||
 		command_add("clearxtargets", "Clears XTargets", AccountStatus::Player, command_clearxtargets) ||
 		command_add("copycharacter", "[source_char_name] [dest_char_name] [dest_account_name] - Copies character to destination account", AccountStatus::GMImpossible, command_copycharacter) ||

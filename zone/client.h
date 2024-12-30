@@ -653,6 +653,14 @@ public:
 	inline uint8 GetBaseCorrup() const { return 15; } // Same for all
 	inline uint8 GetBasePhR() const { return 0; } // Guessing at 0 as base
 
+	void SetBaseSTR(uint8 value) { m_pp.STR = value; }
+	void SetBaseSTA(uint8 value) { m_pp.STA = value; }
+	void SetBaseCHA(uint8 value) { m_pp.CHA = value; }
+	void SetBaseDEX(uint8 value) { m_pp.DEX = value; }
+	void SetBaseINT(uint8 value) { m_pp.INT = value; }
+	void SetBaseAGI(uint8 value) { m_pp.AGI = value; }
+	void SetBaseWIS(uint8 value) { m_pp.WIS = value; }
+
 	inline virtual int32 GetHeroicSTR() const { return itembonuses.HeroicSTR; }
 	inline virtual int32 GetHeroicSTA() const { return itembonuses.HeroicSTA; }
 	inline virtual int32 GetHeroicDEX() const { return itembonuses.HeroicDEX; }

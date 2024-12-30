@@ -174,6 +174,8 @@ namespace EQ
 		extern const std::vector<SkillType>& GetExtraDamageSkills();
 
 		std::string GetSkillName(SkillType skill);
+
+		bool IsTrainedSkill(int skill_id);
 	} /*skills*/
 
 	struct SkillProfile { // prototype - not implemented
