@@ -5054,10 +5054,21 @@ int Bot::GetHandToHandDamage(void) {
 		// everyone uses this in the revamp!
 		int skill = GetSkill(EQ::skills::SkillHandtoHand);
 		int epic = 0;
-		if (CastToNPC()->GetEquippedItemFromTextureSlot(EQ::textures::armorHands) == 10652 && GetLevel() > 46)
+		if (
+			(
+				CastToNPC()->GetEquippedItemFromTextureSlot(EQ::textures::armorHands) == 10652 ||
+				CastToNPC()->GetEquippedItemFromTextureSlot(EQ::textures::armorHands) == 610652 ||
+				CastToNPC()->GetEquippedItemFromTextureSlot(EQ::textures::armorHands) == 810652
+			)
+			&& GetLevel() > 4
+		) {
 			epic = 280;
-		if (epic > skill)
+		}
+
+		if (epic > skill) {
 			skill = epic;
+		}
+
 		return skill / 15 + 3;
 	}
 
@@ -5076,14 +5087,28 @@ int Bot::GetHandToHandDamage(void) {
 				9, 9, 9, 9, 9, 10, 10, 10, 10, 10,   // 31-40
 				10, 11, 11, 11, 11, 11, 11, 12, 12}; // 41-49
 	if (GetClass() == Class::Monk) {
-		if (CastToNPC()->GetEquippedItemFromTextureSlot(EQ::textures::armorHands) == 10652 && GetLevel() > 50)
+		if (
+			(
+				CastToNPC()->GetEquippedItemFromTextureSlot(EQ::textures::armorHands) == 10652 || 
+				CastToNPC()->GetEquippedItemFromTextureSlot(EQ::textures::armorHands) == 610652 || 
+				CastToNPC()->GetEquippedItemFromTextureSlot(EQ::textures::armorHands) == 810652
+			) 
+		&& GetLevel() > 50
+		) {
 			return 9;
-		if (level > 62)
+		}
+
+		if (level > 62) {
 			return 15;
+		}
+
 		return mnk_dmg[level];
-	} else if (GetClass() == Class::Beastlord) {
-		if (level > 49)
+	}
+	else if (GetClass() == Class::Beastlord) {
+		if (level > 49) {
 			return 13;
+		}
+
 		return bst_dmg[level];
 	}
 	return 2;
