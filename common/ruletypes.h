@@ -734,6 +734,7 @@ RULE_INT(Aggro, BardAggroCap, 40, "per song bard aggro cap.")
 RULE_INT(Aggro, InitialAggroBonus, 100, "Initial Aggro Bonus, Default: 100")
 RULE_INT(Aggro, InitialPetAggroBonus, 100, "Initial Pet Aggro Bonus, Default 100")
 RULE_STRING(Aggro, ExcludedFleeAllyFactionIDs, "0|5013|5014|5023|5032", "Common Faction IDs that are excluded from faction checks in EntityList::FleeAllyCount")
+RULE_INT(Aggro, AdditionalTauntHate, 0, "0 Default. Additional Hate added to the taunter on each successful Taunt.")
 RULE_BOOL(Aggro, AggroBotPets, false, "If enabled, NPCs will aggro bot pets")
 RULE_CATEGORY_END()
 
@@ -910,6 +911,7 @@ RULE_STRING(Bots, ZoneForcedSpawnLimits, "", "Comma-delimited list of forced spa
 RULE_INT(Bots, AICastSpellTypeDelay, 100, "Delay in milliseconds between AI cast attempts for each spell type. Default 100ms")
 RULE_INT(Bots, AICastSpellTypeHeldDelay, 2500, "Delay in milliseconds between AI cast attempts for each spell type that is held or disabled. Default 2500ms (2.5s)")
 RULE_BOOL(Bots, BotsRequireLoS, true, "Whether or not bots require line of sight to be told to attack their target")
+RULE_INT(Bots, BotAdditionalTauntHate, 0, "0 Default. Additional Hate added to the taunter on each successful Taunt.")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(Chat)

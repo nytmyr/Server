@@ -2342,12 +2342,34 @@ void Mob::Taunt(NPC *who, bool always_succeed, int chance_bonus, bool from_spell
 	// Actual Taunting
 	if (success) {
 		if (hate_top && hate_top != this) {
-			int64 new_hate = (
-				(who->GetNPCHate(hate_top) - who->GetNPCHate(this)) +
-				bonus_hate +
-				RuleI(Combat, TauntOverAggro) +
-				1
-			);
+			int64 new_hate;
+
+			if (IsClient()) {
+				new_hate = (
+					(who->GetNPCHate(hate_top) - who->GetNPCHate(this)) +
+					bonus_hate +
+					RuleI(Combat, TauntOverAggro) +
+					1 +
+					RuleI(Aggro, AdditionalTauntHate)
+				);
+			}
+			else if (IsBot()) {
+				new_hate = (
+					(who->GetNPCHate(hate_top) - who->GetNPCHate(this)) +
+					bonus_hate +
+					RuleI(Combat, TauntOverAggro) +
+					1 +
+					RuleI(Bots, BotAdditionalTauntHate)
+				);
+			}
+			else {
+				new_hate = (
+					(who->GetNPCHate(hate_top) - who->GetNPCHate(this)) +
+					bonus_hate +
+					RuleI(Combat, TauntOverAggro) +
+					1
+				);
+			}
 
 			LogHate(
 				"Not Top Hate - Taunter [{}] Target [{}] Hated Top [{}] Hate Top Amt [{}] This Character Amt [{}] Bonus_Hate Amt [{}] TauntOverAggro Amt [{}] - Total [{}]",
