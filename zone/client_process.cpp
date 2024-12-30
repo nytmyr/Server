@@ -862,6 +862,7 @@ void Client::BulkSendInventoryItems()
 
 void Client::BulkSendMerchantInventory(int merchant_id, int npcid) {
 	const EQ::ItemData* handy_item = nullptr;
+
 	const EQ::ItemData *item = nullptr;
 	auto merchant_list = zone->merchanttable[merchant_id];
 	auto npc = entity_list.GetMobByNpcTypeID(npcid);
@@ -873,7 +874,11 @@ void Client::BulkSendMerchantInventory(int merchant_id, int npcid) {
 		}
 	}
 
-	const int16 merchant_slots = (m_ClientVersionBit & EQ::versions::maskRoFAndLater) ? EQ::invtype::MERCHANT_SIZE : 80;
+	uint32 merchant_slots = RuleI(Merchant, MaxItemsListedDefault); //The max number of items passed in the transaction.
+
+	if (m_ClientVersionBit & EQ::versions::maskRoFAndLater) { // RoF+ can send 200 items
+		merchant_slots = RuleI(Merchant, MaxItemsListedRoF2);
+	}
 
 	auto temporary_merchant_list = zone->tmpmerchanttable[npcid];
 	uint32 slot_id = 1;
