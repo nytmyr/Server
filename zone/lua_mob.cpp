@@ -506,6 +506,81 @@ int64 Lua_Mob::GetSpellHPBonuses() {
 	return self->GetSpellHPBonuses();
 }
 
+int64 Lua_Mob::GetSpellACBonuses() {
+	Lua_Safe_Call_Int();
+	return self->GetSpellACBonuses();
+}
+
+int64 Lua_Mob::GetSpellATKBonuses() {
+	Lua_Safe_Call_Int();
+	return self->GetSpellATKBonuses();
+}
+
+int64 Lua_Mob::GetSpellManaBonuses() {
+	Lua_Safe_Call_Int();
+	return self->GetSpellManaBonuses();
+}
+
+int64 Lua_Mob::GetSpellMRBonuses() {
+	Lua_Safe_Call_Int();
+	return self->GetSpellMRBonuses();
+}
+
+int64 Lua_Mob::GetSpellFRBonuses() {
+	Lua_Safe_Call_Int();
+	return self->GetSpellFRBonuses();
+}
+
+int64 Lua_Mob::GetSpellPRBonuses() {
+	Lua_Safe_Call_Int();
+	return self->GetSpellPRBonuses();
+}
+
+int64 Lua_Mob::GetSpellDRBonuses() {
+	Lua_Safe_Call_Int();
+	return self->GetSpellDRBonuses();
+}
+
+int64 Lua_Mob::GetSpellCRBonuses() {
+	Lua_Safe_Call_Int();
+	return self->GetSpellCRBonuses();
+}
+
+int64 Lua_Mob::GetSpellSTRBonuses() {
+	Lua_Safe_Call_Int();
+	return self->GetSpellSTRBonuses();
+}
+
+int64 Lua_Mob::GetSpellSTABonuses() {
+	Lua_Safe_Call_Int();
+	return self->GetSpellSTABonuses();
+}
+
+int64 Lua_Mob::GetSpellDEXBonuses() {
+	Lua_Safe_Call_Int();
+	return self->GetSpellDEXBonuses();
+}
+
+int64 Lua_Mob::GetSpellAGIBonuses() {
+	Lua_Safe_Call_Int();
+	return self->GetSpellAGIBonuses();
+}
+
+int64 Lua_Mob::GetSpellINTBonuses() {
+	Lua_Safe_Call_Int();
+	return self->GetSpellINTBonuses();
+}
+
+int64 Lua_Mob::GetSpellWISBonuses() {
+	Lua_Safe_Call_Int();
+	return self->GetSpellWISBonuses();
+}
+
+int64 Lua_Mob::GetSpellCHABonuses() {
+	Lua_Safe_Call_Int();
+	return self->GetSpellCHABonuses();
+}
+
 double Lua_Mob::GetWalkspeed() {
 	Lua_Safe_Call_Real();
 	return self->GetWalkspeed();
@@ -3893,8 +3968,23 @@ luabind::scope lua_register_mob() {
 	.def("GetSpecialAbility", (int(Lua_Mob::*)(int))&Lua_Mob::GetSpecialAbility)
 	.def("GetSpecialAbilityParam", (int(Lua_Mob::*)(int,int))&Lua_Mob::GetSpecialAbilityParam)
 	.def("GetSpecializeSkillValue", &Lua_Mob::GetSpecializeSkillValue)
+	.def("GetSpellACBonuses", &Lua_Mob::GetSpellACBonuses)
+	.def("GetSpellAGIBonuses", &Lua_Mob::GetSpellAGIBonuses)
+	.def("GetSpellATKBonuses", &Lua_Mob::GetSpellATKBonuses)
 	.def("GetSpellBonuses", &Lua_Mob::GetSpellBonuses)
+	.def("GetSpellCHABonuses", &Lua_Mob::GetSpellCHABonuses)
+	.def("GetSpellCRBonuses", &Lua_Mob::GetSpellCRBonuses)
+	.def("GetSpellDEXBonuses", &Lua_Mob::GetSpellDEXBonuses)
+	.def("GetSpellDRBonuses", &Lua_Mob::GetSpellDRBonuses)
+	.def("GetSpellFRBonuses", &Lua_Mob::GetSpellFRBonuses)
 	.def("GetSpellHPBonuses", &Lua_Mob::GetSpellHPBonuses)
+	.def("GetSpellINTBonuses", &Lua_Mob::GetSpellINTBonuses)
+	.def("GetSpellManaBonuses", &Lua_Mob::GetSpellManaBonuses)
+	.def("GetSpellMRBonuses", &Lua_Mob::GetSpellMRBonuses)
+	.def("GetSpellPRBonuses", &Lua_Mob::GetSpellPRBonuses)
+	.def("GetSpellSTABonuses", &Lua_Mob::GetSpellSTABonuses)
+	.def("GetSpellSTRBonuses", &Lua_Mob::GetSpellSTRBonuses)
+	.def("GetSpellWISBonuses", &Lua_Mob::GetSpellWISBonuses)
 	.def("GetTarget", &Lua_Mob::GetTarget)
 	.def("GetTexture", &Lua_Mob::GetTexture)
 	.def("GetTimerDurationMS", &Lua_Mob::GetTimerDurationMS)

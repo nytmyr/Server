@@ -602,6 +602,81 @@ int64_t Perl_Mob_GetSpellHPBonuses(Mob* self) // @categories Spells and Discipli
 	return self->GetSpellHPBonuses();
 }
 
+int64_t Perl_Mob_GetSpellACBonuses(Mob* self) // @categories Spells and Disciplines
+{
+	return self->GetSpellACBonuses();
+}
+
+int64_t Perl_Mob_GetSpellSTRBonuses(Mob* self) // @categories Spells and Disciplines
+{
+	return self->GetSpellSTRBonuses();
+}
+
+int64_t Perl_Mob_GetSpellSTABonuses(Mob* self) // @categories Spells and Disciplines
+{
+	return self->GetSpellSTABonuses();
+}
+
+int64_t Perl_Mob_GetSpellAGIBonuses(Mob* self) // @categories Spells and Disciplines
+{
+	return self->GetSpellAGIBonuses();
+}
+
+int64_t Perl_Mob_GetSpellDEXBonuses(Mob* self) // @categories Spells and Disciplines
+{
+	return self->GetSpellDEXBonuses();
+}
+
+int64_t Perl_Mob_GetSpellINTBonuses(Mob* self) // @categories Spells and Disciplines
+{
+	return self->GetSpellINTBonuses();
+}
+
+int64_t Perl_Mob_GetSpellWISBonuses(Mob* self) // @categories Spells and Disciplines
+{
+	return self->GetSpellWISBonuses();
+}
+
+int64_t Perl_Mob_GetSpellCHABonuses(Mob* self) // @categories Spells and Disciplines
+{
+	return self->GetSpellCHABonuses();
+}
+
+int64_t Perl_Mob_GetSpellManaBonuses(Mob* self) // @categories Spells and Disciplines
+{
+	return self->GetSpellManaBonuses();
+}
+
+int64_t Perl_Mob_GetSpellATKBonuses(Mob* self) // @categories Spells and Disciplines
+{
+	return self->GetSpellATKBonuses();
+}
+
+int64_t Perl_Mob_GetSpellFRBonuses(Mob* self) // @categories Spells and Disciplines
+{
+	return self->GetSpellFRBonuses();
+}
+
+int64_t Perl_Mob_GetSpellCRBonuses(Mob* self) // @categories Spells and Disciplines
+{
+	return self->GetSpellCRBonuses();
+}
+
+int64_t Perl_Mob_GetSpellDRBonuses(Mob* self) // @categories Spells and Disciplines
+{
+	return self->GetSpellDRBonuses();
+}
+
+int64_t Perl_Mob_GetSpellPRBonuses(Mob* self) // @categories Spells and Disciplines
+{
+	return self->GetSpellPRBonuses();
+}
+
+int64_t Perl_Mob_GetSpellMRBonuses(Mob* self) // @categories Spells and Disciplines
+{
+	return self->GetSpellMRBonuses();
+}
+
 int Perl_Mob_GetSpellIDFromSlot(Mob* self, uint8_t slot) // @categories Spells and Disciplines
 {
 	return slot <= self->GetMaxBuffSlots() ? self->GetSpellIDFromSlot(slot) : -1;
@@ -3955,8 +4030,23 @@ void perl_register_mob()
 	package.add("GetSpecialAbility", &Perl_Mob_GetSpecialAbility);
 	package.add("GetSpecialAbilityParam", &Perl_Mob_GetSpecialAbilityParam);
 	package.add("GetSpecializeSkillValue", &Perl_Mob_GetSpecializeSkillValue);
+	package.add("GetSpellACBonuses", &Perl_Mob_GetSpellACBonuses);
+	package.add("GetSpellAGIBonuses", &Perl_Mob_GetSpellAGIBonuses);
+	package.add("GetSpellATKBonuses", &Perl_Mob_GetSpellATKBonuses);
 	package.add("GetSpellBonuses", &Perl_Mob_GetSpellBonuses);
+	package.add("GetSpellCHABonuses", &Perl_Mob_GetSpellCHABonuses);
+	package.add("GetSpellCRBonuses", &Perl_Mob_GetSpellCRBonuses);
+	package.add("GetSpellDEXBonuses", &Perl_Mob_GetSpellDEXBonuses);
+	package.add("GetSpellDRBonuses", &Perl_Mob_GetSpellDRBonuses);
+	package.add("GetSpellFRBonuses", &Perl_Mob_GetSpellFRBonuses);
 	package.add("GetSpellHPBonuses", &Perl_Mob_GetSpellHPBonuses);
+	package.add("GetSpellINTBonuses", &Perl_Mob_GetSpellINTBonuses);
+	package.add("GetSpellManaBonuses", &Perl_Mob_GetSpellManaBonuses);
+	package.add("GetSpellMRBonuses", &Perl_Mob_GetSpellMRBonuses);
+	package.add("GetSpellPRBonuses", &Perl_Mob_GetSpellPRBonuses);
+	package.add("GetSpellSTABonuses", &Perl_Mob_GetSpellSTABonuses);
+	package.add("GetSpellSTRBonuses", &Perl_Mob_GetSpellSTRBonuses);
+	package.add("GetSpellWISBonuses", &Perl_Mob_GetSpellWISBonuses);
 	package.add("GetSpellIDFromSlot", &Perl_Mob_GetSpellIDFromSlot);
 	package.add("GetSpellStat", (int(*)(Mob*, uint32, const char*))&Perl_Mob_GetSpellStat);
 	package.add("GetSpellStat", (int(*)(Mob*, uint32, const char*, uint8))&Perl_Mob_GetSpellStat);

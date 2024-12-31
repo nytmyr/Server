@@ -1007,6 +1007,96 @@ int64 Mob::GetSpellHPBonuses() {
 	return spell_hp;
 }
 
+int64 Mob::GetSpellACBonuses() {
+	int64 spell_ac = 0;
+	spell_ac = spellbonuses.AC;
+	return spell_ac;
+}
+
+int64 Mob::GetSpellATKBonuses() {
+	int64 spell_atk = 0;
+	spell_atk = spellbonuses.ATK;
+	return spell_atk;
+}
+
+int64 Mob::GetSpellManaBonuses() {
+	int64 spell_mana = 0;
+	spell_mana = spellbonuses.Mana;
+	return spell_mana;
+}
+
+int64 Mob::GetSpellMRBonuses() {
+	int64 spell_mr = 0;
+	spell_mr = spellbonuses.MR;
+	return spell_mr;
+}
+
+int64 Mob::GetSpellFRBonuses() {
+	int64 spell_fr = 0;
+	spell_fr = spellbonuses.FR;
+	return spell_fr;
+}
+
+int64 Mob::GetSpellCRBonuses() {
+	int64 spell_cr = 0;
+	spell_cr = spellbonuses.CR;
+	return spell_cr;
+}
+
+int64 Mob::GetSpellPRBonuses() {
+	int64 spell_pr = 0;
+	spell_pr = spellbonuses.PR;
+	return spell_pr;
+}
+
+int64 Mob::GetSpellDRBonuses() {
+	int64 spell_dr = 0;
+	spell_dr = spellbonuses.DR;
+	return spell_dr;
+}
+
+int64 Mob::GetSpellSTRBonuses() {
+	int64 spell_str = 0;
+	spell_str = spellbonuses.STR;
+	return spell_str;
+}
+
+int64 Mob::GetSpellSTABonuses() {
+	int64 spell_sta = 0;
+	spell_sta = spellbonuses.STA;
+	return spell_sta;
+}
+
+int64 Mob::GetSpellDEXBonuses() {
+	int64 spell_dex = 0;
+	spell_dex = spellbonuses.DEX;
+	return spell_dex;
+}
+
+int64 Mob::GetSpellAGIBonuses() {
+	int64 spell_agi = 0;
+	spell_agi = spellbonuses.AGI;
+	return spell_agi;
+}
+
+int64 Mob::GetSpellINTBonuses() {
+	int64 spell_int = 0;
+	spell_int = spellbonuses.INT;
+	return spell_int;
+}
+
+int64 Mob::GetSpellWISBonuses() {
+	int64 spell_wis = 0;
+	spell_wis = spellbonuses.WIS;
+	return spell_wis;
+}
+
+int64 Mob::GetSpellCHABonuses() {
+	int64 spell_cha = 0;
+	spell_cha = spellbonuses.CHA;
+	return spell_cha;
+}
+
 bool Mob::IsIntelligenceCasterClass() const
 {
 	switch (GetClass()) {
