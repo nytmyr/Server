@@ -1139,6 +1139,7 @@ RULE_BOOL(Cheat, EnableMQGateDetector, true, "Enable the MQGate Detector. Set to
 RULE_BOOL(Cheat, EnableMQGhostDetector, true, "Enable the MQGhost Detector. Set to False to disable this feature.")
 RULE_BOOL(Cheat, EnableMQFastMemDetector, true, "Enable the MQFastMem Detector. Set to False to disable this feature.")
 RULE_BOOL(Cheat, MarkMQWarpLT, false, "Mark clients makeing smaller warps")
+RULE_INT(Cheat, AntiCheatExemptDuration, 3, "Duration of cheat exemption. Default 3 = 3 seconds")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(Command)
@@ -1183,6 +1184,27 @@ RULE_REAL(EvolvingItems, PercentOfGroupExperience, 0.1, "Percentage of group exp
 RULE_REAL(EvolvingItems, PercentOfRaidExperience, 0.1, "Percentage of raid experience allocated to evolving items that require experience.")
 RULE_INT(EvolvingItems, DelayUponEquipping, 30000, "Delay in ms before an evolving item will earn rewards after equipping.  Default is 30000ms or 30s.")
 RULE_BOOL(EvolvingItems, DestroyAugmentsOnEvolve, false, "If this is enabled, any augments in an item will be destroyed when the item evolves. Otherwise, send augments to the player via the parcel system (requires that the Parcel System be enabled).")
+RULE_CATEGORY_END()
+
+RULE_CATEGORY(Vegas)
+RULE_INT(Vegas, ShardItemID, 550002, "550002 Default. Item ID for Shards.")
+RULE_CATEGORY_END()
+
+RULE_CATEGORY(CharChange)
+RULE_BOOL(CharChange, CommandEnabled, false, "Is #charchange command enabled?, default false")
+RULE_INT(CharChange, ExpansionLimitForCharChange, 5, "Maximum expansion limit for #charchange to use in char_create_combinations, default 5")
+RULE_INT(CharChange, BaseCost, 10000, "Base cost for #charchange, default is 10000")
+RULE_INT(CharChange, ClassCost, 15000, "Class cost for #charchange, default is 15000")
+RULE_INT(CharChange, DeityCost, 5000, "Deity cost for #charchange, default is 5000")
+RULE_INT(CharChange, GenderCost, 2500, "Gender cost for #charchange, default is 2500")
+RULE_INT(CharChange, RaceCost, 10000, "Race cost for #charchange, default is 10000")
+RULE_INT(CharChange, LevelScaleStart, 30, "Level at which cost scaling starts for #charchange, default 30")
+RULE_REAL(CharChange, ScaleRate, 1.0175, "Scale rate for #charchange per level (each level increases by x amount), default is 1.0175")
+RULE_BOOL(CharChange, RequireSpecificZone, false, "Whether or not #charchange requires a specific zone to be used in, default false")
+RULE_INT(CharChange, RequiredZone, 202, "Zone required for #charchange if RequireSpecificZone is enabled, default = 202/PoK")
+RULE_BOOL(CharChange, RequiresAltCurrency, false, "Is Alt Currency required for #charchange, default false")
+RULE_INT(CharChange, RequiredAltCurrency, 70, "Alt Currency required for #charchange if RequiresAltCurrency is enabled, default 70")
+RULE_BOOL(CharChange, DiscordOutputEnabled, false, "Output #charchange usage to Discord, default false")
 RULE_CATEGORY_END()
 
 #undef RULE_CATEGORY
