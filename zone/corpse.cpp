@@ -1556,9 +1556,10 @@ void Corpse::LootCorpseItem(Client *c, const EQApplicationPacket *app)
 			if (controller) {
 				if (parse->HasQuestSub(ZONE_CONTROLLER_NPC_ID, EVENT_LOOT_ZONE)) {
 					const auto &export_string = fmt::format(
-						"{} {} {} {}",
+						"{} {} {} {} {}",
 						inst->GetItem()->ID,
 						inst->GetCharges(),
+						(!IsPlayerCorpse() ? GetNPCTypeID() : 0),
 						EntityList::RemoveNumbers(corpse_name),
 						GetID()
 					);
@@ -1573,9 +1574,10 @@ void Corpse::LootCorpseItem(Client *c, const EQApplicationPacket *app)
 
 		if (parse->PlayerHasQuestSub(EVENT_LOOT)) {
 			const auto &export_string = fmt::format(
-				"{} {} {} {}",
+				"{} {} {} {} {}",
 				inst->GetItem()->ID,
 				inst->GetCharges(),
+				(!IsPlayerCorpse() ? GetNPCTypeID() : 0),
 				EntityList::RemoveNumbers(corpse_name),
 				GetID()
 			);
@@ -1631,9 +1633,10 @@ void Corpse::LootCorpseItem(Client *c, const EQApplicationPacket *app)
 
 		if (parse->ItemHasQuestSub(inst, EVENT_LOOT)) {
 			const auto &export_string = fmt::format(
-				"{} {} {} {}",
+				"{} {} {} {} {}",
 				inst->GetItem()->ID,
 				inst->GetCharges(),
+				(!IsPlayerCorpse() ? GetNPCTypeID() : 0),
 				EntityList::RemoveNumbers(corpse_name),
 				GetID()
 			);
