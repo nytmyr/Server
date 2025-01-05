@@ -1205,6 +1205,9 @@ RULE_INT(CharChange, RequiredZone, 202, "Zone required for #charchange if Requir
 RULE_BOOL(CharChange, RequiresAltCurrency, false, "Is Alt Currency required for #charchange, default false")
 RULE_INT(CharChange, RequiredAltCurrency, 70, "Alt Currency required for #charchange if RequiresAltCurrency is enabled, default 70")
 RULE_BOOL(CharChange, DiscordOutputEnabled, false, "Output #charchange usage to Discord, default false")
+RULE_CATEGORY(Website)
+RULE_STRING(Website, AllacloneURL, "http://vegaseq.com/allaclone/", "Website URL for Allaclone")
+RULE_STRING(Website, CharBrowserURL, "http://vegaseq.com/charbrowser/", "Website URL for CharBrowser")
 RULE_CATEGORY_END()
 
 #undef RULE_CATEGORY
