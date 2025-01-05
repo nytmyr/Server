@@ -141,6 +141,7 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 				((m_target->Admin() < RuleI(Cheat, MQWarpExemptStatus) || (RuleI(Cheat, MQWarpExemptStatus)) == -1))) {
 				if (RuleB(Cheat, MarkMQWarpLT)) {
 					std::string message = fmt::format(
+						"/MQWarp(Knockback) Player [{}-ID:{}]-[Account:{}|ID:{}] in zone [{}] with location from x [{:.2f}] y [{:.2f}] z [{:.2f}] running fast but not fast enough to get killed, possibly: small warp, speed hack, excessive lag, marked as suspicious.",
 						m_target->GetName(),
 						m_target->CharacterID(),
 						m_target->AccountName(),
