@@ -1145,12 +1145,12 @@ void Group::SplitExp(ExpSource exp_source, const uint64 exp, Mob* other) {
 	if (RuleB(Character, EnableGroupMemberEXPModifier)) {
 		if (EQ::ValueWithin(member_count, 2, 5)) {
 			group_modifier = 1 + RuleR(Character, GroupMemberEXPModifier) * (member_count - 1); // 2 = 1.2x, 3 = 1.4x, 4 = 1.6x, 5 = 1.8x
-		} else if (member_count == 6) {
+		} else if (member_count == MAX_GROUP_MEMBERS) {
 			group_modifier = RuleR(Character, FullGroupEXPModifier);
 		}
 	}
 
-	if (EQ::ValueWithin(member_count, 2, 6)) {
+	if (EQ::ValueWithin(member_count, 2, MAX_GROUP_MEMBERS)) {
 		if (RuleB(Character, EnableGroupEXPModifier)) {
 			group_experience += static_cast<uint64>(
 				static_cast<float>(exp) *
@@ -1205,10 +1205,6 @@ void Raid::SplitExp(ExpSource exp_source, const uint64 exp, Mob* other) {
 	auto       raid_experience = exp;
 	const auto highest_level   = GetHighestLevel();
 
-	if (RuleB(Character, EnableRaidEXPModifier)) {
-		raid_experience = static_cast<uint64>(static_cast<float>(raid_experience) *	(1.0f - RuleR(Character, RaidExpMultiplier)));
-	}
-
 	raid_experience = static_cast<uint64>(static_cast<float>(raid_experience) * RuleR(Character, FinalRaidExpMultiplier));
 
 	const auto consider_level = Mob::GetLevelCon(highest_level, other->GetLevel());
@@ -1217,8 +1213,51 @@ void Raid::SplitExp(ExpSource exp_source, const uint64 exp, Mob* other) {
 	}
 
 	uint32 member_modifier = 1;
+
 	if (RuleB(Character, EnableRaidMemberEXPModifier)) {
 		member_modifier = member_count;
+	}
+
+	float raid_modifier = 1.0f;
+
+	if (RuleB(Character, EnableRaidMemberEXPMultiplier)) {
+		if (member_count > RuleI(Character, MaxNumberRaidMembersEXPModifier)) {
+			member_modifier = RuleI(Character, MaxNumberRaidMembersEXPModifier);
+		}
+		else {
+			member_modifier = member_count;
+		}
+
+		if (member_modifier > 1) {
+			if (
+				EQ::ValueWithin(member_count, 2, MAX_GROUP_MEMBERS - 1) ||
+				EQ::ValueWithin(member_count, MAX_GROUP_MEMBERS, MAX_RAID_MEMBERS - 1)
+			) {
+				raid_modifier = 1 + RuleR(Character, RaidMemberEXPMultiplier) * (member_modifier - 1); // 2 = 1.2x, 3 = 1.4x, 4 = 1.6x, 5 = 1.8x, 6 = 2x, 7 = 2.2x etc.
+			}
+			if (member_modifier == MAX_GROUP_MEMBERS) {
+				raid_modifier = RuleR(Character, FullGroupEXPModifier);
+			}
+			else if (member_modifier == MAX_RAID_MEMBERS) {
+				raid_modifier = RuleR(Character, FullRaidEXPModifier);
+			}
+		}
+	}
+
+	if (EQ::ValueWithin(member_count, 2, MAX_RAID_MEMBERS)) {
+		if (RuleB(Character, EnableRaidEXPModifier)) {
+			raid_experience += static_cast<uint64>(
+				static_cast<float>(exp) *
+				raid_modifier *
+				RuleR(Character, RaidExpMultiplier)
+			);
+		}
+		else {
+			raid_experience += static_cast<uint64>(
+				static_cast<float>(exp) *
+				raid_modifier
+			);
+		}
 	}
 
 	for (const auto& m : members) {
