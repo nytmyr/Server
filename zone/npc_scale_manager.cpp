@@ -28,7 +28,8 @@
 void NpcScaleManager::ScaleNPC(
 	NPC *npc,
 	bool always_scale,
-	bool override_special_abilities
+	bool override_special_abilities,
+	float scale_mult
 ) {
 	if (npc->IsSkipAutoScale() || npc->GetNPCTypeID() == 0) {
 		return;
@@ -39,6 +40,13 @@ void NpcScaleManager::ScaleNPC(
 	auto is_auto_scaled   = IsAutoScaled(npc);
 	auto zone_id          = zone->GetZoneID();
 	auto instance_version = zone->GetInstanceVersion();
+
+	float special_zone_flat_scalerate, special_zone_max_hp, special_zone_min_hit, special_zone_max_hit = 1.0f;
+	bool is_special_zone = GetSpecialScalingZoneValues(npc, &special_zone_max_hp, &special_zone_min_hit, &special_zone_max_hit);
+
+	if (is_special_zone && RuleB(VegasScaling, EnableFlatRateScaling)) {
+		special_zone_flat_scalerate = (RuleR(VegasScaling, FlatRateScaling) > 0 ? RuleR(VegasScaling, FlatRateScaling) : 1);
+	}
 
 	global_npc_scale scale_data = GetGlobalScaleDataForTypeLevel(
 		npc_type,
@@ -57,90 +65,97 @@ void NpcScaleManager::ScaleNPC(
 
 		return;
 	}
+	
+	special_zone_flat_scalerate = (special_zone_flat_scalerate > 0 ? special_zone_flat_scalerate : 1);
 
 	if (always_scale || (npc->GetAC() == 0 && is_auto_scaled)) {
-		npc->ModifyNPCStat("ac", std::to_string(scale_data.ac));
+		npc->ModifyNPCStat("ac", std::to_string(scale_data.ac * special_zone_flat_scalerate));
 	}
 
 	if (always_scale || npc->GetMaxHP() == 0) {
-		npc->ModifyNPCStat("max_hp", std::to_string(scale_data.hp));
+		float multiplier = (special_zone_max_hp != 1 ? special_zone_max_hp : (special_zone_flat_scalerate != 1 ? special_zone_flat_scalerate : 1));
+
+		npc->ModifyNPCStat("max_hp", std::to_string(scale_data.hp * multiplier));
 		npc->RestoreHealth();
 	}
 
 	if (always_scale || npc->GetAccuracyRating() == 0) {
-		npc->ModifyNPCStat("accuracy", std::to_string(scale_data.accuracy));
+		npc->ModifyNPCStat("accuracy", std::to_string(scale_data.accuracy * special_zone_flat_scalerate));
 	}
 
 	if (always_scale || npc->GetSlowMitigation() == 0) {
-		npc->ModifyNPCStat("slow_mitigation", std::to_string(scale_data.slow_mitigation));
+		npc->ModifyNPCStat("slow_mitigation", std::to_string(scale_data.slow_mitigation * special_zone_flat_scalerate));
 	}
 
 	if (always_scale || npc->GetATK() == 0) {
-		npc->ModifyNPCStat("atk", std::to_string(scale_data.attack));
+		npc->ModifyNPCStat("atk", std::to_string(scale_data.attack * special_zone_flat_scalerate));
 	}
 
 	if (always_scale || npc->GetSTR() == 0) {
-		npc->ModifyNPCStat("str", std::to_string(scale_data.strength));
+		npc->ModifyNPCStat("str", std::to_string(scale_data.strength * special_zone_flat_scalerate));
 	}
 
 	if (always_scale || npc->GetSTA() == 0) {
-		npc->ModifyNPCStat("sta", std::to_string(scale_data.stamina));
+		npc->ModifyNPCStat("sta", std::to_string(scale_data.stamina * special_zone_flat_scalerate));
 	}
 
 	if (always_scale || npc->GetDEX() == 0) {
-		npc->ModifyNPCStat("dex", std::to_string(scale_data.dexterity));
+		npc->ModifyNPCStat("dex", std::to_string(scale_data.dexterity * special_zone_flat_scalerate));
 	}
 
 	if (always_scale || npc->GetAGI() == 0) {
-		npc->ModifyNPCStat("agi", std::to_string(scale_data.agility));
+		npc->ModifyNPCStat("agi", std::to_string(scale_data.agility * special_zone_flat_scalerate));
 	}
 
 	if (always_scale || npc->GetINT() == 0) {
-		npc->ModifyNPCStat("int", std::to_string(scale_data.intelligence));
+		npc->ModifyNPCStat("int", std::to_string(scale_data.intelligence * special_zone_flat_scalerate));
 	}
 
 	if (always_scale || npc->GetWIS() == 0) {
-		npc->ModifyNPCStat("wis", std::to_string(scale_data.wisdom));
+		npc->ModifyNPCStat("wis", std::to_string(scale_data.wisdom * special_zone_flat_scalerate));
 	}
 
 	if (always_scale || npc->GetCHA() == 0) {
-		npc->ModifyNPCStat("cha", std::to_string(scale_data.charisma));
+		npc->ModifyNPCStat("cha", std::to_string(scale_data.charisma * special_zone_flat_scalerate));
 	}
 
 	if (always_scale || npc->GetMR() == 0) {
-		npc->ModifyNPCStat("mr", std::to_string(scale_data.magic_resist));
+		npc->ModifyNPCStat("mr", std::to_string(scale_data.magic_resist * special_zone_flat_scalerate));
 	}
 
 	if (always_scale || npc->GetCR() == 0) {
-		npc->ModifyNPCStat("cr", std::to_string(scale_data.cold_resist));
+		npc->ModifyNPCStat("cr", std::to_string(scale_data.cold_resist * special_zone_flat_scalerate));
 	}
 
 	if (always_scale || npc->GetFR() == 0) {
-		npc->ModifyNPCStat("fr", std::to_string(scale_data.fire_resist));
+		npc->ModifyNPCStat("fr", std::to_string(scale_data.fire_resist * special_zone_flat_scalerate));
 	}
 
 	if (always_scale || npc->GetPR() == 0) {
-		npc->ModifyNPCStat("pr", std::to_string(scale_data.poison_resist));
+		npc->ModifyNPCStat("pr", std::to_string(scale_data.poison_resist * special_zone_flat_scalerate));
 	}
 
 	if (always_scale || npc->GetDR() == 0) {
-		npc->ModifyNPCStat("dr", std::to_string(scale_data.disease_resist));
+		npc->ModifyNPCStat("dr", std::to_string(scale_data.disease_resist * special_zone_flat_scalerate));
 	}
 
 	if (always_scale || (npc->GetCorrup() == 0 && is_auto_scaled)) {
-		npc->ModifyNPCStat("cor", std::to_string(scale_data.corruption_resist));
+		npc->ModifyNPCStat("cor", std::to_string(scale_data.corruption_resist * special_zone_flat_scalerate));
 	}
 
 	if (always_scale || (npc->GetPhR() == 0 && is_auto_scaled)) {
-		npc->ModifyNPCStat("phr", std::to_string(scale_data.physical_resist));
+		npc->ModifyNPCStat("phr", std::to_string(scale_data.physical_resist * special_zone_flat_scalerate));
 	}
 
 	// If either is scaled, both need to be.  The values for base_damage and min_damage will be in flux until
 	// both are complete.
 
 	if (always_scale || npc->GetMinDMG() == 0 || npc->GetMaxDMG() == 0) {
-		int64 min_dmg = scale_data.min_dmg;
-		int64 max_dmg = scale_data.max_dmg;
+		float min_hit_multiplier = (special_zone_min_hit != 1 ? special_zone_min_hit : (special_zone_flat_scalerate != 1 ? special_zone_flat_scalerate : 1));
+		float max_hit_multiplier = (special_zone_max_hit != 1 ? special_zone_max_hit : (special_zone_flat_scalerate != 1 ? special_zone_flat_scalerate : 1));
+
+		int64 min_dmg = scale_data.min_dmg * min_hit_multiplier;
+		int64 max_dmg = scale_data.max_dmg * max_hit_multiplier;
 
 		if (RuleB(Combat, UseNPCDamageClassLevelMods)) {
 			uint32 class_level_damage_mod = GetClassLevelDamageMod(npc->GetLevel(), npc->GetClass());
@@ -156,31 +171,31 @@ void NpcScaleManager::ScaleNPC(
 	}
 
 	if (always_scale || (npc->GetHPRegen() == 0 && is_auto_scaled)) {
-		npc->ModifyNPCStat("hp_regen", std::to_string(scale_data.hp_regen_rate));
+		npc->ModifyNPCStat("hp_regen", std::to_string(scale_data.hp_regen_rate * special_zone_flat_scalerate));
 	}
 
 	if (always_scale || (npc->GetHPRegenPerSecond() == 0 && is_auto_scaled)) {
-		npc->ModifyNPCStat("hp_regen_per_second", std::to_string(scale_data.hp_regen_per_second));
+		npc->ModifyNPCStat("hp_regen_per_second", std::to_string(scale_data.hp_regen_per_second * special_zone_flat_scalerate));
 	}
 
 	if (always_scale || npc->GetAttackDelay() == 0) {
-		npc->ModifyNPCStat("attack_delay", std::to_string(scale_data.attack_delay));
+		npc->ModifyNPCStat("attack_delay", std::to_string(scale_data.attack_delay * special_zone_flat_scalerate));
 	}
 
 	if (always_scale || npc->GetSpellScale() == 0) {
-		npc->ModifyNPCStat("spellscale", std::to_string(scale_data.spell_scale));
+		npc->ModifyNPCStat("spellscale", std::to_string(scale_data.spell_scale * special_zone_flat_scalerate));
 	}
 
 	if (always_scale || npc->GetHealScale() == 0) {
-		npc->ModifyNPCStat("healscale", std::to_string(scale_data.heal_scale));
+		npc->ModifyNPCStat("healscale", std::to_string(scale_data.heal_scale * special_zone_flat_scalerate));
 	}
 
 	if (always_scale || npc->GetAvoidanceRating() == 0) {
-		npc->ModifyNPCStat("avoidance", std::to_string(scale_data.avoidance));
+		npc->ModifyNPCStat("avoidance", std::to_string(scale_data.avoidance * special_zone_flat_scalerate));
 	}
 
 	if (always_scale || npc->GetHeroicStrikethrough() == 0) {
-		npc->ModifyNPCStat("heroic_strikethrough", std::to_string(scale_data.heroic_strikethrough));
+		npc->ModifyNPCStat("heroic_strikethrough", std::to_string(scale_data.heroic_strikethrough * special_zone_flat_scalerate));
 	}
 
 	if (override_special_abilities || (!npc->HasSpecialAbilities() && is_auto_scaled)) {
@@ -561,7 +576,7 @@ int8 NpcScaleManager::GetNPCScalingType(NPC *&npc)
 		return 2;
 	}
 
-	if (npc->IsRareSpawn() || npc_name.find('#') != std::string::npos || isupper(npc_name[0])) {
+	if (npc->IsRareSpawn()) {
 		return 1;
 	}
 
@@ -749,3 +764,80 @@ bool NpcScaleManager::ApplyGlobalBaseScalingToNPCDynamically(NPC *&npc)
 
 	return false;
 }
+
+bool NpcScaleManager::GetSpecialScalingZoneValues(NPC* npc, float* special_zone_max_hp, float* special_zone_min_hit, float* special_zone_max_hit) {
+	const auto& special_zones_list = Strings::Split(RuleS(VegasScaling, SpecialScalingZones), ",");
+	const auto& special_zones_version_list = Strings::Split(RuleS(VegasScaling, SpecialScalingZonesVersions), ",");
+
+	if (special_zones_list.empty() || special_zones_version_list.empty()) {
+		return false;
+	}
+
+	if (special_zones_list.size() != special_zones_version_list.size()) {
+		return false;
+	}
+
+	int i = 0;
+	uint32 special_zone_element = -1;
+
+	for (const auto& result : special_zones_list) {
+		try {
+			if (
+				std::stoul(result) == zone->GetZoneID() &&
+				std::stoul(special_zones_version_list[i]) == zone->GetInstanceVersion()
+			) {
+				special_zone_element = i;
+				break;
+			}
+
+			++i;
+		}
+
+		catch (const std::exception& e) {
+			LogInfo("Invalid entry in Rule VegasScaling:SpecialScalingZones or SpecialScalingZonesVersions: [{}]", e.what());
+		}
+	}
+
+	if (special_zone_element == -1) {
+		return false;
+	}
+
+	
+	if (special_zone_element >= 0) {
+		const std::string& max_hp_rule = 
+			npc->IsRaidTarget() ? RuleS(VegasScaling, SpecialZoneScalingRaidMaxHP) : 
+			npc->IsRareSpawn() ? RuleS(VegasScaling, SpecialZoneScalingRareMaxHP) : 
+			RuleS(VegasScaling, SpecialZoneScalingCommonMaxHP);
+		const std::string& min_hit_rule = 
+			npc->IsRaidTarget() ? RuleS(VegasScaling, SpecialZoneScalingRaidMinHit) : 
+			npc->IsRareSpawn() ? RuleS(VegasScaling, SpecialZoneScalingRareMinHit) : 
+			RuleS(VegasScaling, SpecialZoneScalingCommonMinHit);
+		const std::string& max_hit_rule = 
+			npc->IsRaidTarget() ? RuleS(VegasScaling, SpecialZoneScalingRaidMaxHit) : 
+			npc->IsRareSpawn() ? RuleS(VegasScaling, SpecialZoneScalingRareMaxHit) : 
+			RuleS(VegasScaling, SpecialZoneScalingCommonMaxHit);
+	
+		auto extract_value = [](const std::string& rule, int index) -> float {
+			auto values = Strings::Split(rule, ',');
+			if (index >= 0 && index < static_cast<int>(values.size())) {
+				try {
+					return std::stof(values[index]);
+				}
+				catch (const std::exception& e) {
+					LogInfo("Invalid entry in scaling rule: [{}]", e.what());
+				}
+			}
+
+			return 1.0f;
+		};
+
+		*special_zone_max_hp = extract_value(max_hp_rule, special_zone_element);
+		*special_zone_min_hit = extract_value(min_hit_rule, special_zone_element);
+		*special_zone_max_hit = extract_value(max_hit_rule, special_zone_element);
+
+		return true;
+	}
+
+	return false;
+}
+

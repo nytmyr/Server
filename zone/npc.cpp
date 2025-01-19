@@ -3761,7 +3761,7 @@ void NPC::ReloadSpells() {
 	AI_AddNPCSpellsEffects(GetNPCSpellsEffectsID());
 }
 
-void NPC::ScaleNPC(uint8 npc_level, bool always_scale, bool override_special_abilities) {
+void NPC::ScaleNPC(uint8 npc_level, bool always_scale, bool override_special_abilities, float scale_mult) {
 	if (GetLevel() != npc_level) {
 		SetLevel(npc_level);
 		RecalculateSkills();
@@ -3769,7 +3769,7 @@ void NPC::ScaleNPC(uint8 npc_level, bool always_scale, bool override_special_abi
 	}
 
 	npc_scale_manager->ResetNPCScaling(this);
-	npc_scale_manager->ScaleNPC(this, always_scale, override_special_abilities);
+	npc_scale_manager->ScaleNPC(this, always_scale, override_special_abilities, scale_mult);
 }
 
 bool NPC::IsGuard()
