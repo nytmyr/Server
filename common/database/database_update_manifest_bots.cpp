@@ -88,7 +88,7 @@ PRIMARY KEY (`id`)
 		.version = 9041,
 		.description = "2023_12_04_bot_timers.sql",
 		.check = "SHOW COLUMNS FROM `bot_timers` LIKE 'recast_time'",
-		.condition = "empty",
+		.condition = "",
 		.match = "",
 		.sql = R"(
 ALTER TABLE `bot_timers`
@@ -2121,7 +2121,293 @@ WHERE NOT EXISTS
 (SELECT *
 FROM spells_new
 WHERE bot_spells_entries.spell_id = spells_new.id);
-)",
+)"
+	},
+	ManifestEntry{
+		.version = 9055,
+		.description = "2025_01_19_update_vegaseq_settings.sql",
+		.check = "SHOW COLUMNS FROM `bot_data` LIKE 'illusion_block'",
+		.condition = "not_empty",
+		.match = "",
+		.sql = R"(
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 9, 0, `illusion_block`, 'BaseSetting', 'IllusionBlock' FROM bot_data WHERE `illusion_block` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 7, 0, `behind_mob`, 'BaseSetting', 'BehindMob' FROM bot_data WHERE `behind_mob` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 8, 0, `caster_range`, 'BaseSetting', 'DistanceRanged' FROM bot_data WHERE `caster_range` != 90;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 33, 1, `hold_ae_nukes`, 'SpellHolds', 'AE Nuke' FROM bot_data WHERE `hold_ae_nukes` != 1;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 34, 1, `hold_ae_rains`, 'SpellHolds', 'AE Rain' FROM bot_data WHERE `hold_ae_rains` != 1;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 3, 1, `hold_buffs`, 'SpellHolds', 'Buff' FROM bot_data WHERE `hold_buffs` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 12, 1, `hold_charms`, 'SpellHolds', 'Charm' FROM bot_data WHERE `hold_charms` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 26, 1, `hold_complete_heals`, 'SpellHolds', 'Complete Heal' FROM bot_data WHERE `hold_complete_heals` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 15, 1, `hold_cures`, 'SpellHolds', 'Cure' FROM bot_data WHERE `hold_cures` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 9, 1, `hold_dispels`, 'SpellHolds', 'Dispel' FROM bot_data WHERE `hold_dispels` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 14, 1, `hold_debuffs`, 'SpellHolds', 'Debuff' FROM bot_data WHERE `hold_debuffs` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 8, 1, `hold_dots`, 'SpellHolds', 'DoT' FROM bot_data WHERE `hold_dots` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 54, 1, `hold_ds`, 'SpellHolds', 'Damage Shield' FROM bot_data WHERE `hold_ds` != 1;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 4, 1, `hold_escapes`, 'SpellHolds', 'Escape' FROM bot_data WHERE `hold_escapes` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 27, 1, `hold_fast_heals`, 'SpellHolds', 'Fast Heal' FROM bot_data WHERE `hold_fast_heals` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 29, 1, `hold_group_heals`, 'SpellHolds', 'Group Heal' FROM bot_data WHERE `hold_group_heals` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 17, 1, `hold_hateredux`, 'SpellHolds', 'Hate Reduction' FROM bot_data WHERE `hold_hateredux` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 32, 1, `hold_hot_heals`, 'SpellHolds', 'HoT Heal' FROM bot_data WHERE `hold_hot_heals` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 10, 1, `hold_incombatbuffs`, 'SpellHolds', 'In-Combat Buff' FROM bot_data WHERE `hold_incombatbuffs` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 18, 1, `hold_incombatbuffsongs`, 'SpellHolds', 'In-Combat Buff Song' FROM bot_data WHERE `hold_incombatbuffsongs` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 6, 1, `hold_lifetaps`, 'SpellHolds', 'Lifetap' FROM bot_data WHERE `hold_lifetaps` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 101, 1, `hold_lulls`, 'SpellHolds', 'Lull' FROM bot_data WHERE `hold_lulls` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 11, 1, `hold_mez`, 'SpellHolds', 'Mez' FROM bot_data WHERE `hold_mez` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 0, 1, `hold_nukes`, 'SpellHolds', 'Nuke' FROM bot_data WHERE `hold_nukes` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 19, 1, `hold_outofcombatbuffsongs`, 'SpellHolds', 'Out-of-Combat Buff Song' FROM bot_data WHERE `hold_outofcombatbuffsongs` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 47, 1, `hold_pet_buffs`, 'SpellHolds', 'Pet Buff' FROM bot_data WHERE `hold_pet_buffs` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 5, 1, `hold_pets`, 'SpellHolds', 'Pet' FROM bot_data WHERE `hold_pets` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 20, 1, `hold_precombatbuffs`, 'SpellHolds', 'Pre-Combat Buff' FROM bot_data WHERE `hold_precombatbuffs` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 21, 1, `hold_precombatbuffsongs`, 'SpellHolds', 'Pre-Combat Buff Song' FROM bot_data WHERE `hold_precombatbuffsongs` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 1, 1, `hold_regular_heals`, 'SpellHolds', 'Regular Heal' FROM bot_data WHERE `hold_regular_heals` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 55, 1, `hold_resists`, 'SpellHolds', 'Resist Buff' FROM bot_data WHERE `hold_resists` != 1;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 16, 1, `hold_rez`, 'SpellHolds', 'Resurrect' FROM bot_data WHERE `hold_rez` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 2, 1, `hold_roots`, 'SpellHolds', 'Root' FROM bot_data WHERE `hold_roots` != 1;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 13, 1, `hold_slows`, 'SpellHolds', 'Slow' FROM bot_data WHERE `hold_slows` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 7, 1, `hold_snares`, 'SpellHolds', 'Snare' FROM bot_data WHERE `hold_snares` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 12, 2, `buff_delay`, 'SpellDelays', 'Buff' FROM bot_data WHERE `buff_delay` != 1;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 26, 2, `complete_heal_delay`, 'SpellDelays', 'Complete Heal' FROM bot_data WHERE `complete_heal_delay` != 8000;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 15, 2, `cure_delay`, 'SpellDelays', 'Cure' FROM bot_data WHERE `cure_delay` != 1;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 14, 2, `debuff_delay`, 'SpellDelays', 'Debuff' FROM bot_data WHERE `debuff_delay` != 12000;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 9, 2, `dispel_delay`, 'SpellDelays', 'Dispel' FROM bot_data WHERE `dispel_delay` != 1;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 8, 2, `dot_delay`, 'SpellDelays', 'DoT' FROM bot_data WHERE `dot_delay` != 12000;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 4, 2, `escape_delay`, 'SpellDelays', 'Escape' FROM bot_data WHERE `escape_delay` != 1;
+)"
+	},
+	ManifestEntry{
+		.version = 9056,
+		.description = "2025_01_19_update_vegaseq_settings_two.sql",
+		.check = "SHOW COLUMNS FROM `bot_data` LIKE 'illusion_block'",
+		.condition = "not_empty",
+		.match = "",
+		.sql = R"(
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 27, 2, `fast_heal_delay`, 'SpellDelays', 'Fast Heal' FROM bot_data WHERE `fast_heal_delay` != 2500;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 17, 2, `hate_redux_delay`, 'SpellDelays', 'Hate Reduction' FROM bot_data WHERE `hate_redux_delay` != 1;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 1, 2, `heal_delay`, 'SpellDelays', 'Regular Heal' FROM bot_data WHERE `heal_delay` != 4500;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 32, 2, `hot_heal_delay`, 'SpellDelays', 'HoT Heal' FROM bot_data WHERE `hot_heal_delay` != 22000;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 10, 2, `incombatbuff_delay`, 'SpellDelays', 'In-Combat Buff' FROM bot_data WHERE `incombatbuff_delay` != 1;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 6, 2, `lifetap_delay`, 'SpellDelays', 'Lifetap' FROM bot_data WHERE `lifetap_delay` != 1;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 11, 2, `mez_delay`, 'SpellDelays', 'Mez' FROM bot_data WHERE `mez_delay` != 1;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 0, 2, `nuke_delay`, 'SpellDelays', 'Nuke' FROM bot_data WHERE `nuke_delay` != 8000;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 2, 2, `root_delay`, 'SpellDelays', 'Root' FROM bot_data WHERE `root_delay` != 12000;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 13, 2, `slow_delay`, 'SpellDelays', 'Slow' FROM bot_data WHERE `slow_delay` != 12000;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 7, 2, `snare_delay`, 'SpellDelays', 'Snare' FROM bot_data WHERE `snare_delay` != 12000;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 12, 4, `buff_threshold`, 'SpellMaxThresholds', 'Buff' FROM bot_data WHERE `buff_threshold` != 150;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 26, 4, `complete_heal_threshold`, 'SpellMaxThresholds', 'Complete Heal' FROM bot_data WHERE `complete_heal_threshold` != 70;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 15, 4, `cure_threshold`, 'SpellMaxThresholds', 'Cure' FROM bot_data WHERE `cure_threshold` != 150;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 14, 4, `debuff_threshold`, 'SpellMaxThresholds', 'Debuff' FROM bot_data WHERE `debuff_threshold` != 95;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 9, 4, `dispel_threshold`, 'SpellMaxThresholds', 'Dispel' FROM bot_data WHERE `dispel_threshold` != 99;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 8, 4, `dot_threshold`, 'SpellMaxThresholds', 'DoT' FROM bot_data WHERE `dot_threshold` != 95;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 4, 4, `escape_threshold`, 'SpellMaxThresholds', 'Escape' FROM bot_data WHERE `escape_threshold` != 35;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 27, 4, `fast_heal_threshold`, 'SpellMaxThresholds', 'Fast Heal' FROM bot_data WHERE `fast_heal_threshold` != 35;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 17, 4, `hate_redux_threshold`, 'SpellMaxThresholds', 'Hate Reduction' FROM bot_data WHERE `hate_redux_threshold` != 80;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 1, 4, `heal_threshold`, 'SpellMaxThresholds', 'Regular Heal' FROM bot_data WHERE `heal_threshold` != 55;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 32, 4, `hot_heal_threshold`, 'SpellMaxThresholds', 'HoT Heal' FROM bot_data WHERE `hot_heal_threshold` != 85;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 10, 4, `incombatbuff_threshold`, 'SpellMaxThresholds', 'In-Combat Buff' FROM bot_data WHERE `incombatbuff_threshold` != 150;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 6, 4, `lifetap_threshold`, 'SpellMaxThresholds', 'Lifetap' FROM bot_data WHERE `lifetap_threshold` != 60;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 11, 4, `mez_threshold`, 'SpellMaxThresholds', 'Mez' FROM bot_data WHERE `mez_threshold` != 150;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 0, 4, `nuke_threshold`, 'SpellMaxThresholds', 'Nuke' FROM bot_data WHERE `nuke_threshold` != 95;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 2, 4, `root_threshold`, 'SpellMaxThresholds', 'Root' FROM bot_data WHERE `root_threshold` != 95;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 13, 4, `slow_threshold`, 'SpellMaxThresholds', 'Slow' FROM bot_data WHERE `slow_threshold` != 95;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 7, 4, `snare_threshold`, 'SpellMaxThresholds', 'Snare' FROM bot_data WHERE `snare_threshold` != 95;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 12, 3, `buff_min_threshold`, 'SpellMinThresholds', 'Buff' FROM bot_data WHERE `buff_min_threshold` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 15, 3, `cure_min_threshold`, 'SpellMinThresholds', 'Cure' FROM bot_data WHERE `cure_min_threshold` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 14, 3, `debuff_min_threshold`, 'SpellMinThresholds', 'Debuff' FROM bot_data WHERE `debuff_min_threshold` != 25;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 9, 3, `dispel_min_threshold`, 'SpellMinThresholds', 'Dispel' FROM bot_data WHERE `dispel_min_threshold` != 25;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 8, 3, `dot_min_threshold`, 'SpellMinThresholds', 'DoT' FROM bot_data WHERE `dot_min_threshold` != 50;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 4, 3, `escape_min_threshold`, 'SpellMinThresholds', 'Escape' FROM bot_data WHERE `escape_min_threshold` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 17, 3, `hate_redux_min_threshold`, 'SpellMinThresholds', 'Hate Reduction' FROM bot_data WHERE `hate_redux_min_threshold` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 10, 3, `incombatbuff_min_threshold`, 'SpellMinThresholds', 'In-Combat Buff' FROM bot_data WHERE `incombatbuff_min_threshold` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 6, 3, `lifetap_min_threshold`, 'SpellMinThresholds', 'Lifetap' FROM bot_data WHERE `lifetap_min_threshold` != 0;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 11, 3, `mez_min_threshold`, 'SpellMinThresholds', 'Mez' FROM bot_data WHERE `mez_min_threshold` != 85;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 0, 3, `nuke_min_threshold`, 'SpellMinThresholds', 'Nuke' FROM bot_data WHERE `nuke_min_threshold` != 20;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 2, 3, `root_min_threshold`, 'SpellMinThresholds', 'Root' FROM bot_data WHERE `root_min_threshold` != 15;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 13, 3, `slow_min_threshold`, 'SpellMinThresholds', 'Slow' FROM bot_data WHERE `slow_min_threshold` != 25;
+INSERT INTO bot_settings SELECT 0, `bot_id`, (SELECT bs.`stance_id` FROM bot_stances bs WHERE bs.`bot_id` = `bot_id`) AS stance_id, 7, 3, `snare_min_threshold`, 'SpellMinThresholds', 'Snare' FROM bot_data WHERE `snare_min_threshold` != 0;
+)"
+	},
+	ManifestEntry{
+		.version = 9057,
+		.description = "2025_01_19_update_vegaseq_settings_three.sql",
+		.check = "SHOW COLUMNS FROM `bot_data` LIKE 'illusion_block'",
+		.condition = "not_empty",
+		.match = "",
+		.sql = R"(
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_ae_nukes`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_ae_rains`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_buffs`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_charms`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_complete_heals`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_cures`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_dispels`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_debuffs`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_dots`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_ds`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_escapes`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_fast_heals`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_group_heals`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_hateredux`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_heals`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_hot_heals`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_incombatbuffs`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_incombatbuffsongs`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_lifetaps`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_lulls`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_mez`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_nukes`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_outofcombatbuffsongs`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_pet_buffs`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_pet_heals`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_pets`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_precombatbuffs`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_precombatbuffsongs`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_regular_heals`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_resists`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_rez`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_roots`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_slows`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hold_snares`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `behind_mob`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `caster_range`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `buff_delay`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `complete_heal_delay`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `cure_delay`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `debuff_delay`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `dispel_delay`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `dot_delay`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `escape_delay`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `fast_heal_delay`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hate_redux_delay`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `heal_delay`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hot_heal_delay`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `incombatbuff_delay`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `lifetap_delay`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `mez_delay`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `nuke_delay`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `root_delay`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `slow_delay`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `snare_delay`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `buff_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `complete_heal_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `cure_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `debuff_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `dispel_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `dot_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `escape_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `fast_heal_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hate_redux_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `heal_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hot_heal_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `incombatbuff_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `lifetap_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `mez_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `nuke_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `root_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `slow_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `snare_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `buff_min_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `cure_min_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `debuff_min_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `dispel_min_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `dot_min_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `escape_min_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `hate_redux_min_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `incombatbuff_min_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `lifetap_min_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `mez_min_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `nuke_min_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `root_min_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `slow_min_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `snare_min_threshold`;
+ALTER TABLE `bot_data`
+	DROP COLUMN `illusion_block`;
+)"
 	}
 // -- template; copy/paste this when you need to create a new entry
 //	ManifestEntry{
