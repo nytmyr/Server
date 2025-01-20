@@ -89,18 +89,15 @@ void command_char_change(Client* c, const Seperator* sep) //TODO vegas - add sta
 	};
 
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		std::vector<std::string> description =
-		{
-			"Changes your character's race, class, gender and/or deity"
-		};
+		BotCommandHelpParams p;
 
-		std::vector<std::string> notes =
+		p.description = { "Changes your character's race, class, gender and/or deity" };
+	    p.notes =
 		{
 			fmt::format(
 				"This can only be done once every {} and changes will not be refunded or reverted.",
 				lockoutDurationString
 			),
-			"<br>"
 			"- Set each option to what you want, they must be compatible and available combinations.",
 			"- If you choose to keep a setting, you will not be charged for it.",
 			"- All incompatible items must be unequipped.",
@@ -111,16 +108,8 @@ void command_char_change(Client* c, const Seperator* sep) //TODO vegas - add sta
 			"- Adjusts all skills, tradeskills and languages as needed.",
 			"- Specialization Skills are reset to 0 if class is changed.",
 		};
-
-		std::vector<std::string> example_format =
-		{
-			fmt::format(
-				"{} [Class] [Race] [Deity] [Gender]"
-				, sep->arg[0]
-			)
-		};
-
-		std::vector<std::string> examples_one =
+		p.example_format = { fmt::format("{} [Class] [Race] [Deity] [Gender]", sep->arg[0]) };
+		p.examples_one =
 		{
 			"To change to a Barbarian Warrior worshipping The Tribunal that is a Female:",
 			fmt::format(
@@ -133,37 +122,20 @@ void command_char_change(Client* c, const Seperator* sep) //TODO vegas - add sta
 			)
 		};
 
-		std::vector<std::string> examples_two = { };
-		std::vector<std::string> examples_three = { };
-
-		std::vector<std::string> actionables = { };
-
-		std::vector<std::string> options = { };
-		std::vector<std::string> options_one = { };
-		std::vector<std::string> options_two = { };
-		std::vector<std::string> options_three = { };
-
-		std::string popup_text = c->SendCommandHelpWindow(
-			c,
-			description,
-			notes,
-			example_format,
-			examples_one, examples_two, examples_three,
-			actionables,
-			options,
-			options_one, options_two, options_three
-		);
-
+		std::string popup_text = c->SendBotCommandHelpWindow(p);
 		popup_text = DialogueWindow::Table(popup_text);
 
 		c->SendPopupToClient(sep->arg[0], popup_text.c_str());
-		c->Message(
-			Chat::Yellow,
-			fmt::format(
-				"Use {} for information about race/class/deity/gender IDs.",
-				Saylink::Silent("^typeids")
-			).c_str()
-		);
+
+		if (RuleB(Bots, SendClassRaceOnHelp)) {
+			c->Message(
+				Chat::Yellow,
+				fmt::format(
+					"Use {} for information about race/class IDs.",
+					Saylink::Silent("^classracelist")
+				).c_str()
+			);
+		}
 
 		return;
 	}

@@ -825,10 +825,6 @@ public:
 	inline bool CheckLastLosState() const { return last_los_check; }
 	std::string GetMobDescription();
 
-	bool CheckLosCheat(Mob* other);
-	bool CheckLosCheatExempt(Mob* other);
-	bool DoLosChecks(Mob* other);
-
 	std::list<struct_HateList*> GetFilteredHateList(
 		EntityFilterType filter_type = EntityFilterType::All,
 		uint32 distance = 0

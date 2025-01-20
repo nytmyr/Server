@@ -2408,6 +2408,46 @@ ALTER TABLE `bot_data`
 ALTER TABLE `bot_data`
 	DROP COLUMN `illusion_block`;
 )"
+	},
+	ManifestEntry{
+		.version = 9058,
+		.description = "2025_01_19_update_vegaseq_bot_command_access.sql",
+		.check = "SHOW COLUMNS FROM `bot_command_settings` LIKE 'bot_command'",
+		.condition = "not_empty",
+		.match = "",
+		.sql = R"(
+UPDATE `bot_command_settings`
+SET `access` = 80
+WHERE `bot_command` LIKE 'botclone'
+OR `bot_command` LIKE 'botinspectmessage'
+OR `bot_command` LIKE 'botsuffix'
+OR `bot_command` LIKE 'botsurname'
+OR `bot_command` LIKE 'bottitle'
+OR `bot_command` LIKE 'healrotation'
+OR `bot_command` LIKE 'healrotationadaptivetargeting'
+OR `bot_command` LIKE 'healrotationaddmember'
+OR `bot_command` LIKE 'healrotationaddtarget'
+OR `bot_command` LIKE 'healrotationadjustcritical'
+OR `bot_command` LIKE 'healrotationadjustsafe'
+OR `bot_command` LIKE 'healrotationcastingoverride'
+OR `bot_command` LIKE 'healrotationchangeinterval'
+OR `bot_command` LIKE 'healrotationclearhot'
+OR `bot_command` LIKE 'healrotationcleartargets'
+OR `bot_command` LIKE 'healrotationcreate'
+OR `bot_command` LIKE 'healrotationdelete'
+OR `bot_command` LIKE 'healrotationfastheals'
+OR `bot_command` LIKE 'healrotationlist'
+OR `bot_command` LIKE 'healrotationremovemember'
+OR `bot_command` LIKE 'healrotationremovetarget'
+OR `bot_command` LIKE 'healrotationresetlimits'
+OR `bot_command` LIKE 'healrotationsave'
+OR `bot_command` LIKE 'healrotationsethot'
+OR `bot_command` LIKE 'healrotationstart'
+OR `bot_command` LIKE 'healrotationstop'
+OR `bot_command` LIKE 'picklock'
+OR `bot_command` LIKE 'pickpocket'
+OR `bot_command` LIKE 'track';
+)"
 	}
 // -- template; copy/paste this when you need to create a new entry
 //	ManifestEntry{

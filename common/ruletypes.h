@@ -1204,9 +1204,6 @@ RULE_REAL(Vegas, AltCurrencySellShardRate, .50, "Sellback rate for Shard bought 
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(VegasAnticheat)
-RULE_BOOL(VegasAnticheat, CheckForLoSCheat, false, "Runs predefined zone checks to check for LoS cheating through doors and such.")
-RULE_BOOL(VegasAnticheat, EnableLoSCheatExemptions, true, "Enables exemptions for the LoS Cheat check.")
-RULE_REAL(VegasAnticheat, RangeCheckForLoSCheat, 20.0, "Default 20.0. Range to check if one is within range of a door.")
 RULE_BOOL(VegasAnticheat, DoChecksForIllusionGlitching, false, "Controls where or not coords are updating and doors are checked to see if a client is trying to illusion or horse through the door.")
 RULE_REAL(VegasAnticheat, UpdateRangeForIllusionChecks, 50.0, "Default 50.0. This is how far one must travel to initiate an update of the client's position for the illusion glitch check.")
 RULE_INT(VegasAnticheat, UpdateIntervalForIllusionChecks, 250, "Default 250ms. In ms this is how often the position is updated to revert for illusions.")
