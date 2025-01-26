@@ -1850,6 +1850,7 @@ bool IsTeleportSpell(uint16 spell_id);
 bool IsTranslocateSpell(uint16 spell_id);
 bool IsGateSpell(uint16 spell_id);
 bool IsIllusionSpell(uint16 spell_id);
+bool IsAnyPlayerIllusionSpell(uint16 spell_id);
 bool IsLDoNObjectSpell(uint16 spell_id);
 int GetSpellResistType(uint16 spell_id);
 int GetSpellTargetType(uint16 spell_id);
