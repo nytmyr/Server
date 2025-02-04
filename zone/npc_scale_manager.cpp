@@ -766,6 +766,10 @@ bool NpcScaleManager::ApplyGlobalBaseScalingToNPCDynamically(NPC *&npc)
 }
 
 bool NpcScaleManager::GetSpecialScalingZoneValues(NPC* npc, float* special_zone_max_hp, float* special_zone_min_hit, float* special_zone_max_hit) {
+	if (RuleS(VegasScaling, SpecialScalingZones).empty() || RuleS(VegasScaling, SpecialScalingZonesVersions).empty()) {
+		return false;
+	}
+
 	const auto& special_zones_list = Strings::Split(RuleS(VegasScaling, SpecialScalingZones), ",");
 	const auto& special_zones_version_list = Strings::Split(RuleS(VegasScaling, SpecialScalingZonesVersions), ",");
 
@@ -818,6 +822,10 @@ bool NpcScaleManager::GetSpecialScalingZoneValues(NPC* npc, float* special_zone_
 			RuleS(VegasScaling, SpecialZoneScalingCommonMaxHit);
 	
 		auto extract_value = [](const std::string& rule, int index) -> float {
+			if (rule.empty()) {
+				return 1.0f;
+			}
+
 			auto values = Strings::Split(rule, ',');
 			if (index >= 0 && index < static_cast<int>(values.size())) {
 				try {
