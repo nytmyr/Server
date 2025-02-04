@@ -152,6 +152,7 @@ namespace Logs {
 		ZoneState,
 		NetClient,
 		NetTCP,
+		TestDebug,
 		MaxCategoryID /* Don't Remove this */
 	};
 
@@ -262,7 +263,8 @@ namespace Logs {
 		"NpcHandin",
 		"ZoneState",
 		"Net Server <-> Client",
-		"Net TCP"
+		"Net TCP",
+		"Test Debug"
 	};
 }
 

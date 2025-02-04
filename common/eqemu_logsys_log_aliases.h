@@ -926,6 +926,16 @@ inline auto logsys = EQEmuLogSys::Instance();
         OutF(logsys, Logs::Detail, Logs::NetTCP, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
 } while (0)
 
+#define LogTestDebug(message, ...) do {\
+    if (LogSys.IsLogEnabled(Logs::General, Logs::TestDebug))\
+        OutF(LogSys, Logs::General, Logs::TestDebug, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
+} while (0)
+
+#define LogTestDebugDetail(message, ...) do {\
+    if (LogSys.IsLogEnabled(Logs::Detail, Logs::TestDebug))\
+        OutF(LogSys, Logs::Detail, Logs::TestDebug, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
+} while (0)
+
 #define Log(debug_level, log_category, message, ...) do {\
     if (logsys->IsLogEnabled(debug_level, log_category))\
         logsys->Out(debug_level, log_category, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
