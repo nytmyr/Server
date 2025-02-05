@@ -288,6 +288,7 @@ RULE_BOOL(Pets, ClientPetsUseOwnerNameInLastName, true, "Disable this to keep cl
 RULE_BOOL(Pets, CanTakeNoDrop, false, "Setting whether anyone can give no-drop items to pets")
 RULE_INT(Pets, PetTauntRange, 150, "Range at which a pet will taunt targets.")
 RULE_BOOL(Pets, AlwaysAllowPetRename, false, "Enable this option to allow /changepetname to work without enabling a pet name change via scripts.")
+RULE_BOOL(Pets, PetsRequireLoS, false, "Whether or not pets require line of sight to be told to attack their target")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(GM)
@@ -382,9 +383,9 @@ RULE_BOOL(Map, MobZVisualDebug, false, "Displays spell effects determining wheth
 RULE_BOOL(Map, MobPathingVisualDebug, false, "Displays nodes in pathing points in realtime to help with visual debugging")
 RULE_REAL(Map, FixPathingZMaxDeltaSendTo, 20, "At runtime in SendTo: maximum change in Z to allow the BestZ code to apply")
 RULE_INT(Map, FindBestZHeightAdjust, 1, "Adds this to the current Z before seeking the best Z position")
-RULE_BOOL(Map, CheckForLoSCheat, false, "Runs predefined zone checks to check for LoS cheating through doors and such.")
-RULE_BOOL(Map, EnableLoSCheatExemptions, false, "Enables exemptions for the LoS Cheat check.")
-RULE_REAL(Map, RangeCheckForLoSCheat, 20.0, "Default 20.0. Range to check if one is within range of a door.")
+RULE_BOOL(Map, CheckForDoorLoSCheat, true, "Runs LoS checks to prevent cheating through doors.")
+RULE_BOOL(Map, EnableLoSCheatExemptions, true, "Enables exemptions for the LoS Cheat check. Must modify source to create these.")
+RULE_REAL(Map, RangeCheckForDoorLoSCheat, 250.0, "Default 250.0. Range to check if a door is blocking LoS from the target.")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(Pathing)
@@ -898,6 +899,7 @@ RULE_STRING(Bots, ZonesWithForcedSpawnLimits, "", "Comma-delimited list of zones
 RULE_STRING(Bots, ZoneForcedSpawnLimits, "", "Comma-delimited list of forced spawn limits for zones.")
 RULE_INT(Bots, AICastSpellTypeDelay, 100, "Delay in milliseconds between AI cast attempts for each spell type. Default 100ms")
 RULE_INT(Bots, AICastSpellTypeHeldDelay, 2500, "Delay in milliseconds between AI cast attempts for each spell type that is held or disabled. Default 2500ms (2.5s)")
+RULE_BOOL(Bots, BotsRequireLoS, true, "Whether or not bots require line of sight to be told to attack their target")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(Chat)

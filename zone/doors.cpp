@@ -35,6 +35,9 @@
 
 #include <string.h>
 
+#include <glm/ext/matrix_transform.hpp>
+#include <numbers>
+
 #define OPEN_DOOR 0x02
 #define CLOSE_DOOR 0x03
 #define OPEN_INVDOOR 0x03
@@ -969,4 +972,186 @@ bool Doors::GetIsDoorBlacklisted()
 
 bool Doors::IsDoorBlacklisted() {
 	return m_is_blacklisted_to_open;
+}
+
+bool Doors::IsDoorBetween(glm::vec4 loc_a, glm::vec4 loc_c, uint16 door_size, float door_depth, bool draw_box) {
+	glm::vec4 door_loc = GetPosition();
+	glm::vec3 door_loc_v3 = glm::vec3(door_loc);
+	uint16 door_width = door_size / 4;
+	glm::vec3 door_center_offset = glm::vec3(door_width * 0.5f - 2.5f, door_depth * 0.5f - 2.5f, 0.0f);
+	glm::vec3 box_corner1 = glm::vec3(-door_width * 0.5f, -door_depth * 0.5f, 0.0f);
+	glm::vec3 box_corner2 = glm::vec3(door_width * 0.5f, -door_depth * 0.5f, 0.0f);
+	glm::vec3 box_corner3 = glm::vec3(door_width * 0.5f, door_depth * 0.5f, 0.0f);
+	glm::vec3 box_corner4 = glm::vec3(-door_width * 0.5f, door_depth * 0.5f, 0.0f);
+
+	//incline on 512 as well, rotating along anchor point, counter clocksize
+	//invert_state flips the door, if opened right, now opens left
+
+	//float door_heading_radians = (door_loc.w / 512.0f) * 6.283184f; // 6.283184 = 2*PI
+	//float heading_360 = (door_loc.w / 512.0f) * 360.0f;
+
+	//float door_heading_radians = heading_360 * (std::numbers::pi / 180.0f);
+
+	// Convert from 512 to radians directly
+	float door_heading_radians = (door_loc.w / 512.0f) * 2.0f * M_PI;
+
+	if (fabs(door_loc.w) < 1e-6f) {
+		door_heading_radians = 3.141592653589793f;
+	}
+
+	glm::mat4 door_rotation = glm::rotate(glm::mat4(1.0f), door_heading_radians - (m_invert_state ? -270.0f : 90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	glm::vec3 door_center = door_loc_v3 + glm::vec3(door_rotation * glm::vec4(door_center_offset, 1.0f));
+	glm::mat4 transform = glm::translate(glm::mat4(1.0f), door_center) * door_rotation;
+
+	glm::vec3 door_corner1 = glm::vec3(transform * glm::vec4(box_corner1, 1.0f));
+	glm::vec3 door_corner2 = glm::vec3(transform * glm::vec4(box_corner2, 1.0f));
+	glm::vec3 door_corner3 = glm::vec3(transform * glm::vec4(box_corner3, 1.0f));
+	glm::vec3 door_corner4 = glm::vec3(transform * glm::vec4(box_corner4, 1.0f));
+
+	//LogBotSpellTypeChecksDetail("door_heading_radians:[{}]", door_heading_radians); //deleteme
+	//LogBotSpellTypeChecksDetail("door_loc.x = {}, door_loc.y = {}, door_loc.z = {}, door_loc.w = {}", door_loc.x, door_loc.y, door_loc.z, door_loc.w); //deleteme
+	//LogBotSpellTypeChecksDetail("door_center.x = {}, door_center.y = {}, door_center.z = {}", door_center.x, door_center.y, door_center.z); //deleteme
+	//LogBotSpellTypeChecksDetail("door_corner1.x = {}, door_corner1.y = {}, door_corner1.z = {}", door_corner1.x, door_corner1.y, door_corner1.z); //deleteme
+	//LogBotSpellTypeChecksDetail("door_corner2.x = {}, door_corner2.y = {}, door_corner2.z = {}", door_corner2.x, door_corner2.y, door_corner2.z); //deleteme
+	//LogBotSpellTypeChecksDetail("door_corner3.x = {}, door_corner3.y = {}, door_corner3.z = {}", door_corner3.x, door_corner3.y, door_corner3.z); //deleteme
+	//LogBotSpellTypeChecksDetail("door_corner4.x = {}, door_corner4.y = {}, door_corner4.z = {}", door_corner4.x, door_corner4.y, door_corner4.z); //deleteme
+
+	if (draw_box) {
+		NPC::SpawnZonePointNodeNPC("loc_self", loc_a);
+		NPC::SpawnZonePointNodeNPC("door_anchor", door_loc);
+		NPC::SpawnZonePointNodeNPC("loc_other", loc_c);
+		NPC::SpawnZonePointNodeNPC("door_corner1", glm::vec4(door_corner1.x, door_corner1.y, door_corner1.z, 0));
+		NPC::SpawnZonePointNodeNPC("door_corner2", glm::vec4(door_corner2.x, door_corner2.y, door_corner2.z, 0));
+		NPC::SpawnZonePointNodeNPC("door_corner3", glm::vec4(door_corner3.x, door_corner3.y, door_corner3.z, 0));
+		NPC::SpawnZonePointNodeNPC("door_corner4", glm::vec4(door_corner4.x, door_corner4.y, door_corner4.z, 0));
+		NPC::SpawnZonePointNodeNPC("door_center", glm::vec4(door_center.x, door_center.y, door_center.z, 0));
+	}
+
+	// Intersection function to test if two line segments intersect
+	auto intersects_box = [](const glm::vec3& a, const glm::vec3& b, const glm::vec3& p1, const glm::vec3& p2) {
+		glm::vec3 ab = b - a;
+		glm::vec3 p1p2 = p2 - p1;
+
+		glm::vec3 cross = glm::cross(ab, p1p2);
+		float cross_magnitude_squared = glm::dot(cross, cross);
+
+		if (cross_magnitude_squared < 1e-6f) {
+			return false; // Lines are parallel or coincident (treat as no intersection)
+		}
+
+		float t = glm::dot(glm::cross(p1 - a, p1p2), cross) / cross_magnitude_squared;
+		float u = glm::dot(glm::cross(p1 - a, ab), cross) / cross_magnitude_squared;
+
+		return (t >= 0.0f && t <= 1.0f && u >= 0.0f && u <= 1.0f);
+		};
+
+	// Check intersection with each edge of the door bounding box
+	glm::vec3 loc_a_vec3(loc_a.x, loc_a.y, loc_a.z);
+	glm::vec3 loc_c_vec3(loc_c.x, loc_c.y, loc_c.z);
+
+	if (
+		intersects_box(loc_a_vec3, loc_c_vec3, door_corner1, door_corner2) ||
+		intersects_box(loc_a_vec3, loc_c_vec3, door_corner2, door_corner3) ||
+		intersects_box(loc_a_vec3, loc_c_vec3, door_corner3, door_corner4) ||
+		intersects_box(loc_a_vec3, loc_c_vec3, door_corner4, door_corner1)
+		) {
+		return true;
+	}
+
+	return false;
+}
+
+float Doors::DoorOpenAngle() {
+	switch (GetOpenType()) {
+		case 0: //normal 90 degree door swing backward
+		case 1: //normal 90 degree door swing backward
+		case 2: //normal 90 degree door swing backward
+		case 3: //normal 90 degree door swing backward
+		case 4: //normal 90 degree door swing backward
+		case 8: //normal 90 degree door swing backward
+			return 90.0f;
+		case 5: //normal 90 degree door swing forward
+		case 6: //normal 90 degree door swing forward
+		case 7: //normal 90 degree door swing forward
+			return -90.0f;
+		case 100: //spins around the 'heading' value in a full circle //can set invert_state=1 to have rotating doors without clicking clicking will stop rotation but you can lock it to prevent stopp
+		case 101: //spins around the 'heading' value in a full circle (faster)
+		case 102: //spins around the 'heading' value in a full circle (fastest)
+			return 90.0f; //full swing
+		case 9: //no movement, click events will only fire once
+		case 10: //slides forward
+		case 11: //slides forward
+		case 12: //slides forward
+		case 13: //nothing
+		case 14: //nothing
+		case 15: //slides further forward
+		case 16: //slides further forward
+		case 17: //slides further forward
+		case 18: //nothing
+		case 19: //nothing
+		case 20: //slides even further forward
+		case 21: //slides even further forward
+		case 22: //slides even further forward
+		case 23: //nothing
+		case 24: //nothing
+		case 25: //slides furthest forward
+		case 26: //slides furthest forward
+		case 27: //slides furthest forward
+		case 28: //nothing
+		case 29: //nothing
+		case 30: //rotates 90 degrees clockwise and returns
+		case 31: //nothing
+		case 32: //nothing
+		case 33: //nothing
+		case 34: //nothing
+		case 35: //rotates 90 degrees clockwise and returns faster
+		case 36: //rotates 90 degrees and jumps back
+		case 37: //nothing
+		case 38: //nothing
+		case 39: //nothing
+		case 40: //rotates 90 degrees clockwise and returns slower
+		case 41: //nothing
+		case 42: //nothing
+		case 43: //nothing
+		case 44: //nothing
+		case 45: //slide sideways open and closes slowly
+		case 46: //nothing
+		case 47: //nothing
+		case 48: //nothing
+		case 49: //nothing
+		case 50: //no door showing (invisible)
+		case 51: //nothing
+		case 52: //nothing
+		case 53: //no door showing (invisible)
+		case 54: //no door showing (invisible)
+		case 55: //nothing - will not trigger "can't reach that" message
+		case 56: //nothing
+		case 57: //In-zone teleporter. door_param will be linked to number and dest_zone will be linked to zone from zone_points
+		case 58: //nothing
+		case 59: //moves up and down Z axis on click //used for lifts such as the ones in gfaydark If using this opentype you can use door_param to change how high it will go If you make another door and set the 'triggerdoor' to the door id of your lift you can remotely activate
+		case 60: //moves up and down Z axis on click //same as 59 with the addition of playing drawbridge sound eff
+		case 72: //moves up and down Z axis on click
+		case 105: //spins around the 'incline' value in a full circle //can set invert_state=1 to have rotating doors without clicking clicking will stop rotation but you can lock it to prevent stopp
+		case 106: //spins around the 'incline' value in a full circle (faster)
+		case 107: //spins around the 'incline' value in a full circle (fastest)
+		case 115: //spins nonstop, 4 points saw damage
+		case 116: //spins with pause, 4 points saw damage
+		case 120: //moves down then up, 30 points spear damage
+		case 125: //moves left then right, 30 points spear damage
+		case 130: //swings back and forth, 4 points pendulum damage
+		case 135: //no movement, 4 points blade damage if touched
+		case 140: //moves up then down, 4 points crush damage
+		case 142: //moves up then down nonstop automatically (moves up and down 1 time only if invert_state is set to 0)
+		case 143: //moves up then down nonstop automatically (moves up and down 1 time only if invert_state is set to 0)
+		case 144: //moves up then down nonstop automatically (moves up and down 1 time only if invert_state is set to 0)
+		case 145: //down then up, slow movement, 10 points crushed damage
+		case 146: //down then up, fast movement, 50 points crushed damage
+		case 150: //slide fast left, back slowly, 10 points crushed damage
+		case 151: //slide slow left, back slowly, 10 points crushed damage
+		case 152: //slide fast left, back quickly, 50 points crushed dam
+		default:
+			return 0.0f;
+	}
+
+	return 0.0f;
 }

@@ -61,10 +61,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 chance, uint16 spell_type, uint16 sub_targ
 	bot_spell.SpellIndex = 0;
 	bot_spell.ManaCost = 0;
 
-	if (BotSpellTypeRequiresLoS(spell_type) && tar != this) {
-		SetHasLoS(DoLosChecks(tar));
-	}
-	else {
+	if (!BotSpellTypeRequiresLoS(spell_type) || tar == this) {
 		SetHasLoS(true);
 	}
 
@@ -219,7 +216,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 chance, uint16 spell_type, uint16 sub_targ
 
 	for (const auto& s : bot_spell_list) {
 
-		if (!IsValidSpellAndLoS(s.SpellId, HasLoS())) {
+		if (!IsValidSpellAndLoS(s.SpellId, (!BotRequiresLoSToCast(spell_type, s.SpellId) ? true : HasLoS()))) {
 			continue;
 		}
 
@@ -273,7 +270,7 @@ bool Bot::BotCastMez(Mob* tar, uint8 bot_class, BotSpell& bot_spell, uint16 spel
 	std::vector<BotSpell_wPriority> bot_spell_list = GetPrioritizedBotSpellsBySpellType(this, spell_type, tar, IsAEBotSpellType(spell_type));
 
 	for (const auto& s : bot_spell_list) {
-		if (!IsValidSpellAndLoS(s.SpellId, HasLoS())) {
+		if (!IsValidSpellAndLoS(s.SpellId, (!BotRequiresLoSToCast(spell_type, s.SpellId) ? true : HasLoS()))) {
 			continue;
 		}
 
@@ -327,7 +324,7 @@ bool Bot::BotCastCure(Mob* tar, uint8 bot_class, BotSpell& bot_spell, uint16 spe
 
 	bot_spell = GetBestBotSpellForCure(this, tar, spell_type);
 
-	if (!IsValidSpellAndLoS(bot_spell.SpellId, HasLoS())) {
+	if (!IsValidSpellAndLoS(bot_spell.SpellId, (!BotRequiresLoSToCast(spell_type, bot_spell.SpellId) ? true : HasLoS()))) {
 		return false;
 	}
 
@@ -397,7 +394,7 @@ bool Bot::BotCastPet(Mob* tar, uint8 bot_class, BotSpell& bot_spell, uint16 spel
 		bot_spell = GetFirstBotSpellBySpellType(this, spell_type);
 	}
 
-	if (!IsValidSpellAndLoS(bot_spell.SpellId, HasLoS())) {
+	if (!IsValidSpellAndLoS(bot_spell.SpellId, (!BotRequiresLoSToCast(spell_type, bot_spell.SpellId) ? true : HasLoS()))) {
 		return false;
 	}
 
@@ -435,24 +432,24 @@ bool Bot::BotCastNuke(Mob* tar, uint8 bot_class, BotSpell& bot_spell, uint16 spe
 			bot_spell = GetBestBotSpellForStunByTargetType(this, ST_TargetOptional, spell_type, IsAEBotSpellType(spell_type), tar);
 		}
 		
-		if (!IsValidSpellAndLoS(bot_spell.SpellId, HasLoS())) {
+		if (!IsValidSpellAndLoS(bot_spell.SpellId, (!BotRequiresLoSToCast(spell_type, bot_spell.SpellId) ? true : HasLoS()))) {
 			return false;
 		}
 	}
 
-	if (!IsValidSpellAndLoS(bot_spell.SpellId, HasLoS())) {
+	if (!IsValidSpellAndLoS(bot_spell.SpellId, (!BotRequiresLoSToCast(spell_type, bot_spell.SpellId) ? true : HasLoS()))) {
 		bot_spell = GetBestBotSpellForNukeByBodyType(this, tar->GetBodyType(), spell_type, IsAEBotSpellType(spell_type), tar);
 	}
 
-	if (!IsValidSpellAndLoS(bot_spell.SpellId, HasLoS()) && spell_type == BotSpellTypes::Nuke && bot_class == Class::Wizard) {
+	if (!IsValidSpellAndLoS(bot_spell.SpellId, IsAEBotSpellType(spell_type)) && spell_type == BotSpellTypes::Nuke && bot_class == Class::Wizard) {
 		bot_spell = GetBestBotWizardNukeSpellByTargetResists(this, tar, spell_type);
 	}
 
-	if (!IsValidSpellAndLoS(bot_spell.SpellId, HasLoS())) {
+	if (!IsValidSpellAndLoS(bot_spell.SpellId, (!BotRequiresLoSToCast(spell_type, bot_spell.SpellId) ? true : HasLoS()))) {
 		std::vector<BotSpell_wPriority> bot_spell_list = GetPrioritizedBotSpellsBySpellType(this, spell_type, tar, IsAEBotSpellType(spell_type));
 
 		for (const auto& s : bot_spell_list) {
-			if (!IsValidSpellAndLoS(s.SpellId, HasLoS())) {
+			if (!IsValidSpellAndLoS(s.SpellId, (!BotRequiresLoSToCast(spell_type, s.SpellId) ? true : HasLoS()))) {
 				continue;
 			}
 
@@ -908,7 +905,7 @@ std::list<BotSpell> Bot::GetBotSpellsForSpellEffect(Bot* caster, uint16 spell_ty
 		const std::vector<BotSpells_wIndex>& bot_spell_list = caster->BotGetSpellsByType(spell_type);
 
 		for (int i = bot_spell_list.size() - 1; i >= 0; i--) {
-			if (!IsValidSpellAndLoS(bot_spell_list[i].spellid, caster->HasLoS())) {
+			if (!IsValidSpellAndLoS(bot_spell_list[i].spellid, (!BotRequiresLoSToCast(spell_type, bot_spell_list[i].spellid) ? true : caster->HasLoS()))) {
 				continue;
 			}
 
@@ -946,7 +943,7 @@ std::list<BotSpell> Bot::GetBotSpellsForSpellEffectAndTargetType(Bot* caster, ui
 		const std::vector<BotSpells_wIndex>& bot_spell_list = caster->BotGetSpellsByType(spell_type);
 
 		for (int i = bot_spell_list.size() - 1; i >= 0; i--) {
-			if (!IsValidSpellAndLoS(bot_spell_list[i].spellid, caster->HasLoS())) {
+			if (!IsValidSpellAndLoS(bot_spell_list[i].spellid, (!BotRequiresLoSToCast(spell_type, bot_spell_list[i].spellid) ? true : caster->HasLoS()))) {
 				continue;
 			}
 
@@ -987,7 +984,7 @@ std::list<BotSpell> Bot::GetBotSpellsBySpellType(Bot* caster, uint16 spell_type)
 		const std::vector<BotSpells_wIndex>& bot_spell_list = caster->BotGetSpellsByType(spell_type);
 
 		for (int i = bot_spell_list.size() - 1; i >= 0; i--) {
-			if (!IsValidSpellAndLoS(bot_spell_list[i].spellid, caster->HasLoS())) {
+			if (!IsValidSpellAndLoS(bot_spell_list[i].spellid, (!BotRequiresLoSToCast(spell_type, bot_spell_list[i].spellid) ? true : caster->HasLoS()))) {
 				continue;
 			}
 
@@ -1016,7 +1013,7 @@ std::vector<BotSpell_wPriority> Bot::GetPrioritizedBotSpellsBySpellType(Bot* cas
 		const std::vector<BotSpells_wIndex>& bot_spell_list = caster->BotGetSpellsByType(spell_type);
 
 		for (int i = bot_spell_list.size() - 1; i >= 0; i--) {
-			if (!IsValidSpellAndLoS(bot_spell_list[i].spellid, caster->HasLoS())) {
+			if (!IsValidSpellAndLoS(bot_spell_list[i].spellid, (!BotRequiresLoSToCast(spell_type, bot_spell_list[i].spellid) ? true : caster->HasLoS()))) {
 				continue;
 			}
 
@@ -1103,7 +1100,7 @@ BotSpell Bot::GetFirstBotSpellBySpellType(Bot* caster, uint16 spell_type) {
 		const std::vector<BotSpells_wIndex>& bot_spell_list = caster->BotGetSpellsByType(spell_type);
 
 		for (int i = bot_spell_list.size() - 1; i >= 0; i--) {
-			if (!IsValidSpellAndLoS(bot_spell_list[i].spellid, caster->HasLoS())) {
+			if (!IsValidSpellAndLoS(bot_spell_list[i].spellid, (!BotRequiresLoSToCast(spell_type, bot_spell_list[i].spellid) ? true : caster->HasLoS()))) {
 				continue;
 			}
 
@@ -1512,7 +1509,7 @@ Mob* Bot::GetFirstIncomingMobToMez(Bot* caster, int16 spell_id, uint16 spell_typ
 			}
 
 			if (result) {
-				caster->SetHasLoS(true);
+				//caster->SetHasLoS(true); //TODO - is this needed?
 
 				return result;
 			}
@@ -1926,7 +1923,7 @@ BotSpell Bot::GetDebuffBotSpell(Bot* caster, Mob *tar, uint16 spell_type) {
 		const std::vector<BotSpells_wIndex>& bot_spell_list = caster->BotGetSpellsByType(spell_type);
 
 		for (int i = bot_spell_list.size() - 1; i >= 0; i--) {
-			if (!IsValidSpellAndLoS(bot_spell_list[i].spellid, caster->HasLoS())) {
+			if (!IsValidSpellAndLoS(bot_spell_list[i].spellid, (!BotRequiresLoSToCast(spell_type, bot_spell_list[i].spellid) ? true : caster->HasLoS()))) {
 				continue;
 			}
 
@@ -1972,7 +1969,7 @@ BotSpell Bot::GetBestBotSpellForResistDebuff(Bot* caster, Mob *tar, uint16 spell
 		const std::vector<BotSpells_wIndex>& bot_spell_list = caster->BotGetSpellsByType(spell_type);
 
 		for (int i = bot_spell_list.size() - 1; i >= 0; i--) {
-			if (!IsValidSpellAndLoS(bot_spell_list[i].spellid, caster->HasLoS())) {
+			if (!IsValidSpellAndLoS(bot_spell_list[i].spellid, (!BotRequiresLoSToCast(spell_type, bot_spell_list[i].spellid) ? true : caster->HasLoS()))) {
 				continue;
 			}
 
