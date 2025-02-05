@@ -41,12 +41,9 @@ void NpcScaleManager::ScaleNPC(
 	auto zone_id          = zone->GetZoneID();
 	auto instance_version = zone->GetInstanceVersion();
 
-	float special_zone_flat_scalerate, special_zone_max_hp, special_zone_min_hit, special_zone_max_hit = 1.0f;
+	float special_zone_flat_scalerate = (RuleR(VegasScaling, FlatRateScaling) > 0.0f ? RuleR(VegasScaling, FlatRateScaling) : 1.0f);
+	float special_zone_max_hp, special_zone_min_hit, special_zone_max_hit = 1.0f;
 	bool is_special_zone = GetSpecialScalingZoneValues(npc, &special_zone_max_hp, &special_zone_min_hit, &special_zone_max_hit);
-
-	if (is_special_zone && RuleB(VegasScaling, EnableFlatRateScaling)) {
-		special_zone_flat_scalerate = (RuleR(VegasScaling, FlatRateScaling) > 0 ? RuleR(VegasScaling, FlatRateScaling) : 1);
-	}
 
 	global_npc_scale scale_data = GetGlobalScaleDataForTypeLevel(
 		npc_type,
