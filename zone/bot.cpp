@@ -4309,8 +4309,16 @@ void Bot::Depop() {
 	if(HasGroup())
 		Bot::RemoveBotFromGroup(this, GetGroup());
 	
-	if(HasPet())
-		GetPet()->Depop();
+	Mob* bot_pet = GetPet();
+
+	if (bot_pet) {
+		if (bot_pet->Charmed()) {
+			bot_pet->BuffFadeByEffect(SE_Charm);
+		}
+		else {
+			bot_pet->Depop();
+		}
+	}
 
 	_botOwner = 0;
 	_botOwnerCharacterID = 0;
