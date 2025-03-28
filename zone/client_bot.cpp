@@ -111,6 +111,53 @@ int Client::GetBotSpawnLimit(uint8 class_id)
 		}
 	}
 
+	auto bucket_value = GetBucket(bucket_name);
+
+	if (!bucket_value.empty() && Strings::IsNumber(bucket_value)) {
+		bot_spawn_limit = Strings::ToInt(bucket_value);
+	}
+
+	if (!class_id || !bot_spawn_limit) {
+		const int extra_unlocks_level = RuleI(Bots, LevelForExtraBots);
+		if (RuleB(Bots, TieredSpawnLimits) && GetLevel() <= extra_unlocks_level) {
+			const auto& tier_levels = Strings::Split(RuleS(Bots, UnlockLevelByTier), ",");
+			const auto& tier_limits = Strings::Split(RuleS(Bots, SpawnLimitsByTier), ",");
+
+			if (
+				!tier_levels.empty() &&
+				!tier_limits.empty() &&
+				tier_levels.size() == tier_limits.size()
+			) {
+				for (uint16 i = 0; i < tier_levels.size(); ++i) {
+					try {
+						auto tier_level = std::stoul(tier_levels[i]);
+
+						if (GetLevel() >= tier_level) {
+							try {
+								auto tier_limit = std::stoul(tier_limits[i]);
+								bool is_tier_limited =
+									(
+										GetLevel() < extra_unlocks_level ||
+										(
+											GetLevel() == extra_unlocks_level &&
+											bot_spawn_limit < tier_limit
+										)
+									);
+
+								if (is_tier_limited) {
+									bot_spawn_limit = tier_limit;
+								}
+							} catch (const std::exception& e) {
+								LogInfo("Invalid entry in Rule Bots:SpawnLimitsByTier: [{}]", e.what());
+							}
+						}
+					} catch (const std::exception& e) {
+						LogInfo("Invalid entry in Rule Bots:UnlockLevelByTier: [{}]", e.what());
+					}
+				}
+			}
+		}
+
 	if (!class_id) {
 		const auto &zones_list = Strings::Split(RuleS(Bots, ZonesWithSpawnLimits), ",");
 

@@ -916,7 +916,11 @@ RULE_STRING(Bots, ZoneForcedSpawnLimits, "", "Comma-delimited list of forced spa
 RULE_INT(Bots, AICastSpellTypeDelay, 100, "Delay in milliseconds between AI cast attempts for each spell type. Default 100ms")
 RULE_INT(Bots, AICastSpellTypeHeldDelay, 2500, "Delay in milliseconds between AI cast attempts for each spell type that is held or disabled. Default 2500ms (2.5s)")
 RULE_BOOL(Bots, BotsRequireLoS, true, "Whether or not bots require line of sight to be told to attack their target")
-RULE_INT(Bots, BotAdditionalTauntHate, 0, "0 Default. Additional Hate added to the taunter on each successful Taunt.")
+RULE_INT(Bots, BotAdditionalTauntHate, 0, "Additional Hate added to the taunter on each successful Taunt. Default 0.")
+RULE_BOOL(Bots, TieredSpawnLimits, false, "Determines whether or not bot spawn limits are unlocked by level tiers. Default false.")
+RULE_STRING(Bots, SpawnLimitsByTier, "1,2,3,4,5", "Spawn limits for bot spawn tiers in a comma-delimited list. Default '1,2,3,4,5'")
+RULE_STRING(Bots, UnlockLevelByTier, "5,10,25,40,50", "Level required to unlock spawn limit tiers in a comma-delimited list. Default '5,10,25,40,50'")
+RULE_INT(Bots, LevelForExtraBots, 50, "Level at which you can surpass the tier limits via other methods. Default 50.")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(Chat)
