@@ -189,7 +189,8 @@ Client::Client() : Mob(
 				   tmSitting(0),
 				   parcel_timer(RuleI(Parcel, ParcelDeliveryDelay)),
 				   lazy_load_bank_check_timer(1000),
-				   bandolier_throttle_timer(0)
+				   bandolier_throttle_timer(0),
+                   illusion_fade_reset(RuleI(Range,UpdateIntervalForIllusionChecks))
 {
 	eqs = nullptr;
 	for (auto client_filter = FilterNone; client_filter < _FilterCount; client_filter = eqFilterType(client_filter + 1)) {
@@ -394,6 +395,13 @@ Client::Client() : Mob(
 	SetBotPulling(false);
 	SetBotPrecombat(false);
 
+	illusion_fade_reset.Disable();
+	illusion_fade_check = false;
+	old_x = 0;
+	old_y = 0;
+	old_z = 0;
+	old_heading = 0;
+
 	AI_Init();
 
 }
@@ -498,7 +506,8 @@ Client::Client(EQStreamInterface *ieqs) : Mob(
 	tmSitting(0),
 	parcel_timer(RuleI(Parcel, ParcelDeliveryDelay)),
 	lazy_load_bank_check_timer(1000),
-	bandolier_throttle_timer(0)
+	bandolier_throttle_timer(0),
+    illusion_fade_reset(RuleI(Range,UpdateIntervalForIllusionChecks))
 {
 	for (auto client_filter = FilterNone; client_filter < _FilterCount; client_filter = eqFilterType(client_filter + 1)) {
 		SetFilter(client_filter, FilterShow);
@@ -704,6 +713,13 @@ Client::Client(EQStreamInterface *ieqs) : Mob(
 
 	SetBotPulling(false);
 	SetBotPrecombat(false);
+
+	illusion_fade_reset.Disable();
+	illusion_fade_check = false;
+	old_x = 0;
+	old_y = 0;
+	old_z = 0;
+	old_heading = 0;
 
 	AI_Init();
 }
@@ -13282,4 +13298,51 @@ bool Client::UncompleteTask(int task_id)
 	);
 
 	return task_state->UncompleteTask(task_id);
+}
+
+bool Client::DoDoorIllusionCheatChecks() {
+	auto zone_id = zone->GetZoneID();
+
+	if (RuleB(VegasAnticheat, DoChecksForIllusionGlitching)) {
+		switch (zone_id) {
+			case Zones::LOAD:
+			case Zones::LOAD2:
+			case Zones::BAZAAR:
+			case Zones::NEXUS:
+			case Zones::POKNOWLEDGE:
+			case Zones::POTRANQUILITY:
+			case Zones::ARENA:
+			case Zones::POEARTHB:
+			case Zones::GUILDHALL:
+				break;
+			default:
+				for (auto itr: entity_list.GetDoorsList()) {
+					Doors *d = itr.second;
+
+					if (
+						!d->IsDoorOpen() &&
+						(
+							d->GetKeyItem() ||
+							d->GetLockpick() ||
+							d->IsDoorBlacklisted() ||
+							d->GetNoKeyring() != 0
+						)
+					) {
+						float distance = Distance(m_Position, d->GetPosition());
+
+						if (distance > RuleR(VegasAnticheat, UpdateRangeForIllusionChecks)) {
+							continue;
+						}
+
+						CastToClient()->illusion_fade_check = true;
+
+						return false;
+					}
+				}
+
+				break;
+		}
+	}
+
+	return true;
 }

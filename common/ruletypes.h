@@ -1147,7 +1147,6 @@ RULE_BOOL(Cheat, EnableMQGateDetector, true, "Enable the MQGate Detector. Set to
 RULE_BOOL(Cheat, EnableMQGhostDetector, true, "Enable the MQGhost Detector. Set to False to disable this feature.")
 RULE_BOOL(Cheat, EnableMQFastMemDetector, true, "Enable the MQFastMem Detector. Set to False to disable this feature.")
 RULE_BOOL(Cheat, MarkMQWarpLT, false, "Mark clients makeing smaller warps")
-RULE_INT(Cheat, AntiCheatExemptDuration, 3, "Duration of cheat exemption. Default 3 = 3 seconds")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(Command)
@@ -1208,7 +1207,8 @@ RULE_REAL(Vegas, AltCurrencySellShardRate, .50, "Sellback rate for Shard bought 
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(VegasAnticheat)
-RULE_BOOL(VegasAnticheat, DoChecksForIllusionGlitching, false, "Controls where or not coords are updating and doors are checked to see if a client is trying to illusion or horse through the door.")
+RULE_INT(VegasAnticheat, AntiCheatExemptDuration, 3, "Duration of cheat exemption. Default 3 = 3 seconds")
+RULE_BOOL(VegasAnticheat, DoChecksForIllusionGlitching, true, "Controls where or not coords are updating and doors are checked to see if a client is trying to illusion or horse through the door.")
 RULE_REAL(VegasAnticheat, UpdateRangeForIllusionChecks, 50.0, "Default 50.0. This is how far one must travel to initiate an update of the client's position for the illusion glitch check.")
 RULE_INT(VegasAnticheat, UpdateIntervalForIllusionChecks, 250, "Default 250ms. In ms this is how often the position is updated to revert for illusions.")
 RULE_CATEGORY_END()

@@ -549,6 +549,10 @@ void Client::CompleteConnect()
 	// Task Packets
 	LoadClientTaskState();
 
+	//illusion fade checks
+	illusion_fade_reset.Start();
+	illusion_fade_check = false;
+
 	// moved to dbload and translators since we iterate there also .. keep m_pp values whatever they are when they get here
 	/*const auto sbs = EQ::spells::DynamicLookup(ClientVersion(), GetGM())->SpellbookSize;
 	for (uint32 spellInt = 0; spellInt < sbs; ++spellInt) {

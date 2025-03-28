@@ -562,6 +562,10 @@ bool Client::Process() {
 				ItemTimerCheck();
 			}
 
+			if (illusion_fade_reset.Check() && !dead) {
+				DoIllusionWearCheck();
+			}
+
 			if (m_clear_wearchange_cache_timer.Check()) {
 				m_last_seen_wearchange.clear();
 			}
@@ -2538,4 +2542,24 @@ bool Client::CheckWaterAutoFireLoS(Mob* m)
 		zone->watermap->InLiquid(GetPosition()) ==
 		zone->watermap->InLiquid(m->GetPosition())
 	);
+}
+
+void Client::DoIllusionWearCheck() {
+	if (illusion_fade_check) {
+		illusion_fade_check = false;
+		LogTestDebug("Moving to old coords in [{}] [#{}] - x: [{}], y: [{}], z: [{}], h: [{}].", zone->GetZoneID(), zone->GetInstanceID(), old_x, old_y, old_z, old_heading); //deleteme
+		Message(Chat::Yellow, "Oops, looks like that's not gonna work...");
+		MovePC(zone->GetZoneID(), zone->GetInstanceID(), old_x, old_y, old_z, old_heading, 2);
+	}
+
+	float old_total = old_x + old_y;
+	float new_total = GetX() + GetY();
+	float difference = (old_x + old_y) - (GetX() + GetY());
+
+	if (difference < (-1 * RuleR(VegasAnticheat, UpdateRangeForIllusionChecks)) || difference > RuleR(VegasAnticheat, UpdateRangeForIllusionChecks)) {
+		old_x = GetX();
+		old_y = GetY();
+		old_z = GetZ();
+		old_heading = GetHeading();
+	}
 }

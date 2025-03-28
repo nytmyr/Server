@@ -1344,6 +1344,10 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 #ifdef SPELL_EFFECT_SPAM
 				snprintf(effect_desc, _EDLEN, "Shadow Step: %d", effect_value);
 #endif
+				if (IsClient()) {
+					CastToClient()->DoDoorIllusionCheatChecks();
+				}
+
 				if(IsNPC())	// see Song of Highsun - sends mob home
 				{
 					Gate();
@@ -1486,6 +1490,10 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 				snprintf(effect_desc, _EDLEN, "Illusion: race %d", effect_value);
 #endif
 				if (caster && caster->IsOfClientBot()) {
+					if (IsClient()) {
+						CastToClient()->DoDoorIllusionCheatChecks();
+					}
+
 					Mob* target = IsClient() ? static_cast<Mob*>(CastToClient()) : static_cast<Mob*>(CastToBot());
 
 					if (target && target->GetIllusionBlock()) {
@@ -1503,6 +1511,10 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 				snprintf(effect_desc, _EDLEN, "Illusion Copy");
 #endif
 				if (caster && caster->IsOfClientBot()) {
+					if (IsClient()) {
+						CastToClient()->DoDoorIllusionCheatChecks();
+					}
+
 					Mob* target = IsClient() ? static_cast<Mob*>(CastToClient()) : static_cast<Mob*>(CastToBot());
 
 					if (target && target->GetIllusionBlock()) {
@@ -1595,6 +1607,10 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 				snprintf(effect_desc, _EDLEN, "Eye of Zomm");
 #endif
 				if(caster && caster->IsClient()) {
+					if (IsClient()) {
+						CastToClient()->DoDoorIllusionCheatChecks();
+					}
+
 					char eye_name[64];
 					snprintf(eye_name, sizeof(eye_name), "Eye_of_%s", caster->GetCleanName());
 					int duration = CalcBuffDuration(caster, this, spell_id) * 6;
@@ -1732,6 +1748,10 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 #ifdef SPELL_EFFECT_SPAM
 				snprintf(effect_desc, _EDLEN, "Model Size: %d%%", effect_value);
 #endif
+				if (IsClient()) {
+					CastToClient()->DoDoorIllusionCheatChecks();
+				}
+
 				if (effect_value && effect_value != 100) {
 					// Only allow 2 size changes from Base Size
 					float modifyAmount = (static_cast<float>(effect_value) / 100.0f);
@@ -1775,6 +1795,8 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 #endif
 				if(IsClient())	// NPCs can't ride
 				{
+					CastToClient()->DoDoorIllusionCheatChecks();
+
 					Client *client = CastToClient();
 
 					// Prevent Feigned players from summoning horses and riding away to freedom.
@@ -4334,6 +4356,7 @@ void Mob::BuffFadeBySlot(int slot, bool iRecalcBonuses)
 			{
 				if(IsClient())
 				{
+					CastToClient()->DoDoorIllusionCheatChecks();
 					/*Mob* horse = entity_list.GetMob(CastToClient()->GetHorseId());
 					if (horse) horse->Depop();
 					CastToClient()->SetHasMount(false);*/
@@ -4345,6 +4368,10 @@ void Mob::BuffFadeBySlot(int slot, bool iRecalcBonuses)
 			case SE_IllusionCopy:
 			case SE_Illusion:
 			{
+				if (IsClient()) {
+					CastToClient()->DoDoorIllusionCheatChecks();
+				}
+
 				SendIllusionPacket(
 					AppearanceStruct{
 						.gender_id = GetBaseGender(),

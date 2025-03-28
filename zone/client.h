@@ -1961,6 +1961,10 @@ public:
 		uint64 platinum;
 		std::string return_source;
 	};
+
+	void DoIllusionWearCheck(); //Checks for illusion wears to warp back.
+	bool DoDoorIllusionCheatChecks();
+
 private:
 	ExternalHandinMoneyReturned m_external_handin_money_returned = {};
 	std::vector<uint32_t>       m_external_handin_items_returned = {};
@@ -2280,6 +2284,9 @@ private:
 	// we use this very sparingly at the zone level
 	// used for keeping clients in donecount sync before world sends absolute confirmations of state
 	int64 m_shared_task_id = 0;
+
+	Timer illusion_fade_reset;
+	bool illusion_fade_check = false;
 public:
 	void SetSharedTaskId(int64 shared_task_id);
 	int64 GetSharedTaskId() const;
@@ -2363,6 +2370,12 @@ private:
 	std::vector<uint32_t> m_dynamic_zone_ids;
 
 	std::vector<uint32_t> m_completed_shared_tasks;
+
+	//illusion fade checks
+	float old_x = GetX();
+	float old_y = GetY();
+	float old_z = GetZ();
+	float old_heading = GetHeading();
 
 public:
 	enum BotOwnerOption : size_t {
