@@ -932,6 +932,17 @@ float Perl_Mob_GetZ(Mob* self) // @categories Script Utility
 	return self->GetZ();
 }
 
+float Perl_Mob_GetBestZ(Mob* self, float x, float y, float z) // @categories Script Utility
+ {
+	glm::vec3 cur_pos = glm::vec3(x, y, z);
+	return zone->zonemap != nullptr ? zone->zonemap->FindBestZ(cur_pos, nullptr) : 0.00f;
+ }
+
+float Perl_Mob_GetFixedZ(Mob* self) // @categories Script Utility
+{
+	return self->GetFixedZ(self->GetPosition());
+}
+
 float Perl_Mob_GetHeading(Mob* self) // @categories Script Utility
 {
 	return self->GetHeading();
@@ -3877,6 +3888,7 @@ void perl_register_mob()
 	package.add("GetBaseSize", &Perl_Mob_GetBaseSize);
 	package.add("GetBeard", &Perl_Mob_GetBeard);
 	package.add("GetBeardColor", &Perl_Mob_GetBeardColor);
+	package.add("GetBestZ", &Perl_Mob_GetBestZ);
 	package.add("GetBodyType", &Perl_Mob_GetBodyType);
 	package.add("GetBucket", &Perl_Mob_GetBucket);
 	package.add("GetBucketExpires", &Perl_Mob_GetBucketExpires);
@@ -3921,6 +3933,7 @@ void perl_register_mob()
 	package.add("GetExtraHaste", &Perl_Mob_GetExtraHaste);
 	package.add("GetEyeColor1", &Perl_Mob_GetEyeColor1);
 	package.add("GetEyeColor2", &Perl_Mob_GetEyeColor2);
+	package.add("GetFixedZ", &Perl_Mob_GetFixedZ);
 	package.add("GetFR", &Perl_Mob_GetFR);
 	package.add("GetFlurryChance", &Perl_Mob_GetFlurryChance);
 	package.add("GetFollowID", &Perl_Mob_GetFollowID);

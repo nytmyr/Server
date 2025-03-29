@@ -456,6 +456,9 @@ NPC::NPC(const NPCType *npc_type_data, Spawn2 *in_respawn, const glm::vec4 &posi
 
 	npc_scale_manager->ScaleNPC(this);
 
+	SetIsStuck(false);
+	SetStuckCount(0);
+
 	RestoreMana();
 
 	if (GetBodyType() == BodyType::Animal && !RuleB(NPC, AnimalsOpenDoors)) {
@@ -3884,33 +3887,83 @@ void NPC::HandleRoambox()
 		return;
 	}
 
+	if (IsStuck() && zone->GetZoneID() != 98) { //TODO - Fix Erud's Crossing (ZoneID 98)
+		uint16 moveDistance = zone->random.Int(10, 100);
+		//uint8 moveAngle = zone->random.Int(1, 359);
+		//LogTestDebug("[{}] [#{}] is stuck and TryMoveAlong {} units at an angle of {}", GetCleanName(), GetID(), moveDistance, moveAngle); //deleteme
+		LogTestDebug("Stuck NPC in [{} - {}] - [{}] [ID: {}] [EntID: {}] [SPID: {}] [#{}] | {}"
+			, zone->GetLongName()
+			, zone->GetShortName()
+			, GetCleanName()
+			, GetNPCTypeID()
+			, GetID()
+			, GetSpawnPointID()
+			, GetStuckCount()
+			, fmt::format(
+				"{}",
+				Saylink::Silent(
+					fmt::format("#goto {} {} {} {}", GetX(), GetY(), GetZ(), GetHeading())
+					, "goto"
+				)
+			).c_str()
+		); //deleteme
+
+		if (RuleB(Pathing, OutputStuckToDiscord)) {
+			std::ostringstream output;
+			output <<
+				"Stuck NPC in [" << zone->GetLongName() << "](" << RuleS(Website, AllacloneURL) << "?a=zone&name=" << zone->GetShortName() << ")"
+				" - [" << GetCleanName() << "](" << RuleS(Website, AllacloneURL) << "?a=npc&id=" << GetNPCTypeID() << ") [ID: " << GetNPCTypeID() << "]"
+				" [SPID: " << GetSpawnPointID() << "] [Count: " << GetStuckCount() << "]"
+				" | #goto " << int(GetX()) << " " << int(GetY()) << " " << int(GetZ()) << " " << int(GetHeading()) << ""
+				;
+			std::string out_final = output.str();
+			zone->SendDiscordMessage(RuleS(Pathing, StuckDiscordWebhook), out_final);
+		}
+
+		auto curPos = glm::vec3(EQ::Clamp(GetX(), m_roambox.min_x, m_roambox.max_x), EQ::Clamp(GetY(), m_roambox.min_y, m_roambox.max_y), GetZ());
+
+		curPos.z = ((zone->zonemap->FindBestZ(curPos, nullptr) != BEST_Z_INVALID) ? zone->zonemap->FindBestZ(curPos, nullptr) : (GetFixedZ(curPos) != BEST_Z_INVALID) ? GetFixedZ(curPos) : curPos.z);
+		Teleport(curPos);
+
+		if (GetStuckCount() >= RuleI(Pathing, StuckCountLimit)) {
+			TryMoveAlong(moveDistance, CalculateHeadingToTarget(m_SpawnPoint.x, m_SpawnPoint.y));
+		}
+	}
+
 	bool ready_to_set_new_destination = !IsMoving() && time_until_can_move < Timer::GetCurrentTime();
+
 	if (ready_to_set_new_destination) {
 		// make several attempts to find a valid next move in the box
 		bool can_path = false;
-		for (int i = 0; i < 10; i++) {
+
+		for (int i = 0; i < RuleI(Pathing, NumTriesToFindNextRoamPoint); i++) {
 			auto move_x      = static_cast<float>(zone->random.Real(-m_roambox.distance, m_roambox.distance));
 			auto move_y      = static_cast<float>(zone->random.Real(-m_roambox.distance, m_roambox.distance));
 			auto requested_x = EQ::Clamp((GetX() + move_x), m_roambox.min_x, m_roambox.max_x);
 			auto requested_y = EQ::Clamp((GetY() + move_y), m_roambox.min_y, m_roambox.max_y);
 			auto requested_z = GetGroundZ(requested_x, requested_y);
+			auto requested_pos = glm::vec3(requested_x, requested_y, requested_z);
 
-			if (std::abs(requested_z - GetZ()) > 100) {
+			if (std::abs(requested_z - GetZ()) > RuleI(Pathing, RoamPointMaxZVariation)) {
 				LogNPCRoamBox("[{}] | Failed to find reasonable ground [{}]", GetCleanName(), i);
 				continue;
 			}
 
 			std::vector<float> heights = {0, 250, -250};
+			//std::vector<float> heights = { 0, 25, -25, 50, -50, 75, -75, 100. -100, 125, -125, 150, -150, 175, -175, 200, -200, 225, -225, 250, -250 };
+
 			for (auto &h: heights) {
 				if (CanPathTo(requested_x, requested_y, requested_z + h)) {
 					LogNPCRoamBox("[{}] Found line of sight to path attempt [{}] at height [{}]", GetCleanName(), i, h);
 					can_path = true;
+
 					break;
 				}
 			}
 
 			if (!can_path) {
 				LogNPCRoamBox("[{}] | Failed line of sight to path attempt [{}]", GetCleanName(), i);
+
 				continue;
 			}
 
@@ -3991,11 +4044,29 @@ void NPC::HandleRoambox()
 			);
 
 			if (can_path) {
+				SetIsStuck(false);
+				SetStuckCount(0);
 				SetCurrentWP(EQ::WaypointStatus::RoamBoxPauseInProgress);
 				NavigateTo(m_roambox.dest_x, m_roambox.dest_y, m_roambox.dest_z);
 				return;
 			}
 		}
+
+		LogTestDebug("[{}] [#{}] Failed to find next roambox node - {} [FixedZ:{}]"
+			, GetCleanName()
+			, GetID()
+			, fmt::format(
+				"{}",
+				Saylink::Silent(
+					fmt::format("#goto {} {} {} {}", GetX(), GetY(), GetZ(), GetHeading())
+					, "goto"
+				)
+			).c_str()
+			, GetFixedZ(glm::vec3(GetX(), GetY(), GetZ()))
+		); //deleteme
+
+		SetIsStuck(true);
+		SetStuckCount(GetStuckCount() + 1);
 
 		// failed to find path, reset timer
 		int roambox_move_delay = EQ::ClampLower(GetRoamboxDelay(), GetRoamboxMinDelay());

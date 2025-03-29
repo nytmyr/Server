@@ -264,6 +264,11 @@ public:
 	void SetSecSkill(uint8 skill_type)	{ sec_melee_type = skill_type; }
 	void SetRangedSkill(uint8 skill_type)	{ ranged_type = skill_type; }
 
+	bool IsStuck() { return isStuck; }
+	void SetIsStuck(bool currentState) { isStuck = currentState; }
+	void SetStuckCount(uint16 newCount) { stuckCount = newCount; }
+	uint16 GetStuckCount() { return stuckCount; }
+
 	uint32	MerchantType;
 	bool	merchant_open;
 	inline void	MerchantOpenShop() { merchant_open = true; }
@@ -766,6 +771,9 @@ protected:
 	uint8	prim_melee_type;			//Sets the Primary Weapon attack message and animation
 	uint8	sec_melee_type;				//Sets the Secondary Weapon attack message and animation
 	uint8   ranged_type;				//Sets the Ranged Weapon attack message and animation
+
+	bool	isStuck;
+	uint16	stuckCount;
 
 	SwarmPet *swarmInfoPtr;
 

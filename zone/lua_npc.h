@@ -105,6 +105,13 @@ public:
 	int GetFollowDistance();
 	bool GetFollowCanRun();
 	uint32 GetNPCSpellsID();
+	int GetRoamBoxDistance();
+	int GetRoamBoxMaxX();
+	int GetRoamBoxMinX();
+	int GetRoamBoxMaxY();
+	int GetRoamBoxMinY();
+	int GetRoamBoxMaxDelay();
+	int GetRoamBoxMinDelay();
 	int GetSpawnPointID();
 	float GetSpawnPointX();
 	float GetSpawnPointY();
@@ -200,6 +207,10 @@ public:
 	void ReturnHandinItems(Lua_Client c);
 	Lua_Spawn GetSpawn(lua_State* L);
 	bool IsResumedFromZoneSuspend();
+	bool IsStuck();
+	void SetIsStuck(bool currentState);
+	uint16 GetStuckCount();
+	void SetStuckCount(uint16 newCount);
 	void SetNPCTintIndex(uint32 id);
 	uint32 GetNPCTintIndex();
 
