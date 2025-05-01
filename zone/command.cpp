@@ -219,6 +219,8 @@ int command_init(void)
 		command_add("spawn", "[name] [race] [level] [material] [hp] [gender] [class] [priweapon] [secweapon] [merchantid] - Spawn an NPC", AccountStatus::Steward, command_spawn) ||
 		command_add("spawneditmass", "[Search Criteria] [Edit Option] [Edit Value] [Apply] Mass editing spawn command (Apply is optional, 0 = False, 1 = True, default is False)", AccountStatus::GMLeadAdmin, command_spawneditmass) ||
 		command_add("spawnfix", "Find targeted NPC in database based on its X/Y/heading and update the database to make it spawn at your current location/heading.", AccountStatus::GMAreas, command_spawnfix) ||
+		command_add("spellscore", "Displays the Spell Score of the supplied spell ID", AccountStatus::GMAdmin, command_spell_score) ||
+		command_add("spellinfo", "Displays information for the provided spell ID", AccountStatus::Player, command_spell_info) ||
 		command_add("stun", "[duration] - Stuns you or your target for duration", AccountStatus::GMAdmin, command_stun) ||
 		command_add("summon", "[Character Name] - Summons your corpse, NPC, or player target, or by character name if specified", AccountStatus::QuestTroupe, command_summon) ||
 		command_add("summonburiedplayercorpse", "Summons the target's oldest buried corpse, if any exist.", AccountStatus::GMAdmin, command_summonburiedplayercorpse) ||

@@ -21,6 +21,7 @@ Copyright (C) 2001-2016 EQEMu Development Team (http://eqemulator.net)
 #define COMMON_VEQ_ITEM_DATA_H
 
 #include "item_data.h"
+#include "veq_spell_data.h"
 #include "repositories/veq_gear_score_repository.h"
 
 void SendGearScoreTypePrompts(Client* c);

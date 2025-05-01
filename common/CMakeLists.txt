@@ -100,6 +100,7 @@ SET(common_sources
     json/json.hpp
     json/jsoncpp.cpp
     veq_item_data.cpp
+    veq_spell_data.cpp
     zone_store.cpp
     memory/ksm.hpp
     net/console_server.cpp
@@ -663,6 +664,7 @@ SET(common_headers
     useperl.h
     version.h
     veq_item_data.h
+    veq_spell_data.h
     zone_store.h
     event/event_loop.h
     event/task.h
