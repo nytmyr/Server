@@ -92,6 +92,7 @@ void command_fixmob(Client *c, const Seperator *sep);
 void command_flagedit(Client *c, const Seperator *sep);
 void command_fleeinfo(Client *c, const Seperator *sep);
 void command_forage(Client* c, const Seperator* sep);
+void command_gear_score(Client* c, const Seperator* sep);
 void command_gearup(Client *c, const Seperator *sep);
 void command_giveitem(Client *c, const Seperator *sep);
 void command_givemoney(Client *c, const Seperator *sep);

@@ -11701,6 +11701,10 @@ bool Bot::IsValidSpellTypeBySpellID(uint16 spell_type, uint16 spell_id) {
 		return false;
 	}
 
+	if (IsPetBotSpellType(spell_type) && !IsPetSpell(spell_id)) {
+		return false;
+	}
+
 	auto spell = spells[spell_id];
 	std::string teleport_zone = spell.teleport_zone;
 
