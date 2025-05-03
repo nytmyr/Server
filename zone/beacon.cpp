@@ -52,7 +52,7 @@ Beacon::Beacon(const glm::vec4 &in_pos, int lifetime) : Mob(
 	Gender::Male, // in_gender
 	Race::InvisibleMan, // in_race
 	Class::None, // in_class
-	BodyType::NoTarget, // in_bodytype
+	std::vector<uint8>(BodyType::NoTarget), // in_bodytype
 	Deity::Unknown, // in_deity
 	0, // in_level
 	0, // in_npctype_id

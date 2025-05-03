@@ -2511,10 +2511,10 @@ namespace SoD
 			}
 
 			bool ShowName = emu->show_name;
-			if (emu->bodytype >= 66)
+			if (emu->bodytype[0] >= 66)
 			{
 				emu->race = 127;
-				emu->bodytype = 11;
+				emu->bodytype[0] = 11;
 				emu->gender = 0;
 				ShowName = 0;
 			}
@@ -2654,7 +2654,7 @@ namespace SoD
 				// Setting this next field to zero will cause a crash. Looking at ShowEQ, if it is zero, the bodytype field is not
 				// present. Will sort that out later.
 				VARSTRUCT_ENCODE_TYPE(uint8, Buffer, 1);	// This is a properties count field
-				VARSTRUCT_ENCODE_TYPE(uint32, Buffer, emu->bodytype);
+				VARSTRUCT_ENCODE_TYPE(uint32, Buffer, emu->bodytype[0]);
 			}
 			else
 			{

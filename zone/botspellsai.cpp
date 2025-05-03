@@ -460,7 +460,7 @@ bool Bot::BotCastNuke(Mob* tar, uint8 bot_class, BotSpell& bot_spell, uint16 spe
 	}
 
 	if (!IsValidSpell(bot_spell.SpellId)) {
-		bot_spell = GetBestBotSpellForNukeByBodyType(this, tar->GetBodyType(), spell_type, IsAEBotSpellType(spell_type), tar);
+		bot_spell = GetBestBotSpellForNukeByBodyType(this, tar->GetBodyType()[0], spell_type, IsAEBotSpellType(spell_type), tar);
 	}
 
 	if (spell_type == BotSpellTypes::Nuke && bot_class == Class::Wizard && !IsValidSpell(bot_spell.SpellId)) {

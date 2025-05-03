@@ -2370,7 +2370,7 @@ bool Lua_Mob::TryFinishingBlow(Lua_Mob defender, int64 &damage) {
 int Lua_Mob::GetBodyType()
 {
 	Lua_Safe_Call_Int();
-	return (int)self->GetBodyType();
+	return (int)self->GetBodyType()[0];
 }
 
 int Lua_Mob::GetOrigBodyType()

@@ -1773,11 +1773,15 @@ const NPCType *ZoneDatabase::LoadNPCTypesData(uint32 npc_type_id, bool bulk_load
 			t->assistradius = t->aggroradius;
 		}
 
-		if (n.bodytype > 0) {
-			t->bodytype = n.bodytype;
-		}
-		else {
-			t->bodytype = 0;
+		auto body_types = Strings::Split(n.bodytype);
+		for (int i = 0; i < body_types.size(); i++) {
+			auto type = Strings::ToUnsignedInt(body_types[i]);
+			if (type > 0) {
+				t->bodytype.push_back(type);
+			}
+			else {
+				t->bodytype.push_back(0);
+			}
 		}
 
 		// facial features
@@ -2076,7 +2080,7 @@ const NPCType* ZoneDatabase::GetMercenaryType(uint32 merc_npc_type_id, uint16 ra
 	t->hp_regen         = Strings::ToInt(row[33]);
 	t->mana_regen       = Strings::ToInt(row[34]);
 	t->aggroradius      = RuleI(Mercs, AggroRadius);
-	t->bodytype         = row[35] && strlen(row[35]) ? static_cast<uint8>(Strings::ToUnsignedInt(row[35])) : 1;
+	t->bodytype.push_back(row[35] && strlen(row[35]) ? static_cast<uint8>(Strings::ToUnsignedInt(row[35])) : 1);
 
 	uint32 armor_tint_id = Strings::ToInt(row[36]);
 

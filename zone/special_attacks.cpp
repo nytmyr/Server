@@ -1904,7 +1904,7 @@ void NPC::DoClassAttacks(Mob *target) {
 		IsTaunting() &&
 		HasOwner() &&
 		target->IsNPC() &&
-		target->GetBodyType() != BodyType::Undead &&
+		!target->IsActiveBodyType(BodyType::Undead) &&
 		taunt_time &&
 		type_of_pet &&
 		type_of_pet != petTargetLock &&
@@ -2453,7 +2453,7 @@ int Mob::TryHeadShot(Mob *defender, EQ::skills::SkillType skillInUse)
 		!defender->IsOfClientBot() &&
 		skillInUse == EQ::skills::SkillArchery &&
 		GetTarget() == defender &&
-		(defender->GetBodyType() == BodyType::Humanoid || !RuleB(Combat, HeadshotOnlyHumanoids)) &&
+		(defender->IsActiveBodyType(BodyType::Humanoid) || !RuleB(Combat, HeadshotOnlyHumanoids)) &&
 		!defender->GetSpecialAbility(SpecialAbility::HeadshotImmunity)
 	) {
 		uint32 HeadShot_Dmg = aabonuses.HeadShot[SBIndex::FINISHING_EFFECT_DMG] + spellbonuses.HeadShot[SBIndex::FINISHING_EFFECT_DMG] + itembonuses.HeadShot[SBIndex::FINISHING_EFFECT_DMG];
@@ -2490,7 +2490,7 @@ int Mob::TryAssassinate(Mob *defender, EQ::skills::SkillType skillInUse)
 		!defender->IsOfClientBot() &&
 		GetLevel() >= RuleI(Combat, AssassinateLevelRequirement) &&
 		(skillInUse == EQ::skills::SkillBackstab || skillInUse == EQ::skills::SkillThrowing) &&
-		(defender->GetBodyType() == BodyType::Humanoid || !RuleB(Combat, AssassinateOnlyHumanoids)) &&
+		(defender->IsActiveBodyType(BodyType::Humanoid) || !RuleB(Combat, AssassinateOnlyHumanoids)) &&
 		!defender->GetSpecialAbility(SpecialAbility::AssassinateImmunity)
 	) {
 		int chance = GetDEX();

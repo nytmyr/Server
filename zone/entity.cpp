@@ -5069,7 +5069,7 @@ uint32 EntityList::CheckNPCsClose(Mob *center)
 	while (it != npc_list.end()) {
 		NPC *cur = it->second;
 		if (!cur || cur == center || cur->IsPet() || cur->GetClass() == Class::LDoNTreasure ||
-				cur->GetBodyType() == BodyType::NoTarget || cur->GetBodyType() == BodyType::Special) {
+				cur->IsActiveBodyType(BodyType::NoTarget) || cur->IsActiveBodyType(BodyType::Special)) {
 			++it;
 			continue;
 		}
@@ -5422,9 +5422,9 @@ void EntityList::AddLootToNPCS(uint32 item_id, uint32 count)
 	while (it != npc_list.end()) {
 		if (!it->second->IsPet()
 				&& it->second->GetClass() != Class::LDoNTreasure
-				&& it->second->GetBodyType() != BodyType::NoTarget
-				&& it->second->GetBodyType() != BodyType::NoTarget2
-				&& it->second->GetBodyType() != BodyType::Special)
+				&& !it->second->IsActiveBodyType(BodyType::NoTarget)
+				&& !it->second->IsActiveBodyType(BodyType::NoTarget2)
+				&& !it->second->IsActiveBodyType(BodyType::Special))
 			npc_count++;
 		++it;
 	}
@@ -5443,9 +5443,9 @@ void EntityList::AddLootToNPCS(uint32 item_id, uint32 count)
 	while (it != npc_list.end()) {
 		if (!it->second->IsPet()
 				&& it->second->GetClass() != Class::LDoNTreasure
-				&& it->second->GetBodyType() != BodyType::NoTarget
-				&& it->second->GetBodyType() != BodyType::NoTarget2
-				&& it->second->GetBodyType() != BodyType::Special)
+				&& !it->second->IsActiveBodyType(BodyType::NoTarget)
+				&& !it->second->IsActiveBodyType(BodyType::NoTarget2)
+				&& !it->second->IsActiveBodyType(BodyType::Special))
 			npcs[i++] = it->second;
 		++it;
 	}
@@ -5537,7 +5537,7 @@ Mob *EntityList::GetClosestMobByBodyType(Mob *sender, uint8 BodyType, bool skip_
 		CurrentMob = it->second;
 		++it;
 
-		if (CurrentMob->GetBodyType() != BodyType)
+		if (!CurrentMob->IsActiveBodyType(BodyType))
 			continue;
 
 		// Do not detect client pets

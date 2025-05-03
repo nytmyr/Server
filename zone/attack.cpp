@@ -1188,7 +1188,7 @@ int64 Mob::GetWeaponDamage(Mob *against, const EQ::ItemData *weapon_item) {
 
 	if (against->GetSpecialAbility(SpecialAbility::MeleeImmunityExceptBane)) {
 		if (weapon_item) {
-			if (weapon_item->BaneDmgBody == against->GetBodyType()) {
+			if (against->IsActiveBodyType(weapon_item->BaneDmgBody)) {
 				banedmg += weapon_item->BaneDmgAmt;
 			}
 
@@ -1208,7 +1208,7 @@ int64 Mob::GetWeaponDamage(Mob *against, const EQ::ItemData *weapon_item) {
 	}
 	else {
 		if (weapon_item) {
-			if (weapon_item->BaneDmgBody == against->GetBodyType()) {
+			if (against->IsActiveBodyType(weapon_item->BaneDmgBody)) {
 				banedmg += weapon_item->BaneDmgAmt;
 			}
 
@@ -2340,7 +2340,7 @@ bool NPC::Attack(Mob* other, int Hand, bool bRiposte, bool IsStrikethrough, bool
 		int eleBane = 0;
 		if (weapon) {
 			if (RuleB(NPC, UseBaneDamage)) {
-				if (weapon->BaneDmgBody == other->GetBodyType()) {
+				if (other->IsActiveBodyType(weapon->BaneDmgBody)) {
 					eleBane += weapon->BaneDmgAmt;
 				}
 
@@ -5354,8 +5354,8 @@ void Mob::TryCriticalHit(Mob *defender, DamageHitInfo &hit, ExtraAttackOptions *
 	}
 
 	// 1: Try Slay Undead
-	if (defender->GetBodyType() == BodyType::Undead || defender->GetBodyType() == BodyType::SummonedUndead ||
-		defender->GetBodyType() == BodyType::Vampire) {
+	if (defender->IsActiveBodyType(BodyType::Undead) || defender->IsActiveBodyType(BodyType::SummonedUndead) ||
+		defender->IsActiveBodyType(BodyType::Vampire)) {
 		int slay_rate_bonus = aabonuses.SlayUndead[SBIndex::SLAYUNDEAD_RATE_MOD] + itembonuses.SlayUndead[SBIndex::SLAYUNDEAD_RATE_MOD] + spellbonuses.SlayUndead[SBIndex::SLAYUNDEAD_RATE_MOD];
 
 		LogCombatDetail("Slayundead hit rate [{}]", slay_rate_bonus);

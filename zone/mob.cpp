@@ -52,7 +52,7 @@ Mob::Mob(
 	uint8 in_gender,
 	uint16 in_race,
 	uint8 in_class,
-	uint8 in_bodytype,
+	std::vector<uint8> in_bodytype,
 	uint8 in_deity,
 	uint8 in_level,
 	uint32 in_npctype_id,
@@ -173,7 +173,7 @@ Mob::Mob(
 	use_model     = in_usemodel;
 	class_        = in_class;
 	bodytype      = in_bodytype;
-	orig_bodytype = in_bodytype;
+	orig_bodytype = in_bodytype[0];
 	deity         = in_deity;
 	level         = in_level;
 	orig_level    = in_level;
@@ -709,14 +709,14 @@ bool Mob::IsInvisible(Mob* other) const
 	}
 
 	//check invis vs. undead
-	if (other->GetBodyType() == BodyType::Undead || other->GetBodyType() == BodyType::SummonedUndead) {
+	if (other->IsActiveBodyType(BodyType::Undead) || other->IsActiveBodyType(BodyType::SummonedUndead)) {
 		if (invisible_undead && (invisible_undead > other->SeeInvisibleUndead())) {
 			return true;
 		}
 	}
 
 	//check invis vs. animals. //TODO: should we have a specific see invisible animal stat or this how live does it?
-	if (other->GetBodyType() == BodyType::Animal){
+	if (other->IsActiveBodyType(BodyType::Animal)) {
 		if (invisible_animals && (invisible_animals > other->SeeInvisible())) {
 			return true;
 		}
@@ -1340,7 +1340,12 @@ void Mob::FillSpawnStruct(NewSpawn_Struct* ns, Mob* ForWho)
 
 	ns->spawn.guildrank	= 0xFF;
 	ns->spawn.size = size;
-	ns->spawn.bodytype = bodytype;
+	int x = 0;
+	for (auto const b:bodytype) {
+		ns->spawn.bodytype[x] = b;
+		x++;
+	}
+
 	// The 'flymode' settings have the following effect:
 	// 0 - Mobs in water sink like a stone to the bottom
 	// 1 - Same as #flymode 1
@@ -2926,7 +2931,7 @@ void Mob::ShowStats(Client* c)
 		}
 
 		// Body
-		auto bodytype_name = BodyType::GetName(t->GetBodyType());
+		auto bodytype_name = BodyType::GetName(t->GetBodyType()[0]);
 		c->Message(
 			Chat::White,
 			fmt::format(
@@ -2936,12 +2941,12 @@ void Mob::ShowStats(Client* c)
 					bodytype_name.empty() ?
 					fmt::format(
 						"{}",
-						t->GetBodyType()
+						t->GetBodyType()[0]
 					) :
 					fmt::format(
 						"{} ({})",
 						bodytype_name,
-						t->GetBodyType()
+						t->GetBodyType()[0]
 					)
 				)
 			).c_str()
@@ -7040,14 +7045,14 @@ bool Mob::IsControllableBoat() const {
 
 void Mob::SetBodyType(uint8 new_body, bool overwrite_orig) {
 	bool needs_spawn_packet = false;
-	if(bodytype == 11 || bodytype >= 65 || new_body == 11 || new_body >= 65) {
+	if(bodytype[0] == 11 || bodytype[0] >= 65 || new_body == 11 || new_body >= 65) {
 		needs_spawn_packet = true;
 	}
 
 	if(overwrite_orig) {
 		orig_bodytype = new_body;
 	}
-	bodytype = new_body;
+	bodytype[0] = new_body;
 
 	if(needs_spawn_packet) {
 		auto app = new EQApplicationPacket;
@@ -7909,7 +7914,7 @@ int Mob::CheckBaneDamage(const EQ::ItemInstance *item)
 	if (!item)
 		return 0;
 
-	int64 damage = item->GetItemBaneDamageBody(GetBodyType(), true);
+	int64 damage = item->GetItemBaneDamageBody(GetBodyType()[0], true);
 	damage += item->GetItemBaneDamageRace(GetRace(), true);
 
 	return damage;

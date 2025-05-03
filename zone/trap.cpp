@@ -517,7 +517,7 @@ void Trap::CreateHiddenTrigger()
 	make_npc->current_hp = 100000;
 	strcpy(make_npc->name, "a_trap");
 	make_npc->runspeed = 0.0f;
-	make_npc->bodytype = BodyType::Special;
+	make_npc->bodytype.push_back(BodyType::Special);
 	make_npc->race = 127;
 	make_npc->gender = Gender::Male;
 	make_npc->loottable_id = 0;

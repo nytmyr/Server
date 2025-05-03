@@ -11905,9 +11905,8 @@ void Client::Handle_OP_PickPocket(const EQApplicationPacket *app)
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = "OP_PickPocket was sent from outside combat range"});
 	}
 	else if (victim->IsNPC()) {
-		auto body = victim->GetBodyType();
-		if (body == BodyType::Humanoid || body == BodyType::Monster || body == BodyType::Giant ||
-			body == BodyType::Lycanthrope) {
+		if (victim->IsActiveBodyType(BodyType::Humanoid) || victim->IsActiveBodyType(BodyType::Monster) || victim->IsActiveBodyType(BodyType::Giant) ||
+			victim->IsActiveBodyType(BodyType::Lycanthrope)) {
 			victim->CastToNPC()->PickPocket(this);
 			return;
 		}
@@ -14921,9 +14920,9 @@ void Client::Handle_OP_TargetCommand(const EQApplicationPacket *app)
 
 	if (nt) {
 		if (GetGM() || (!nt->IsInvisible(this) && (DistanceSquared(m_Position, nt->GetPosition()) <= TARGETING_RANGE*TARGETING_RANGE))) {
-			if (nt->GetBodyType() == BodyType::NoTarget2 ||
-				nt->GetBodyType() == BodyType::Special ||
-				nt->GetBodyType() == BodyType::NoTarget) {
+			if (nt->IsActiveBodyType(BodyType::NoTarget2) ||
+				nt->IsActiveBodyType(BodyType::Special) ||
+				nt->IsActiveBodyType(BodyType::NoTarget)) {
 				can_target = false;
 			}
 			else {
@@ -15066,14 +15065,14 @@ void Client::Handle_OP_TargetMouse(const EQApplicationPacket *app)
 			GetTarget()->IsTargeted(1);
 			return;
 		}
-		else if (GetTarget()->GetBodyType() == BodyType::NoTarget2 || GetTarget()->GetBodyType() == BodyType::Special
-			|| GetTarget()->GetBodyType() == BodyType::NoTarget)
+		else if (GetTarget()->IsActiveBodyType(BodyType::NoTarget2) || GetTarget()->IsActiveBodyType(BodyType::Special)
+			|| GetTarget()->IsActiveBodyType(BodyType::NoTarget))
 		{
 			auto message = fmt::format(
 				"[{}] attempting to target something untargetable [{}] bodytype [{}]",
 				GetName(),
 				GetTarget()->GetName(),
-				(int) GetTarget()->GetBodyType()
+				(int) GetTarget()->GetBodyType()[0]
 			);
 			RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
 
@@ -15511,7 +15510,7 @@ void Client::Handle_OP_TradeRequest(const EQApplicationPacket *app)
 	// If the tradee is an untargettable mob - ignore
 	// Helps in cases where servers use invisible_man, body type 11 for quests
 	// and the client opens a trade by mistake.
-	if (tradee && (tradee->GetBodyType() == 11)) {
+	if (tradee && (tradee->IsActiveBodyType(BodyType::NoTarget))) {
 		return;
 	}
 

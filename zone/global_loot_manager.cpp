@@ -138,7 +138,7 @@ bool GlobalLootEntry::PassesRules(NPC *mob) const
 			break;
 		case GlobalLoot::RuleTypes::BodyType: // can have multiple bodytypes per rule set
 			bBodyType = true; // we must pass BodyType
-			if (mob->GetBodyType() == r.value)
+			if (mob->IsActiveBodyType(r.value))
 				bPassesBodyType = true;
 			break;
 		case GlobalLoot::RuleTypes::HotZone: // value == 0 must not be hot_zone, value != must be hot_zone

@@ -717,7 +717,7 @@ NPCType *Bot::FillNPCTypeStruct(
 	n->gender = gender;
 	n->race = botRace;
 	n->class_ = botClass;
-	n->bodytype = 1;
+	n->bodytype[0] = 1;
 	n->deity = Deity::Agnostic1;
 	n->level = botLevel;
 	n->npc_spells_id = botSpellsID;
@@ -777,7 +777,7 @@ NPCType *Bot::CreateDefaultNPCTypeStructForBot(
 	n->gender = gender;
 	n->race = botRace;
 	n->class_ = botClass;
-	n->bodytype = 1;
+	n->bodytype[0] = 1;
 	n->deity = Deity::Agnostic1;
 	n->level = botLevel;
 	n->AC = 12;
@@ -5980,13 +5980,13 @@ bool Bot::IsImmuneToSpell(uint16 spell_id, Mob *caster) {
 		if (!Result) {
 			if (caster->IsBot()) {
 				if (spells[spell_id].target_type == ST_Undead) {
-					if ((GetBodyType() != BodyType::SummonedUndead) && (GetBodyType() != BodyType::Undead) && (GetBodyType() != BodyType::Vampire)) {
+					if (!IsActiveBodyType(BodyType::SummonedUndead) && !IsActiveBodyType(BodyType::Undead) && !IsActiveBodyType(BodyType::Vampire)) {
 						LogSpellsDetail("Bot's target is not an undead");
 						return true;
 					}
 				}
 				if (spells[spell_id].target_type == ST_Summoned) {
-					if ((GetBodyType() != BodyType::SummonedUndead) && (GetBodyType() != BodyType::Summoned) && (GetBodyType() != BodyType::Summoned2) && (GetBodyType() != BodyType::Summoned3)) {
+					if (!IsActiveBodyType(BodyType::SummonedUndead) && !IsActiveBodyType(BodyType::Summoned) && !IsActiveBodyType(BodyType::Summoned2) && !IsActiveBodyType(BodyType::Summoned3)) {
 						LogSpellsDetail("Bot's target is not a summoned creature");
 						return true;
 					}
@@ -9702,7 +9702,7 @@ bool Bot::CastChecks(uint16 spell_id, Mob* tar, uint16 spell_type, bool precheck
 		return false;
 	}
 
-	if (!IsValidTargetType(spell_id, GetSpellTargetType(spell_id), tar->GetBodyType())) {
+	if (!IsValidTargetType(spell_id, GetSpellTargetType(spell_id), tar)) {
 		LogBotSpellChecksDetail("{} says, 'Cancelling cast of {} on {} due to IsValidTargetType.'", GetCleanName(), GetSpellName(spell_id), tar->GetCleanName());
 		return false;
 	}
@@ -10092,7 +10092,7 @@ bool Bot::DoResistCheckBySpellType(Mob* tar, uint16 spell_id, uint16 spell_type)
 	return DoResistCheck(tar, spell_id, GetSpellTypeResistLimit(spell_type));
 }
 
-bool Bot::IsValidTargetType(uint16 spell_id, int target_type, uint8 body_type) {
+bool Bot::IsValidTargetType(uint16 spell_id, int target_type, Mob* target) {
 	if (!spell_id) {
 		return false;
 	}
@@ -10100,9 +10100,9 @@ bool Bot::IsValidTargetType(uint16 spell_id, int target_type, uint8 body_type) {
 	switch (target_type) {
 		case ST_Undead:
 			if (
-				body_type == BodyType::Undead ||
-				body_type == BodyType::SummonedUndead ||
-				body_type == BodyType::Vampire
+				target->IsActiveBodyType(BodyType::Undead) ||
+				target->IsActiveBodyType(BodyType::SummonedUndead) ||
+				target->IsActiveBodyType(BodyType::Vampire)
 			) {
 				return true;
 			}
@@ -10110,30 +10110,30 @@ bool Bot::IsValidTargetType(uint16 spell_id, int target_type, uint8 body_type) {
 			break;
 		case ST_Summoned:
 			if (
-				body_type == BodyType::Summoned ||
-				body_type == BodyType::Summoned2 ||
-				body_type == BodyType::Summoned3
+				target->IsActiveBodyType(BodyType::Summoned) ||
+				target->IsActiveBodyType(BodyType::Summoned2) ||
+				target->IsActiveBodyType(BodyType::Summoned3)
 			) {
 				return true;
 			}
 
 			break;
 		case ST_Animal:
-			if (body_type == BodyType::Animal) {
+			if (target->IsActiveBodyType(BodyType::Animal)) {
 				return true;
 			}
 
 			break;
 		case ST_Plant:
-			if (body_type == BodyType::Plant) {
+			if (target->IsActiveBodyType(BodyType::Plant)) {
 				return true;
 			}
 
 			break;
 		case ST_Giant:
 			if (
-				body_type == BodyType::Giant ||
-				body_type == BodyType::RaidGiant
+				target->IsActiveBodyType(BodyType::Giant) ||
+				target->IsActiveBodyType(BodyType::RaidGiant)
 			) {
 				return true;
 			}
@@ -10141,8 +10141,8 @@ bool Bot::IsValidTargetType(uint16 spell_id, int target_type, uint8 body_type) {
 			break;
 		case ST_Dragon:
 			if (
-				body_type == BodyType::Dragon ||
-				body_type == BodyType::VeliousDragon
+				target->IsActiveBodyType(BodyType::Dragon) ||
+				target->IsActiveBodyType(BodyType::VeliousDragon)
 			) {
 				return true;
 			}
@@ -10218,7 +10218,7 @@ bool Bot::IsValidMezTarget(Mob* owner, Mob* npc, uint16 spell_id) {
 		return false;
 	}
 
-	if (!IsValidTargetType(spell_id, GetSpellTargetType(spell_id), npc->GetBodyType())) {
+	if (!IsValidTargetType(spell_id, GetSpellTargetType(spell_id), npc)) {
 		return false;
 	}
 

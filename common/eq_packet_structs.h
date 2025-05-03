@@ -285,8 +285,8 @@ struct Spawn_Struct {
 /*0332*/ uint8	eyecolor2;		// Left eye color
 /*0333*/ uint8	flymode;
 /*0334*/ uint8	gender;			// Gender (0=male, 1=female)
-/*0335*/ uint8	bodytype;		// Bodytype
-/*0336*/ uint8 unknown0336[3];
+/*0335*/ uint8	bodytype[53];	// Bodytype
+/*0336*/ uint8  unknown0336[3];
 union
 {
 /*0339*/ uint8 equip_chest2;	// Second place in packet for chest texture (usually 0xFF in live packets)

@@ -1898,7 +1898,7 @@ bool Mob::DetermineSpellTargets(uint16 spell_id, Mob *&spell_target, Mob *&ae_ce
 
 	uint8 target_bt = BodyType::Humanoid;
 	SpellTargetType targetType = spells[spell_id].target_type;
-	uint8 mob_body = spell_target ? spell_target->GetBodyType() : BodyType::Humanoid;
+	//auto mob_body = spell_target ? spell_target->GetBodyType() : std::vector<uint8>(BodyType::Humanoid);
 
 	if(IsIllusionSpell(spell_id)
 		&& spell_target != nullptr // null ptr crash safeguard
@@ -1919,11 +1919,9 @@ bool Mob::DetermineSpellTargets(uint16 spell_id, Mob *&spell_target, Mob *&ae_ce
 	switch (targetType)
 	{
 // single target spells
-		case ST_Self:
-		{
-			bool bot_can_summon_corpse = IsBot() &&
-				IsEffectInSpell(spell_id, SE_SummonCorpse) &&
-				RuleB(Bots, AllowCommandedSummonCorpse);
+		case ST_Self: {
+			bool bot_can_summon_corpse =
+				IsBot() && IsEffectInSpell(spell_id, SE_SummonCorpse) && RuleB(Bots, AllowCommandedSummonCorpse);
 
 			if (!bot_can_summon_corpse) {
 				spell_target = this; // Summon corpse spells are self-only; bots need a fallthrough
@@ -1932,64 +1930,68 @@ bool Mob::DetermineSpellTargets(uint16 spell_id, Mob *&spell_target, Mob *&ae_ce
 			CastAction = SingleTarget;
 			break;
 		}
-
-		case ST_TargetOptional:
-		{
-			if (!spell_target)
-			{
+		case ST_TargetOptional: {
+			if (!spell_target) {
 				LogSpells("Spell [{}] canceled: invalid target (normal)", spell_id);
 				MessageString(Chat::Red, SPELL_NEED_TAR);
-				return false;	// can't cast these unless we have a target
+				return false; // can't cast these unless we have a target
 			}
+
 			CastAction = SingleTarget;
 			break;
 		}
-
 		// target required for these
 		case ST_Undead: {
-			if(!spell_target || (
-				mob_body != BodyType::SummonedUndead
-				&& mob_body != BodyType::Undead
-				&& mob_body != BodyType::Vampire
-				)
-			)
-			{
-				//invalid target
-				LogSpells("Spell [{}] canceled: invalid target of body type [{}] (undead)", spell_id, mob_body);
-				if(!spell_target)
-					MessageString(Chat::Red,SPELL_NEED_TAR);
-				else
-					MessageString(Chat::Red,CANNOT_AFFECT_NPC);
+			if (!spell_target || (!spell_target->IsActiveBodyType(BodyType::SummonedUndead) &&
+								  !spell_target->IsActiveBodyType(BodyType::Undead) &&
+								  !spell_target->IsActiveBodyType(BodyType::Vampire))) {
+				// invalid target
+				for (auto const &b:spell_target->GetBodyType()) {
+					LogSpells("Spell [{}] canceled: invalid target of body type [{}] (undead)", spell_id, b);
+				}
+
+				if (!spell_target) {
+					MessageString(Chat::Red, SPELL_NEED_TAR);
+				}
+				else {
+					MessageString(Chat::Red, CANNOT_AFFECT_NPC);
+				}
 				return false;
 			}
+
 			CastAction = SingleTarget;
 			break;
 		}
-
 		case ST_Summoned: {
-			if(!spell_target || (mob_body != BodyType::Summoned && mob_body != BodyType::Summoned2 && mob_body != BodyType::Summoned3))
-			{
-				//invalid target
-				LogSpells("Spell [{}] canceled: invalid target of body type [{}] (summoned)", spell_id, mob_body);
-				MessageString(Chat::Red,SPELL_NEED_TAR);
-				return false;
-			}
-			CastAction = SingleTarget;
-			break;
-		}
-
-		case ST_SummonedPet:
-		{
-			if(!spell_target || (spell_target != GetPet()) ||
-				(mob_body != BodyType::Summoned && mob_body != BodyType::Summoned2 && mob_body != BodyType::Summoned3 && mob_body != BodyType::Animal))
-			{
-				LogSpells("Spell [{}] canceled: invalid target of body type [{}] (summoned pet)",
-							spell_id, mob_body);
+			if (!spell_target || (!spell_target->IsActiveBodyType(BodyType::Summoned) &&
+								  !spell_target->IsActiveBodyType(BodyType::Summoned2) &&
+								  !spell_target->IsActiveBodyType(BodyType::Summoned3))) {
+				// invalid target
+				for (auto const &b:spell_target->GetBodyType()) {
+					LogSpells("Spell [{}] canceled: invalid target of body type [{}] (summoned)", spell_id, b);
+				}
 
 				MessageString(Chat::Red, SPELL_NEED_TAR);
-
 				return false;
 			}
+
+			CastAction = SingleTarget;
+			break;
+		}
+		case ST_SummonedPet: {
+			if (!spell_target || spell_target != GetPet() ||
+				(!spell_target->IsActiveBodyType(BodyType::Summoned) &&
+				 !spell_target->IsActiveBodyType(BodyType::Summoned2) &&
+				 !spell_target->IsActiveBodyType(BodyType::Summoned3) &&
+				 !spell_target->IsActiveBodyType(BodyType::Animal))) {
+				for (auto const &b:spell_target->GetBodyType()) {
+				 	LogSpells("Spell [{}] canceled: invalid target of body type [{}] (summoned pet)", spell_id, b);
+				}
+
+				MessageString(Chat::Red, SPELL_NEED_TAR);
+				return false;
+			}
+
 			CastAction = SingleTarget;
 			break;
 		}
@@ -2001,20 +2003,24 @@ bool Mob::DetermineSpellTargets(uint16 spell_id, Mob *&spell_target, Mob *&ae_ce
 		case ST_Animal: if(target_bt == BodyType::Humanoid) target_bt = BodyType::Animal;
 
 		// check for special case body types (Velious dragons/giants)
-		if(mob_body == BodyType::RaidGiant) mob_body = BodyType::Giant;
-		if(mob_body == BodyType::VeliousDragon) mob_body = BodyType::Dragon;
+		if(spell_target->IsActiveBodyType(BodyType::RaidGiant)) spell_target->GetBodyType().emplace_back(BodyType::Giant);
+		if(spell_target->IsActiveBodyType(BodyType::VeliousDragon)) spell_target->GetBodyType().emplace_back(BodyType::Dragon);
 
 		{
-			if(!spell_target || mob_body != target_bt)
+			if(!spell_target || !spell_target->IsActiveBodyType(target_bt))
 			{
 				//invalid target
-				LogSpells("Spell [{}] canceled: invalid target of body type [{}] (want body Type [{}])", spell_id, mob_body, target_bt);
+				for (auto const &b:spell_target->GetBodyType()) {
+					LogSpells("Spell [{}] canceled: invalid target of body type [{}] (want body Type [{}])", spell_id, b, target_bt);
+				}
+
 				if(!spell_target)
 					MessageString(Chat::Red,SPELL_NEED_TAR);
 				else
 					MessageString(Chat::Red,CANNOT_AFFECT_NPC);
 				return false;
 			}
+
 			CastAction = SingleTarget;
 			break;
 		}
@@ -4126,8 +4132,7 @@ bool Mob::SpellOnTarget(
 	}
 
 	//cannot hurt untargetable mobs
-	uint8 bt = spelltar->GetBodyType();
-	if (bt == BodyType::NoTarget || bt == BodyType::NoTarget2) {
+	if (spelltar->IsActiveBodyType(BodyType::NoTarget) || spelltar->IsActiveBodyType(BodyType::NoTarget2)) {
 		if (RuleB(Pets, UnTargetableSwarmPet)) {
 			if (spelltar->IsNPC()) {
 				if (!spelltar->CastToNPC()->GetSwarmOwner()) {
@@ -4309,9 +4314,9 @@ bool Mob::SpellOnTarget(
 	//check for AE_Undead
 	if (spells[spell_id].target_type == ST_UndeadAE){
 		if (
-			spelltar->GetBodyType() != BodyType::SummonedUndead &&
-			spelltar->GetBodyType() != BodyType::Undead &&
-			spelltar->GetBodyType() != BodyType::Vampire
+			!spelltar->IsActiveBodyType(BodyType::SummonedUndead) &&
+			!spelltar->IsActiveBodyType(BodyType::Undead) &&
+			!spelltar->IsActiveBodyType(BodyType::Vampire)
 		) {
 			safe_delete(action_packet);
 			return false;

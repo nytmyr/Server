@@ -253,7 +253,7 @@ inline std::string GetMobAttributeByString(Mob *mob, const std::string &attribut
 			return std::to_string(npc->GetTexture());
 		}
 		if (attribute == "bodytype") {
-			return std::to_string(npc->GetBodyType());
+			return std::to_string(npc->GetBodyType()[0]);
 		}
 		if (attribute == "gender") {
 			return std::to_string(npc->GetGender());

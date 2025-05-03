@@ -456,7 +456,7 @@ NPC::NPC(const NPCType *npc_type_data, Spawn2 *in_respawn, const glm::vec4 &posi
 
 	RestoreMana();
 
-	if (GetBodyType() == BodyType::Animal && !RuleB(NPC, AnimalsOpenDoors)) {
+	if (IsActiveBodyType(BodyType::Animal) && !RuleB(NPC, AnimalsOpenDoors)) {
 		m_can_open_doors = false;
 	}
 
@@ -894,7 +894,7 @@ bool NPC::SpawnZoneController()
 	npc_type->d_melee_texture1 = 0;
 	npc_type->d_melee_texture2 = 0;
 	npc_type->merchanttype     = 0;
-	npc_type->bodytype         = 11;
+	npc_type->bodytype.push_back(BodyType::NoTarget);
 	npc_type->skip_global_loot = true;
 
 	if (RuleB(Zone, EnableZoneControllerGlobals)) {
@@ -949,7 +949,7 @@ void NPC::SpawnGridNodeNPC(const glm::vec4 &position, int32 grid_id, int32 grid_
 	npc_type->size = 1;
 	npc_type->runspeed = 0;
 	npc_type->merchanttype = 1;
-	npc_type->bodytype = 1;
+	npc_type->bodytype.push_back(BodyType::Humanoid);
 	npc_type->show_name = true;
 	npc_type->findable = true;
 	strn0cpy(npc_type->special_abilities, "24,1^35,1", 512);
@@ -986,7 +986,7 @@ NPC * NPC::SpawnZonePointNodeNPC(std::string name, const glm::vec4 &position)
 	npc_type->size             = 5;
 	npc_type->runspeed         = 0;
 	npc_type->merchanttype     = 1;
-	npc_type->bodytype         = 1;
+	npc_type->bodytype.push_back(BodyType::Humanoid);
 	npc_type->show_name        = true;
 	npc_type->findable         = true;
 
@@ -1025,7 +1025,7 @@ NPC * NPC::SpawnNodeNPC(std::string name, std::string last_name, const glm::vec4
 	npc_type->d_melee_texture1 = 1;
 	npc_type->d_melee_texture2 = 1;
 	npc_type->merchanttype     = 1;
-	npc_type->bodytype         = 1;
+	npc_type->bodytype.push_back(BodyType::Humanoid);
 	npc_type->show_name        = true;
 	npc_type->findable         = true;
 	npc_type->runspeed         = 1.25;
@@ -1130,7 +1130,7 @@ NPC* NPC::SpawnNPC(const char* spawncommand, const glm::vec4& position, Client* 
 		npc_type->d_melee_texture1 = Strings::ToUnsignedInt(sep.arg[7]);
 		npc_type->d_melee_texture2 = Strings::ToUnsignedInt(sep.arg[8]);
 		npc_type->merchanttype     = Strings::ToInt(sep.arg[9]);
-		npc_type->bodytype         = Strings::ToInt(sep.arg[10]);
+		npc_type->bodytype.push_back(Strings::ToInt(sep.arg[10]));
 
 		npc_type->STR = 0;
 		npc_type->STA = 0;
@@ -1175,16 +1175,16 @@ NPC* NPC::SpawnNPC(const char* spawncommand, const glm::vec4& position, Client* 
 				client->Message(Chat::White, fmt::format("Merchant ID | {}", npc->MerchantType).c_str());
 			}
 
-			if (npc->bodytype) {
-				client->Message(
-					Chat::White,
-					fmt::format(
-						"Body Type | {} ({})",
-						BodyType::GetName(npc->bodytype),
-						npc->bodytype
-					).c_str()
-				);
-			}
+			// if (npc->bodytype[0]) {
+			// 	client->Message(
+			// 		Chat::White,
+			// 		fmt::format(
+			// 			"Body Type | {} ({})",
+			// 			BodyType::GetName(npc->bodytype[0]),
+			// 			npc->bodytype
+			// 		).c_str()
+			// 	);
+			// }
 
 			client->Message(Chat::White, "New NPC spawned!");
 		}
@@ -1221,7 +1221,7 @@ uint32 ZoneDatabase::CreateNewNPCCommand(
 	e.prim_melee_type = n->GetPrimSkill();
 	e.sec_melee_type  = n->GetSecSkill();
 
-	e.bodytype        = n->GetBodyType();
+	e.bodytype        = Strings::Join(n->GetBodyType(), ",");
 	e.npc_faction_id  = n->GetNPCFactionID();
 	e.aggroradius     = n->GetAggroRange();
 	e.assistradius    = n->GetAssistRange();
@@ -1836,7 +1836,7 @@ void NPC::Disarm(Client* client, int chance) {
 			int matslot = eslot == EQ::invslot::slotPrimary ? EQ::textures::weaponPrimary : EQ::textures::weaponSecondary;
 			if (matslot != -1)
 				SendWearChange(matslot);
-			if ((CastToMob()->GetBodyType() == BodyType::Humanoid || CastToMob()->GetBodyType() == BodyType::Summoned) && eslot == EQ::invslot::slotPrimary)
+			if ((CastToMob()->IsActiveBodyType(BodyType::Humanoid) || CastToMob()->IsActiveBodyType(BodyType::Summoned)) && eslot == EQ::invslot::slotPrimary)
 				Say("Ahh! My weapon!");
 			client->MessageString(Chat::Skills, DISARM_SUCCESS, GetCleanName());
 			if (chance != 1000)
@@ -2201,7 +2201,7 @@ void NPC::PetOnSpawn(NewSpawn_Struct* ns)
 
 		//Not recommended if using above (However, this will work better on older clients).
 		if (RuleB(Pets, UnTargetableSwarmPet)) {
-			ns->spawn.bodytype = BodyType::NoTarget;
+			ns->spawn.bodytype[0] = BodyType::NoTarget;
 		}
 
 		if (

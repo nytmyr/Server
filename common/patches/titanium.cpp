@@ -2436,7 +2436,7 @@ namespace Titanium
 			//		eq->unknown0333 = emu->unknown0333;
 			eq->flymode = emu->flymode;
 			eq->gender = emu->gender;
-			eq->bodytype = emu->bodytype;
+			eq->bodytype = emu->bodytype[0];
 			//		eq->unknown0336[3] = emu->unknown0336[3];
 			eq->equip_chest2 = emu->equip_chest2;
 			eq->spawnId = emu->spawnId;

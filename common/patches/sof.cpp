@@ -2083,7 +2083,7 @@ namespace SoF
 			eq->race = emu->race;
 			strcpy(eq->suffix, emu->suffix);
 			eq->findable = emu->findable;
-			if (emu->bodytype >= 66)
+			if (emu->bodytype[0] >= 66)
 			{
 				eq->bodytype = 11;      //non-targetable
 				eq->showname = 0;       //no visible name
@@ -2092,7 +2092,7 @@ namespace SoF
 			}
 			else
 			{
-				eq->bodytype = emu->bodytype;
+				eq->bodytype = emu->bodytype[0];
 			}
 			//eq->bodytype2 = 0;
 			eq->equip_chest2 = emu->equip_chest2;

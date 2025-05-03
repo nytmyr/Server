@@ -552,7 +552,7 @@ public:
 	bool IsTargetAlreadyReceivingSpell(Mob* tar, uint16 spell_id);
 	bool DoResistCheck(Mob* target, uint16 spell_id, int32 resist_limit);
 	bool DoResistCheckBySpellType(Mob* tar, uint16 spell_id, uint16 spell_type);
-	bool IsValidTargetType(uint16 spell_id, int target_type, uint8 body_type);
+	bool IsValidTargetType(uint16 spell_id, int target_type, Mob* target);
 
 	// Spell checks
 	static bool IsValidBotSpellType(uint16 spell_type);

@@ -25,7 +25,7 @@ public:
 		uint8_t     level;
 		uint16_t    race;
 		uint8_t     class_;
-		int32_t     bodytype;
+		std::string bodytype;
 		int64_t     hp;
 		int64_t     mana;
 		uint8_t     gender;
@@ -471,7 +471,7 @@ public:
 		e.level                  = 0;
 		e.race                   = 0;
 		e.class_                 = 0;
-		e.bodytype               = 1;
+		e.bodytype               = "1";
 		e.hp                     = 0;
 		e.mana                   = 0;
 		e.gender                 = 0;
@@ -637,7 +637,7 @@ public:
 			e.level                  = row[3] ? static_cast<uint8_t>(strtoul(row[3], nullptr, 10)) : 0;
 			e.race                   = row[4] ? static_cast<uint16_t>(strtoul(row[4], nullptr, 10)) : 0;
 			e.class_                 = row[5] ? static_cast<uint8_t>(strtoul(row[5], nullptr, 10)) : 0;
-			e.bodytype               = row[6] ? static_cast<int32_t>(atoi(row[6])) : 1;
+			e.bodytype               = row[6] ? row[6] : "1";
 			e.hp                     = row[7] ? strtoll(row[7], nullptr, 10) : 0;
 			e.mana                   = row[8] ? strtoll(row[8], nullptr, 10) : 0;
 			e.gender                 = row[9] ? static_cast<uint8_t>(strtoul(row[9], nullptr, 10)) : 0;
@@ -799,7 +799,7 @@ public:
 		v.push_back(columns[3] + " = " + std::to_string(e.level));
 		v.push_back(columns[4] + " = " + std::to_string(e.race));
 		v.push_back(columns[5] + " = " + std::to_string(e.class_));
-		v.push_back(columns[6] + " = " + std::to_string(e.bodytype));
+		v.push_back(columns[6] + " = '" + Strings::Escape(e.bodytype) + "'");
 		v.push_back(columns[7] + " = " + std::to_string(e.hp));
 		v.push_back(columns[8] + " = " + std::to_string(e.mana));
 		v.push_back(columns[9] + " = " + std::to_string(e.gender));
@@ -950,7 +950,7 @@ public:
 		v.push_back(std::to_string(e.level));
 		v.push_back(std::to_string(e.race));
 		v.push_back(std::to_string(e.class_));
-		v.push_back(std::to_string(e.bodytype));
+		v.push_back("'" + Strings::Escape(e.bodytype) + "'");
 		v.push_back(std::to_string(e.hp));
 		v.push_back(std::to_string(e.mana));
 		v.push_back(std::to_string(e.gender));
@@ -1109,7 +1109,7 @@ public:
 			v.push_back(std::to_string(e.level));
 			v.push_back(std::to_string(e.race));
 			v.push_back(std::to_string(e.class_));
-			v.push_back(std::to_string(e.bodytype));
+			v.push_back("'" + Strings::Escape(e.bodytype) + "'");
 			v.push_back(std::to_string(e.hp));
 			v.push_back(std::to_string(e.mana));
 			v.push_back(std::to_string(e.gender));
@@ -1272,7 +1272,7 @@ public:
 			e.level                  = row[3] ? static_cast<uint8_t>(strtoul(row[3], nullptr, 10)) : 0;
 			e.race                   = row[4] ? static_cast<uint16_t>(strtoul(row[4], nullptr, 10)) : 0;
 			e.class_                 = row[5] ? static_cast<uint8_t>(strtoul(row[5], nullptr, 10)) : 0;
-			e.bodytype               = row[6] ? static_cast<int32_t>(atoi(row[6])) : 1;
+			e.bodytype               = row[6] ? row[6] : "1";
 			e.hp                     = row[7] ? strtoll(row[7], nullptr, 10) : 0;
 			e.mana                   = row[8] ? strtoll(row[8], nullptr, 10) : 0;
 			e.gender                 = row[9] ? static_cast<uint8_t>(strtoul(row[9], nullptr, 10)) : 0;
@@ -1426,7 +1426,7 @@ public:
 			e.level                  = row[3] ? static_cast<uint8_t>(strtoul(row[3], nullptr, 10)) : 0;
 			e.race                   = row[4] ? static_cast<uint16_t>(strtoul(row[4], nullptr, 10)) : 0;
 			e.class_                 = row[5] ? static_cast<uint8_t>(strtoul(row[5], nullptr, 10)) : 0;
-			e.bodytype               = row[6] ? static_cast<int32_t>(atoi(row[6])) : 1;
+			e.bodytype               = row[6] ? row[6] : "1";
 			e.hp                     = row[7] ? strtoll(row[7], nullptr, 10) : 0;
 			e.mana                   = row[8] ? strtoll(row[8], nullptr, 10) : 0;
 			e.gender                 = row[9] ? static_cast<uint8_t>(strtoul(row[9], nullptr, 10)) : 0;
@@ -1630,7 +1630,7 @@ public:
 		v.push_back(std::to_string(e.level));
 		v.push_back(std::to_string(e.race));
 		v.push_back(std::to_string(e.class_));
-		v.push_back(std::to_string(e.bodytype));
+		v.push_back("'" + Strings::Escape(e.bodytype) + "'");
 		v.push_back(std::to_string(e.hp));
 		v.push_back(std::to_string(e.mana));
 		v.push_back(std::to_string(e.gender));
@@ -1782,7 +1782,7 @@ public:
 			v.push_back(std::to_string(e.level));
 			v.push_back(std::to_string(e.race));
 			v.push_back(std::to_string(e.class_));
-			v.push_back(std::to_string(e.bodytype));
+			v.push_back("'" + Strings::Escape(e.bodytype) + "'");
 			v.push_back(std::to_string(e.hp));
 			v.push_back(std::to_string(e.mana));
 			v.push_back(std::to_string(e.gender));

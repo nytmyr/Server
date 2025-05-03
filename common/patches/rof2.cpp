@@ -4603,7 +4603,8 @@ namespace RoF2
 		int k;
 		for (r = 0; r < entrycount; r++, emu++) {
 
-			int PacketSize = 206;
+			//int PacketSize = 206;
+			int PacketSize = 206-4+53*4;
 
 			PacketSize += strlen(emu->name);
 			PacketSize += strlen(emu->lastName);
@@ -4629,12 +4630,11 @@ namespace RoF2
 			}
 
 			bool ShowName = emu->show_name;
-			if (emu->bodytype >= 66)
-			{
-				emu->race = 127;
-				emu->bodytype = 11;
-				emu->gender = 0;
-				ShowName = 0;
+			if (emu->bodytype[0] >= BodyType::InvisibleMan) {
+				emu->race        = 127;
+				emu->bodytype[0] = BodyType::NoTarget;
+				emu->gender      = 0;
+				ShowName         = 0;
 			}
 
 			float SpawnSize = emu->size;
@@ -4769,8 +4769,10 @@ namespace RoF2
 				// Setting this next field to zero will cause a crash. Looking at ShowEQ, if it is zero, the bodytype field is not
 				// present. Will sort that out later.
 				// This is the CharacterPropertyHash, it can have multiple fields
-				VARSTRUCT_ENCODE_TYPE(uint8, Buffer, 1);	// This is a properties count field
-				VARSTRUCT_ENCODE_TYPE(uint32, Buffer, emu->bodytype);
+				VARSTRUCT_ENCODE_TYPE(uint8, Buffer, constants::MAX_SPAWN_BODY_TYPES);	// This is a properties count field
+				for (int i = 0; i < constants::MAX_SPAWN_BODY_TYPES; i++) {             // RoF2 seems to allow 53 entries
+					VARSTRUCT_ENCODE_TYPE(uint32, Buffer, emu->bodytype[i]);
+				}
 			}
 			else
 			{

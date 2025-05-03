@@ -222,7 +222,7 @@ void NPC::DescribeAggro(Client *to_who, Mob *mob, bool verbose) {
 		if (
 			GetLevel() < RuleI(Aggro, MinAggroLevel) &&
 			mob->GetLevelCon(GetLevel()) == ConsiderColor::Gray &&
-			GetBodyType() != BodyType::Undead &&
+			!IsActiveBodyType(BodyType::Undead) &&
 			!AlwaysAggro()
 		) {
 			to_who->Message(
@@ -459,7 +459,7 @@ bool Mob::CheckWillAggro(Mob *mob) {
 		(
 			(
 				!GetSpecialAbility(SpecialAbility::ProximityAggro) &&
-				GetBodyType() != BodyType::Undead
+				!IsActiveBodyType(BodyType::Undead)
 			) ||
 			(
 				GetSpecialAbility(SpecialAbility::ProximityAggro) &&
@@ -509,7 +509,7 @@ bool Mob::CheckWillAggro(Mob *mob) {
 		RuleB(Aggro, UseLevelAggro) &&
 		(
 			GetLevel() >= RuleI(Aggro, MinAggroLevel) ||
-			GetBodyType() == BodyType::Undead ||
+			IsActiveBodyType(BodyType::Undead) ||
 			AlwaysAggro() ||
 			(
 				mob->IsClient() &&
@@ -537,7 +537,7 @@ bool Mob::CheckWillAggro(Mob *mob) {
 	} else {
 		if (
 			(
-				(RuleB(Aggro, UndeadAlwaysAggro) && GetBodyType() == BodyType::Undead) ||
+				(RuleB(Aggro, UndeadAlwaysAggro) && IsActiveBodyType(BodyType::Undead)) ||
 				(GetINT() <= RuleI(Aggro, IntAggroThreshold)) ||
 				AlwaysAggro() ||
 				(
@@ -800,9 +800,7 @@ bool Mob::IsAttackAllowed(Mob *target, bool isSpellAttack)
 		target_owner = nullptr;
 
 	//cannot hurt untargetable mobs
-	uint8 bt = target->GetBodyType();
-
-	if(bt == BodyType::NoTarget || bt == BodyType::NoTarget2) {
+	if(target->IsActiveBodyType(BodyType::NoTarget) || target->IsActiveBodyType(BodyType::NoTarget2)) {
 		if (RuleB(Pets, UnTargetableSwarmPet)) {
 			if (target->IsNPC()) {
 				if (!target->CastToNPC()->GetSwarmOwner()) {

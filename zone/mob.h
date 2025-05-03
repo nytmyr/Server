@@ -143,7 +143,7 @@ public:
 		uint8 in_gender,
 		uint16 in_race,
 		uint8 in_class,
-		uint8 in_bodytype,
+		std::vector<uint8> in_bodytype,
 		uint8 in_deity,
 		uint8 in_level,
 		uint32 in_npctype_id,
@@ -1111,7 +1111,17 @@ public:
 	int GetPetACBonusFromOwner();
 	int GetPetATKBonusFromOwner();
 
-	inline const uint8 GetBodyType() const { return bodytype; }
+	std::vector<uint8> &GetBodyType() { return bodytype; }
+	uint8 IsActiveBodyType(uint8 in_type) const
+	{
+		for (auto const &b:bodytype) {
+				if (b == in_type) {
+					return true;
+				}
+		}
+
+		return false;
+	}
 	inline const uint8 GetOrigBodyType() const { return orig_bodytype; }
 	void SetBodyType(uint8 new_body, bool overwrite_orig);
 
@@ -1611,7 +1621,7 @@ protected:
 	uint8 base_gender;
 	uint16 base_race;
 	uint8 class_;
-	uint8 bodytype;
+	std::vector<uint8> bodytype;
 	uint8 orig_bodytype;
 	uint16 deity;
 	uint8 level;

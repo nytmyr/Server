@@ -1121,7 +1121,7 @@ int Perl_Mob_GetPetType(Mob* self) // @categories Script Utility, Pet
 
 int Perl_Mob_GetBodyType(Mob* self) // @categories Stats and Attributes
 {
-	return self->GetBodyType();
+	return self->GetBodyType()[0];
 }
 
 void Perl_Mob_Stun(Mob* self, int duration)

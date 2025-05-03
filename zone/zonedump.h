@@ -43,7 +43,7 @@ struct NPCType
 	uint8           gender;
 	uint16          race;
 	uint8           class_;
-	uint8           bodytype;    // added for targettype support
+	std::vector<uint8> bodytype;  // added for targettype support
 	uint32          deity;        //not loaded from DB
 	uint8           level;
 	uint32          npc_id;

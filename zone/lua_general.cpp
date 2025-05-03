@@ -5717,7 +5717,7 @@ void lua_create_npc(luabind::adl::object table, float x, float y, float z, float
 	LuaCreateNPCParse(gender, uint8, 0);
 	LuaCreateNPCParse(race, uint16, 1);
 	LuaCreateNPCParse(class_, uint8, Class::Warrior);
-	LuaCreateNPCParse(bodytype, uint8, 0);
+	//LuaCreateNPCParse(bodytype, uint8[53], 0);
 	LuaCreateNPCParse(deity, uint8, 0);
 	LuaCreateNPCParse(level, uint8, 1);
 	LuaCreateNPCParse(npc_id, uint32, 1);
