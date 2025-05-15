@@ -470,7 +470,7 @@ BaseVeqGearScoreRepository::VeqGearScore UpdateGearScores(const EQ::ItemData* it
 float CalculateGearScore(const EQ::ItemData* item, uint8 class_id) {
 	// TODO if ever added to character specific equipment, augments can be calculated with EQ::ItemInstance:: | inst->GetItemArmorClass(true)
 	if (!item) {
-		LogTestDebug("Returning due to !item"); //deleteme
+		LogGearScore("Returning due to !item"); //deleteme
 		return 0.0f;
 	}
 
@@ -551,7 +551,7 @@ float CalculateGearScore(const EQ::ItemData* item, uint8 class_id) {
 
 float GetItemTypeWeight(const EQ::ItemData* item, uint8 class_id) {
 	if (!item) {
-		LogTestDebug("Returning due to !item"); //deleteme
+		LogGearScore("Returning due to !item"); //deleteme
 		return 0.0f;
 	}
 
@@ -572,7 +572,7 @@ float GetSlotWeight(const EQ::ItemData* item, uint8 class_id) {
 	return 1.0f;
 
 	if (!item) {
-		LogTestDebug("Returning due to !item"); //deleteme
+		LogGearScore("Returning due to !item"); //deleteme
 		return 0.0f;
 	}
 
@@ -609,7 +609,7 @@ float GetSlotWeight(const EQ::ItemData* item, uint8 class_id) {
 
 float CalculateItemTypeBonus(const EQ::ItemData* item, uint8 class_id) {
 	if (!item) {
-		LogTestDebug("Returning due to !item"); //deleteme
+		LogGearScore("Returning due to !item"); //deleteme
 		return 0.0f;
 	}
 
@@ -774,7 +774,7 @@ float CalculateEndRegenGearScore(uint8 class_id) {
 
 float CalculateWeaponGearScore(const EQ::ItemData* item, uint8 class_id) {
 	if (!item) {
-		LogTestDebug("Returning due to !item"); //deleteme
+		LogGearScore("Returning due to !item"); //deleteme
 		return 0.0f;
 	}
 
@@ -809,7 +809,7 @@ float CalculateWeaponGearScore(const EQ::ItemData* item, uint8 class_id) {
 
 float CalculateDamageGearScore(const EQ::ItemData* item, uint8 class_id) {
 	if (!item) {
-		LogTestDebug("Returning due to !item"); //deleteme
+		LogGearScore("Returning due to !item"); //deleteme
 		return 0.0f;
 	}
 
@@ -819,7 +819,7 @@ float CalculateDamageGearScore(const EQ::ItemData* item, uint8 class_id) {
 
 float CalculateDelayGearScore(const EQ::ItemData* item, uint8 class_id) {
 	if (!item) {
-		LogTestDebug("Returning due to !item"); //deleteme
+		LogGearScore("Returning due to !item"); //deleteme
 		return 0.0f;
 	}
 
@@ -829,7 +829,7 @@ float CalculateDelayGearScore(const EQ::ItemData* item, uint8 class_id) {
 
 float CalculateRatioGearScore(const EQ::ItemData* item, uint8 class_id) {
 	if (!item) {
-		LogTestDebug("Returning due to !item"); //deleteme
+		LogGearScore("Returning due to !item"); //deleteme
 		return 0.0f;
 	}
 
@@ -845,7 +845,7 @@ float CalculateRatioGearScore(const EQ::ItemData* item, uint8 class_id) {
 
 float CalculateArrowGearScore(const EQ::ItemData* item, uint8 class_id) {
 	if (!item) {
-		LogTestDebug("Returning due to !item"); //deleteme
+		LogGearScore("Returning due to !item"); //deleteme
 		return 0.0f;
 	}
 
@@ -1378,7 +1378,7 @@ float CalculateRecommendedSkillGearScore(uint8 class_id) {
 
 float CalculateSkillModGearScore(const EQ::ItemData* item, uint8 class_id) {
 	if (!item) {
-		LogTestDebug("Returning due to !item"); //deleteme
+		LogGearScore("Returning due to !item"); //deleteme
 		return 0.0f;
 	}
 
@@ -1484,7 +1484,7 @@ float CalculateSkillModGearScore(const EQ::ItemData* item, uint8 class_id) {
 
 float CalculateExtraSkillDmgGearScore(const EQ::ItemData* item, uint8 class_id) {
 	if (!item) {
-		LogTestDebug("Returning due to !item"); //deleteme
+		LogGearScore("Returning due to !item"); //deleteme
 		return 0.0f;
 	}
 
@@ -1589,7 +1589,7 @@ float CalculateExtraSkillDmgGearScore(const EQ::ItemData* item, uint8 class_id) 
 
 float CalculateBaneDmgGearScore(const EQ::ItemData* item, uint8 class_id) {
 	if (!item) {
-		LogTestDebug("Returning due to !item"); //deleteme
+		LogGearScore("Returning due to !item"); //deleteme
 		return 0.0f;
 	}
 

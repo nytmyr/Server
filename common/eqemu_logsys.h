@@ -153,6 +153,8 @@ namespace Logs {
 		NetClient,
 		NetTCP,
 		TestDebug,
+		GearScore,
+		SpellScore,
 		MaxCategoryID /* Don't Remove this */
 	};
 
@@ -264,7 +266,9 @@ namespace Logs {
 		"ZoneState",
 		"Net Server <-> Client",
 		"Net TCP",
-		"Test Debug"
+		"Test Debug",
+		"Gear Score",
+		"Spell Score"
 	};
 }
 

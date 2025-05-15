@@ -936,6 +936,26 @@ inline auto logsys = EQEmuLogSys::Instance();
         OutF(LogSys, Logs::Detail, Logs::TestDebug, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
 } while (0)
 
+#define LogGearScore(message, ...) do {\
+    if (LogSys.IsLogEnabled(Logs::General, Logs::GearScore))\
+        OutF(LogSys, Logs::General, Logs::GearScore, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
+} while (0)
+
+#define LogGearScoreDetail(message, ...) do {\
+    if (LogSys.IsLogEnabled(Logs::Detail, Logs::GearScore))\
+        OutF(LogSys, Logs::Detail, Logs::GearScore, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
+} while (0)
+
+#define LogSpellScore(message, ...) do {\
+    if (LogSys.IsLogEnabled(Logs::General, Logs::SpellScore))\
+        OutF(LogSys, Logs::General, Logs::SpellScore, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
+} while (0)
+
+#define LogSpellScoreDetail(message, ...) do {\
+    if (LogSys.IsLogEnabled(Logs::Detail, Logs::SpellScore))\
+        OutF(LogSys, Logs::Detail, Logs::SpellScore, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
+} while (0)
+
 #define Log(debug_level, log_category, message, ...) do {\
     if (logsys->IsLogEnabled(debug_level, log_category))\
         logsys->Out(debug_level, log_category, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\

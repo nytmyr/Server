@@ -117,7 +117,7 @@ void command_gear_score(Client* c, const Seperator* sep) {
 		timer.reset();
 
 		BaseVeqGearScoreRepository::Truncate(database);
-		LogTestDebug("delete took {}", std::to_string(timer.elapsed())); //deleteme
+		LogGearScore("delete took {}", std::to_string(timer.elapsed())); //deleteme
 		const EQ::ItemData *item_to_update = nullptr;
 		std::vector<BaseVeqGearScoreRepository::VeqGearScore> v;
 		uint32 updated_count = 0;
@@ -151,7 +151,7 @@ void command_gear_score(Client* c, const Seperator* sep) {
 			BaseVeqGearScoreRepository::InsertMany(content_db, v);
 		}
 
-		LogTestDebug("{} items were updated in {}", updated_count, std::to_string(timer.elapsed())); //deleteme
+		LogGearScore("{} items were updated in {}", updated_count, std::to_string(timer.elapsed())); //deleteme
 
 		return;
 	}
@@ -171,7 +171,7 @@ void command_gear_score(Client* c, const Seperator* sep) {
 			if (!strcasecmp(sep->arg[1], "update") && c->Admin() >= gm_access_level) {
 				UpdateGearScores(item);
 
-				LogTestDebug(
+				LogGearScore(
 					"{} [{}] has been updated with a Gear Score of {}. {} for {}s [{}].",
 					item->Name,
 					item->ID,

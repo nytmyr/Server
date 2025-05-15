@@ -19,11 +19,11 @@
 class BaseVeqGearScoreRepository {
 public:
 	struct VeqGearScore {
-		int32_t     id;
+		uint32_t    id;
 		std::string name;
-		int8_t      common_drop;
-		int8_t      rare_drop;
-		int8_t      raid_drop;
+		uint8_t     common_drop;
+		uint8_t     rare_drop;
+		uint8_t     raid_drop;
 		float       avg;
 		float       high;
 		float       low;
@@ -459,12 +459,12 @@ public:
 		if (results.RowCount() == 1) {
 			VeqGearScore e{};
 
-			e.id                    = row[0] ? static_cast<int32_t>(atoi(row[0])) : 0;
+			e.id                    = row[0] ? static_cast<uint32_t>(strtoul(row[0], nullptr, 10)) : 0;
 			e.name                  = row[1] ? row[1] : "";
-			e.common_drop           = row[2] ? static_cast<int8_t>(atoi(row[2])) : 0;
-			e.rare_drop             = row[3] ? static_cast<int8_t>(atoi(row[3])) : 0;
-			e.raid_drop             = row[4] ? static_cast<int8_t>(atoi(row[4])) : 0;
-			e.avg                   = row[5] ? strtof(row[5], nullptr) : 0;
+			e.common_drop           = row[2] ? static_cast<uint8_t>(strtoul(row[2], nullptr, 10)) : 0;
+			e.rare_drop             = row[3] ? static_cast<uint8_t>(strtoul(row[3], nullptr, 10)) : 0;
+			e.raid_drop             = row[4] ? static_cast<uint8_t>(strtoul(row[4], nullptr, 10)) : 0;
+			e.avg                   = row[5] ? (strtof(row[5], nullptr) > 0.0f ? strtof(row[5], nullptr) : 0) : 0;
 			e.high                  = row[6] ? strtof(row[6], nullptr) : 0;
 			e.low                   = row[7] ? strtof(row[7], nullptr) : 0;
 			e.classes1              = row[8] ? strtof(row[8], nullptr) : 0;
@@ -923,12 +923,12 @@ public:
 		for (auto row = results.begin(); row != results.end(); ++row) {
 			VeqGearScore e{};
 
-			e.id                    = row[0] ? static_cast<int32_t>(atoi(row[0])) : 0;
+			e.id                    = row[0] ? static_cast<uint32_t>(strtoul(row[0], nullptr, 10)) : 0;
 			e.name                  = row[1] ? row[1] : "";
-			e.common_drop           = row[2] ? static_cast<int8_t>(atoi(row[2])) : 0;
-			e.rare_drop             = row[3] ? static_cast<int8_t>(atoi(row[3])) : 0;
-			e.raid_drop             = row[4] ? static_cast<int8_t>(atoi(row[4])) : 0;
-			e.avg                   = row[5] ? strtof(row[5], nullptr) : 0;
+			e.common_drop           = row[2] ? static_cast<uint8_t>(strtoul(row[2], nullptr, 10)) : 0;
+			e.rare_drop             = row[3] ? static_cast<uint8_t>(strtoul(row[3], nullptr, 10)) : 0;
+			e.raid_drop             = row[4] ? static_cast<uint8_t>(strtoul(row[4], nullptr, 10)) : 0;
+			e.avg                   = row[5] ? (strtof(row[5], nullptr) > 0.0f ? strtof(row[5], nullptr) : 0) : 0;
 			e.high                  = row[6] ? strtof(row[6], nullptr) : 0;
 			e.low                   = row[7] ? strtof(row[7], nullptr) : 0;
 			e.classes1              = row[8] ? strtof(row[8], nullptr) : 0;
@@ -1034,12 +1034,12 @@ public:
 		for (auto row = results.begin(); row != results.end(); ++row) {
 			VeqGearScore e{};
 
-			e.id                    = row[0] ? static_cast<int32_t>(atoi(row[0])) : 0;
+			e.id                    = row[0] ? static_cast<uint32_t>(strtoul(row[0], nullptr, 10)) : 0;
 			e.name                  = row[1] ? row[1] : "";
-			e.common_drop           = row[2] ? static_cast<int8_t>(atoi(row[2])) : 0;
-			e.rare_drop             = row[3] ? static_cast<int8_t>(atoi(row[3])) : 0;
-			e.raid_drop             = row[4] ? static_cast<int8_t>(atoi(row[4])) : 0;
-			e.avg                   = row[5] ? strtof(row[5], nullptr) : 0;
+			e.common_drop           = row[2] ? static_cast<uint8_t>(strtoul(row[2], nullptr, 10)) : 0;
+			e.rare_drop             = row[3] ? static_cast<uint8_t>(strtoul(row[3], nullptr, 10)) : 0;
+			e.raid_drop             = row[4] ? static_cast<uint8_t>(strtoul(row[4], nullptr, 10)) : 0;
+			e.avg                   = row[5] ? (strtof(row[5], nullptr) > 0.0f ? strtof(row[5], nullptr) : 0) : 0;
 			e.high                  = row[6] ? strtof(row[6], nullptr) : 0;
 			e.low                   = row[7] ? strtof(row[7], nullptr) : 0;
 			e.classes1              = row[8] ? strtof(row[8], nullptr) : 0;
