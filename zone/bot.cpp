@@ -11490,7 +11490,7 @@ bool Bot::AttemptForcedCastSpell(Mob* tar, uint16 spell_id, bool is_disc) {
 		tar = this;
 	}
 
-	if ((IsCharmSpell(spell_id) || (IsPetSpell(spell_id) && HasPet()))) {
+	if ((IsCharmSpell(spell_id) || (IsSummonPetSpell(spell_id) && HasPet()))) {
 		return false;
 	}
 
@@ -11805,6 +11805,7 @@ bool Bot::IsValidSpellTypeBySpellID(uint16 spell_type, uint16 spell_id) {
 			if (
 				!IsBardSong(spell_id) &&
 				(
+					IsYaulpSpell(spell_id) ||
 					(IsSelfConversionSpell(spell_id) && spell.buff_duration < 1) ||
 					(spell_type == BotSpellTypes::InCombatBuff && IsAnyBuffSpell(spell_id))
 				)
@@ -12038,7 +12039,7 @@ bool Bot::IsValidSpellTypeBySpellID(uint16 spell_type, uint16 spell_id) {
 			return false;
 		case BotSpellTypes::Invisibility:
 			if (IsBeneficialSpell(spell_id) &&
-				(IsEffectInSpell(spell_id, SE_SeeInvis) ||IsInvisibleSpell(spell_id))
+				(IsEffectInSpell(spell_id, SE_SeeInvis) || IsInvisibleSpell(spell_id))
 			) {
 				return true;
 			}

@@ -470,6 +470,23 @@ uint16 GetPetBotSpellType(uint16 spell_type) {
 	return spell_type;
 }
 
+uint16 GetGroupBotSpellType(uint16 spell_type) {
+	switch (spell_type) {
+		case BotSpellTypes::Cure:
+			return BotSpellTypes::GroupCures;
+		case BotSpellTypes::CompleteHeal:
+			return BotSpellTypes::GroupCompleteHeals;
+		case BotSpellTypes::RegularHeal:
+			return BotSpellTypes::GroupHeals;
+		case BotSpellTypes::HoTHeals:
+			return BotSpellTypes::GroupHoTHeals;
+		default:
+			return spell_type;
+	}
+
+	return spell_type;
+}
+
 bool IsBotBuffSpellType(uint16 spell_type) {
 	switch (spell_type) {
 		case BotSpellTypes::Buff:

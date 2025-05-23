@@ -917,6 +917,7 @@ bool IsCommandedBotSpellType(uint16 spell_type);
 bool IsPullingBotSpellType(uint16 spell_type);
 uint16 GetCorrectBotSpellType(uint16 spell_type, uint16 spell_id);
 uint16 GetPetBotSpellType(uint16 spell_type);
+uint16 GetGroupBotSpellType(uint16 spell_type);
 bool IsBotBuffSpellType(uint16 spell_type);
 bool BotRequiresLoSToCast(uint16 spell_type, uint16 spell_id);
 
@@ -1825,6 +1826,7 @@ bool IsCureSpell(uint16 spell_id);
 bool IsHarmTouchSpell(uint16 spell_id);
 int GetSpellEffectIndex(uint16 spell_id, int effect_id);
 uint8 GetSpellMinimumLevel(uint16 spell_id);
+uint8 GetSpellMinimumClass(uint16 spell_id);
 uint8 GetSpellLevel(uint16 spell_id, uint8 class_id);
 int CalcBuffDuration_formula(int level, int formula, int duration);
 int32 CalculatePoisonCounters(uint16 spell_id);
@@ -1871,6 +1873,7 @@ bool IsDebuffSpell(uint16 spell_id);
 bool IsHateReduxSpell(uint16 spell_id);
 bool IsResistDebuffSpell(uint16 spell_id);
 bool IsSelfConversionSpell(uint16 spell_id);
+bool IsYaulpSpell(uint16 spell_id);
 bool IsBuffSpell(uint16 spell_id);
 bool IsPersistDeathSpell(uint16 spell_id);
 bool IsSuspendableSpell(uint16 spell_id);
@@ -1919,5 +1922,6 @@ bool IsDamageShieldOnlySpell(uint16 spell_id);
 bool IsDamageShieldAndResistSpell(uint16 spell_id);
 bool IsHateSpell(uint16 spell_id);
 bool IsDisciplineTome(const EQ::ItemData* item);
+bool IsTargetTypeOnlySpell(uint16 spell_id);
 
 #endif

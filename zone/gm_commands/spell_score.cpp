@@ -131,7 +131,7 @@ void command_spell_score(Client* c, const Seperator* sep) {
 		timer.reset();
 
 		VeqSpellScoreRepository::Truncate(database);
-		LogTestDebug("delete took {}", std::to_string(timer.elapsed())); //deleteme
+		LogSpellScore("delete took {}", std::to_string(timer.elapsed())); //deleteme
 		std::vector<VeqSpellScoreRepository::VeqSpellScore> v;
 		uint32 updated_count = 0;
 		uint32 count = 0;
@@ -157,7 +157,8 @@ void command_spell_score(Client* c, const Seperator* sep) {
 			const SPDat_Spell_Struct spell = spells[x];
 
 			++updated_count;
-			auto i = UpdateSpellScores(c->CastToMob(), spell, 255, true); // TODO add level option in command
+			//auto i = UpdateSpellScores(c->CastToMob(), spell, 255, true); // TODO add level option in command
+			auto i = UpdateFullScore(c->CastToMob(), spell, 255, true); // TODO add level option in command
 
 			v.emplace_back(i);
 
@@ -167,7 +168,7 @@ void command_spell_score(Client* c, const Seperator* sep) {
 			VeqSpellScoreRepository::InsertMany(content_db, v);
 		}
 
-		LogTestDebug("{} spells were updated in {}", updated_count, std::to_string(timer.elapsed())); //deleteme
+		LogSpellScore("{} spells were updated in {}", updated_count, std::to_string(timer.elapsed())); //deleteme
 
 		return;
 	}
@@ -180,8 +181,9 @@ void command_spell_score(Client* c, const Seperator* sep) {
 
 			const SPDat_Spell_Struct spell = spells[spell_id];
 
-			UpdateSpellScores(c, spell, 255); // TODO add level option in command
-			LogTestDebug(
+			//UpdateSpellScores(c, spell, 255); // TODO add level option in command
+			UpdateFullScore(c, spell, 255); // TODO add level option in command
+			LogSpellScore(
 				"{} [#{}] was updated in {}",
 				spell.name,
 				spell_id,

@@ -256,7 +256,7 @@ bool IsFearSpell(uint16 spell_id)
 	return IsEffectInSpell(spell_id, SE_Fear);
 }
 
-bool IsCureSpell(uint16 spell_id)
+bool IsCureSpell(uint16 spell_id) // TODO - add blind support
 {
 	if (!IsValidSpell(spell_id)) {
 		return false;
@@ -370,7 +370,7 @@ bool IsBeneficialSpell(uint16 spell_id)
 			return false;
 		}
 
-		// When our targetarget_typeype is ST_Target, ST_AETarget, ST_Aniaml, ST_Undead, or ST_Pet
+		// When our targetarget_typeype is ST_Target, ST_AETarget, ST_Animal, ST_Undead, or ST_Pet
 		// We need to check more things!
 		if (
 			target_type == ST_Target ||
@@ -489,7 +489,9 @@ bool IsPetSpell(uint16 spell_id)
 {
 	return (
 		IsSummonPetSpell(spell_id) ||
-		IsSummonSkeletonSpell(spell_id)
+		IsSummonSkeletonSpell(spell_id) ||
+		spells[spell_id].target_type == ST_Pet ||
+		spells[spell_id].target_type == ST_SummonedPet
 	);
 }
 
@@ -994,6 +996,30 @@ uint8 GetSpellMinimumLevel(uint16 spell_id)
 	// just so it wont screw up calculations used in other areas of the code
 	// seen 127, 254, 255
 	return minimum_level;
+}
+
+uint8 GetSpellMinimumClass(uint16 spell_id)
+{
+	if (!IsValidSpell(spell_id)) {
+		return UINT8_MAX;
+	}
+
+	uint8 minimum_level = UINT8_MAX;
+	uint8 minimum_class = Class::None;
+
+	const auto& spell = spells[spell_id];
+
+	for (int i = 0; i < Class::PLAYER_CLASS_COUNT; i++) {
+		if (spell.classes[i] < minimum_level) {
+			minimum_level = spell.classes[i];
+			minimum_class = i + 1;
+		}
+	}
+
+	// if we can't cast the spell return 0
+	// just so it wont screw up calculations used in other areas of the code
+	// seen 127, 254, 255
+	return minimum_class;
 }
 
 uint8 GetSpellLevel(uint16 spell_id, uint8 class_id)
@@ -1860,6 +1886,20 @@ bool IsSelfConversionSpell(uint16 spell_id)
 		IsEffectInSpell(spell_id, SE_CurrentHP) &&
 		spells[spell_id].base_value[GetSpellEffectIndex(spell_id, SE_CurrentMana)] > 0 &&
 		spells[spell_id].base_value[GetSpellEffectIndex(spell_id, SE_CurrentHP)] < 0
+	);
+}
+
+bool IsYaulpSpell(uint16 spell_id) {
+	if (!IsValidSpell(spell_id)) {
+		return false;
+	}
+
+	return (
+		GetSpellTargetType(spell_id) == ST_Self &&
+		spells[spell_id].cast_time == 500 &&
+		spells[spell_id].recast_time == 1800 &&
+		spells[spell_id].buff_duration == 4 &&
+		(spells[spell_id].classes[Class::Cleric - 1] < 253 || spells[spell_id].classes[Class::Paladin - 1] < 253)
 	);
 }
 
@@ -3014,4 +3054,54 @@ bool IsDisciplineTome(const EQ::ItemData* item)
 	}
 
 	return true;
+}
+
+bool IsTargetTypeOnlySpell(uint16 spell_id) {
+	if (!IsValidSpell(spell_id)) {
+		return false;
+	}
+
+	switch (spells[spell_id].target_type) {
+		case ST_Animal:
+		case ST_Undead:
+		case ST_Summoned:
+		case ST_Plant:
+		case ST_Giant:
+		case ST_Dragon:
+		case ST_UndeadAE:
+		case ST_SummonedAE:
+		case ST_LDoNChest_Cursed:
+		case ST_Muramite:
+			return true;
+		case ST_TargetOptional:
+		case ST_AEClientV1:
+		case ST_GroupTeleport:
+		case ST_AECaster:
+		case ST_Target:
+		case ST_Self:
+		case ST_AETarget:
+		case ST_Tap:
+		case ST_Pet:
+		case ST_Corpse:
+		case ST_TargetAETap:
+		case ST_AETargetHateList:
+		case ST_HateList:
+		case ST_AreaClientOnly:
+		case ST_AreaNPCOnly:
+		case ST_SummonedPet:
+		case ST_GroupNoPets:
+		case ST_AEBard:
+		case ST_Group:
+		case ST_Directional:
+		case ST_GroupClientAndPet:
+		case ST_Beam:
+		case ST_Ring:
+		case ST_TargetsTarget:
+		case ST_PetMaster:
+		case ST_TargetAENoPlayersPets:
+		default:
+			return false;
+	}
+
+	return false;
 }

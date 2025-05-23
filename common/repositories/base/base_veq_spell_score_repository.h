@@ -19,18 +19,51 @@
 class BaseVeqSpellScoreRepository {
 public:
 	struct VeqSpellScore {
-		int32_t     id;
+		uint16_t    id;
 		std::string name;
-		int32_t     spell_level;
+		uint8_t     lowest_spell_level;
+		uint8_t     lowest_class;
 		float       spell_score;
 		std::string spell_type;
-		float       dd_score;
-		float       dot_score;
-		float       slow_score;
-		float       ae_rain_score;
-		float       lifetap_score;
+		float       duration;
+		uint8_t     target_type;
+		float       pbae_multiplier;
+		float       ae_multiplier;
+		float       group_multiplier;
+		float       recourse_score;
 		float       heal_score;
+		float       mana_score;
+		float       dd_score;
+		float       mana_dd_score;
+		float       ae_rain_score;
 		float       hot_score;
+		float       mot_score;
+		float       dot_score;
+		float       m_dot_score;
+		float       haste_score;
+		float       slow_score;
+		float       lifetap_score;
+		float       manatap_score;
+		float       ac_buff_score;
+		float       ac_debuff_score;
+		float       atk_buff_score;
+		float       atk_debuff_score;
+		float       movement_speed_score;
+		float       snare_score;
+		float       base_stat_score;
+		float       base_stat_debuff_score;
+		float       invis_score;
+		float       see_invis_score;
+		float       water_breathing_score;
+		float       pacify_score;
+		float       add_faction_score;
+		float       blind_score;
+		float       stun_score;
+		float       charm_score;
+		float       fear_score;
+		float       stamina_score;
+		float       bind_affinity_score;
+		float       gate_score;
 	};
 
 	static std::string PrimaryKey()
@@ -43,16 +76,49 @@ public:
 		return {
 			"id",
 			"name",
-			"spell_level",
+			"lowest_spell_level",
+			"lowest_class",
 			"spell_score",
 			"spell_type",
-			"dd_score",
-			"dot_score",
-			"slow_score",
-			"ae_rain_score",
-			"lifetap_score",
+			"duration",
+			"target_type",
+			"pbae_multiplier",
+			"ae_multiplier",
+			"group_multiplier",
+			"recourse_score",
 			"heal_score",
+			"mana_score",
+			"dd_score",
+			"mana_dd_score",
+			"ae_rain_score",
 			"hot_score",
+			"mot_score",
+			"dot_score",
+			"m_dot_score",
+			"haste_score",
+			"slow_score",
+			"lifetap_score",
+			"manatap_score",
+			"ac_buff_score",
+			"ac_debuff_score",
+			"atk_buff_score",
+			"atk_debuff_score",
+			"movement_speed_score",
+			"snare_score",
+			"base_stat_score",
+			"base_stat_debuff_score",
+			"invis_score",
+			"see_invis_score",
+			"water_breathing_score",
+			"pacify_score",
+			"add_faction_score",
+			"blind_score",
+			"stun_score",
+			"charm_score",
+			"fear_score",
+			"stamina_score",
+			"bind_affinity_score",
+			"gate_score",
 		};
 	}
 
@@ -61,16 +127,49 @@ public:
 		return {
 			"id",
 			"name",
-			"spell_level",
+			"lowest_spell_level",
+			"lowest_class",
 			"spell_score",
 			"spell_type",
-			"dd_score",
-			"dot_score",
-			"slow_score",
-			"ae_rain_score",
-			"lifetap_score",
+			"duration",
+			"target_type",
+			"pbae_multiplier",
+			"ae_multiplier",
+			"group_multiplier",
+			"recourse_score",
 			"heal_score",
+			"mana_score",
+			"dd_score",
+			"mana_dd_score",
+			"ae_rain_score",
 			"hot_score",
+			"mot_score",
+			"dot_score",
+			"m_dot_score",
+			"haste_score",
+			"slow_score",
+			"lifetap_score",
+			"manatap_score",
+			"ac_buff_score",
+			"ac_debuff_score",
+			"atk_buff_score",
+			"atk_debuff_score",
+			"movement_speed_score",
+			"snare_score",
+			"base_stat_score",
+			"base_stat_debuff_score",
+			"invis_score",
+			"see_invis_score",
+			"water_breathing_score",
+			"pacify_score",
+			"add_faction_score",
+			"blind_score",
+			"stun_score",
+			"charm_score",
+			"fear_score",
+			"stamina_score",
+			"bind_affinity_score",
+			"gate_score",
 		};
 	}
 
@@ -111,18 +210,51 @@ public:
 	{
 		VeqSpellScore e{};
 
-		e.id            = 0;
-		e.name          = "";
-		e.spell_level   = 0;
-		e.spell_score   = 0;
-		e.spell_type    = "Unknown";
-		e.dd_score      = 0;
-		e.dot_score     = 0;
-		e.slow_score    = 0;
-		e.ae_rain_score = 0;
-		e.lifetap_score = 0;
-		e.heal_score    = 0;
-		e.hot_score     = 0;
+		e.id                     = 0;
+		e.name                   = "";
+		e.lowest_spell_level     = 0;
+		e.lowest_class           = 0;
+		e.spell_score            = 0;
+		e.spell_type             = "Unknown";
+		e.duration               = 0;
+		e.target_type            = 0;
+		e.pbae_multiplier        = 0;
+		e.ae_multiplier          = 0;
+		e.group_multiplier       = 0;
+		e.recourse_score         = 0;
+		e.heal_score             = 0;
+		e.mana_score             = 0;
+		e.dd_score               = 0;
+		e.mana_dd_score          = 0;
+		e.ae_rain_score          = 0;
+		e.hot_score              = 0;
+		e.mot_score              = 0;
+		e.dot_score              = 0;
+		e.m_dot_score            = 0;
+		e.haste_score            = 0;
+		e.slow_score             = 0;
+		e.lifetap_score          = 0;
+		e.manatap_score          = 0;
+		e.ac_buff_score          = 0;
+		e.ac_debuff_score        = 0;
+		e.atk_buff_score         = 0;
+		e.atk_debuff_score       = 0;
+		e.movement_speed_score   = 0;
+		e.snare_score            = 0;
+		e.base_stat_score        = 0;
+		e.base_stat_debuff_score = 0;
+		e.invis_score            = 0;
+		e.see_invis_score        = 0;
+		e.water_breathing_score  = 0;
+		e.pacify_score           = 0;
+		e.add_faction_score      = 0;
+		e.blind_score            = 0;
+		e.stun_score             = 0;
+		e.charm_score            = 0;
+		e.fear_score             = 0;
+		e.stamina_score          = 0;
+		e.bind_affinity_score    = 0;
+		e.gate_score             = 0;
 
 		return e;
 	}
@@ -159,18 +291,51 @@ public:
 		if (results.RowCount() == 1) {
 			VeqSpellScore e{};
 
-			e.id            = row[0] ? static_cast<int32_t>(atoi(row[0])) : 0;
-			e.name          = row[1] ? row[1] : "";
-			e.spell_level   = row[2] ? static_cast<int32_t>(atoi(row[2])) : 0;
-			e.spell_score   = row[3] ? strtof(row[3], nullptr) : 0;
-			e.spell_type    = row[4] ? row[4] : "Unknown";
-			e.dd_score      = row[5] ? strtof(row[5], nullptr) : 0;
-			e.dot_score     = row[6] ? strtof(row[6], nullptr) : 0;
-			e.slow_score    = row[7] ? strtof(row[7], nullptr) : 0;
-			e.ae_rain_score = row[8] ? strtof(row[8], nullptr) : 0;
-			e.lifetap_score = row[9] ? strtof(row[9], nullptr) : 0;
-			e.heal_score    = row[10] ? strtof(row[10], nullptr) : 0;
-			e.hot_score     = row[11] ? strtof(row[11], nullptr) : 0;
+			e.id                     = row[0] ? static_cast<uint16_t>(strtoul(row[0], nullptr, 10)) : 0;
+			e.name                   = row[1] ? row[1] : "";
+			e.lowest_spell_level     = row[2] ? static_cast<uint8_t>(strtoul(row[2], nullptr, 10)) : 0;
+			e.lowest_class           = row[3] ? static_cast<uint8_t>(strtoul(row[3], nullptr, 10)) : 0;
+			e.spell_score            = row[4] ? strtof(row[4], nullptr) : 0;
+			e.spell_type             = row[5] ? row[5] : "Unknown";
+			e.duration               = row[6] ? strtof(row[6], nullptr) : 0;
+			e.target_type            = row[7] ? static_cast<uint8_t>(strtoul(row[7], nullptr, 10)) : 0;
+			e.pbae_multiplier        = row[8] ? strtof(row[8], nullptr) : 0;
+			e.ae_multiplier          = row[9] ? strtof(row[9], nullptr) : 0;
+			e.group_multiplier       = row[10] ? strtof(row[10], nullptr) : 0;
+			e.recourse_score         = row[11] ? strtof(row[11], nullptr) : 0;
+			e.heal_score             = row[12] ? strtof(row[12], nullptr) : 0;
+			e.mana_score             = row[13] ? strtof(row[13], nullptr) : 0;
+			e.dd_score               = row[14] ? strtof(row[14], nullptr) : 0;
+			e.mana_dd_score          = row[15] ? strtof(row[15], nullptr) : 0;
+			e.ae_rain_score          = row[16] ? strtof(row[16], nullptr) : 0;
+			e.hot_score              = row[17] ? strtof(row[17], nullptr) : 0;
+			e.mot_score              = row[18] ? strtof(row[18], nullptr) : 0;
+			e.dot_score              = row[19] ? strtof(row[19], nullptr) : 0;
+			e.m_dot_score            = row[20] ? strtof(row[20], nullptr) : 0;
+			e.haste_score            = row[21] ? strtof(row[21], nullptr) : 0;
+			e.slow_score             = row[22] ? strtof(row[22], nullptr) : 0;
+			e.lifetap_score          = row[23] ? strtof(row[23], nullptr) : 0;
+			e.manatap_score          = row[24] ? strtof(row[24], nullptr) : 0;
+			e.ac_buff_score          = row[25] ? strtof(row[25], nullptr) : 0;
+			e.ac_debuff_score        = row[26] ? strtof(row[26], nullptr) : 0;
+			e.atk_buff_score         = row[27] ? strtof(row[27], nullptr) : 0;
+			e.atk_debuff_score       = row[28] ? strtof(row[28], nullptr) : 0;
+			e.movement_speed_score   = row[29] ? strtof(row[29], nullptr) : 0;
+			e.snare_score            = row[30] ? strtof(row[30], nullptr) : 0;
+			e.base_stat_score        = row[31] ? strtof(row[31], nullptr) : 0;
+			e.base_stat_debuff_score = row[32] ? strtof(row[32], nullptr) : 0;
+			e.invis_score            = row[33] ? strtof(row[33], nullptr) : 0;
+			e.see_invis_score        = row[34] ? strtof(row[34], nullptr) : 0;
+			e.water_breathing_score  = row[35] ? strtof(row[35], nullptr) : 0;
+			e.pacify_score           = row[36] ? strtof(row[36], nullptr) : 0;
+			e.add_faction_score      = row[37] ? strtof(row[37], nullptr) : 0;
+			e.blind_score            = row[38] ? strtof(row[38], nullptr) : 0;
+			e.stun_score             = row[39] ? strtof(row[39], nullptr) : 0;
+			e.charm_score            = row[40] ? strtof(row[40], nullptr) : 0;
+			e.fear_score             = row[41] ? strtof(row[41], nullptr) : 0;
+			e.stamina_score          = row[42] ? strtof(row[42], nullptr) : 0;
+			e.bind_affinity_score    = row[43] ? strtof(row[43], nullptr) : 0;
+			e.gate_score             = row[44] ? strtof(row[44], nullptr) : 0;
 
 			return e;
 		}
@@ -206,16 +371,49 @@ public:
 
 		v.push_back(columns[0] + " = " + std::to_string(e.id));
 		v.push_back(columns[1] + " = '" + Strings::Escape(e.name) + "'");
-		v.push_back(columns[2] + " = " + std::to_string(e.spell_level));
-		v.push_back(columns[3] + " = " + std::to_string(e.spell_score));
-		v.push_back(columns[4] + " = '" + Strings::Escape(e.spell_type) + "'");
-		v.push_back(columns[5] + " = " + std::to_string(e.dd_score));
-		v.push_back(columns[6] + " = " + std::to_string(e.dot_score));
-		v.push_back(columns[7] + " = " + std::to_string(e.slow_score));
-		v.push_back(columns[8] + " = " + std::to_string(e.ae_rain_score));
-		v.push_back(columns[9] + " = " + std::to_string(e.lifetap_score));
-		v.push_back(columns[10] + " = " + std::to_string(e.heal_score));
-		v.push_back(columns[11] + " = " + std::to_string(e.hot_score));
+		v.push_back(columns[2] + " = " + std::to_string(e.lowest_spell_level));
+		v.push_back(columns[3] + " = " + std::to_string(e.lowest_class));
+		v.push_back(columns[4] + " = " + std::to_string(e.spell_score));
+		v.push_back(columns[5] + " = '" + Strings::Escape(e.spell_type) + "'");
+		v.push_back(columns[6] + " = " + std::to_string(e.duration));
+		v.push_back(columns[7] + " = " + std::to_string(e.target_type));
+		v.push_back(columns[8] + " = " + std::to_string(e.pbae_multiplier));
+		v.push_back(columns[9] + " = " + std::to_string(e.ae_multiplier));
+		v.push_back(columns[10] + " = " + std::to_string(e.group_multiplier));
+		v.push_back(columns[11] + " = " + std::to_string(e.recourse_score));
+		v.push_back(columns[12] + " = " + std::to_string(e.heal_score));
+		v.push_back(columns[13] + " = " + std::to_string(e.mana_score));
+		v.push_back(columns[14] + " = " + std::to_string(e.dd_score));
+		v.push_back(columns[15] + " = " + std::to_string(e.mana_dd_score));
+		v.push_back(columns[16] + " = " + std::to_string(e.ae_rain_score));
+		v.push_back(columns[17] + " = " + std::to_string(e.hot_score));
+		v.push_back(columns[18] + " = " + std::to_string(e.mot_score));
+		v.push_back(columns[19] + " = " + std::to_string(e.dot_score));
+		v.push_back(columns[20] + " = " + std::to_string(e.m_dot_score));
+		v.push_back(columns[21] + " = " + std::to_string(e.haste_score));
+		v.push_back(columns[22] + " = " + std::to_string(e.slow_score));
+		v.push_back(columns[23] + " = " + std::to_string(e.lifetap_score));
+		v.push_back(columns[24] + " = " + std::to_string(e.manatap_score));
+		v.push_back(columns[25] + " = " + std::to_string(e.ac_buff_score));
+		v.push_back(columns[26] + " = " + std::to_string(e.ac_debuff_score));
+		v.push_back(columns[27] + " = " + std::to_string(e.atk_buff_score));
+		v.push_back(columns[28] + " = " + std::to_string(e.atk_debuff_score));
+		v.push_back(columns[29] + " = " + std::to_string(e.movement_speed_score));
+		v.push_back(columns[30] + " = " + std::to_string(e.snare_score));
+		v.push_back(columns[31] + " = " + std::to_string(e.base_stat_score));
+		v.push_back(columns[32] + " = " + std::to_string(e.base_stat_debuff_score));
+		v.push_back(columns[33] + " = " + std::to_string(e.invis_score));
+		v.push_back(columns[34] + " = " + std::to_string(e.see_invis_score));
+		v.push_back(columns[35] + " = " + std::to_string(e.water_breathing_score));
+		v.push_back(columns[36] + " = " + std::to_string(e.pacify_score));
+		v.push_back(columns[37] + " = " + std::to_string(e.add_faction_score));
+		v.push_back(columns[38] + " = " + std::to_string(e.blind_score));
+		v.push_back(columns[39] + " = " + std::to_string(e.stun_score));
+		v.push_back(columns[40] + " = " + std::to_string(e.charm_score));
+		v.push_back(columns[41] + " = " + std::to_string(e.fear_score));
+		v.push_back(columns[42] + " = " + std::to_string(e.stamina_score));
+		v.push_back(columns[43] + " = " + std::to_string(e.bind_affinity_score));
+		v.push_back(columns[44] + " = " + std::to_string(e.gate_score));
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -239,16 +437,49 @@ public:
 
 		v.push_back(std::to_string(e.id));
 		v.push_back("'" + Strings::Escape(e.name) + "'");
-		v.push_back(std::to_string(e.spell_level));
+		v.push_back(std::to_string(e.lowest_spell_level));
+		v.push_back(std::to_string(e.lowest_class));
 		v.push_back(std::to_string(e.spell_score));
 		v.push_back("'" + Strings::Escape(e.spell_type) + "'");
-		v.push_back(std::to_string(e.dd_score));
-		v.push_back(std::to_string(e.dot_score));
-		v.push_back(std::to_string(e.slow_score));
-		v.push_back(std::to_string(e.ae_rain_score));
-		v.push_back(std::to_string(e.lifetap_score));
+		v.push_back(std::to_string(e.duration));
+		v.push_back(std::to_string(e.target_type));
+		v.push_back(std::to_string(e.pbae_multiplier));
+		v.push_back(std::to_string(e.ae_multiplier));
+		v.push_back(std::to_string(e.group_multiplier));
+		v.push_back(std::to_string(e.recourse_score));
 		v.push_back(std::to_string(e.heal_score));
+		v.push_back(std::to_string(e.mana_score));
+		v.push_back(std::to_string(e.dd_score));
+		v.push_back(std::to_string(e.mana_dd_score));
+		v.push_back(std::to_string(e.ae_rain_score));
 		v.push_back(std::to_string(e.hot_score));
+		v.push_back(std::to_string(e.mot_score));
+		v.push_back(std::to_string(e.dot_score));
+		v.push_back(std::to_string(e.m_dot_score));
+		v.push_back(std::to_string(e.haste_score));
+		v.push_back(std::to_string(e.slow_score));
+		v.push_back(std::to_string(e.lifetap_score));
+		v.push_back(std::to_string(e.manatap_score));
+		v.push_back(std::to_string(e.ac_buff_score));
+		v.push_back(std::to_string(e.ac_debuff_score));
+		v.push_back(std::to_string(e.atk_buff_score));
+		v.push_back(std::to_string(e.atk_debuff_score));
+		v.push_back(std::to_string(e.movement_speed_score));
+		v.push_back(std::to_string(e.snare_score));
+		v.push_back(std::to_string(e.base_stat_score));
+		v.push_back(std::to_string(e.base_stat_debuff_score));
+		v.push_back(std::to_string(e.invis_score));
+		v.push_back(std::to_string(e.see_invis_score));
+		v.push_back(std::to_string(e.water_breathing_score));
+		v.push_back(std::to_string(e.pacify_score));
+		v.push_back(std::to_string(e.add_faction_score));
+		v.push_back(std::to_string(e.blind_score));
+		v.push_back(std::to_string(e.stun_score));
+		v.push_back(std::to_string(e.charm_score));
+		v.push_back(std::to_string(e.fear_score));
+		v.push_back(std::to_string(e.stamina_score));
+		v.push_back(std::to_string(e.bind_affinity_score));
+		v.push_back(std::to_string(e.gate_score));
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -280,16 +511,49 @@ public:
 
 			v.push_back(std::to_string(e.id));
 			v.push_back("'" + Strings::Escape(e.name) + "'");
-			v.push_back(std::to_string(e.spell_level));
+			v.push_back(std::to_string(e.lowest_spell_level));
+			v.push_back(std::to_string(e.lowest_class));
 			v.push_back(std::to_string(e.spell_score));
 			v.push_back("'" + Strings::Escape(e.spell_type) + "'");
-			v.push_back(std::to_string(e.dd_score));
-			v.push_back(std::to_string(e.dot_score));
-			v.push_back(std::to_string(e.slow_score));
-			v.push_back(std::to_string(e.ae_rain_score));
-			v.push_back(std::to_string(e.lifetap_score));
+			v.push_back(std::to_string(e.duration));
+			v.push_back(std::to_string(e.target_type));
+			v.push_back(std::to_string(e.pbae_multiplier));
+			v.push_back(std::to_string(e.ae_multiplier));
+			v.push_back(std::to_string(e.group_multiplier));
+			v.push_back(std::to_string(e.recourse_score));
 			v.push_back(std::to_string(e.heal_score));
+			v.push_back(std::to_string(e.mana_score));
+			v.push_back(std::to_string(e.dd_score));
+			v.push_back(std::to_string(e.mana_dd_score));
+			v.push_back(std::to_string(e.ae_rain_score));
 			v.push_back(std::to_string(e.hot_score));
+			v.push_back(std::to_string(e.mot_score));
+			v.push_back(std::to_string(e.dot_score));
+			v.push_back(std::to_string(e.m_dot_score));
+			v.push_back(std::to_string(e.haste_score));
+			v.push_back(std::to_string(e.slow_score));
+			v.push_back(std::to_string(e.lifetap_score));
+			v.push_back(std::to_string(e.manatap_score));
+			v.push_back(std::to_string(e.ac_buff_score));
+			v.push_back(std::to_string(e.ac_debuff_score));
+			v.push_back(std::to_string(e.atk_buff_score));
+			v.push_back(std::to_string(e.atk_debuff_score));
+			v.push_back(std::to_string(e.movement_speed_score));
+			v.push_back(std::to_string(e.snare_score));
+			v.push_back(std::to_string(e.base_stat_score));
+			v.push_back(std::to_string(e.base_stat_debuff_score));
+			v.push_back(std::to_string(e.invis_score));
+			v.push_back(std::to_string(e.see_invis_score));
+			v.push_back(std::to_string(e.water_breathing_score));
+			v.push_back(std::to_string(e.pacify_score));
+			v.push_back(std::to_string(e.add_faction_score));
+			v.push_back(std::to_string(e.blind_score));
+			v.push_back(std::to_string(e.stun_score));
+			v.push_back(std::to_string(e.charm_score));
+			v.push_back(std::to_string(e.fear_score));
+			v.push_back(std::to_string(e.stamina_score));
+			v.push_back(std::to_string(e.bind_affinity_score));
+			v.push_back(std::to_string(e.gate_score));
 
 			insert_chunks.push_back("(" + Strings::Implode(",", v) + ")");
 		}
@@ -323,18 +587,51 @@ public:
 		for (auto row = results.begin(); row != results.end(); ++row) {
 			VeqSpellScore e{};
 
-			e.id            = row[0] ? static_cast<int32_t>(atoi(row[0])) : 0;
-			e.name          = row[1] ? row[1] : "";
-			e.spell_level   = row[2] ? static_cast<int32_t>(atoi(row[2])) : 0;
-			e.spell_score   = row[3] ? strtof(row[3], nullptr) : 0;
-			e.spell_type    = row[4] ? row[4] : "Unknown";
-			e.dd_score      = row[5] ? strtof(row[5], nullptr) : 0;
-			e.dot_score     = row[6] ? strtof(row[6], nullptr) : 0;
-			e.slow_score    = row[7] ? strtof(row[7], nullptr) : 0;
-			e.ae_rain_score = row[8] ? strtof(row[8], nullptr) : 0;
-			e.lifetap_score = row[9] ? strtof(row[9], nullptr) : 0;
-			e.heal_score    = row[10] ? strtof(row[10], nullptr) : 0;
-			e.hot_score     = row[11] ? strtof(row[11], nullptr) : 0;
+			e.id                     = row[0] ? static_cast<uint16_t>(strtoul(row[0], nullptr, 10)) : 0;
+			e.name                   = row[1] ? row[1] : "";
+			e.lowest_spell_level     = row[2] ? static_cast<uint8_t>(strtoul(row[2], nullptr, 10)) : 0;
+			e.lowest_class           = row[3] ? static_cast<uint8_t>(strtoul(row[3], nullptr, 10)) : 0;
+			e.spell_score            = row[4] ? strtof(row[4], nullptr) : 0;
+			e.spell_type             = row[5] ? row[5] : "Unknown";
+			e.duration               = row[6] ? strtof(row[6], nullptr) : 0;
+			e.target_type            = row[7] ? static_cast<uint8_t>(strtoul(row[7], nullptr, 10)) : 0;
+			e.pbae_multiplier        = row[8] ? strtof(row[8], nullptr) : 0;
+			e.ae_multiplier          = row[9] ? strtof(row[9], nullptr) : 0;
+			e.group_multiplier       = row[10] ? strtof(row[10], nullptr) : 0;
+			e.recourse_score         = row[11] ? strtof(row[11], nullptr) : 0;
+			e.heal_score             = row[12] ? strtof(row[12], nullptr) : 0;
+			e.mana_score             = row[13] ? strtof(row[13], nullptr) : 0;
+			e.dd_score               = row[14] ? strtof(row[14], nullptr) : 0;
+			e.mana_dd_score          = row[15] ? strtof(row[15], nullptr) : 0;
+			e.ae_rain_score          = row[16] ? strtof(row[16], nullptr) : 0;
+			e.hot_score              = row[17] ? strtof(row[17], nullptr) : 0;
+			e.mot_score              = row[18] ? strtof(row[18], nullptr) : 0;
+			e.dot_score              = row[19] ? strtof(row[19], nullptr) : 0;
+			e.m_dot_score            = row[20] ? strtof(row[20], nullptr) : 0;
+			e.haste_score            = row[21] ? strtof(row[21], nullptr) : 0;
+			e.slow_score             = row[22] ? strtof(row[22], nullptr) : 0;
+			e.lifetap_score          = row[23] ? strtof(row[23], nullptr) : 0;
+			e.manatap_score          = row[24] ? strtof(row[24], nullptr) : 0;
+			e.ac_buff_score          = row[25] ? strtof(row[25], nullptr) : 0;
+			e.ac_debuff_score        = row[26] ? strtof(row[26], nullptr) : 0;
+			e.atk_buff_score         = row[27] ? strtof(row[27], nullptr) : 0;
+			e.atk_debuff_score       = row[28] ? strtof(row[28], nullptr) : 0;
+			e.movement_speed_score   = row[29] ? strtof(row[29], nullptr) : 0;
+			e.snare_score            = row[30] ? strtof(row[30], nullptr) : 0;
+			e.base_stat_score        = row[31] ? strtof(row[31], nullptr) : 0;
+			e.base_stat_debuff_score = row[32] ? strtof(row[32], nullptr) : 0;
+			e.invis_score            = row[33] ? strtof(row[33], nullptr) : 0;
+			e.see_invis_score        = row[34] ? strtof(row[34], nullptr) : 0;
+			e.water_breathing_score  = row[35] ? strtof(row[35], nullptr) : 0;
+			e.pacify_score           = row[36] ? strtof(row[36], nullptr) : 0;
+			e.add_faction_score      = row[37] ? strtof(row[37], nullptr) : 0;
+			e.blind_score            = row[38] ? strtof(row[38], nullptr) : 0;
+			e.stun_score             = row[39] ? strtof(row[39], nullptr) : 0;
+			e.charm_score            = row[40] ? strtof(row[40], nullptr) : 0;
+			e.fear_score             = row[41] ? strtof(row[41], nullptr) : 0;
+			e.stamina_score          = row[42] ? strtof(row[42], nullptr) : 0;
+			e.bind_affinity_score    = row[43] ? strtof(row[43], nullptr) : 0;
+			e.gate_score             = row[44] ? strtof(row[44], nullptr) : 0;
 
 			all_entries.push_back(e);
 		}
@@ -359,18 +656,51 @@ public:
 		for (auto row = results.begin(); row != results.end(); ++row) {
 			VeqSpellScore e{};
 
-			e.id            = row[0] ? static_cast<int32_t>(atoi(row[0])) : 0;
-			e.name          = row[1] ? row[1] : "";
-			e.spell_level   = row[2] ? static_cast<int32_t>(atoi(row[2])) : 0;
-			e.spell_score   = row[3] ? strtof(row[3], nullptr) : 0;
-			e.spell_type    = row[4] ? row[4] : "Unknown";
-			e.dd_score      = row[5] ? strtof(row[5], nullptr) : 0;
-			e.dot_score     = row[6] ? strtof(row[6], nullptr) : 0;
-			e.slow_score    = row[7] ? strtof(row[7], nullptr) : 0;
-			e.ae_rain_score = row[8] ? strtof(row[8], nullptr) : 0;
-			e.lifetap_score = row[9] ? strtof(row[9], nullptr) : 0;
-			e.heal_score    = row[10] ? strtof(row[10], nullptr) : 0;
-			e.hot_score     = row[11] ? strtof(row[11], nullptr) : 0;
+			e.id                     = row[0] ? static_cast<uint16_t>(strtoul(row[0], nullptr, 10)) : 0;
+			e.name                   = row[1] ? row[1] : "";
+			e.lowest_spell_level     = row[2] ? static_cast<uint8_t>(strtoul(row[2], nullptr, 10)) : 0;
+			e.lowest_class           = row[3] ? static_cast<uint8_t>(strtoul(row[3], nullptr, 10)) : 0;
+			e.spell_score            = row[4] ? strtof(row[4], nullptr) : 0;
+			e.spell_type             = row[5] ? row[5] : "Unknown";
+			e.duration               = row[6] ? strtof(row[6], nullptr) : 0;
+			e.target_type            = row[7] ? static_cast<uint8_t>(strtoul(row[7], nullptr, 10)) : 0;
+			e.pbae_multiplier        = row[8] ? strtof(row[8], nullptr) : 0;
+			e.ae_multiplier          = row[9] ? strtof(row[9], nullptr) : 0;
+			e.group_multiplier       = row[10] ? strtof(row[10], nullptr) : 0;
+			e.recourse_score         = row[11] ? strtof(row[11], nullptr) : 0;
+			e.heal_score             = row[12] ? strtof(row[12], nullptr) : 0;
+			e.mana_score             = row[13] ? strtof(row[13], nullptr) : 0;
+			e.dd_score               = row[14] ? strtof(row[14], nullptr) : 0;
+			e.mana_dd_score          = row[15] ? strtof(row[15], nullptr) : 0;
+			e.ae_rain_score          = row[16] ? strtof(row[16], nullptr) : 0;
+			e.hot_score              = row[17] ? strtof(row[17], nullptr) : 0;
+			e.mot_score              = row[18] ? strtof(row[18], nullptr) : 0;
+			e.dot_score              = row[19] ? strtof(row[19], nullptr) : 0;
+			e.m_dot_score            = row[20] ? strtof(row[20], nullptr) : 0;
+			e.haste_score            = row[21] ? strtof(row[21], nullptr) : 0;
+			e.slow_score             = row[22] ? strtof(row[22], nullptr) : 0;
+			e.lifetap_score          = row[23] ? strtof(row[23], nullptr) : 0;
+			e.manatap_score          = row[24] ? strtof(row[24], nullptr) : 0;
+			e.ac_buff_score          = row[25] ? strtof(row[25], nullptr) : 0;
+			e.ac_debuff_score        = row[26] ? strtof(row[26], nullptr) : 0;
+			e.atk_buff_score         = row[27] ? strtof(row[27], nullptr) : 0;
+			e.atk_debuff_score       = row[28] ? strtof(row[28], nullptr) : 0;
+			e.movement_speed_score   = row[29] ? strtof(row[29], nullptr) : 0;
+			e.snare_score            = row[30] ? strtof(row[30], nullptr) : 0;
+			e.base_stat_score        = row[31] ? strtof(row[31], nullptr) : 0;
+			e.base_stat_debuff_score = row[32] ? strtof(row[32], nullptr) : 0;
+			e.invis_score            = row[33] ? strtof(row[33], nullptr) : 0;
+			e.see_invis_score        = row[34] ? strtof(row[34], nullptr) : 0;
+			e.water_breathing_score  = row[35] ? strtof(row[35], nullptr) : 0;
+			e.pacify_score           = row[36] ? strtof(row[36], nullptr) : 0;
+			e.add_faction_score      = row[37] ? strtof(row[37], nullptr) : 0;
+			e.blind_score            = row[38] ? strtof(row[38], nullptr) : 0;
+			e.stun_score             = row[39] ? strtof(row[39], nullptr) : 0;
+			e.charm_score            = row[40] ? strtof(row[40], nullptr) : 0;
+			e.fear_score             = row[41] ? strtof(row[41], nullptr) : 0;
+			e.stamina_score          = row[42] ? strtof(row[42], nullptr) : 0;
+			e.bind_affinity_score    = row[43] ? strtof(row[43], nullptr) : 0;
+			e.gate_score             = row[44] ? strtof(row[44], nullptr) : 0;
 
 			all_entries.push_back(e);
 		}
@@ -447,16 +777,49 @@ public:
 
 		v.push_back(std::to_string(e.id));
 		v.push_back("'" + Strings::Escape(e.name) + "'");
-		v.push_back(std::to_string(e.spell_level));
+		v.push_back(std::to_string(e.lowest_spell_level));
+		v.push_back(std::to_string(e.lowest_class));
 		v.push_back(std::to_string(e.spell_score));
 		v.push_back("'" + Strings::Escape(e.spell_type) + "'");
-		v.push_back(std::to_string(e.dd_score));
-		v.push_back(std::to_string(e.dot_score));
-		v.push_back(std::to_string(e.slow_score));
-		v.push_back(std::to_string(e.ae_rain_score));
-		v.push_back(std::to_string(e.lifetap_score));
+		v.push_back(std::to_string(e.duration));
+		v.push_back(std::to_string(e.target_type));
+		v.push_back(std::to_string(e.pbae_multiplier));
+		v.push_back(std::to_string(e.ae_multiplier));
+		v.push_back(std::to_string(e.group_multiplier));
+		v.push_back(std::to_string(e.recourse_score));
 		v.push_back(std::to_string(e.heal_score));
+		v.push_back(std::to_string(e.mana_score));
+		v.push_back(std::to_string(e.dd_score));
+		v.push_back(std::to_string(e.mana_dd_score));
+		v.push_back(std::to_string(e.ae_rain_score));
 		v.push_back(std::to_string(e.hot_score));
+		v.push_back(std::to_string(e.mot_score));
+		v.push_back(std::to_string(e.dot_score));
+		v.push_back(std::to_string(e.m_dot_score));
+		v.push_back(std::to_string(e.haste_score));
+		v.push_back(std::to_string(e.slow_score));
+		v.push_back(std::to_string(e.lifetap_score));
+		v.push_back(std::to_string(e.manatap_score));
+		v.push_back(std::to_string(e.ac_buff_score));
+		v.push_back(std::to_string(e.ac_debuff_score));
+		v.push_back(std::to_string(e.atk_buff_score));
+		v.push_back(std::to_string(e.atk_debuff_score));
+		v.push_back(std::to_string(e.movement_speed_score));
+		v.push_back(std::to_string(e.snare_score));
+		v.push_back(std::to_string(e.base_stat_score));
+		v.push_back(std::to_string(e.base_stat_debuff_score));
+		v.push_back(std::to_string(e.invis_score));
+		v.push_back(std::to_string(e.see_invis_score));
+		v.push_back(std::to_string(e.water_breathing_score));
+		v.push_back(std::to_string(e.pacify_score));
+		v.push_back(std::to_string(e.add_faction_score));
+		v.push_back(std::to_string(e.blind_score));
+		v.push_back(std::to_string(e.stun_score));
+		v.push_back(std::to_string(e.charm_score));
+		v.push_back(std::to_string(e.fear_score));
+		v.push_back(std::to_string(e.stamina_score));
+		v.push_back(std::to_string(e.bind_affinity_score));
+		v.push_back(std::to_string(e.gate_score));
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -481,16 +844,49 @@ public:
 
 			v.push_back(std::to_string(e.id));
 			v.push_back("'" + Strings::Escape(e.name) + "'");
-			v.push_back(std::to_string(e.spell_level));
+			v.push_back(std::to_string(e.lowest_spell_level));
+			v.push_back(std::to_string(e.lowest_class));
 			v.push_back(std::to_string(e.spell_score));
 			v.push_back("'" + Strings::Escape(e.spell_type) + "'");
-			v.push_back(std::to_string(e.dd_score));
-			v.push_back(std::to_string(e.dot_score));
-			v.push_back(std::to_string(e.slow_score));
-			v.push_back(std::to_string(e.ae_rain_score));
-			v.push_back(std::to_string(e.lifetap_score));
+			v.push_back(std::to_string(e.duration));
+			v.push_back(std::to_string(e.target_type));
+			v.push_back(std::to_string(e.pbae_multiplier));
+			v.push_back(std::to_string(e.ae_multiplier));
+			v.push_back(std::to_string(e.group_multiplier));
+			v.push_back(std::to_string(e.recourse_score));
 			v.push_back(std::to_string(e.heal_score));
+			v.push_back(std::to_string(e.mana_score));
+			v.push_back(std::to_string(e.dd_score));
+			v.push_back(std::to_string(e.mana_dd_score));
+			v.push_back(std::to_string(e.ae_rain_score));
 			v.push_back(std::to_string(e.hot_score));
+			v.push_back(std::to_string(e.mot_score));
+			v.push_back(std::to_string(e.dot_score));
+			v.push_back(std::to_string(e.m_dot_score));
+			v.push_back(std::to_string(e.haste_score));
+			v.push_back(std::to_string(e.slow_score));
+			v.push_back(std::to_string(e.lifetap_score));
+			v.push_back(std::to_string(e.manatap_score));
+			v.push_back(std::to_string(e.ac_buff_score));
+			v.push_back(std::to_string(e.ac_debuff_score));
+			v.push_back(std::to_string(e.atk_buff_score));
+			v.push_back(std::to_string(e.atk_debuff_score));
+			v.push_back(std::to_string(e.movement_speed_score));
+			v.push_back(std::to_string(e.snare_score));
+			v.push_back(std::to_string(e.base_stat_score));
+			v.push_back(std::to_string(e.base_stat_debuff_score));
+			v.push_back(std::to_string(e.invis_score));
+			v.push_back(std::to_string(e.see_invis_score));
+			v.push_back(std::to_string(e.water_breathing_score));
+			v.push_back(std::to_string(e.pacify_score));
+			v.push_back(std::to_string(e.add_faction_score));
+			v.push_back(std::to_string(e.blind_score));
+			v.push_back(std::to_string(e.stun_score));
+			v.push_back(std::to_string(e.charm_score));
+			v.push_back(std::to_string(e.fear_score));
+			v.push_back(std::to_string(e.stamina_score));
+			v.push_back(std::to_string(e.bind_affinity_score));
+			v.push_back(std::to_string(e.gate_score));
 
 			insert_chunks.push_back("(" + Strings::Implode(",", v) + ")");
 		}
