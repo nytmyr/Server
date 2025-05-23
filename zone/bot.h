@@ -757,7 +757,7 @@ public:
 	static BotSpell GetDebuffBotSpell(Bot* caster, Mob* target, uint16 spell_type);
 	static BotSpell GetBestBotSpellForCure(Bot* caster, Mob* target, uint16 spell_type);
 	static BotSpell GetBestBotSpellForResistDebuff(Bot* caster, Mob* target, uint16 spell_type);
-	static BotSpell GetBestBotSpellForNukeByBodyType(Bot* caster, uint8 body_type, uint16 spell_type, bool AE = false, Mob* tar = nullptr);
+	static BotSpell GetBestBotSpellForNukeByBodyType(Bot* caster, uint16 spell_type, bool AE = false, Mob* tar = nullptr);
 	static BotSpell GetBestBotSpellForRez(Bot* caster, Mob* target, uint16 spell_type);
 	static BotSpell GetBestBotSpellForCharm(Bot* caster, Mob* target, uint16 spell_type);
 

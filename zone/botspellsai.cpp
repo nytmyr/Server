@@ -2785,14 +2785,14 @@ bool Bot::IsValidSpellRange(uint16 spell_id, Mob* tar) {
 	return true;
 }
 
-BotSpell Bot::GetBestBotSpellForNukeByBodyType(Bot* caster, uint8 body_type, uint16 spell_type, bool AE, Mob* tar) {
+BotSpell Bot::GetBestBotSpellForNukeByBodyType(Bot* caster, uint16 spell_type, bool AE, Mob* tar) {
 	BotSpell result;
 
 	result.SpellId = 0;
 	result.SpellIndex = 0;
 	result.ManaCost = 0;
 
-	if (!caster || !body_type) {
+	if (!caster) {
 		return result;
 	}
 
@@ -2800,31 +2800,51 @@ BotSpell Bot::GetBestBotSpellForNukeByBodyType(Bot* caster, uint8 body_type, uin
 		tar = caster->GetTarget();
 	}
 
-	switch (body_type) {
-		case BodyType::Undead:
-		case BodyType::SummonedUndead:
-		case BodyType::Vampire:
-			result = GetBestBotSpellForNukeByTargetType(caster, (!AE ? ST_Undead : ST_UndeadAE), spell_type, AE, tar);
-			break;
-		case BodyType::Summoned:
-		case BodyType::Summoned2:
-		case BodyType::Summoned3:
-			result = GetBestBotSpellForNukeByTargetType(caster, (!AE ? ST_Summoned : ST_SummonedAE), spell_type, AE, tar);
-			break;
-		case BodyType::Animal:
-			result = GetBestBotSpellForNukeByTargetType(caster, ST_Animal, spell_type, AE, tar);
-			break;
-		case BodyType::Plant:
-			result = GetBestBotSpellForNukeByTargetType(caster, ST_Plant, spell_type, AE, tar);
-			break;
-		case BodyType::Giant:
-			result = GetBestBotSpellForNukeByTargetType(caster, ST_Giant, spell_type, AE, tar);
-			break;
-		case BodyType::Dragon:
-			result = GetBestBotSpellForNukeByTargetType(caster, ST_Dragon, spell_type, AE, tar);
-			break;
-		default:
-			break;
+	int64 spell_damage = 0;
+
+	for (auto i = 0; i < tar->GetBodyType().size(); ++i) {
+		BotSpell temp_spell;
+
+		temp_spell.SpellId = 0;
+		temp_spell.SpellIndex = 0;
+		temp_spell.ManaCost = 0;
+
+		switch (tar->GetBodyType()[i]) {
+			case BodyType::Undead:
+			case BodyType::SummonedUndead:
+			case BodyType::Vampire:
+				temp_spell = GetBestBotSpellForNukeByTargetType(caster, (!AE ? ST_Undead : ST_UndeadAE), spell_type, AE, tar);
+				break;
+			case BodyType::Summoned:
+			case BodyType::Summoned2:
+			case BodyType::Summoned3:
+				temp_spell = GetBestBotSpellForNukeByTargetType(caster, (!AE ? ST_Summoned : ST_SummonedAE), spell_type, AE, tar);
+				break;
+			case BodyType::Animal:
+				temp_spell = GetBestBotSpellForNukeByTargetType(caster, ST_Animal, spell_type, AE, tar);
+				break;
+			case BodyType::Plant:
+				temp_spell = GetBestBotSpellForNukeByTargetType(caster, ST_Plant, spell_type, AE, tar);
+				break;
+			case BodyType::Giant:
+				temp_spell = GetBestBotSpellForNukeByTargetType(caster, ST_Giant, spell_type, AE, tar);
+				break;
+			case BodyType::Dragon:
+				temp_spell = GetBestBotSpellForNukeByTargetType(caster, ST_Dragon, spell_type, AE, tar);
+				break;
+			default:
+				break;
+		}
+
+		if (IsValidSpell(temp_spell.SpellId)) {
+			auto effect_id = GetSpellEffectIndex(temp_spell.SpellId, SE_CurrentHP);
+			int64 new_damage = caster->CalcSpellEffectValue(temp_spell.SpellId, effect_id, caster->GetLevel());
+			new_damage = caster->GetActSpellDamage(temp_spell.SpellId, new_damage, tar);
+
+			if (new_damage < spell_damage) {
+				result = temp_spell;
+			}
+		}
 	}
 
 	return result;
