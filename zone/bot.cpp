@@ -717,7 +717,7 @@ NPCType *Bot::FillNPCTypeStruct(
 	n->gender = gender;
 	n->race = botRace;
 	n->class_ = botClass;
-	n->bodytype[0] = 1;
+	n->bodytype.push_back(BodyType::Humanoid);
 	n->deity = Deity::Agnostic1;
 	n->level = botLevel;
 	n->npc_spells_id = botSpellsID;
@@ -777,7 +777,7 @@ NPCType *Bot::CreateDefaultNPCTypeStructForBot(
 	n->gender = gender;
 	n->race = botRace;
 	n->class_ = botClass;
-	n->bodytype[0] = 1;
+	n->bodytype.push_back(BodyType::Humanoid);
 	n->deity = Deity::Agnostic1;
 	n->level = botLevel;
 	n->AC = 12;
