@@ -1296,6 +1296,14 @@ bool IsManaTapSpell(uint16 spell_id)
 	);
 }
 
+bool IsStaminaTapSpell(uint16 spell_id)
+{
+	return (
+		IsEffectInSpell(spell_id, SE_CurrentEndurance) &&
+		spells[spell_id].target_type == ST_Tap
+	);
+}
+
 bool IsAllianceSpell(uint16 spell_id)
 {
 	return IsEffectInSpell(spell_id, SE_AddFaction);

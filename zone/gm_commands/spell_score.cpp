@@ -126,56 +126,55 @@ void command_spell_score(Client* c, const Seperator* sep) {
 	}
 	*/
 
-	if (!strcasecmp(sep->arg[1], "update") && !strcasecmp(sep->arg[2], "all") && c->Admin() >= gm_access_level) {
-		BenchTimer timer;
-		timer.reset();
+	if (!strcasecmp(sep->arg[1], "update") && c->Admin() >= gm_access_level) {
+		if (!strcasecmp(sep->arg[2], "all")) {
+			BenchTimer timer;
+			timer.reset();
 
-		VeqSpellScoreRepository::Truncate(database);
-		LogSpellScore("delete took {}", std::to_string(timer.elapsed())); //deleteme
-		std::vector<VeqSpellScoreRepository::VeqSpellScore> v;
-		uint32 updated_count = 0;
-		uint32 count = 0;
+			VeqSpellScoreRepository::Truncate(database);
+			LogSpellScore("delete took {}", std::to_string(timer.elapsed())); //deleteme
+			std::vector<VeqSpellScoreRepository::VeqSpellScore> v;
+			uint32 updated_count = 0;
+			uint32 count = 0;
 
-		const std::string query = "SELECT MAX(id) FROM spells_new";
-		auto results = database.QueryDatabase(query);
+			const std::string query = "SELECT MAX(id) FROM spells_new";
+			auto results = database.QueryDatabase(query);
 
-		if (!results.Success() || results.RowCount() == 0) {
-			count = 0;
-		}
-
-		auto &row = results.begin();
-
-		if (row[0]) {
-			count = Strings::ToUnsignedInt(row[0]);
-		}
-
-		for (uint32 x = 0; x <= count; x++) {
-			if (!IsValidSpell(x)) {
-				continue;
+			if (!results.Success() || results.RowCount() == 0) {
+				count = 0;
 			}
 
-			const SPDat_Spell_Struct spell = spells[x];
+			auto &row = results.begin();
 
-			++updated_count;
-			//auto i = UpdateSpellScores(c->CastToMob(), spell, 255, true); // TODO add level option in command
-			auto i = UpdateFullScore(c->CastToMob(), spell, 255, true); // TODO add level option in command
+			if (row[0]) {
+				count = Strings::ToUnsignedInt(row[0]);
+			}
 
-			v.emplace_back(i);
+			for (uint32 x = 0; x <= count; x++) {
+				if (!IsValidSpell(x)) {
+					continue;
+				}
 
-		}
+				const SPDat_Spell_Struct spell = spells[x];
 
-		if (!v.empty()) {
-			VeqSpellScoreRepository::InsertMany(content_db, v);
-		}
+				++updated_count;
+				//auto i = UpdateSpellScores(c->CastToMob(), spell, 255, true); // TODO add level option in command
+				auto i = UpdateFullScore(c->CastToMob(), spell, 255, true); // TODO add level option in command
 
-		LogSpellScore("{} spells were updated in {}", updated_count, std::to_string(timer.elapsed())); //deleteme
+				v.emplace_back(i);
 
-		return;
-	}
-	else if (sep->IsNumber(1) && IsValidSpell(atoi(sep->arg[1]))) {
-		auto spell_id = atoi(sep->arg[1]);
+			}
 
-		if (!strcasecmp(sep->arg[2], "update") && c->Admin() >= gm_access_level) {
+			if (!v.empty()) {
+				VeqSpellScoreRepository::InsertMany(content_db, v);
+			}
+
+			LogSpellScore("{} spells were updated in {}", updated_count, std::to_string(timer.elapsed())); //deleteme
+
+			return;
+		} else if (sep->IsNumber(2) && IsValidSpell(atoi(sep->arg[2]))) {
+			auto spell_id = atoi(sep->arg[2]);
+
 			BenchTimer timer;
 			timer.reset();
 
@@ -183,28 +182,27 @@ void command_spell_score(Client* c, const Seperator* sep) {
 
 			//UpdateSpellScores(c, spell, 255); // TODO add level option in command
 			UpdateFullScore(c, spell, 255); // TODO add level option in command
-			LogSpellScore(
-				"{} [#{}] was updated in {}",
-				spell.name,
-				spell_id,
-				std::to_string(timer.elapsed())
-			); //deleteme
+			LogSpellScore("{} [#{}] was updated in {}",
+						  spell.name,
+						  spell_id,
+						  std::to_string(timer.elapsed())); //deleteme
 
 			return;
 		}
-		else {
-			float gear_score = GetSpellScore(spell_id);
+	}
+	else if (sep->IsNumber(1) && IsValidSpell(atoi(sep->arg[1]))) {
+		auto spell_id = atoi(sep->arg[1]);
+		float gear_score = GetSpellScore(spell_id);
 
-			c->Message(
-				Chat::Lime,
-				fmt::format(
-					"{} [#{}] has a Spell Score of {}",
-					Saylink::Silent(fmt::format("#spellinfo {}", spell_id), spells[spell_id].name),
-					spell_id,
-					gear_score
-				).c_str()
-			);
-		}
+		c->Message(
+			Chat::Lime,
+			fmt::format(
+				"{} [#{}] has a Spell Score of {}",
+				Saylink::Silent(fmt::format("#spellinfo {}", spell_id), spells[spell_id].name),
+				spell_id,
+				gear_score
+			).c_str()
+		);
 	}
 	else {
 		c->Message(Chat::Yellow,

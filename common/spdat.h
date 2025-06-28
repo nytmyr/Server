@@ -1842,6 +1842,7 @@ int8 GetSpellResurrectionSicknessCheck(uint16 spell_id_one, uint16 spell_id_two)
 bool IsRuneSpell(uint16 spell_id);
 bool IsMagicRuneSpell(uint16 spell_id);
 bool IsManaTapSpell(uint16 spell_id);
+bool IsStaminaTapSpell(uint16 spell_id);
 bool IsAllianceSpell(uint16 spell_id);
 bool IsDeathSaveSpell(uint16 spell_id);
 bool IsFullDeathSaveSpell(uint16 spell_id);

@@ -30,6 +30,8 @@ namespace VegasSpellTypeMultipliers {
 	constexpr float DamageOverTime                 	 = 0.35f;
 	constexpr float DirectMana	                 	 = 2.00f;
 	constexpr float ManaDamageOverTime               = 1.00f;
+	constexpr float DirectStamina                 	 = 0.25f;
+	constexpr float StaminaDamageOverTime            = 0.10f;
 	constexpr float Slow                 	 		 = 5.00f;
 	constexpr float Group                 	 	 	 = 2.00f;
 	constexpr float AE                 	 	 		 = 3.00f;
@@ -46,6 +48,7 @@ namespace VegasSpellTypeMultipliers {
 	// Utility
 	constexpr float Lifetap                 	 	 = 1.50f;
 	constexpr float Manatap                 	 	 = 1.20f;
+	constexpr float Staminatap                 	 	 = 0.30f;
 	constexpr float Pacify                 	 		 = 50.00f;
 	constexpr float Charm                 	 		 = 20.00f;
 	constexpr float Fear                 	 		 = 10.00f;
@@ -67,7 +70,8 @@ namespace VegasSpellTypeMultipliers {
 	constexpr float SeeInvis                 	 	 = 10.00f;
 	constexpr float WaterBreathing                 	 = 35.00f;
 	constexpr float AddFaction                 	 	 = 1.00f;
-	constexpr float StaminaLoss                 	 = 1.00f;
+	constexpr float InstantStamina                 	 = 0.25f;
+	constexpr float StaminaOverTime                  = 0.10f;
 	constexpr float CureBlind                 	 	 = 25.00f;
 
 	// Spell options

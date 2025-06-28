@@ -502,7 +502,8 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 		}
 	}
 
-	e.id = spell.id;
+	int spell_id = spell.id;
+	e.id = spell_id;
 
 	if (spell_level == UINT8_MAX) {
 		spell_level = GetSpellMinimumLevel(spell.id);
@@ -544,13 +545,12 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 	}
 
 	e.spell_type = Bot::GetSpellTypeNameByID(spell_type);
-	e.duration = CalcBuffDuration_formula(spell_level, spell.buff_duration_formula, spell.buff_duration);
+	float duration = CalcBuffDuration_formula(spell_level, spell.buff_duration_formula, spell.buff_duration);
+	e.duration = duration;
 	e.target_type = spell.target_type;
 
 	bool is_self_only = spell.target_type == ST_Self;
 	float spell_score = 0.0f;
-	int spell_id = spell.id;
-	float duration = CalcBuffDuration_formula(spell_level, spell.buff_duration_formula, spell.buff_duration);
 
 	for (int i = 0; i < EFFECT_COUNT; i++) {
 		if (IsBlankSpellEffect(spell_id, i)) {
@@ -558,7 +558,8 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 		}
 
 		int effect_id = spell.effect_id[i];
-		float spell_value = caster->CalcSpellEffectValue_formula(spell.formula[effect_id], spell.base_value[effect_id], spell.max_value[effect_id], spell_level,spell.id);
+		//float spell_value = caster->CalcSpellEffectValue(spell_id, effect_id, spell.base_value[effect_id], spell_level);
+		float spell_value = caster->CalcSpellEffectValue_formula(spell.formula[effect_id], spell.base_value[effect_id], spell.max_value[effect_id], spell_level, spell_id);
 		/*
 		 * TODO:
 		 *  - Fix Lich's from scoring DoTs, adjust MoT to be appropriate like mana regen
@@ -601,7 +602,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 
 						for (int x = 0; x < duration; x++) {
 							spell_value = caster->CalcSpellEffectValue_formula(spell.formula[i], spell.base_value[i], spell.max_value[i], spell_level, spell_id, x);
-							LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} with {} ticks remaining [{} total].", spell.name, spell.id, (spell.base_value[i] < 0 ? "DoT" : "HoT"), spell_value, duration - x, Strings::SecondsToTime(duration * 6)); //deleteme
+							LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} with {} ticks remaining [{} total].", spell.name, spell_id, (spell.base_value[i] < 0 ? "DoT" : "HoT"), spell_value, duration - x, Strings::SecondsToTime(duration * 6)); //deleteme
 
 							if (spell.base_value[i] < 0) { // DoT
 								spell_value = IsBeneficialSpell(spell_id) ? spell_value : abs(spell_value);
@@ -627,7 +628,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 			}
 			case SE_ArmorClass: {
 					duration = std::fmax(1.0f, std::fmin(duration, 50.0f)); // Only score up to 5 minutes.
-					LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} for {} ticks [{}].", spell.name, spell.id, (spell.base_value[i] < 0 ? "AC Debuff" : "AC Buff"), spell_value, duration, Strings::SecondsToTime(duration * 6)); //deleteme
+					LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} for {} ticks [{}].", spell.name, spell_id, (spell.base_value[i] < 0 ? "AC Debuff" : "AC Buff"), spell_value, duration, Strings::SecondsToTime(duration * 6)); //deleteme
 
 					if (spell.base_value[i] < 0) { // Debuff
 						spell_value = IsBeneficialSpell(spell_id) ? spell_value : abs(spell_value);
@@ -646,7 +647,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 				break;
 			case SE_ATK: {
 					duration = std::fmax(1.0f, std::fmin(duration, 50.0f)); // Only score up to 5 minutes.
-					LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} for {} ticks [{}].", spell.name, spell.id, (spell.base_value[i] < 0 ? "ATK Debuff" : "ATK Buff"), spell_value, duration, Strings::SecondsToTime(duration * 6)); //deleteme
+					LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} for {} ticks [{}].", spell.name, spell_id, (spell.base_value[i] < 0 ? "ATK Debuff" : "ATK Buff"), spell_value, duration, Strings::SecondsToTime(duration * 6)); //deleteme
 
 					if (spell.base_value[i] < 0) { // Debuff
 						spell_value = IsBeneficialSpell(spell_id) ? spell_value : abs(spell_value);
@@ -669,7 +670,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 				}
 
 				duration = std::fmax(1.0f, std::fmin(duration, 50.0f)); // Only score up to 5 minutes.
-				LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} for {} ticks [{}].", spell.name, spell.id, (spell.base_value[i] < 0 ? "Snare" : "Movement Speed"), spell_value, duration, Strings::SecondsToTime(duration * 6)); //deleteme
+				LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} for {} ticks [{}].", spell.name, spell_id, (spell.base_value[i] < 0 ? "Snare" : "Movement Speed"), spell_value, duration, Strings::SecondsToTime(duration * 6)); //deleteme
 
 				if (spell.base_value[i] < 0) { // Snare
 					spell_value = IsBeneficialSpell(spell_id) ? spell_value : abs(spell_value);
@@ -694,7 +695,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 			case SE_WIS:
 			case SE_CHA: {
 				duration = std::fmax(1.0f, std::fmin(duration, 50.0f)); // Only score up to 5 minutes.
-				LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} for {} ticks [{}].", spell.name, spell.id, (spell.base_value[i] < 0 ? "Base Stat Debuff" : "Base Stat Buff"), spell_value, duration, Strings::SecondsToTime(duration * 6)); //deleteme
+				LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} for {} ticks [{}].", spell.name, spell_id, (spell.base_value[i] < 0 ? "Base Stat Debuff" : "Base Stat Buff"), spell_value, duration, Strings::SecondsToTime(duration * 6)); //deleteme
 
 				if (spell.base_value[i] < 0) { // Debuff
 					spell_value = IsBeneficialSpell(spell_id) ? spell_value : abs(spell_value);
@@ -712,8 +713,9 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 				break;
 			}
 			case SE_AttackSpeed: {
+				spell_value = caster->CalcSpellEffectValue(spell_id, effect_id, spell.base_value[effect_id], spell_level);
 				duration = std::fmax(1.0f, std::fmin(duration, 50.0f)); // Only score up to 5 minutes.
-				LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} for {} ticks [{}].", spell.name, spell.id, (spell.base_value[i] < 0 ? "Slow" : "Haste"), spell_value, duration, Strings::SecondsToTime(duration * 6)); //deleteme
+				LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} for {} ticks [{}].", spell.name, spell_id, (spell.base_value[i] < 100 ? "Slow" : "Haste"), (spell_value - 100), duration, Strings::SecondsToTime(duration * 6)); //deleteme
 
 				if (spell.base_value[i] < 100) { // Slow
 					spell_value = IsBeneficialSpell(spell_id) ? (spell_value - 100) : abs(spell_value - 100);
@@ -735,7 +737,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 			}
 			case SE_Invisibility: {
 				duration = std::fmax(1.0f, std::fmin(duration, 50.0f)); // Only score up to 5 minutes.
-				LogSpellScoreDetail("Checking {} [{}] as an {} --- effect value of {} for {} ticks [{}].", spell.name, spell.id, "Invis", spell_value, duration, Strings::SecondsToTime(duration * 6)); //deleteme
+				LogSpellScoreDetail("Checking {} [{}] as an {} --- effect value of {} for {} ticks [{}].", spell.name, spell_id, "Invis", spell_value, duration, Strings::SecondsToTime(duration * 6)); //deleteme
 				spell_value += (spell_value * (duration / 100));
 				spell_value *= VegasSpellTypeMultipliers::Invisibility;
 				spell_score += spell_value;
@@ -745,7 +747,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 			}
 			case SE_SeeInvis: {
 				duration = std::fmax(1.0f, std::fmin(duration, 50.0f)); // Only score up to 5 minutes.
-				LogSpellScoreDetail("Checking {} [{}] as an {} --- effect value of {} for {} ticks [{}].", spell.name, spell.id, "See Invis", spell_value, duration, Strings::SecondsToTime(duration * 6)); //deleteme
+				LogSpellScoreDetail("Checking {} [{}] as an {} --- effect value of {} for {} ticks [{}].", spell.name, spell_id, "See Invis", spell_value, duration, Strings::SecondsToTime(duration * 6)); //deleteme
 				spell_value += (spell_value * (duration / 100));
 				spell_value *= VegasSpellTypeMultipliers::SeeInvis;
 				spell_score += spell_value;
@@ -755,7 +757,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 			}
 			case SE_WaterBreathing: {
 				duration = std::fmax(1.0f, std::fmin(duration, 50.0f)); // Only score up to 5 minutes.
-				LogSpellScoreDetail("Checking {} [{}] as an {} --- effect value of {} for {} ticks [{}].", spell.name, spell.id, "Water Breathing", spell_value, duration, Strings::SecondsToTime(duration * 6)); //deleteme
+				LogSpellScoreDetail("Checking {} [{}] as an {} --- effect value of {} for {} ticks [{}].", spell.name, spell_id, "Water Breathing", spell_value, duration, Strings::SecondsToTime(duration * 6)); //deleteme
 				spell_value += (spell_value * (duration / 100));
 				spell_value *= VegasSpellTypeMultipliers::WaterBreathing;
 				spell_score += spell_value;
@@ -800,7 +802,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 
 						for (int x = 0; x < duration; x++) {
 							spell_value = caster->CalcSpellEffectValue_formula(spell.formula[i], spell.base_value[i], spell.max_value[i], spell_level, spell_id, x);
-							LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} with {} ticks remaining [{} total].", spell.name, spell.id, (spell.base_value[i] < 0 ? "ManaDoT" : "MoT"), spell_value, duration - x, Strings::SecondsToTime(duration * 6)); //deleteme
+							LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} with {} ticks remaining [{} total].", spell.name, spell_id, (spell.base_value[i] < 0 ? "ManaDoT" : "MoT"), spell_value, duration - x, Strings::SecondsToTime(duration * 6)); //deleteme
 
 							if (spell.base_value[i] < 0) { // MDoT
 								spell_value = IsBeneficialSpell(spell_id) ? spell_value : abs(spell_value);
@@ -837,13 +839,13 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 				if (frenzy_effect_index > 0) {
 					level_cap_multiplier += spell.max_value[frenzy_effect_index];
 					spell_value += spell.base_value[frenzy_effect_index];
-					LogSpellScoreDetail("{} [{}] has a frenzy effect value of {} with a level_cap_multiplier of {}.", spell.name, spell.id, spell.base_value[frenzy_effect_index], level_cap_multiplier); //deleteme
+					LogSpellScoreDetail("{} [{}] has a frenzy effect value of {} with a level_cap_multiplier of {}.", spell.name, spell_id, spell.base_value[frenzy_effect_index], level_cap_multiplier); //deleteme
 				}
 
 				if (harmony_effect_index > 0) {
 					level_cap_multiplier += spell.max_value[harmony_effect_index];
 					spell_value += spell.base_value[frenzy_effect_index];
-					LogSpellScoreDetail("{} [{}] has a harmony effect value of {} with a level_cap_multiplier of {}.", spell.name, spell.id, spell.base_value[frenzy_effect_index], level_cap_multiplier); //deleteme
+					LogSpellScoreDetail("{} [{}] has a harmony effect value of {} with a level_cap_multiplier of {}.", spell.name, spell_id, spell.base_value[frenzy_effect_index], level_cap_multiplier); //deleteme
 				}
 
 				if (frenzy_effect_index > 0 && harmony_effect_index > 0) {
@@ -862,12 +864,12 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 				spell_value = IsTargetTypeOnlySpell(spell_id) ? spell_value * VegasSpellTypeMultipliers::TargetTypeOnly : spell_value;
 				spell_score += spell_value;
 				e.pacify_score += spell_value;
-				LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} for {} ticks [{}] with a level_cap_multiplier of {}.", spell.name, spell.id, "Pacify", spell_value, duration, Strings::SecondsToTime(duration * 6), level_cap_multiplier); //deleteme
+				LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} for {} ticks [{}] with a level_cap_multiplier of {}.", spell.name, spell_id, "Pacify", spell_value, duration, Strings::SecondsToTime(duration * 6), level_cap_multiplier); //deleteme
 
 				break;
 			}
 			case SE_AddFaction: {
-				LogSpellScoreDetail("Checking {} [{}] as an {} --- effect value of {}.", spell.name, spell.id, "Add Faction", spell_value); //deleteme
+				LogSpellScoreDetail("Checking {} [{}] as an {} --- effect value of {}.", spell.name, spell_id, "Add Faction", spell_value); //deleteme
 				spell_value *= VegasSpellTypeMultipliers::AddFaction;
 				spell_value = IsTargetTypeOnlySpell(spell_id) ? spell_value * VegasSpellTypeMultipliers::TargetTypeOnly : spell_value;
 				spell_score += spell_value;
@@ -880,7 +882,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 				spell_value = is_cure ? VegasSpellTypeMultipliers::CureBlind : VegasSpellTypeMultipliers::Blind;
 
 				duration = is_cure ? 1.0f : std::fmax(1.0f, std::fmin(duration, 50.0f)); // Only score up to 5 minutes.
-				LogSpellScoreDetail("Checking {} [{}] as an {} --- effect value of {} for {} ticks [{}].", spell.name, spell.id, "Blind", spell_value, duration, Strings::SecondsToTime(duration * 6)); //deleteme
+				LogSpellScoreDetail("Checking {} [{}] as an {} --- effect value of {} for {} ticks [{}].", spell.name, spell_id, "Blind", spell_value, duration, Strings::SecondsToTime(duration * 6)); //deleteme
 				spell_value *= duration;
 				spell_value = IsTargetTypeOnlySpell(spell_id) ? spell_value * VegasSpellTypeMultipliers::TargetTypeOnly : spell_value;
 				spell_score += spell_value;
@@ -893,7 +895,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 				duration = std::fmin(30.0f, spell.base_value[i] / 1000.0f); // Only score up to 30 seconds
 				auto max_level = spell.max_value[i] == 0 ? RuleI(NPC, MaxNPCLevel) : spell.max_value[i];
 				float level_cap_multiplier = max_level / RuleI(NPC, MaxNPCLevel);
-				LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} for {} seconds up to level {} and level_cap_multiplier of {}.", spell.name, spell.id, "Stun", spell_value, duration, spell.max_value[i], 1.0f + level_cap_multiplier); //deleteme
+				LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} for {} seconds up to level {} and level_cap_multiplier of {}.", spell.name, spell_id, "Stun", spell_value, duration, spell.max_value[i], 1.0f + level_cap_multiplier); //deleteme
 				spell_value += (VegasSpellTypeMultipliers::StunMultiplier * duration);
 				spell_value = IsTargetTypeOnlySpell(spell_id) ? spell_value * VegasSpellTypeMultipliers::TargetTypeOnly : spell_value;
 				spell_value *= level_cap_multiplier;
@@ -908,7 +910,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 				duration = std::fmax(1.0f, std::fmin(duration, 50.0f)); // Only score up to 5 minutes.
 				auto max_level = spell.max_value[i] == 0 ? RuleI(NPC, MaxNPCLevel) : spell.max_value[i];
 				float level_cap_multiplier = max_level / RuleI(NPC, MaxNPCLevel);
-				LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} for {} seconds up to level {} and level_cap_multiplier of {}.", spell.name, spell.id, "Charm", spell_value, duration, spell.max_value[i], 1.0f + level_cap_multiplier); //deleteme
+				LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} for {} seconds up to level {} and level_cap_multiplier of {}.", spell.name, spell_id, "Charm", spell_value, duration, spell.max_value[i], 1.0f + level_cap_multiplier); //deleteme
 				spell_value += (VegasSpellTypeMultipliers::Charm * duration);
 				spell_value = IsTargetTypeOnlySpell(spell_id) ? spell_value * VegasSpellTypeMultipliers::TargetTypeOnly : spell_value;
 				spell_value *= level_cap_multiplier;
@@ -923,7 +925,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 				duration = std::fmax(1.0f, std::fmin(duration, 50.0f)); // Only score up to 5 minutes.
 				auto max_level = spell.max_value[i] == 0 ? RuleI(NPC, MaxNPCLevel) : spell.max_value[i];
 				float level_cap_multiplier = max_level / RuleI(NPC, MaxNPCLevel);
-				LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} for {} seconds up to level {} and level_cap_multiplier of {}.", spell.name, spell.id, "Fear", spell_value, duration, spell.max_value[i], 1.0f + level_cap_multiplier); //deleteme
+				LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} for {} seconds up to level {} and level_cap_multiplier of {}.", spell.name, spell_id, "Fear", spell_value, duration, spell.max_value[i], 1.0f + level_cap_multiplier); //deleteme
 				spell_value += (VegasSpellTypeMultipliers::Fear * duration);
 				spell_value = IsTargetTypeOnlySpell(spell_id) ? spell_value * VegasSpellTypeMultipliers::TargetTypeOnly : spell_value;
 				spell_value *= level_cap_multiplier;
@@ -933,9 +935,68 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 				break;
 			}
 			case SE_Stamina: {
-				LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {}.", spell.name, spell.id, "Stamina", spell_value); //deleteme
+				LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {}.", spell.name, spell_id, "Stamina", spell_value); //deleteme
 				spell_score += spell_value;
 				e.stamina_score += spell_value;
+				break;
+
+				bool is_instant_spell = spell.base_value[i] != 0 && spell.buff_duration == 0 && spell.aoe_duration == 0;
+
+				if (effect_id == SE_CurrentHPOnce || is_instant_spell) {
+					LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {}.", spell.name, spell_id, (IsStaminaTapSpell(spell_id) ? "StaminaTap" : spell.base_value[i] < 0 ? "Stamina DD" : "Instant Stamina"), spell_value); //deleteme
+
+					if (spell.base_value[i] < 0) { // Stamina DD/StaminaTap
+						if (IsStaminaTapSpell(spell_id)) { // StaminaTap
+							spell_value = IsBeneficialSpell(spell_id) ? spell_value : abs(spell_value);
+							spell_value *= VegasSpellTypeMultipliers::Staminatap;
+							spell_value = IsTargetTypeOnlySpell(spell_id) ? spell_value * VegasSpellTypeMultipliers::TargetTypeOnly : spell_value;
+							spell_score += spell_value;
+							e.staminatap_score += spell_value;
+						}
+						else { // Stamina DD
+							spell_value = IsBeneficialSpell(spell_id) ? spell_value : abs(spell_value);
+							spell_value *= VegasSpellTypeMultipliers::DirectStamina;
+							spell_value = IsTargetTypeOnlySpell(spell_id) ? spell_value * VegasSpellTypeMultipliers::TargetTypeOnly : spell_value;
+							spell_score += spell_value;
+							e.stamina_dd_score += spell_value;
+						}
+					} else { // Instant Stamina
+						spell_value *= VegasSpellTypeMultipliers::InstantStamina;
+						spell_value = IsTargetTypeOnlySpell(spell_id) ? spell_value * VegasSpellTypeMultipliers::TargetTypeOnly : spell_value;
+						spell_score += spell_value;
+						e.stamina_score += spell_value;
+					}
+				}
+				else {
+					bool is_duration_spell = spell.base_value[i] != 0 && spell.buff_duration > 0;
+
+					if (is_duration_spell) {
+						duration = std::fmax(1.0f, std::fmin(duration, 50.0f)); // Only score up to 5 minutes.
+
+						for (int x = 0; x < duration; x++) {
+							spell_value = caster->CalcSpellEffectValue_formula(spell.formula[i], spell.base_value[i], spell.max_value[i], spell_level, spell_id, x);
+							LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} with {} ticks remaining [{} total].", spell.name, spell_id, (spell.base_value[i] < 0 ? "StaminaDoT" : "SoT"), spell_value, duration - x, Strings::SecondsToTime(duration * 6)); //deleteme
+
+							if (spell.base_value[i] < 0) { // MDoT
+								spell_value = IsBeneficialSpell(spell_id) ? spell_value : abs(spell_value);
+								spell_value *= VegasSpellTypeMultipliers::StaminaDamageOverTime;
+								spell_value = IsTargetTypeOnlySpell(spell_id) ? spell_value * VegasSpellTypeMultipliers::TargetTypeOnly : spell_value;
+								spell_score += spell_value;
+								e.s_dot_score += spell_value;
+							} else { // MoT
+								if (spell.formula[i] == 122) { //Splurt
+									spell_value = IsBeneficialSpell(spell_id) ? spell_value : abs(spell_value);
+								}
+
+								spell_value *= VegasSpellTypeMultipliers::StaminaOverTime;
+								spell_value = IsTargetTypeOnlySpell(spell_id) ? spell_value * VegasSpellTypeMultipliers::TargetTypeOnly : spell_value;
+								spell_score += spell_value;
+								e.sot_score += spell_value;
+							}
+						}
+					}
+				}
+
 				break;
 			}
 			case SE_BindAffinity:
@@ -1450,7 +1511,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 	if (spell.recourse_link && IsValidSpell(spell.recourse_link)) {
 		auto recourse_spell = spells[spell.recourse_link];
 		auto recourse_score = UpdateFullScore(caster, recourse_spell, spell_level, true);
-		LogSpellScoreDetail("{} [{}] has a recourse of {} [{}] which is a {} with a spell score of {}. Increasing spell score from {} to {}.", spell.name, spell.id, recourse_spell.name, recourse_spell.id, recourse_score.spell_type, recourse_score.spell_score, spell_score, spell_score + recourse_score.spell_score); //deleteme
+		LogSpellScoreDetail("{} [{}] has a recourse of {} [{}] which is a {} with a spell score of {}. Increasing spell score from {} to {}.", spell.name, spell_id, recourse_spell.name, recourse_spell.id, recourse_score.spell_type, recourse_score.spell_score, spell_score, spell_score + recourse_score.spell_score); //deleteme
 
 		if (!is_self_only) {
 			if (IsPBAESpell(recourse_spell.id)) {
