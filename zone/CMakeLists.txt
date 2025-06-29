@@ -324,6 +324,7 @@ set(gm_command_sources
     gm_commands/bugs.cpp
     gm_commands/camerashake.cpp
     gm_commands/castspell.cpp
+    gm_commands/charchange.cpp
     gm_commands/chat.cpp
     gm_commands/clearxtargets.cpp
     gm_commands/copycharacter.cpp
@@ -361,6 +362,7 @@ set(gm_command_sources
     gm_commands/flagedit.cpp
     gm_commands/fleeinfo.cpp
     gm_commands/forage.cpp
+    gm_commands/gear_score.cpp
     gm_commands/gearup.cpp
     gm_commands/giveitem.cpp
     gm_commands/givemoney.cpp
@@ -439,6 +441,8 @@ set(gm_command_sources
     gm_commands/spawn.cpp
     gm_commands/spawneditmass.cpp
     gm_commands/spawnfix.cpp
+    gm_commands/spell_info.cpp
+    gm_commands/spell_score.cpp
     gm_commands/faction_association.cpp
     gm_commands/stun.cpp
     gm_commands/summon.cpp

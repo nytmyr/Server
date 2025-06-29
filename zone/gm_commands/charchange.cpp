@@ -1,8 +1,6 @@
-#include "client.h"
-#include "mob.h"
+#include "../command.h"
 #include "../../world/sof_char_create_data.h"
-#include "../common/skill_caps.h"
-#include "../../common/skills.h"
+#include "../../common/skill_caps.h"
 
 void command_char_change(Client* c, const Seperator* sep) //TODO vegas - add starting stat checks.
 {
@@ -562,8 +560,8 @@ void command_char_change(Client* c, const Seperator* sep) //TODO vegas - add sta
 
 				for (int skillIndex = 0; skillIndex <= EQ::skills::HIGHEST_SKILL; ++skillIndex) {
 					uint32 rawSkill = c->GetRawSkill((EQ::skills::SkillType)skillIndex);
-					auto maxSkill = skill_caps.GetSkillCap(chosenClass, EQ::skills::SkillType(skillIndex), c->GetLevel()).cap;
-					auto maxSkillAtMaxLevel = skill_caps.GetSkillCap(chosenClass, (EQ::skills::SkillType)skillIndex, maxLevel).cap;
+					auto maxSkill = SkillCaps::Instance()->GetSkillCap(chosenClass, EQ::skills::SkillType(skillIndex), c->GetLevel()).cap;
+					auto maxSkillAtMaxLevel = SkillCaps::Instance()->GetSkillCap(chosenClass, (EQ::skills::SkillType)skillIndex, maxLevel).cap;
 					bool trainedSkill = EQ::skills::IsTrainedSkill((EQ::skills::SkillType)skillIndex);
 
 					if (skillIndex == EQ::skills::SkillTinkering && chosenRace != GNOME) {

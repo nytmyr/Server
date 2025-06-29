@@ -111,14 +111,15 @@ int Client::GetBotSpawnLimit(uint8 class_id)
 		}
 	}
 
-	auto bucket_value = GetBucket(bucket_name);
+	bucket_value = GetBucket(bucket_name);
 
 	if (!bucket_value.empty() && Strings::IsNumber(bucket_value)) {
 		bot_spawn_limit = Strings::ToInt(bucket_value);
 	}
 
-	if (!class_id || !bot_spawn_limit) {
+	if (!class_id || !bot_spawn_limit) { // TODO - finish fixing this, method?
 		const int extra_unlocks_level = RuleI(Bots, LevelForExtraBots);
+
 		if (RuleB(Bots, TieredSpawnLimits) && GetLevel() <= extra_unlocks_level) {
 			const auto& tier_levels = Strings::Split(RuleS(Bots, UnlockLevelByTier), ",");
 			const auto& tier_limits = Strings::Split(RuleS(Bots, SpawnLimitsByTier), ",");
@@ -157,6 +158,7 @@ int Client::GetBotSpawnLimit(uint8 class_id)
 				}
 			}
 		}
+	}
 
 	if (!class_id) {
 		const auto &zones_list = Strings::Split(RuleS(Bots, ZonesWithSpawnLimits), ",");

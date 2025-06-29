@@ -5,6 +5,7 @@ class Client;
 class Seperator;
 
 #include "../common/types.h"
+#include "dialogue_window.h"
 #include <string>
 
 #define    COMMAND_CHAR '#'

@@ -1,4 +1,4 @@
-#include "../client.h"
+#include "../command.h"
 #include "../../common/veq_spell_data.h"
 
 void command_spell_score(Client* c, const Seperator* sep) {

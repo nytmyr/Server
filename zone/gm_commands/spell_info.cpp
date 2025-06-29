@@ -1,4 +1,4 @@
-#include "../client.h"
+#include "../command.h"
 
 void command_spell_info(Client* c, const Seperator* sep) {
 	uint8 gm_access_level = AccountStatus::Max;

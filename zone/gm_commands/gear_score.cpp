@@ -1,4 +1,4 @@
-#include "../client.h"
+#include "../command.h"
 #include "../../common/veq_item_data.h"
 
 void command_gear_score(Client* c, const Seperator* sep) {

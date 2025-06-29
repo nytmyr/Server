@@ -927,33 +927,33 @@ inline auto logsys = EQEmuLogSys::Instance();
 } while (0)
 
 #define LogTestDebug(message, ...) do {\
-    if (LogSys.IsLogEnabled(Logs::General, Logs::TestDebug))\
-        OutF(LogSys, Logs::General, Logs::TestDebug, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
+    if (logsys->IsLogEnabled(Logs::General, Logs::TestDebug))\
+        OutF(logsys, Logs::General, Logs::TestDebug, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
 } while (0)
 
 #define LogTestDebugDetail(message, ...) do {\
-    if (LogSys.IsLogEnabled(Logs::Detail, Logs::TestDebug))\
-        OutF(LogSys, Logs::Detail, Logs::TestDebug, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
+    if (logsys->IsLogEnabled(Logs::Detail, Logs::TestDebug))\
+        OutF(logsys, Logs::Detail, Logs::TestDebug, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
 } while (0)
 
 #define LogGearScore(message, ...) do {\
-    if (LogSys.IsLogEnabled(Logs::General, Logs::GearScore))\
-        OutF(LogSys, Logs::General, Logs::GearScore, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
+    if (logsys->IsLogEnabled(Logs::General, Logs::GearScore))\
+        OutF(logsys, Logs::General, Logs::GearScore, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
 } while (0)
 
 #define LogGearScoreDetail(message, ...) do {\
-    if (LogSys.IsLogEnabled(Logs::Detail, Logs::GearScore))\
-        OutF(LogSys, Logs::Detail, Logs::GearScore, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
+    if (logsys->IsLogEnabled(Logs::Detail, Logs::GearScore))\
+        OutF(logsys, Logs::Detail, Logs::GearScore, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
 } while (0)
 
 #define LogSpellScore(message, ...) do {\
-    if (LogSys.IsLogEnabled(Logs::General, Logs::SpellScore))\
-        OutF(LogSys, Logs::General, Logs::SpellScore, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
+    if (logsys->IsLogEnabled(Logs::General, Logs::SpellScore))\
+        OutF(logsys, Logs::General, Logs::SpellScore, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
 } while (0)
 
 #define LogSpellScoreDetail(message, ...) do {\
-    if (LogSys.IsLogEnabled(Logs::Detail, Logs::SpellScore))\
-        OutF(LogSys, Logs::Detail, Logs::SpellScore, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
+    if (logsys->IsLogEnabled(Logs::Detail, Logs::SpellScore))\
+        OutF(logsys, Logs::Detail, Logs::SpellScore, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
 } while (0)
 
 #define Log(debug_level, log_category, message, ...) do {\
