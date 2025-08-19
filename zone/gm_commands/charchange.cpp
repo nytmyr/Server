@@ -914,8 +914,7 @@ void command_char_change(Client* c, const Seperator* sep) //TODO vegas - add sta
 				DataBucket::SetData(reset_key, std::to_string(lockoutDuration));
 			}
 
-			key = "AntiCheatExempt-" + std::to_string(c->CharacterID());
-			DataBucket::SetData(key, std::to_string(1), std::to_string(RuleI(VegasAnticheat, AntiCheatExemptDuration)));
+			c->SetAntiCheatExempt();
 			c->Kick("Character Change.");
 		}
 	}

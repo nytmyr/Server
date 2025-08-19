@@ -1964,6 +1964,7 @@ public:
 
 	void DoIllusionWearCheck(); //Checks for illusion wears to warp back.
 	bool DoDoorIllusionCheatChecks();
+	void SetAntiCheatExempt(int duration = RuleI(VegasAnticheat, AntiCheatExemptDuration)) const;
 
 private:
 	ExternalHandinMoneyReturned m_external_handin_money_returned = {};

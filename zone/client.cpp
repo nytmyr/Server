@@ -13346,3 +13346,8 @@ bool Client::DoDoorIllusionCheatChecks() {
 
 	return true;
 }
+
+void Client::SetAntiCheatExempt(int duration) const {
+	std::string key = RuleS(VegasAnticheat, AntiCheatExemptKey) + std::to_string(CharacterID());
+	DataBucket::SetData(key, std::to_string(1), std::to_string(duration));
+}
