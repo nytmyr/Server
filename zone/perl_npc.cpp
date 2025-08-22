@@ -410,6 +410,11 @@ uint32_t Perl_NPC_GetNPCSpellsID(NPC* self) // @categories Stats and Attributes
 	return self->GetNPCSpellsID();
 }
 
+uint32_t Perl_NPC_GetRespawnTime(NPC* self) // @categories Spawns
+{
+	return self->GetRespawnTime();
+}
+
 uint32_t Perl_NPC_GetSpawnPointID(NPC* self) // @categories Spawns
 {
 	return self->GetSpawnPointID();
@@ -1028,6 +1033,7 @@ void perl_register_npc()
 	package.add("GetPlatinum", &Perl_NPC_GetPlatinum);
 	package.add("GetPrimSkill", &Perl_NPC_GetPrimSkill);
 	package.add("GetPrimaryFaction", &Perl_NPC_GetPrimaryFaction);
+	package.add("GetRespawnTime", &Perl_NPC_GetRespawnTime);
 	package.add("GetRoamBoxDistance", &Perl_NPC_GetRoamBoxDistance);
 	package.add("GetRoamBoxMaxX", &Perl_NPC_GetRoamBoxMaxX);
 	package.add("GetRoamBoxMinX", &Perl_NPC_GetRoamBoxMinX);

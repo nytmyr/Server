@@ -386,6 +386,11 @@ uint32 Lua_NPC::GetNPCSpellsID() {
 	return self->GetNPCSpellsID();
 }
 
+int Lua_NPC::GetRespawnTime() {
+	Lua_Safe_Call_Int();
+	return self->GetRespawnTime();
+}
+
 int Lua_NPC::GetSpawnPointID() {
 	Lua_Safe_Call_Int();
 	return self->GetSpawnPointID();
@@ -1091,6 +1096,7 @@ luabind::scope lua_register_npc() {
 	.def("GetPrimSkill", (int(Lua_NPC::*)(void))&Lua_NPC::GetPrimSkill)
 	.def("GetPrimaryFaction", (int(Lua_NPC::*)(void))&Lua_NPC::GetPrimaryFaction)
 	.def("GetRawAC", (int(Lua_NPC::*)(void))&Lua_NPC::GetRawAC)
+	.def("GetRespawnTime", (int(Lua_NPC::*)(void)) & Lua_NPC::GetRespawnTime)
 	.def("GetRoamBoxDistance", (int(Lua_NPC::*)(void))&Lua_NPC::GetRoamBoxDistance)
 	.def("GetRoamBoxMaxX", (int(Lua_NPC::*)(void))&Lua_NPC::GetRoamBoxMaxX)
 	.def("GetRoamBoxMinX", (int(Lua_NPC::*)(void))&Lua_NPC::GetRoamBoxMinX)

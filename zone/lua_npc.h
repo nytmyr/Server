@@ -112,6 +112,7 @@ public:
 	int GetRoamBoxMinY();
 	int GetRoamBoxMaxDelay();
 	int GetRoamBoxMinDelay();
+	int GetRespawnTime();
 	int GetSpawnPointID();
 	float GetSpawnPointX();
 	float GetSpawnPointY();

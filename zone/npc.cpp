@@ -2779,6 +2779,15 @@ void NPC::LevelScale() {
 
 }
 
+uint32 NPC::GetRespawnTime() const
+{
+	if (respawn2) {
+		return respawn2->RespawnTimer();
+	}
+
+	return 0;
+}
+
 uint32 NPC::GetSpawnPointID() const
 {
 	return respawn2 ? respawn2->GetID() : 0;
