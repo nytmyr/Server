@@ -5436,7 +5436,6 @@ void Bot::DoClassAttacks(Mob *target, bool IsRiposte) {
 
 	float HasteModifier = (GetHaste() * 0.01f);
 	uint16 skill_to_use = -1;
-	int bot_level = GetLevel();
 	int reuse = (TauntReuseTime * 1000); // Same as Bash and Kick
 	bool did_attack = false;
 
@@ -5446,11 +5445,10 @@ void Bot::DoClassAttacks(Mob *target, bool IsRiposte) {
 		case Class::ShadowKnight:
 		case Class::Paladin:
 			{
-				bool is_large_race = (
-					GetBaseRace() == OGRE ||
-					GetBaseRace() == TROLL ||
-					GetBaseRace() == BARBARIAN
-					);
+				bool is_large_race =
+					GetRace() == OGRE ||
+					GetRace() == TROLL ||
+					GetRace() == BARBARIAN;
 				bool has_bash_skill = GetSkill(EQ::skills::SkillBash) > 0;
 				bool has_shield_in_secondary =
 					m_inv.GetItem(EQ::invslot::slotSecondary) &&
@@ -5463,13 +5461,14 @@ void Bot::DoClassAttacks(Mob *target, bool IsRiposte) {
 					is_large_race ||
 					(
 						has_bash_skill &&
-						(
-							has_shield_in_secondary || has_two_hander_with_aa
-							)
-						);
+						(has_shield_in_secondary || has_two_hander_with_aa)
+					);
 
 				if (can_bash) {
 					skill_to_use = EQ::skills::SkillBash;
+				}
+				else if (GetClass() == Class::Warrior && GetSkill(EQ::skills::SkillKick)) {
+					skill_to_use = EQ::skills::SkillKick;
 				}
 
 				break;
@@ -5563,8 +5562,10 @@ void Bot::DoClassAttacks(Mob *target, bool IsRiposte) {
 	if (skill_to_use == EQ::skills::SkillKick) {
 		if (target != this) {
 			DoAnim(animKick);
-			if (GetWeaponDamage(target, GetBotItem(EQ::invslot::slotFeet)) <= 0)
+
+			if (GetWeaponDamage(target, GetBotItem(EQ::invslot::slotFeet)) <= 0) {
 				dmg = DMG_INVULNERABLE;
+			}
 
 			DoSpecialAttackDamage(target, EQ::skills::SkillKick, dmg, 0, -1, reuse);
 			did_attack = true;
