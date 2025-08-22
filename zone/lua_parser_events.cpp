@@ -1290,6 +1290,21 @@ void handle_player_warp(
 
 	lua_pushnumber(L, Strings::ToFloat(sep.arg[2]));
 	lua_setfield(L, -2, "from_z");
+
+	lua_pushnumber(L, Strings::ToFloat(sep.arg[3]));
+	lua_setfield(L, -2, "to_x");
+
+	lua_pushnumber(L, Strings::ToFloat(sep.arg[4]));
+	lua_setfield(L, -2, "to_y");
+
+	lua_pushnumber(L, Strings::ToFloat(sep.arg[5]));
+	lua_setfield(L, -2, "to_z");
+
+	lua_pushnumber(L, Strings::ToFloat(sep.arg[6]));
+	lua_setfield(L, -2, "distance");
+
+	lua_pushnumber(L, Strings::ToInt(sep.arg[7]));
+	lua_setfield(L, -2, "warp_type");
 }
 
 void handle_player_quest_combine(

@@ -52,6 +52,7 @@
 #include "zonedb.h"
 #include "../common/events/player_event_logs.h"
 #include "water_map.h"
+#include "cheat_manager.h"
 
 extern QueryServ* QServ;
 extern Zone* zone;
@@ -584,7 +585,23 @@ bool Client::Process() {
 		std::cout << "Client disconnected (cs=d): " << GetName() << std::endl;
 		if (!camp_cheat_bypass) {
 			RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{ .message = "/MQInstantCamp: Possible instant camp disconnect" });
-		} //TODO vegas - add event_warp here as needed.
+
+			if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+				const auto& export_string = fmt::format(
+					"{} {} {} {} {} {} {} {}",
+					GetX(),
+					GetY(),
+					GetZ(),
+					0.0f,
+					0.0f,
+					0.0f,
+					0.0f,
+					WarpTypes::MQInstantCamp
+				);
+
+				parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+			}
+		}
 		return false;
 	}
 
@@ -1249,6 +1266,22 @@ void Client::OPMemorizeSpell(const EQApplicationPacket* app)
 			} else {
 				std::string message = fmt::format("OP_MemorizeSpell [{}] but we don't have this spell scribed", m->spell_id);
 				RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
+
+				if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+					const auto& export_string = fmt::format(
+						"{} {} {} {} {} {} {} {}",
+						GetX(),
+						GetY(),
+						GetZ(),
+						0.0f,
+						0.0f,
+						0.0f,
+						0.0f,
+						WarpTypes::OP_MemorizeSpell
+					);
+
+					parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+				}
 			}
 			break;
 		}
@@ -1392,7 +1425,24 @@ void Client::OPMoveCoin(const EQApplicationPacket* app)
 					"banker [{}] is non-existent or too far away [{}] units",
 					banker ? banker->GetName() : "UNKNOWN NPC", distance
 				);
+
 				RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
+
+				if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+					const auto& export_string = fmt::format(
+						"{} {} {} {} {} {} {} {}",
+						GetX(),
+						GetY(),
+						GetZ(),
+						0.0f,
+						0.0f,
+						0.0f,
+						0.0f,
+						WarpTypes::BankerDistanceCoinFrom
+					);
+
+					parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+				}
 
 				return;
 			}
@@ -1426,7 +1476,24 @@ void Client::OPMoveCoin(const EQApplicationPacket* app)
 					"non-existent or too far away [{}] units",
 					banker ? banker->GetName() : "UNKNOWN NPC", distance
 				);
+
 				RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
+
+				if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+					const auto& export_string = fmt::format(
+						"{} {} {} {} {} {} {} {}",
+						GetX(),
+						GetY(),
+						GetZ(),
+						0.0f,
+						0.0f,
+						0.0f,
+						0.0f,
+						WarpTypes::BankerDistanceSharedCoinFrom
+					);
+
+					parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+				}
 
 				return;
 			}
@@ -1484,7 +1551,24 @@ void Client::OPMoveCoin(const EQApplicationPacket* app)
 					"banker [{}] is non-existent or too far away [{}] units",
 					banker ? banker->GetName() : "UNKNOWN NPC", distance
 				);
+
 				RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
+
+				if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+					const auto& export_string = fmt::format(
+						"{} {} {} {} {} {} {} {}",
+						GetX(),
+						GetY(),
+						GetZ(),
+						0.0f,
+						0.0f,
+						0.0f,
+						0.0f,
+						WarpTypes::BankerDistanceCoinTo
+					);
+
+					parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+				}
 
 				return;
 			}
@@ -1546,7 +1630,24 @@ void Client::OPMoveCoin(const EQApplicationPacket* app)
 					"non-existent or too far away [{}] units",
 					banker ? banker->GetName() : "UNKNOWN NPC", distance
 				);
+
 				RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
+
+				if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+					const auto& export_string = fmt::format(
+						"{} {} {} {} {} {} {} {}",
+						GetX(),
+						GetY(),
+						GetZ(),
+						0.0f,
+						0.0f,
+						0.0f,
+						0.0f,
+						WarpTypes::BankerDistanceSharedCoinTo
+					);
+
+					parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+				}
 
 				return;
 			}

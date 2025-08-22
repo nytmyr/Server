@@ -3707,6 +3707,23 @@ void Client::Handle_OP_BankerChange(const EQApplicationPacket *app)
 		    "Player tried to make use of a banker(money) but {} is non-existant or too far away ({} units).",
 		    banker ? banker->GetName() : "UNKNOWN NPC", distance);
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
+
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				0.0f,
+				0.0f,
+				0.0f,
+				0.0f,
+				WarpTypes::BankerDistanceMoney
+			);
+
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
+
 		return;
 	}
 
@@ -4493,6 +4510,23 @@ void Client::Handle_OP_CastSpell(const EQApplicationPacket *app)
 				{
 					std::string message = fmt::format("OP_CastSpell with item, tried to cast a different spell than what was on item - item spell id [{}] attempted [{}]", item->Click.Effect, (uint32)castspell->spell_id);
 					RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
+
+					if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+						const auto& export_string = fmt::format(
+							"{} {} {} {} {} {} {} {}",
+							GetX(),
+							GetY(),
+							GetZ(),
+							0.0f,
+							0.0f,
+							0.0f,
+							0.0f,
+							WarpTypes::OP_CastSpellWithItemDiffSpell
+						);
+
+						parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+					}
+
 					InterruptSpell(castspell->spell_id);	//CHEATER!!
 					return;
 				}
@@ -4528,6 +4562,23 @@ void Client::Handle_OP_CastSpell(const EQApplicationPacket *app)
 						else
 						{
 							RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = "OP_CastSpell with item, did not meet req level."});
+
+							if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+								const auto& export_string = fmt::format(
+									"{} {} {} {} {} {} {} {}",
+									GetX(),
+									GetY(),
+									GetZ(),
+									0.0f,
+									0.0f,
+									0.0f,
+									0.0f,
+									WarpTypes::OP_CastSpellWithItemLvlReq
+								);
+
+								parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+							}
+
 							Message(Chat::Red, "Error: level not high enough.", castspell->inventoryslot);
 							InterruptSpell(castspell->spell_id);
 						}
@@ -5501,6 +5552,23 @@ void Client::Handle_OP_ControlBoat(const EQApplicationPacket *app)
 	{
 		auto message = fmt::format("OP_Control Boat was sent against {} which is of race {}", boat->GetName(), boat->GetRace());
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
+
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				0.0f,
+				0.0f,
+				0.0f,
+				0.0f,
+				WarpTypes::OP_ControlBoat
+			);
+
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
+
 		return;
 	}
 
@@ -5838,6 +5906,23 @@ void Client::Handle_OP_Disarm(const EQApplicationPacket *app) {
 		// Client sent a disarm request with an originator ID not matching their own ID.
 		auto message = fmt::format("Player {} ({}) sent OP_Disarm with source ID of: {}", GetCleanName(), GetID(), pmob->GetID());
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
+
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				0.0f,
+				0.0f,
+				0.0f,
+				0.0f,
+				WarpTypes::OP_Disarm
+			);
+
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
+
 
 		return;
 	}
@@ -6607,6 +6692,23 @@ void Client::Handle_OP_GMBecomeNPC(const EQApplicationPacket *app)
 	if (!GetGM()) {
 		Message(Chat::Red, "Your account has been reported for hacking.");
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = "Used /becomenpc when they shouldn't be able to"});
+
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				0.0f,
+				0.0f,
+				0.0f,
+				0.0f,
+				WarpTypes::BecomeNPCCommand
+			);
+
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
+
 		return;
 	}
 
@@ -6649,6 +6751,23 @@ void Client::Handle_OP_GMDelCorpse(const EQApplicationPacket *app)
 	if (!GetGM()) {
 		Message(Chat::Red, "Your account has been reported for hacking.");
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = "Used /delcorpse"});
+
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				0.0f,
+				0.0f,
+				0.0f,
+				0.0f,
+				WarpTypes::DeleteCorpseCommand
+			);
+
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
+
 		return;
 	}
 
@@ -6676,6 +6795,23 @@ void Client::Handle_OP_GMEmoteZone(const EQApplicationPacket *app)
 	if (!GetGM()) {
 		Message(Chat::Red, "Your account has been reported for hacking.");
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = "Used /emote"});
+
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				0.0f,
+				0.0f,
+				0.0f,
+				0.0f,
+				WarpTypes::EmoteCommand
+			);
+
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
+
 		return;
 	}
 
@@ -6711,6 +6847,23 @@ void Client::Handle_OP_GMFind(const EQApplicationPacket *app)
 	if (!GetGM()) {
 		Message(Chat::Red, "Your account has been reported for hacking.");
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = "Used /find"});
+
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				0.0f,
+				0.0f,
+				0.0f,
+				0.0f,
+				WarpTypes::FindCommand
+			);
+
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
+
 		return;
 	}
 
@@ -6743,6 +6896,23 @@ void Client::Handle_OP_GMGoto(const EQApplicationPacket *app)
 	if (!GetGM()) {
 		Message(Chat::Red, "Your account has been reported for hacking.");
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = "Used /goto"});
+
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				0.0f,
+				0.0f,
+				0.0f,
+				0.0f,
+				WarpTypes::GoToCommand
+			);
+
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
+
 		return;
 	}
 
@@ -6783,6 +6953,23 @@ void Client::Handle_OP_GMHideMe(const EQApplicationPacket *app)
 	if (!GetGM()) {
 		Message(Chat::Red, "Your account has been reported for hacking.");
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = "Used /hideme"});
+
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				0.0f,
+				0.0f,
+				0.0f,
+				0.0f,
+				WarpTypes::HideMeCommand
+			);
+
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
+
 		return;
 	}
 
@@ -6799,6 +6986,23 @@ void Client::Handle_OP_GMKick(const EQApplicationPacket *app)
 	if (!GetGM()) {
 		Message(Chat::Red, "Your account has been reported for hacking.");
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = "Used /kick"});
+
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				0.0f,
+				0.0f,
+				0.0f,
+				0.0f,
+				WarpTypes::KickCommand
+			);
+
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
+
 		return;
 	}
 
@@ -6831,6 +7035,23 @@ void Client::Handle_OP_GMKill(const EQApplicationPacket *app)
 	if (!GetGM()) {
 		Message(Chat::Red, "Your account has been reported for hacking.");
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = "Used /kill"});
+
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				0.0f,
+				0.0f,
+				0.0f,
+				0.0f,
+				WarpTypes::KillCommand
+			);
+
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
+
 		return;
 	}
 
@@ -6868,6 +7089,23 @@ void Client::Handle_OP_GMLastName(const EQApplicationPacket *app)
 	if (!GetGM()) {
 		Message(Chat::Red, "Your account has been reported for hacking.");
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = "Used /lastname"});
+
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				0.0f,
+				0.0f,
+				0.0f,
+				0.0f,
+				WarpTypes::LastNameCommand
+			);
+
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
+
 		return;
 	}
 
@@ -6916,6 +7154,23 @@ void Client::Handle_OP_GMNameChange(const EQApplicationPacket *app)
 	if (!GetGM()) {
 		Message(Chat::Red, "Your account has been reported for hacking.");
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = "Used /name"});
+
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				0.0f,
+				0.0f,
+				0.0f,
+				0.0f,
+				WarpTypes::NameCommand
+			);
+
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
+
 		return;
 	}
 
@@ -7086,6 +7341,23 @@ void Client::Handle_OP_GMToggle(const EQApplicationPacket *app)
 	if (!GetGM()) {
 		Message(Chat::Red, "Your account has been reported for hacking.");
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = "Used /toggle"});
+
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				0.0f,
+				0.0f,
+				0.0f,
+				0.0f,
+				WarpTypes::ToggleCommand
+			);
+
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
+
 		return;
 	}
 
@@ -7137,6 +7409,23 @@ void Client::Handle_OP_GMZoneRequest(const EQApplicationPacket *app)
 	if (!GetGM()) {
 		Message(Chat::Red, "Your account has been reported for hacking.");
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = "Used /zone"});
+
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				0.0f,
+				0.0f,
+				0.0f,
+				0.0f,
+				WarpTypes::ZoneCommand
+			);
+
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
+
 		return;
 	}
 
@@ -7199,6 +7488,23 @@ void Client::Handle_OP_GMZoneRequest2(const EQApplicationPacket *app)
 	if (!GetGM()) {
 		Message(Chat::Red, "Your account has been reported for hacking.");
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = "Used /zone"});
+
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				0.0f,
+				0.0f,
+				0.0f,
+				0.0f,
+				WarpTypes::ZoneCommand2
+			);
+
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
+
 		return;
 	}
 
@@ -9054,6 +9360,22 @@ void Client::Handle_OP_Illusion(const EQApplicationPacket *app)
 			PlayerEvent::PossibleHackEvent{.message = "OP_Illusion sent by non Game Master"}
 		);
 
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				0.0f,
+				0.0f,
+				0.0f,
+				0.0f,
+				WarpTypes::OP_Illusion
+			);
+
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
+
 		return;
 	}
 
@@ -10887,6 +11209,23 @@ void Client::Handle_OP_MoveItem(const EQApplicationPacket *app)
 				casting_spell_id
 			);
 			RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{ .message = message });
+
+			if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+				const auto& export_string = fmt::format(
+					"{} {} {} {} {} {} {} {}",
+					GetX(),
+					GetY(),
+					GetZ(),
+					0.0f,
+					0.0f,
+					0.0f,
+					0.0f,
+					WarpTypes::CastMoveItem
+				);
+
+				parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+			}
+
 			Kick("Inventory desync"); // Kick client to prevent client and server from getting out-of-sync inventory slots
 			return;
 		}
@@ -12243,6 +12582,23 @@ void Client::Handle_OP_PickPocket(const EQApplicationPacket *app)
 	{
 		Message(Chat::Red, "Ability recovery time not yet met.");
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = "OP_PickPocket was sent again too quickly."});
+
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				0.0f,
+				0.0f,
+				0.0f,
+				0.0f,
+				WarpTypes::OP_PickPocketTooQuick
+			);
+
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
+
 		return;
 	}
 	PickPocket_Struct* pick_in = (PickPocket_Struct*)app->pBuffer;
@@ -12265,6 +12621,22 @@ void Client::Handle_OP_PickPocket(const EQApplicationPacket *app)
 	else if (Distance(GetPosition(), victim->GetPosition()) > 20) {
 		Message(Chat::Red, "Attempt to pickpocket out of range detected.");
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = "OP_PickPocket was sent from outside combat range"});
+
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				0.0f,
+				0.0f,
+				0.0f,
+				0.0f,
+				WarpTypes::OP_PickPocketOutRange
+			);
+
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
 	}
 	else if (victim->IsNPC()) {
 		auto body = victim->GetBodyType();
@@ -14488,6 +14860,22 @@ void Client::Handle_OP_ShopPlayerBuy(const EQApplicationPacket *app)
 		);
 
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
+
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				0.0f,
+				0.0f,
+				0.0f,
+				0.0f,
+				WarpTypes::VendorCheatBuy
+			);
+
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
 		safe_delete(outapp);
 		safe_delete(inst);
 		return;
@@ -14983,6 +15371,22 @@ void Client::Handle_OP_SpawnAppearance(const EQApplicationPacket *app)
 				{
 					auto message = fmt::format("Player sent OP_SpawnAppearance with AppearanceType::Invisibility [{}]", sa->parameter);
 					RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
+
+					if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+						const auto& export_string = fmt::format(
+							"{} {} {} {} {} {} {} {}",
+							GetX(),
+							GetY(),
+							GetZ(),
+							0.0f,
+							0.0f,
+							0.0f,
+							0.0f,
+							WarpTypes::OP_SpawnAppearanceAT_Invis
+						);
+
+						parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+					}
 				}
 			}
 			return;
@@ -15086,6 +15490,22 @@ void Client::Handle_OP_SpawnAppearance(const EQApplicationPacket *app)
 			{
 				auto message = fmt::format("Player sent OP_SpawnAppearance with AppearanceType::Sneak [{}]", sa->parameter);
 				RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
+
+				if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+					const auto& export_string = fmt::format(
+						"{} {} {} {} {} {} {} {}",
+						GetX(),
+						GetY(),
+						GetZ(),
+						0.0f,
+						0.0f,
+						0.0f,
+						0.0f,
+						WarpTypes::OP_SpawnAppearanceAT_Sneak
+					);
+
+					parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+				}
 			}
 			return;
 		}
@@ -15096,6 +15516,22 @@ void Client::Handle_OP_SpawnAppearance(const EQApplicationPacket *app)
 	{
 		auto message = fmt::format("Player sent OP_SpawnAppearance with AppearanceType::Size [{}]", sa->parameter);
 		RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
+
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				0.0f,
+				0.0f,
+				0.0f,
+				0.0f,
+				WarpTypes::OP_SpawnAppearanceAT_Size
+			);
+
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
 	}
 	else if (sa->type == AppearanceType::Light)	// client emitting light (lightstone, shiny shield)
 	{
@@ -15446,6 +15882,22 @@ void Client::Handle_OP_TargetMouse(const EQApplicationPacket *app)
 			);
 			RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
 
+			if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+				const auto& export_string = fmt::format(
+					"{} {} {} {} {} {} {} {}",
+					GetX(),
+					GetY(),
+					GetZ(),
+					0.0f,
+					0.0f,
+					0.0f,
+					0.0f,
+					WarpTypes::TargetUntargetable
+				);
+
+				parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+			}
+
 			SetTarget((Mob*)nullptr);
 			return;
 		}
@@ -15484,6 +15936,23 @@ void Client::Handle_OP_TargetMouse(const EQApplicationPacket *app)
 						GetTarget()->GetY(), GetTarget()->GetZ());
 
 					RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
+
+					if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+						const auto& export_string = fmt::format(
+							"{} {} {} {} {} {} {} {}",
+							GetX(),
+							GetY(),
+							GetZ(),
+							0.0f,
+							0.0f,
+							0.0f,
+							0.0f,
+							WarpTypes::TargetBeyondClipMouseBindSight
+						);
+
+						parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+					}
+
 					SetTarget(nullptr);
 					return;
 				}
@@ -15506,6 +15975,23 @@ void Client::Handle_OP_TargetMouse(const EQApplicationPacket *app)
 			);
 
 			RecordPlayerEventLog(PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
+
+			if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+				const auto& export_string = fmt::format(
+					"{} {} {} {} {} {} {} {}",
+					GetX(),
+					GetY(),
+					GetZ(),
+					0.0f,
+					0.0f,
+					0.0f,
+					0.0f,
+					WarpTypes::TargetBeyondClipMouse
+				);
+
+				parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+			}
+
 			SetTarget(nullptr);
 			return;
 		}

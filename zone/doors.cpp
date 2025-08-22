@@ -37,6 +37,7 @@
 
 #include <glm/ext/matrix_transform.hpp>
 #include <numbers>
+#include "quest_parser_collection.h"
 
 #define OPEN_DOOR 0x02
 #define CLOSE_DOOR 0x03
@@ -237,6 +238,10 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 
 	if (sender && m_dz_switch_id != 0) {
 		sender->UpdateTasksOnTouchSwitch(m_dz_switch_id);
+
+		//cheat_manager.SetExemptStatus(Port, true); // TODO - vegas
+		sender->SetAntiCheatExempt();
+
 		if (sender->TryMovePCDynamicZoneSwitch(m_dz_switch_id)) {
 			safe_delete(outapp);
 			return;
@@ -556,6 +561,9 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 				sender->KeyRingAdd(player_key);
 			}
 
+			//cheat_manager.SetExemptStatus(Port, true); // TODO - vegas
+			sender->SetAntiCheatExempt();
+
 			sender->MovePC(
 				zone->GetZoneID(),
 				zone->GetInstanceID(),
@@ -569,7 +577,11 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 			if (!disable_add_to_key_ring) {
 				sender->KeyRingAdd(player_key);
 			}
+
 			if (ZoneID(m_destination_zone_name) == zone->GetZoneID()) {
+				//cheat_manager.SetExemptStatus(Port, true); // TODO - vegas
+				sender->SetAntiCheatExempt();
+
 				sender->MovePC(
 					zone->GetZoneID(),
 					zone->GetInstanceID(),
@@ -580,6 +592,9 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 				);
 			}
 			else {
+				//cheat_manager.SetExemptStatus(Port, true); // TODO - vegas
+				sender->SetAntiCheatExempt();
+
 				sender->MovePC(
 					ZoneID(m_destination_zone_name),
 					static_cast<uint32>(m_destination_instance_id),
@@ -593,6 +608,9 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 
 		if ((!IsDoorOpen() || m_open_type == 58) && (!required_key_item)) {
 			if (ZoneID(m_destination_zone_name) == zone->GetZoneID()) {
+				//cheat_manager.SetExemptStatus(Port, true); // TODO - vegas
+				sender->SetAntiCheatExempt();
+
 				sender->MovePC(
 					zone->GetZoneID(),
 					zone->GetInstanceID(),
@@ -603,6 +621,9 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 				);
 			}
 			else {
+				//cheat_manager.SetExemptStatus(Port, true); // TODO - vegas
+				sender->SetAntiCheatExempt();
+
 				sender->MovePC(
 					ZoneID(m_destination_zone_name),
 					static_cast<uint32>(m_destination_instance_id),

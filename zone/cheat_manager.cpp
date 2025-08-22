@@ -49,20 +49,27 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 				);
 
 				RecordPlayerEventLogWithClient(m_target, PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
-
 				LogCheat(fmt::runtime(message));
 
 				if (parse->PlayerHasQuestSub(EVENT_WARP)) {
 					const auto& export_string = fmt::format(
-						"{} {} {}",
+						"{} {} {} {} {} {} {} {}",
 						position1.x,
 						position1.y,
-						position1.z
+						position1.z,
+						position2.x,
+						position2.y,
+						position2.z,
+						Distance(position1, position2),
+						WarpTypes::LargeWarp
 					);
 
 					parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
 				}
+
+				m_time_since_last_warp_detection.Start(2500);
 			}
+
 			break;
 		case MQWarpAbsolute:
 			if (RuleB(Cheat, EnableMQWarpDetector) &&
@@ -82,15 +89,21 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 					position2.z,
 					Distance(position1, position2)
 				);
+
 				RecordPlayerEventLogWithClient(m_target, PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
 				LogCheat(fmt::runtime(message));
 
 				if (parse->PlayerHasQuestSub(EVENT_WARP)) {
 					const auto& export_string = fmt::format(
-						"{} {} {}",
+						"{} {} {} {} {} {} {} {}",
 						position1.x,
 						position1.y,
-						position1.z
+						position1.z,
+						position2.x,
+						position2.y,
+						position2.z,
+						Distance(position1, position2),
+						WarpTypes::Absolute
 					);
 
 					parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
@@ -98,6 +111,7 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 
 				m_time_since_last_warp_detection.Start(2500);
 			}
+
 			break;
 		case MQWarpShadowStep:
 			if (RuleB(Cheat, EnableMQWarpDetector) &&
@@ -113,9 +127,29 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 					position1.y,
 					position1.z
 				);
+
 				RecordPlayerEventLogWithClient(m_target, PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
 				LogCheat(fmt::runtime(message));
+
+				if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+					const auto& export_string = fmt::format(
+						"{} {} {} {} {} {} {} {}",
+						position1.x,
+						position1.y,
+						position1.z,
+						position2.x,
+						position2.y,
+						position2.z,
+						Distance(position1, position2),
+						WarpTypes::ShadowStepSuspicion
+					);
+
+					parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
+				}
+
+				m_time_since_last_warp_detection.Start(2500);
 			}
+
 			break;
 		case MQWarpKnockBack:
 			if (RuleB(Cheat, EnableMQWarpDetector) &&
@@ -131,9 +165,29 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 					position1.y,
 					position1.z
 				);
+
 				RecordPlayerEventLogWithClient(m_target, PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
 				LogCheat(fmt::runtime(message));
+
+				if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+					const auto& export_string = fmt::format(
+						"{} {} {} {} {} {} {} {}",
+						position1.x,
+						position1.y,
+						position1.z,
+						position2.x,
+						position2.y,
+						position2.z,
+						Distance(position1, position2),
+						WarpTypes::KnockbackSuspicion
+					);
+
+					parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
+				}
+
+				m_time_since_last_warp_detection.Start(2500);
 			}
+
 			break;
 
 		case MQWarpLight:
@@ -151,10 +205,30 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 						position1.y,
 						position1.z
 					);
+
 					RecordPlayerEventLogWithClient(m_target, PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
 					LogCheat(fmt::runtime(message));
+
+					if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+						const auto& export_string = fmt::format(
+							"{} {} {} {} {} {} {} {}",
+							position1.x,
+							position1.y,
+							position1.z,
+							position2.x,
+							position2.y,
+							position2.z,
+							Distance(position1, position2),
+							WarpTypes::LightWarpSuspicion
+						);
+
+						parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
+					}
+
+					m_time_since_last_warp_detection.Start(2500);
 				}
 			}
+
 			break;
 
 		case MQZone:
@@ -171,9 +245,29 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 					position1.y,
 					position1.z
 				);
+
 				RecordPlayerEventLogWithClient(m_target, PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
 				LogCheat(fmt::runtime(message));
+
+				if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+					const auto& export_string = fmt::format(
+						"{} {} {} {} {} {} {} {}",
+						position1.x,
+						position1.y,
+						position1.z,
+						0.0f,
+						0.0f,
+						0.0f,
+						0.0f,
+						WarpTypes::Zone
+					);
+
+					parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
+				}
+
+				m_time_since_last_warp_detection.Start(2500);
 			}
+
 			break;
 		case MQZoneUnknownDest:
 			if (RuleB(Cheat, EnableMQZoneDetector) &&
@@ -189,9 +283,29 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 					position1.y,
 					position1.z
 				);
+
 				RecordPlayerEventLogWithClient(m_target, PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
 				LogCheat(fmt::runtime(message));
+
+				if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+					const auto& export_string = fmt::format(
+						"{} {} {} {} {} {} {} {}",
+						position1.x,
+						position1.y,
+						position1.z,
+						0.0f,
+						0.0f,
+						0.0f,
+						0.0f,
+						WarpTypes::ZoneUnknown
+					);
+
+					parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
+				}
+
+				m_time_since_last_warp_detection.Start(2500);
 			}
+
 			break;
 		case MQGate:
 			if (RuleB(Cheat, EnableMQGateDetector) &&
@@ -207,9 +321,29 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 					position1.y,
 					position1.z
 				);
+
 				RecordPlayerEventLogWithClient(m_target, PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
 				LogCheat(fmt::runtime(message));
+
+				if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+					const auto& export_string = fmt::format(
+						"{} {} {} {} {} {} {} {}",
+						position1.x,
+						position1.y,
+						position1.z,
+						0.0f,
+						0.0f,
+						0.0f,
+						0.0f,
+						WarpTypes::Gate
+					);
+
+					parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
+				}
+
+				m_time_since_last_warp_detection.Start(2500);
 			}
+
 			break;
 		case MQGhost:
 			// this isn't just for ghost, its also for if a person isn't sending their MovementHistory packet also.
@@ -221,9 +355,29 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 					m_target->AccountName(),
 					m_target->GetName()
 				);
+
 				RecordPlayerEventLogWithClient(m_target, PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
 				LogCheat("{}", message);
+
+				if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+					const auto& export_string = fmt::format(
+						"{} {} {} {} {} {} {} {}",
+						position1.x,
+						position1.y,
+						position1.z,
+						0.0f,
+						0.0f,
+						0.0f,
+						0.0f,
+						WarpTypes::Ghost
+					);
+
+					parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
+				}
+
+				m_time_since_last_warp_detection.Start(2500);
 			}
+
 			break;
 		case MQFastMem:
 			if (RuleB(Cheat, EnableMQFastMemDetector) &&
@@ -240,9 +394,29 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 					position1.y,
 					position1.z
 				);
+
 				RecordPlayerEventLogWithClient(m_target, PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
 				LogCheat(fmt::runtime(message));
+
+				if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+					const auto& export_string = fmt::format(
+						"{} {} {} {} {} {} {} {}",
+						position1.x,
+						position1.y,
+						position1.z,
+						0.0f,
+						0.0f,
+						0.0f,
+						0.0f,
+						WarpTypes::FastMem
+					);
+
+					parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
+				}
+
+				m_time_since_last_warp_detection.Start(2500);
 			}
+
 			break;
 		default:
 			std::string message = fmt::format(
@@ -256,8 +430,28 @@ void CheatManager::CheatDetected(CheatTypes type, glm::vec3 position1, glm::vec3
 				position1.y,
 				position1.z
 			);
+
 			RecordPlayerEventLogWithClient(m_target, PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
 			LogCheat(fmt::runtime(message));
+
+			if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+				const auto& export_string = fmt::format(
+					"{} {} {} {} {} {} {} {}",
+					position1.x,
+					position1.y,
+					position1.z,
+					0.0f,
+					0.0f,
+					0.0f,
+					0.0f,
+					WarpTypes::Unhandled
+				);
+
+				parse->EventPlayer(EVENT_WARP, m_target, export_string, 0);
+			}
+
+			m_time_since_last_warp_detection.Start(2500);
+
 			break;
 	}
 }

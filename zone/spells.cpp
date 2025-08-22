@@ -7446,6 +7446,22 @@ bool Mob::CheckItemRaceClassDietyRestrictionsOnCast(uint32 inventory_slot) {
 				);
 
 				RecordPlayerEventLogWithClient(CastToClient(), PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
+
+				if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+					const auto& export_string = fmt::format(
+						"{} {} {} {} {} {} {} {}",
+						GetX(),
+						GetY(),
+						GetZ(),
+						0.0f,
+						0.0f,
+						0.0f,
+						0.0f,
+						WarpTypes::ItemEquipOnlyClick
+					);
+
+					parse->EventPlayer(EVENT_WARP, CastToClient(), export_string, 0);
+				}
 			}
 			else {
 				MessageString(Chat::Red, MUST_EQUIP_ITEM);
@@ -7461,6 +7477,22 @@ bool Mob::CheckItemRaceClassDietyRestrictionsOnCast(uint32 inventory_slot) {
 				);
 
 				RecordPlayerEventLogWithClient(CastToClient(), PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
+
+				if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+					const auto& export_string = fmt::format(
+						"{} {} {} {} {} {} {} {}",
+						GetX(),
+						GetY(),
+						GetZ(),
+						0.0f,
+						0.0f,
+						0.0f,
+						0.0f,
+						WarpTypes::ItemRaceClassClick
+					);
+
+					parse->EventPlayer(EVENT_WARP, CastToClient(), export_string, 0);
+				}
 			}
 			else {
 				if (CastToClient()->ClientVersion() >= EQ::versions::ClientVersion::RoF)
@@ -7485,6 +7517,22 @@ bool Mob::CheckItemRaceClassDietyRestrictionsOnCast(uint32 inventory_slot) {
 			);
 
 			RecordPlayerEventLogWithClient(CastToClient(), PlayerEvent::POSSIBLE_HACK, PlayerEvent::PossibleHackEvent{.message = message});
+
+			if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+				const auto& export_string = fmt::format(
+					"{} {} {} {} {} {} {} {}",
+					GetX(),
+					GetY(),
+					GetZ(),
+					0.0f,
+					0.0f,
+					0.0f,
+					0.0f,
+					WarpTypes::ItemClickUnequipped
+				);
+
+				parse->EventPlayer(EVENT_WARP, CastToClient(), export_string, 0);
+			}
 		}
 		else {
 			MessageString(Chat::Red, MUST_EQUIP_ITEM);

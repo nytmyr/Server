@@ -860,6 +860,7 @@ void Client::ZonePC(uint32 zoneID, uint32 instance_id, float x, float y, float z
 	);
 
 	cheat_manager.SetExemptStatus(Port, true);
+	SetAntiCheatExempt();
 
 	if(!pZoneName) {
 		Message(Chat::Red, "Invalid zone number specified");

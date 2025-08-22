@@ -1449,6 +1449,23 @@ void Client::BuyTraderItem(TraderBuy_Struct *tbs, Client *Trader, const EQApplic
                 .message = "Attempted to buy something in bazaar but did not have enough money."
             }
         );
+
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				0.0f,
+				0.0f,
+				0.0f,
+				0.0f,
+				WarpTypes::BazaarBuyMoney
+			);
+
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
+
         TradeRequestFailed(app);
         return;
     }
@@ -2981,6 +2998,23 @@ void Client::BuyTraderItemOutsideBazaar(TraderBuy_Struct *tbs, const EQApplicati
 				)
 			}
 		);
+
+		if (parse->PlayerHasQuestSub(EVENT_WARP)) {
+			const auto& export_string = fmt::format(
+				"{} {} {} {} {} {} {} {}",
+				GetX(),
+				GetY(),
+				GetZ(),
+				0.0f,
+				0.0f,
+				0.0f,
+				0.0f,
+				WarpTypes::BazaarOutsideBuyMoney
+			);
+
+			parse->EventPlayer(EVENT_WARP, this, export_string, 0);
+		}
+
 		in->method     = BazaarByParcel;
 		in->sub_action = InsufficientFunds;
 		TraderRepository::UpdateActiveTransaction(database, trader_item.id, false);
