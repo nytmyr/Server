@@ -155,6 +155,7 @@ namespace Logs {
 		TestDebug,
 		GearScore,
 		SpellScore,
+		VegasLoot,
 		MaxCategoryID /* Don't Remove this */
 	};
 
@@ -268,7 +269,8 @@ namespace Logs {
 		"Net TCP",
 		"Test Debug",
 		"Gear Score",
-		"Spell Score"
+		"Spell Score",
+		"Vegas Loot"
 	};
 }
 

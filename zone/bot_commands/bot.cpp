@@ -1617,7 +1617,7 @@ void bot_command_toggle_ranged(Client *c, const Seperator *sep)
 			);
 		}
 		else {
-			if (my_bot->GetBotRangedValue() < RuleI(Combat, MinRangedAttackDist)) {
+			if (type_value && my_bot->GetBotRangedValue() < RuleI(Combat, MinRangedAttackDist)) {
 				c->Message(Chat::Yellow, "%s does not have proper weapons or ammo to be at range.", my_bot->GetCleanName());
 				continue;
 			}

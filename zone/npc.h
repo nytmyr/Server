@@ -644,6 +644,52 @@ public:
 		CalcBonuses();
 	}
 
+	// VegasEQ
+	float GetDifficulty() const { return difficulty; }
+	void SetDifficulty(float difficulty_) { difficulty = difficulty_; }
+	int32 GetRaidPoints() const { return raid_points; }
+	void SetRaidPoints(int32 raid_points_) { raid_points = raid_points_; }
+	bool GetIsValeenSpawned() const { return is_valeen_spawned; }
+	void SetValeenSpawned(bool is_valeen_spawned_) { is_valeen_spawned = is_valeen_spawned_; }
+	bool GetIsHideNPC() const { return hide_npc; }
+	void SetHideNPC(bool hide_npc_) { hide_npc = hide_npc_; }
+	int32 GetNPCInZoneID() const { return in_zone_id; }
+	void SetNPCInZoneID(int32 in_zone_id_) { in_zone_id = in_zone_id_; }
+
+	// VegasEQ loot stuff
+	bool	IsVegasLootEligible(Mob* top_client);
+	virtual Mob* GetTopHateClient();
+	bool	IsOnVegasCoolDown(Mob* top_client);
+	void	AddVegasItemLoot(Mob* top_client);
+	const	EQ::ItemData* GetVegasItems(uint32 id_min, uint32 id_max, float difficulty_min, float difficulty_max, uint32 zone_range_min, uint32 zone_range_max, bool raid_only);
+	bool	NPCBypassesVegasLoot();
+	bool	GuaranteedNormalDrop();
+	bool	GuaranteedBonusDrop();
+	bool	GuaranteedRaidDrop();
+	bool	NPCBypassesVegasRaidLoot();
+	bool	SpecialNPCPassesVegasLoot();
+	bool	SpecialZonePassesVegasLoot();
+	int		GetRollCount(float npc_diff);
+	int		GetRaidRollCount(float npc_diff);
+	int		GetBonusRollCount(float npc_diff);
+	int		GetRollMax();
+	int		GetRollToHit(auto roll_max, auto random_drop_multiplier);
+	int		GetBonusRollMax();
+	int		GetBonusRollToHit(auto roll_max, auto random_drop_multiplier);
+	int		GetRaidRollMax();
+	int		GetRaidRollToHit(auto roll_max, auto random_drop_multiplier);
+	void	AddVegasSpellLoot(Mob* top_client);
+	void	AddVegasBagLoot(Mob* top_client);
+	void	AddVegasBridleLoot(Mob* top_client);
+	void	AddVegasEpicTokenLoot(Mob* top_client);
+	void	AddVegasShardLoot(Mob* top_client, float shard_multiplier, bool guaranteed_shard_drop);
+	int		GetShardAmount();
+	void	GetVegasZoneRange(uint16 zoneid, uint8* zone_era, uint32* zone_range_min, uint32* zone_range_max);
+	void	GetVegasDifficultyRange(uint16 zoneid, float* difficulty_min, float* difficulty_max, float* difficulty_bonus_min, float* difficulty_bonus_max);
+	void	DoFirstKillChecks(Mob* top_client);
+	void	DoFirstKillAchievements(Mob* top_client, std::string key);
+	void	QueryVegasLoot(std::string query, std::string killer_name, std::string killed_name);
+
 protected:
 
 	void HandleRoambox();
@@ -806,6 +852,13 @@ protected:
 	// items can be decremented from this as each successful
 	// check is ran in scripts, the remainder is what is returned
 	Handin m_hand_in = {};
+
+	// VegasEQ
+	float			difficulty;
+	int32     		raid_points;
+	bool     		is_valeen_spawned;
+	bool     		hide_npc;
+	int32     		in_zone_id;
 public:
 	const Handin GetHandin() { return m_hand_in; }
 

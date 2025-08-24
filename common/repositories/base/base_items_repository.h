@@ -304,6 +304,12 @@ public:
 		int32_t     UNK240;
 		int32_t     UNK241;
 		int32_t     epicitem;
+		float       GearScore;
+		float       ShardScore;
+		int32_t     MinDropLevel;
+		float       difficulty;
+		int32_t     lowest_drop_npc_id;
+		int32_t     raid_only;
 	};
 
 	static std::string PrimaryKey()
@@ -599,6 +605,12 @@ public:
 			"UNK240",
 			"UNK241",
 			"epicitem",
+			"GearScore",
+			"ShardScore",
+			"MinDropLevel",
+			"difficulty",
+			"lowest_drop_npc_id",
+			"raid_only",
 		};
 	}
 
@@ -890,6 +902,12 @@ public:
 			"UNK240",
 			"UNK241",
 			"epicitem",
+			"GearScore",
+			"ShardScore",
+			"MinDropLevel",
+			"difficulty",
+			"lowest_drop_npc_id",
+			"raid_only",
 		};
 	}
 
@@ -1215,6 +1233,12 @@ public:
 		e.UNK240              = 0;
 		e.UNK241              = 0;
 		e.epicitem            = 0;
+		e.GearScore           = 0;
+		e.ShardScore          = 0;
+		e.MinDropLevel        = 0;
+		e.difficulty          = 0;
+		e.lowest_drop_npc_id  = 0;
+		e.raid_only           = 0;
 
 		return e;
 	}
@@ -1536,6 +1560,12 @@ public:
 			e.UNK240              = row[282] ? static_cast<int32_t>(atoi(row[282])) : 0;
 			e.UNK241              = row[283] ? static_cast<int32_t>(atoi(row[283])) : 0;
 			e.epicitem            = row[284] ? static_cast<int32_t>(atoi(row[284])) : 0;
+			e.GearScore           = row[285] ? strtof(row[285], nullptr) : 0;
+			e.ShardScore          = row[286] ? strtof(row[286], nullptr) : 0;
+			e.MinDropLevel        = row[287] ? static_cast<int32_t>(atoi(row[287])) : 0;
+			e.difficulty          = row[288] ? strtof(row[288], nullptr) : 0;
+			e.lowest_drop_npc_id  = row[289] ? static_cast<int32_t>(atoi(row[289])) : 0;
+			e.raid_only           = row[290] ? static_cast<int32_t>(atoi(row[290])) : 0;
 
 			return e;
 		}
@@ -1854,6 +1884,12 @@ public:
 		v.push_back(columns[282] + " = " + std::to_string(e.UNK240));
 		v.push_back(columns[283] + " = " + std::to_string(e.UNK241));
 		v.push_back(columns[284] + " = " + std::to_string(e.epicitem));
+		v.push_back(columns[285] + " = " + std::to_string(e.GearScore));
+		v.push_back(columns[286] + " = " + std::to_string(e.ShardScore));
+		v.push_back(columns[287] + " = " + std::to_string(e.MinDropLevel));
+		v.push_back(columns[288] + " = " + std::to_string(e.difficulty));
+		v.push_back(columns[289] + " = " + std::to_string(e.lowest_drop_npc_id));
+		v.push_back(columns[290] + " = " + std::to_string(e.raid_only));
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -2160,6 +2196,12 @@ public:
 		v.push_back(std::to_string(e.UNK240));
 		v.push_back(std::to_string(e.UNK241));
 		v.push_back(std::to_string(e.epicitem));
+		v.push_back(std::to_string(e.GearScore));
+		v.push_back(std::to_string(e.ShardScore));
+		v.push_back(std::to_string(e.MinDropLevel));
+		v.push_back(std::to_string(e.difficulty));
+		v.push_back(std::to_string(e.lowest_drop_npc_id));
+		v.push_back(std::to_string(e.raid_only));
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -2474,6 +2516,12 @@ public:
 			v.push_back(std::to_string(e.UNK240));
 			v.push_back(std::to_string(e.UNK241));
 			v.push_back(std::to_string(e.epicitem));
+			v.push_back(std::to_string(e.GearScore));
+			v.push_back(std::to_string(e.ShardScore));
+			v.push_back(std::to_string(e.MinDropLevel));
+			v.push_back(std::to_string(e.difficulty));
+			v.push_back(std::to_string(e.lowest_drop_npc_id));
+			v.push_back(std::to_string(e.raid_only));
 
 			insert_chunks.push_back("(" + Strings::Implode(",", v) + ")");
 		}
@@ -2792,6 +2840,12 @@ public:
 			e.UNK240              = row[282] ? static_cast<int32_t>(atoi(row[282])) : 0;
 			e.UNK241              = row[283] ? static_cast<int32_t>(atoi(row[283])) : 0;
 			e.epicitem            = row[284] ? static_cast<int32_t>(atoi(row[284])) : 0;
+			e.GearScore           = row[285] ? strtof(row[285], nullptr) : 0;
+			e.ShardScore          = row[286] ? strtof(row[286], nullptr) : 0;
+			e.MinDropLevel        = row[287] ? static_cast<int32_t>(atoi(row[287])) : 0;
+			e.difficulty          = row[288] ? strtof(row[288], nullptr) : 0;
+			e.lowest_drop_npc_id  = row[289] ? static_cast<int32_t>(atoi(row[289])) : 0;
+			e.raid_only           = row[290] ? static_cast<int32_t>(atoi(row[290])) : 0;
 
 			all_entries.push_back(e);
 		}
@@ -3101,6 +3155,12 @@ public:
 			e.UNK240              = row[282] ? static_cast<int32_t>(atoi(row[282])) : 0;
 			e.UNK241              = row[283] ? static_cast<int32_t>(atoi(row[283])) : 0;
 			e.epicitem            = row[284] ? static_cast<int32_t>(atoi(row[284])) : 0;
+			e.GearScore           = row[285] ? strtof(row[285], nullptr) : 0;
+			e.ShardScore          = row[286] ? strtof(row[286], nullptr) : 0;
+			e.MinDropLevel        = row[287] ? static_cast<int32_t>(atoi(row[287])) : 0;
+			e.difficulty          = row[288] ? strtof(row[288], nullptr) : 0;
+			e.lowest_drop_npc_id  = row[289] ? static_cast<int32_t>(atoi(row[289])) : 0;
+			e.raid_only           = row[290] ? static_cast<int32_t>(atoi(row[290])) : 0;
 
 			all_entries.push_back(e);
 		}
@@ -3460,6 +3520,12 @@ public:
 		v.push_back(std::to_string(e.UNK240));
 		v.push_back(std::to_string(e.UNK241));
 		v.push_back(std::to_string(e.epicitem));
+		v.push_back(std::to_string(e.GearScore));
+		v.push_back(std::to_string(e.ShardScore));
+		v.push_back(std::to_string(e.MinDropLevel));
+		v.push_back(std::to_string(e.difficulty));
+		v.push_back(std::to_string(e.lowest_drop_npc_id));
+		v.push_back(std::to_string(e.raid_only));
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -3767,6 +3833,12 @@ public:
 			v.push_back(std::to_string(e.UNK240));
 			v.push_back(std::to_string(e.UNK241));
 			v.push_back(std::to_string(e.epicitem));
+			v.push_back(std::to_string(e.GearScore));
+			v.push_back(std::to_string(e.ShardScore));
+			v.push_back(std::to_string(e.MinDropLevel));
+			v.push_back(std::to_string(e.difficulty));
+			v.push_back(std::to_string(e.lowest_drop_npc_id));
+			v.push_back(std::to_string(e.raid_only));
 
 			insert_chunks.push_back("(" + Strings::Implode(",", v) + ")");
 		}

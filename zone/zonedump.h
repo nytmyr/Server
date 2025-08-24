@@ -158,6 +158,14 @@ struct NPCType
 	uint8			greed;
 	bool            multiquest_enabled;
 	uint32          m_npc_tint_id;
+
+	// VegasEQ
+	float       	difficulty;
+	int32_t     	raid_points;
+	int32_t     	is_valeen_spawned;
+	int32_t     	hide_npc;
+	int32_t     	in_zone_id;
+
 };
 
 #pragma pack()

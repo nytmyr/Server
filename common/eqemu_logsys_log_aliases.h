@@ -956,6 +956,16 @@ inline auto logsys = EQEmuLogSys::Instance();
         OutF(logsys, Logs::Detail, Logs::SpellScore, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
 } while (0)
 
+#define LogVegasLoot(message, ...) do {\
+    if (logsys->IsLogEnabled(Logs::General, Logs::VegasLoot))\
+        OutF(logsys, Logs::General, Logs::VegasLoot, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
+} while (0)
+
+#define LogVegasLootDetail(message, ...) do {\
+    if (logsys->IsLogEnabled(Logs::Detail, Logs::VegasLoot))\
+        OutF(logsys, Logs::Detail, Logs::VegasLoot, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
+} while (0)
+
 #define Log(debug_level, log_category, message, ...) do {\
     if (logsys->IsLogEnabled(debug_level, log_category))\
         logsys->Out(debug_level, log_category, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\

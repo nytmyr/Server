@@ -1313,6 +1313,14 @@ void SharedDatabase::LoadItems(void *data, uint32 size, int32 items, uint32 max_
 		strn0cpy(item.Filename, row[ItemField::filename], sizeof(item.Filename));
 		item.ScriptFileID = Strings::ToUnsignedInt(row[ItemField::scriptfileid]);
 
+		// VegasEQ
+		item.GearScore = Strings::ToFloat(row[ItemField::GearScore]);
+		item.ShardScore = Strings::ToFloat(row[ItemField::ShardScore]);
+		item.MinDropLevel = Strings::ToInt(row[ItemField::MinDropLevel]);
+		item.Difficulty = Strings::ToFloat(row[ItemField::difficulty]);
+		item.LowestDropNPCID = Strings::ToInt(row[ItemField::lowest_drop_npc_id]);
+		item.RaidOnly = Strings::ToInt(row[ItemField::raid_only]);
+
 		try {
 			hash.insert(item.ID, item);
 		} catch (std::exception &ex) {

@@ -2001,3 +2001,111 @@ void EQ::ItemInstance::SetEvolveEquipped(const bool in) const
 
 	GetTimers().at("evolve").Disable();
 }
+
+float EQ::ItemInstance::GetItemGearScore(bool augments) const {
+	float        stat = 0;
+	const auto item = GetItem();
+
+	if (item) {
+		stat = item->GearScore;
+		if (augments) {
+			for (int i = invaug::SOCKET_BEGIN; i <= invaug::SOCKET_END; ++i) {
+				if (GetAugment(i)) {
+					stat += GetAugment(i)->GetItemClairvoyance();
+				}
+			}
+		}
+	}
+
+	return stat;
+}
+
+float EQ::ItemInstance::GetItemShardScore(bool augments) const {
+	float        stat = 0;
+	const auto item = GetItem();
+
+	if (item) {
+		stat = item->ShardScore;
+		if (augments) {
+			for (int i = invaug::SOCKET_BEGIN; i <= invaug::SOCKET_END; ++i) {
+				if (GetAugment(i)) {
+					stat += GetAugment(i)->GetItemClairvoyance();
+				}
+			}
+		}
+	}
+
+	return stat;
+}
+
+int32 EQ::ItemInstance::GetItemMinDropLevel(bool augments) const {
+	int32        stat = 0;
+	const auto item = GetItem();
+
+	if (item) {
+		stat = item->MinDropLevel;
+		if (augments) {
+			for (int i = invaug::SOCKET_BEGIN; i <= invaug::SOCKET_END; ++i) {
+				if (GetAugment(i)) {
+					stat += GetAugment(i)->GetItemClairvoyance();
+				}
+			}
+		}
+	}
+
+	return stat;
+}
+
+float EQ::ItemInstance::GetItemDifficulty(bool augments) const {
+	float        stat = 0;
+	const auto item = GetItem();
+
+	if (item) {
+		stat = item->Difficulty;
+		if (augments) {
+			for (int i = invaug::SOCKET_BEGIN; i <= invaug::SOCKET_END; ++i) {
+				if (GetAugment(i)) {
+					stat += GetAugment(i)->GetItemClairvoyance();
+				}
+			}
+		}
+	}
+
+	return stat;
+}
+
+int32 EQ::ItemInstance::GetItemLowestDropNPCID(bool augments) const {
+	int32        stat = 0;
+	const auto item = GetItem();
+
+	if (item) {
+		stat = item->LowestDropNPCID;
+		if (augments) {
+			for (int i = invaug::SOCKET_BEGIN; i <= invaug::SOCKET_END; ++i) {
+				if (GetAugment(i)) {
+					stat += GetAugment(i)->GetItemClairvoyance();
+				}
+			}
+		}
+	}
+
+	return stat;
+}
+
+int32 EQ::ItemInstance::GetItemRaidOnly(bool augments) const {
+	int32        stat = 0;
+	const auto item = GetItem();
+
+	if (item) {
+		stat = item->RaidOnly;
+		if (augments) {
+			for (int i = invaug::SOCKET_BEGIN; i <= invaug::SOCKET_END; ++i) {
+				if (GetAugment(i)) {
+					stat += GetAugment(i)->GetItemClairvoyance();
+				}
+			}
+		}
+	}
+
+	return stat;
+}

@@ -215,6 +215,19 @@ public:
 	void SetNPCTintIndex(uint32 id);
 	uint32 GetNPCTintIndex();
 
+	// VegasEQ
+	float GetDifficulty();
+	void SetDifficulty(float difficulty_);
+	int32 GetRaidPoints();
+	void SetRaidPoints(int32 raid_points_);
+	bool GetIsValeenSpawned();
+	void SetValeenSpawned(bool is_valeen_spawned_);
+	bool GetIsHideNPC();
+	void SetHideNPC(bool hide_npc_);
+	int32 GetNPCInZoneID();
+	void SetNPCInZoneID(int32 in_zone_id_);
+	void AddVegasLoot(float difficulty_min, float difficulty_max, bool raid_only, uint32 bonus_chance);
+
 };
 
 #endif

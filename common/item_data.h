@@ -541,6 +541,14 @@ namespace EQ
 		char	ScrollName[65] {};
 		//BardName
 
+		// VegasEQ
+		float GearScore {};
+		float ShardScore {};
+		int32 MinDropLevel {};
+		float Difficulty {};
+		int32 LowestDropNPCID {};
+		int32 RaidOnly {};
+
 		bool IsEquipable(uint16 Race, uint16 Class) const;
 		bool IsClassEquipable(uint16 Class) const;
 		bool IsRaceEquipable(uint16 Race) const;

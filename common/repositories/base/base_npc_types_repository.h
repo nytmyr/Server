@@ -150,6 +150,11 @@ public:
 		uint8_t     is_parcel_merchant;
 		uint8_t     multiquest_enabled;
 		uint16_t    npc_tint_id;
+		float       difficulty;
+		int32_t     raid_points;
+		int32_t     is_valeen_spawned;
+		int32_t     hide_npc;
+		int32_t     in_zone_id;
 	};
 
 	static std::string PrimaryKey()
@@ -291,6 +296,11 @@ public:
 			"is_parcel_merchant",
 			"multiquest_enabled",
 			"npc_tint_id",
+			"difficulty",
+			"raid_points",
+			"is_valeen_spawned",
+			"hide_npc",
+			"in_zone_id",
 		};
 	}
 
@@ -428,6 +438,11 @@ public:
 			"is_parcel_merchant",
 			"multiquest_enabled",
 			"npc_tint_id",
+			"difficulty",
+			"raid_points",
+			"is_valeen_spawned",
+			"hide_npc",
+			"in_zone_id",
 		};
 	}
 
@@ -599,6 +614,11 @@ public:
 		e.is_parcel_merchant     = 0;
 		e.multiquest_enabled     = 0;
 		e.npc_tint_id            = 0;
+		e.difficulty             = 0;
+		e.raid_points            = 0;
+		e.is_valeen_spawned      = 0;
+		e.hide_npc               = 0;
+		e.in_zone_id             = 0;
 
 		return e;
 	}
@@ -766,6 +786,11 @@ public:
 			e.is_parcel_merchant     = row[128] ? static_cast<uint8_t>(strtoul(row[128], nullptr, 10)) : 0;
 			e.multiquest_enabled     = row[129] ? static_cast<uint8_t>(strtoul(row[129], nullptr, 10)) : 0;
 			e.npc_tint_id            = row[130] ? static_cast<uint16_t>(strtoul(row[130], nullptr, 10)) : 0;
+			e.difficulty             = row[131] ? strtof(row[131], nullptr) : 0;
+			e.raid_points            = row[132] ? static_cast<int32_t>(atoi(row[132])) : 0;
+			e.is_valeen_spawned      = row[133] ? static_cast<int32_t>(atoi(row[133])) : 0;
+			e.hide_npc               = row[134] ? static_cast<int32_t>(atoi(row[134])) : 0;
+			e.in_zone_id             = row[135] ? static_cast<int32_t>(atoi(row[135])) : 0;
 
 			return e;
 		}
@@ -929,6 +954,11 @@ public:
 		v.push_back(columns[128] + " = " + std::to_string(e.is_parcel_merchant));
 		v.push_back(columns[129] + " = " + std::to_string(e.multiquest_enabled));
 		v.push_back(columns[130] + " = " + std::to_string(e.npc_tint_id));
+		v.push_back(columns[131] + " = " + std::to_string(e.difficulty));
+		v.push_back(columns[132] + " = " + std::to_string(e.raid_points));
+		v.push_back(columns[133] + " = " + std::to_string(e.is_valeen_spawned));
+		v.push_back(columns[134] + " = " + std::to_string(e.hide_npc));
+		v.push_back(columns[135] + " = " + std::to_string(e.in_zone_id));
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -1081,6 +1111,11 @@ public:
 		v.push_back(std::to_string(e.is_parcel_merchant));
 		v.push_back(std::to_string(e.multiquest_enabled));
 		v.push_back(std::to_string(e.npc_tint_id));
+		v.push_back(std::to_string(e.difficulty));
+		v.push_back(std::to_string(e.raid_points));
+		v.push_back(std::to_string(e.is_valeen_spawned));
+		v.push_back(std::to_string(e.hide_npc));
+		v.push_back(std::to_string(e.in_zone_id));
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -1241,6 +1276,11 @@ public:
 			v.push_back(std::to_string(e.is_parcel_merchant));
 			v.push_back(std::to_string(e.multiquest_enabled));
 			v.push_back(std::to_string(e.npc_tint_id));
+			v.push_back(std::to_string(e.difficulty));
+			v.push_back(std::to_string(e.raid_points));
+			v.push_back(std::to_string(e.is_valeen_spawned));
+			v.push_back(std::to_string(e.hide_npc));
+			v.push_back(std::to_string(e.in_zone_id));
 
 			insert_chunks.push_back("(" + Strings::Implode(",", v) + ")");
 		}
@@ -1405,6 +1445,11 @@ public:
 			e.is_parcel_merchant     = row[128] ? static_cast<uint8_t>(strtoul(row[128], nullptr, 10)) : 0;
 			e.multiquest_enabled     = row[129] ? static_cast<uint8_t>(strtoul(row[129], nullptr, 10)) : 0;
 			e.npc_tint_id            = row[130] ? static_cast<uint16_t>(strtoul(row[130], nullptr, 10)) : 0;
+			e.difficulty             = row[131] ? strtof(row[131], nullptr) : 0;
+			e.raid_points            = row[132] ? static_cast<int32_t>(atoi(row[132])) : 0;
+			e.is_valeen_spawned      = row[133] ? static_cast<int32_t>(atoi(row[133])) : 0;
+			e.hide_npc               = row[134] ? static_cast<int32_t>(atoi(row[134])) : 0;
+			e.in_zone_id             = row[135] ? static_cast<int32_t>(atoi(row[135])) : 0;
 
 			all_entries.push_back(e);
 		}
@@ -1560,6 +1605,11 @@ public:
 			e.is_parcel_merchant     = row[128] ? static_cast<uint8_t>(strtoul(row[128], nullptr, 10)) : 0;
 			e.multiquest_enabled     = row[129] ? static_cast<uint8_t>(strtoul(row[129], nullptr, 10)) : 0;
 			e.npc_tint_id            = row[130] ? static_cast<uint16_t>(strtoul(row[130], nullptr, 10)) : 0;
+			e.difficulty             = row[131] ? strtof(row[131], nullptr) : 0;
+			e.raid_points            = row[132] ? static_cast<int32_t>(atoi(row[132])) : 0;
+			e.is_valeen_spawned      = row[133] ? static_cast<int32_t>(atoi(row[133])) : 0;
+			e.hide_npc               = row[134] ? static_cast<int32_t>(atoi(row[134])) : 0;
+			e.in_zone_id             = row[135] ? static_cast<int32_t>(atoi(row[135])) : 0;
 
 			all_entries.push_back(e);
 		}
@@ -1765,6 +1815,11 @@ public:
 		v.push_back(std::to_string(e.is_parcel_merchant));
 		v.push_back(std::to_string(e.multiquest_enabled));
 		v.push_back(std::to_string(e.npc_tint_id));
+		v.push_back(std::to_string(e.difficulty));
+		v.push_back(std::to_string(e.raid_points));
+		v.push_back(std::to_string(e.is_valeen_spawned));
+		v.push_back(std::to_string(e.hide_npc));
+		v.push_back(std::to_string(e.in_zone_id));
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -1918,6 +1973,11 @@ public:
 			v.push_back(std::to_string(e.is_parcel_merchant));
 			v.push_back(std::to_string(e.multiquest_enabled));
 			v.push_back(std::to_string(e.npc_tint_id));
+			v.push_back(std::to_string(e.difficulty));
+			v.push_back(std::to_string(e.raid_points));
+			v.push_back(std::to_string(e.is_valeen_spawned));
+			v.push_back(std::to_string(e.hide_npc));
+			v.push_back(std::to_string(e.in_zone_id));
 
 			insert_chunks.push_back("(" + Strings::Implode(",", v) + ")");
 		}
