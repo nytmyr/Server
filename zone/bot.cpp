@@ -5007,7 +5007,7 @@ void Bot::Damage(Mob *from, int64 damage, uint16 spell_id, EQ::skills::SkillType
 		LogCombatDetail("Applying lifetap heal of [{}] to [{}]", healed, GetCleanName());
 		HealDamage(healed);
 		if (from) {
-			entity_list.FilteredMessageClose(this, true, RuleI(Range, SpellMessages), Chat::Emote, FilterSocials, "%s beams a smile at %s", GetCleanName(), from->GetCleanName());
+			entity_list.FilteredMessageClose(this, true, RuleI(Range, SpellMessages), Chat::PetSpell, FilterSocials, "%s beams a smile at %s", GetCleanName(), from->GetCleanName() );
 		}
 	}
 
