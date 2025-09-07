@@ -158,6 +158,13 @@ int Perl_Raid_GetGroupNumber(Raid* self, int member_index) {
 	return self->members[member_index].group_number;
 }
 
+// VegasEQ - START
+float Perl_Raid_GetRaidTotalGearScore(Raid* self) // @categories Raid
+{
+	return self->GetRaidTotalGearScore();
+}
+// VegasEQ - END
+
 void perl_register_raid()
 {
 	perl::interpreter perl(PERL_GET_THX);
@@ -191,6 +198,10 @@ void perl_register_raid()
 	package.add("SplitMoney", (void(*)(Raid*, uint32, uint32, uint32, uint32, uint32, Client*))&Perl_Raid_SplitMoney);
 	package.add("TeleportGroup", &Perl_Raid_TeleportGroup);
 	package.add("TeleportRaid", &Perl_Raid_TeleportRaid);
+
+	// VegasEQ - START
+	package.add("GetRaidTotalGearScore", &Perl_Raid_GetRaidTotalGearScore);
+	// VegasEQ - END
 }
 
 #endif //EMBPERL_XS_CLASSES

@@ -3624,6 +3624,13 @@ luabind::object Lua_Client::GetKeyRing(lua_State* L)
 	return lua_table;
 }
 
+// VegasEQ - START
+float Lua_Client::GetTotalGearScore() {
+	Lua_Safe_Call_Real();
+	return self->GetTotalGearScore();
+}
+// VegasEQ - END
+
 luabind::scope lua_register_client() {
 	return luabind::class_<Lua_Client, Lua_Mob>("Client")
 	.def(luabind::constructor<>())
@@ -4226,7 +4233,11 @@ luabind::scope lua_register_client() {
 	.def("UpdateTaskActivity", (void(Lua_Client::*)(int,int,int))&Lua_Client::UpdateTaskActivity)
 	.def("UseDiscipline", (bool(Lua_Client::*)(int,int))&Lua_Client::UseDiscipline)
 	.def("UseAugmentContainer", (void(Lua_Client::*)(int))&Lua_Client::UseAugmentContainer)
-	.def("WorldKick", (void(Lua_Client::*)(void))&Lua_Client::WorldKick);
+	.def("WorldKick", (void(Lua_Client::*)(void))&Lua_Client::WorldKick)
+
+	// VegasEQ - START
+	.def("GetTotalGearScore", (uint32(Lua_Client::*)(void))& Lua_Client::GetTotalGearScore);
+	// VegasEQ - END
 }
 
 luabind::scope lua_register_inventory_where() {

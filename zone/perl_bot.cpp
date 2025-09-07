@@ -620,6 +620,13 @@ void Perl_Bot_RaidGroupSay(Bot* self, const char* message) // @categories Script
 	self->RaidGroupSay(message);
 }
 
+// VegasEQ - START
+float Perl_Bot_GetTotalGearScore(Bot* self) // @categories Group
+{
+	return self->GetTotalGearScore();
+}
+// VegasEQ - END
+
 void perl_register_bot()
 {
 	perl::interpreter state(PERL_GET_THX);
@@ -739,6 +746,10 @@ void perl_register_bot()
 	package.add("Signal", &Perl_Bot_Signal);
 	package.add("Sit", &Perl_Bot_Sit);
 	package.add("Stand", &Perl_Bot_Stand);
+
+	// VegasEQ - START
+	package.add("GetTotalGearScore", &Perl_Bot_GetTotalGearScore);
+	// VegasEQ - END
 }
 
 #endif //EMBPERL_XS_CLASSES

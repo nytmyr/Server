@@ -48,6 +48,7 @@
 #endif
 
 #include "types.h"
+#include "emu_constants.h"
 
 class Strings {
 public:
@@ -101,6 +102,16 @@ public:
 	static std::string ZoneTime(const uint8 hours, const uint8 minutes);
 	static std::string Slugify(const std::string &input, const std::string &separator = "-");
 	static bool IsValidJson(const std::string& json);
+
+	// VegasEQ - START
+	static std::string				ReplaceWhitespaces(std::string s);
+	static bool						DelimitedStringContains(std::string delimiter, std::string string_one, std::string match_one, std::string string_two = "", std::string match_two = "");
+	static int						GetDelimitedStringsMatchingElement(std::string delimiter, std::string string_one, std::string match_one, std::string string_two = "", std::string match_two = "");
+	static int						GetElementMatchingOperator(std::string delimiter, std::string string_one, float variable = 0.0f, uint8 type = ComparisonType::Equal);
+	static std::vector<float>		GetFloatVectorFromDelimitedString(const std::string& string, const std::string& delimiter);
+	static std::vector<uint32>		GetUIntVectorFromDelimitedString(const std::string& string, const std::string& delimiter);
+	// VegasEQ - END
+
 };
 
 const std::string StringFormat(const char *format, ...);

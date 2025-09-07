@@ -664,6 +664,13 @@ void Lua_Bot::RaidGroupSay(const char* message) {
 	self->RaidGroupSay(message);
 }
 
+// VegasEQ - START
+float Lua_Bot::GetTotalGearScore() {
+	Lua_Safe_Call_Real();
+	return self->GetTotalGearScore();
+}
+// VegasEQ - END
+
 luabind::scope lua_register_bot() {
 	return luabind::class_<Lua_Bot, Lua_Mob>("Bot")
 	.def(luabind::constructor<>())
@@ -692,7 +699,6 @@ luabind::scope lua_register_bot() {
 	.def("ApplySpellRaid", (void(Lua_Bot::*)(int,int,int))&Lua_Bot::ApplySpellRaid)
 	.def("ApplySpellRaid", (void(Lua_Bot::*)(int,int,int,bool))&Lua_Bot::ApplySpellRaid)
 	.def("ApplySpellRaid", (void(Lua_Bot::*)(int,int,int,bool,bool))&Lua_Bot::ApplySpellRaid)
-	.def("ApplySpellRaid", (void(Lua_Bot::*)(int,int,int,bool,bool))&Lua_Bot::ApplySpellRaid)
 	.def("RaidGroupSay", (void(Lua_Bot::*)(const char*))&Lua_Bot::RaidGroupSay)
 	.def("Camp", (void(Lua_Bot::*)(void))&Lua_Bot::Camp)
 	.def("Camp", (void(Lua_Bot::*)(bool))&Lua_Bot::Camp)
@@ -716,7 +722,7 @@ luabind::scope lua_register_bot() {
 	.def("Fling", (void(Lua_Bot::*)(float,float,float,float,bool,bool))&Lua_Bot::Fling)
 	.def("GetAugmentAt", (Lua_ItemInst(Lua_Bot::*)(int16,uint8))&Lua_Bot::GetAugmentAt)
 	.def("GetAugmentIDAt", (int(Lua_Bot::*)(int16,uint8))&Lua_Bot::GetAugmentIDAt)
-	.def("GetAugmentIDsBySlotID", (luabind::object(Lua_Bot::*)(lua_State* L,int16))&Lua_Bot::GetAugmentIDsBySlotID)
+	.def("GetAugmentIDsBySlotID", (luabind::object(Lua_Bot::*)(lua_State* L, int16))&Lua_Bot::GetAugmentIDsBySlotID)
 	.def("GetBaseAGI", (int(Lua_Bot::*)(void))&Lua_Bot::GetBaseAGI)
 	.def("GetBaseCHA", (int(Lua_Bot::*)(void))&Lua_Bot::GetBaseCHA)
 	.def("GetBaseDEX", (int(Lua_Bot::*)(void))&Lua_Bot::GetBaseDEX)
@@ -765,7 +771,7 @@ luabind::scope lua_register_bot() {
 	.def("SetBucket", (void(Lua_Bot::*)(std::string,std::string,std::string))&Lua_Bot::SetBucket)
 	.def("SetExpansionBitmask", (void(Lua_Bot::*)(int))&Lua_Bot::SetExpansionBitmask)
 	.def("SetDisciplineReuseTimer", (void(Lua_Bot::*)(uint16))&Lua_Bot::SetDisciplineReuseTimer)
-	.def("SetDisciplineReuseTimer", (void(Lua_Bot::*)(uint16, uint32))&Lua_Bot::SetDisciplineReuseTimer)
+	.def("SetDisciplineReuseTimer", (void(Lua_Bot::*)(uint16,uint32))&Lua_Bot::SetDisciplineReuseTimer)
 	.def("SetItemReuseTimer", (void(Lua_Bot::*)(uint32))&Lua_Bot::SetItemReuseTimer)
 	.def("SetItemReuseTimer", (void(Lua_Bot::*)(uint32, uint32))&Lua_Bot::SetItemReuseTimer)
 	.def("SetSpellDuration", (void(Lua_Bot::*)(int))&Lua_Bot::SetSpellDuration)
@@ -782,12 +788,16 @@ luabind::scope lua_register_bot() {
 	.def("SetSpellDurationRaid", (void(Lua_Bot::*)(int,int,int,bool))&Lua_Bot::SetSpellDurationRaid)
 	.def("SetSpellDurationRaid", (void(Lua_Bot::*)(int,int,int,bool,bool))&Lua_Bot::SetSpellDurationRaid)
 	.def("SetSpellRecastTimer", (void(Lua_Bot::*)(uint16))&Lua_Bot::SetSpellRecastTimer)
-	.def("SetSpellRecastTimer", (void(Lua_Bot::*)(uint16, uint32))&Lua_Bot::SetSpellRecastTimer)
+	.def("SetSpellRecastTimer", (void(Lua_Bot::*)(uint16,uint32))&Lua_Bot::SetSpellRecastTimer)
 	.def("SendPayload", (void(Lua_Bot::*)(int))&Lua_Bot::SendPayload)
 	.def("SendPayload", (void(Lua_Bot::*)(int,std::string))&Lua_Bot::SendPayload)
 	.def("Signal", (void(Lua_Bot::*)(int))&Lua_Bot::Signal)
 	.def("Sit", (void(Lua_Bot::*)(void))&Lua_Bot::Sit)
-	.def("Stand", (void(Lua_Bot::*)(void))&Lua_Bot::Stand);
+	.def("Stand", (void(Lua_Bot::*)(void))&Lua_Bot::Stand)
+
+	// VegasEQ - START
+	.def("GetTotalGearScore", (uint32(Lua_Bot::*)(Lua_Mob))&Lua_Bot::GetTotalGearScore);
+	// VegasEQ - END
 }
 
 #endif

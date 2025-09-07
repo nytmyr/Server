@@ -3363,6 +3363,13 @@ perl::array Perl_Client_GetKeyRing(Client* self)
 	return result;
 }
 
+// VegasEQ - START
+float Perl_Client_GetTotalGearScore(Client* self) // @categories Client
+{
+	return self->GetTotalGearScore();
+}
+// VegasEQ - END
+
 void perl_register_client()
 {
 	perl::interpreter perl(PERL_GET_THX);
@@ -3969,6 +3976,10 @@ void perl_register_client()
 	package.add("UseDiscipline", &Perl_Client_UseDiscipline);
 	package.add("UseAugmentContainer", &Perl_Client_UseAugmentContainer);
 	package.add("WorldKick", &Perl_Client_WorldKick);
+
+	// VegasEQ - START
+	package.add("GetTotalGearScore", &Perl_Client_GetTotalGearScore);
+	// VegasEQ - END
 }
 
 #endif //EMBPERL_XS_CLASSES

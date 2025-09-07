@@ -1,8 +1,9 @@
 #include "../command.h"
 #include "../../world/sof_char_create_data.h"
 #include "../../common/skill_caps.h"
+#include "../bot_command.h"
 
-void command_char_change(Client* c, const Seperator* sep) //TODO vegas - add starting stat checks.
+void command_charchange(Client* c, const Seperator* sep) //TODO vegas - add starting stat checks.
 {
 	if (!RuleB(CharChange, CommandEnabled)) {
 		c->Message(Chat::Yellow, "This command is currently disabled.");

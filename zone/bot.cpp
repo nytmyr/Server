@@ -13508,3 +13508,19 @@ bool Bot::HasControllablePet(uint8 ranks_required) {
 		GetPet()->GetPetType() != PetType::Animation ||
 		GetAA(aaAnimationEmpathy) >= ranks_required;
 }
+
+// VegasEQ - START
+float Bot::GetTotalGearScore() {
+	uint32 total_score = 0;
+
+	for (int i = EQ::invslot::EQUIPMENT_BEGIN; i <= EQ::invslot::EQUIPMENT_END; i++) {
+		const EQ::ItemInstance* inst = GetBotItem(i);
+
+		if (inst && inst->GetItem()) {
+			total_score += inst->GetItem()->GearScore;
+		}
+	}
+
+	return total_score;
+}
+// VegasEQ - END

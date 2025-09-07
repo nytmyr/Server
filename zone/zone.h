@@ -506,6 +506,10 @@ public:
 	std::vector<std::string> GetPausedTimers();
 	std::vector<std::string> GetTimers();
 
+	// VegasEQ - START
+	void LoadVegasLootDrops();
+	// VegasEQ - END
+
 private:
 	bool      allow_mercs;
 	bool      can_bind;

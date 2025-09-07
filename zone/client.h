@@ -1962,9 +1962,12 @@ public:
 		std::string return_source;
 	};
 
+	// VegasEQ - START
 	void DoIllusionWearCheck(); //Checks for illusion wears to warp back.
 	bool DoDoorIllusionCheatChecks();
 	void SetAntiCheatExempt(int duration = RuleI(VegasAnticheat, AntiCheatExemptDuration)) const;
+	float GetTotalGearScore();
+	// VegasEQ - END
 
 private:
 	ExternalHandinMoneyReturned m_external_handin_money_returned = {};

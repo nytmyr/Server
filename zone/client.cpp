@@ -13300,6 +13300,7 @@ bool Client::UncompleteTask(int task_id)
 	return task_state->UncompleteTask(task_id);
 }
 
+// VegasEQ - START
 bool Client::DoDoorIllusionCheatChecks() {
 	auto zone_id = zone->GetZoneID();
 
@@ -13351,3 +13352,18 @@ void Client::SetAntiCheatExempt(int duration) const {
 	std::string key = RuleS(VegasAnticheat, AntiCheatExemptKey) + std::to_string(CharacterID());
 	DataBucket::SetData(key, std::to_string(1), std::to_string(duration));
 }
+
+float Client::GetTotalGearScore() {
+	float total_score = 0;
+
+	for (int i = EQ::invslot::EQUIPMENT_BEGIN; i <= EQ::invslot::EQUIPMENT_END; i++) {
+		const EQ::ItemInstance* inst = m_inv[i];
+
+		if (inst && inst->GetItem()) {
+			total_score += inst->GetItem()->GearScore;
+		}
+	}
+
+	return total_score;
+}
+// VegasEQ - END

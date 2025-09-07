@@ -30,5 +30,13 @@ struct LootItem {
 
 typedef std::list<LootItem*> LootItems;
 
+// VegasEQ - START
+struct VegasItem {
+	uint32 id;
+	std::string name;
+	float difficulty;
+	int16 maxcharges;
+};
+// VegasEQ - END
 
 #endif //CODE_LOOT_H

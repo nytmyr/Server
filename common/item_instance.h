@@ -337,13 +337,14 @@ namespace EQ
 		bool             TransferOwnership(Database& db, const uint32 to_char_id) const;
 		void             CalculateEvolveProgression() const { m_evolving_details.progression = EvolvingItemsManager::Instance()->CalculateProgression(GetEvolveCurrentAmount(), GetID()); }
 
-		// VegasEQ
+		// VegasEQ - START
 		float GetItemGearScore(bool augments = false) const;
 		float GetItemShardScore(bool augments = false) const;
 		int32 GetItemMinDropLevel(bool augments = false) const;
 		float GetItemDifficulty(bool augments = false) const;
 		int32 GetItemLowestDropNPCID(bool augments = false) const;
 		int32 GetItemRaidOnly(bool augments = false) const;
+		// VegasEQ - END
 
 	protected:
 		//////////////////////////

@@ -215,7 +215,7 @@ public:
 	void SetNPCTintIndex(uint32 id);
 	uint32 GetNPCTintIndex();
 
-	// VegasEQ
+	// VegasEQ - START
 	float GetDifficulty();
 	void SetDifficulty(float difficulty_);
 	int32 GetRaidPoints();
@@ -226,7 +226,12 @@ public:
 	void SetHideNPC(bool hide_npc_);
 	int32 GetNPCInZoneID();
 	void SetNPCInZoneID(int32 in_zone_id_);
+	void AddVegasLoot();
+	void AddVegasLoot(float difficulty_min);
+	void AddVegasLoot(float difficulty_min, float difficulty_max);
+	void AddVegasLoot(float difficulty_min, float difficulty_max, bool raid_only);
 	void AddVegasLoot(float difficulty_min, float difficulty_max, bool raid_only, uint32 bonus_chance);
+	// VegasEQ - END
 
 };
 

@@ -1116,6 +1116,10 @@ public:
 	static bool CheckCreateLimit(Client* c, uint32 bot_count, uint8 bot_class = Class::None);
 	static bool CheckSpawnLimit(Client* c, uint8 bot_class = Class::None);
 
+	// VegasEQ - START
+	float GetTotalGearScore();
+	// VegasEQ - END
+
 protected:
 	void BotMeditate(bool is_sitting);
 	bool CheckBotDoubleAttack(bool triple_attack = false);

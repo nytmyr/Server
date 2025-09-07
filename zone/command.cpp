@@ -97,7 +97,6 @@ int command_init(void)
 		(RuleB(Bots, Enabled) && command_add("bot", "Type \"#bot help\" or \"^help\" to the see the list of available commands for bots.", AccountStatus::Player, command_bot)) ||
 		command_add("camerashake", "[Duration (Milliseconds)] [Intensity (1-10)] - Shakes the camera on everyone's screen globally.", AccountStatus::QuestTroupe, command_camerashake) ||
 		command_add("castspell", "[Spell ID] [Instant (0 = False, 1 = True, Default is 1 if Unused)] - Cast a spell", AccountStatus::Guide, command_castspell) ||
-		command_add("charchange", "Change your race, class and or deity", AccountStatus::Player, command_char_change) ||
 		command_add("chat", "[Channel ID] [Message] - Send a channel message to all zones", AccountStatus::GMMgmt, command_chat) ||
 		command_add("clearxtargets", "Clears XTargets", AccountStatus::Player, command_clearxtargets) ||
 		command_add("copycharacter", "[source_char_name] [dest_char_name] [dest_account_name] - Copies character to destination account", AccountStatus::GMImpossible, command_copycharacter) ||
@@ -135,8 +134,7 @@ int command_init(void)
 		command_add("fixmob", "[race|gender|texture|helm|face|hair|haircolor|beard|beardcolor|heritage|tattoo|detail] [next|prev] - Manipulate appearance of your target", AccountStatus::QuestTroupe, command_fixmob) ||
 		command_add("flagedit", "Edit zone flags on your target. Use #flagedit help for more info.", AccountStatus::GMAdmin, command_flagedit) ||
 		command_add("fleeinfo", "- Gives info about whether a NPC will flee or not, using the command issuer as top hate.", AccountStatus::QuestTroupe, command_fleeinfo) ||
-		command_add("forage", "Forage an item", AccountStatus::QuestTroupe, command_forage) ||
-		command_add("gearscore", "Displays the Gear Score of the item on your cursor for your class", AccountStatus::Player, command_gear_score) ||
+		command_add("forage", "Forage an item", AccountStatus::QuestTroupe, command_forage) |
 		command_add("gearup", "Developer tool to quickly equip yourself or your target", AccountStatus::GMMgmt, command_gearup) ||
 		command_add("giveitem", "[itemid] [charges] - Summon an item onto your target's cursor. Charges are optional.", AccountStatus::GMMgmt, command_giveitem) ||
 		command_add("givemoney", "[Platinum] [Gold] [Silver] [Copper] - Gives specified amount of money to you or your player target", AccountStatus::GMMgmt, command_givemoney) ||
@@ -219,8 +217,6 @@ int command_init(void)
 		command_add("spawn", "[name] [race] [level] [material] [hp] [gender] [class] [priweapon] [secweapon] [merchantid] - Spawn an NPC", AccountStatus::Steward, command_spawn) ||
 		command_add("spawneditmass", "[Search Criteria] [Edit Option] [Edit Value] [Apply] Mass editing spawn command (Apply is optional, 0 = False, 1 = True, default is False)", AccountStatus::GMLeadAdmin, command_spawneditmass) ||
 		command_add("spawnfix", "Find targeted NPC in database based on its X/Y/heading and update the database to make it spawn at your current location/heading.", AccountStatus::GMAreas, command_spawnfix) ||
-		command_add("spellscore", "Displays the Spell Score of the supplied spell ID", AccountStatus::GMAdmin, command_spell_score) ||
-		command_add("spellinfo", "Displays information for the provided spell ID", AccountStatus::Player, command_spell_info) ||
 		command_add("stun", "[duration] - Stuns you or your target for duration", AccountStatus::GMAdmin, command_stun) ||
 		command_add("summon", "[Character Name] - Summons your corpse, NPC, or player target, or by character name if specified", AccountStatus::QuestTroupe, command_summon) ||
 		command_add("summonburiedplayercorpse", "Summons the target's oldest buried corpse, if any exist.", AccountStatus::GMAdmin, command_summonburiedplayercorpse) ||
@@ -250,7 +246,13 @@ int command_init(void)
 		command_add("zoneshard", "[zone] [instance_id] - Teleport explicitly to a zone shard", AccountStatus::Player, command_zone_shard) ||
 		command_add("zoneshutdown", "[instance|zone] [Instance ID|Zone ID|Zone Short Name] - Shut down a zone server by Instance ID, Zone ID, or Zone Short Name", AccountStatus::GMLeadAdmin, command_zoneshutdown) ||
 		command_add("zonevariable", "[clear|delete|set|view] - Modify zone variables for your current zone", AccountStatus::GMAdmin, command_zonevariable) ||
-		command_add("zsave", " Saves zheader to the database", AccountStatus::QuestTroupe, command_zsave)
+		command_add("zsave", " Saves zheader to the database", AccountStatus::QuestTroupe, command_zsave) ||
+		// command_add("gearscore", "Displays the Gear Score of the item on your cursor for your class", AccountStatus::Player, command_gear_score) || // TODO - VegasEQ - Implement after
+		// command_add("spellinfo", "Displays information for the provided spell ID", AccountStatus::Player, command_spell_info) || // TODO - VegasEQ - Implement after
+		// command_add("spellscore", "Displays the Spell Score of the supplied spell ID", AccountStatus::GMAdmin, command_spell_score) || // TODO - VegasEQ - Implement after
+		command_add("charchange", "Change your race, class and or deity", AccountStatus::Player, command_charchange) || // VegasEQ - START
+		command_add("getgearscore", "Returns the GearScore of the item currently on your cursor.", AccountStatus::Player, command_get_gearscore) ||
+		command_add("getshardscore", "Returns the GearScore of the item currently on your cursor.", AccountStatus::Player, command_get_shardscore) // VegasEQ - END
 	) {
 		command_deinit();
 		return -1;

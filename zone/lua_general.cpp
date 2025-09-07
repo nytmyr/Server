@@ -5893,6 +5893,144 @@ std::string get_rules(int rule) {
 	return RuleManager::Instance()->GetStringRule((RuleManager::StringType)rule);
 }
 
+// VegasEQ - START
+float lua_GetItemDifficulty(uint32 item_id) {
+	auto item_data = database.GetItem(item_id);
+
+	if (item_data) {
+		std::unique_ptr<EQ::ItemInstance> item_inst(database.CreateItem(item_data));
+
+		if (item_inst) {
+			return item_inst->GetItemDifficulty();
+		}
+	}
+
+	return 0.0f;
+}
+
+float lua_GetItemGearScore(uint32 item_id) {
+	auto item_data = database.GetItem(item_id);
+
+	if (item_data) {
+		std::unique_ptr<EQ::ItemInstance> item_inst(database.CreateItem(item_data));
+
+		if (item_inst) {
+			return item_inst->GetItemGearScore();
+		}
+	}
+
+	return 0.0f;
+}
+
+float lua_GetItemShardScore(uint32 item_id) {
+	auto item_data = database.GetItem(item_id);
+
+	if (item_data) {
+		std::unique_ptr<EQ::ItemInstance> item_inst(database.CreateItem(item_data));
+
+		if (item_inst) {
+			return item_inst->GetItemShardScore();
+		}
+	}
+
+	return 0.0f;
+}
+
+uint32 lua_GetItemLowestDropNPCID(uint32 item_id) {
+	auto item_data = database.GetItem(item_id);
+
+	if (item_data) {
+		std::unique_ptr<EQ::ItemInstance> item_inst(database.CreateItem(item_data));
+
+		if (item_inst) {
+			return item_inst->GetItemLowestDropNPCID();
+		}
+	}
+
+	return 0.0f;
+}
+
+int16 lua_GetItemMaxCharges(uint32 item_id) {
+	auto item_data = database.GetItem(item_id);
+
+	if (item_data) {
+		return item_data->MaxCharges;
+	}
+
+	return 0;
+}
+
+uint16 lua_GetItemMinDropLevel(uint32 item_id) {
+	auto item_data = database.GetItem(item_id);
+
+	if (item_data) {
+		std::unique_ptr<EQ::ItemInstance> item_inst(database.CreateItem(item_data));
+
+		if (item_inst) {
+			return item_inst->GetItemMinDropLevel();
+		}
+	}
+
+	return 0.0f;
+}
+
+uint32 lua_GetLoottableMinCash(uint32 loottable_id) {
+	auto loottable_data = zone->GetLootTable(loottable_id);
+
+	if (!loottable_data) {
+		return 0;
+	}
+
+	return loottable_data->mincash;
+}
+
+uint32 lua_GetLoottableMaxCash(uint32 loottable_id) {
+	auto  loottable_data = zone->GetLootTable(loottable_id);
+
+	if (!loottable_data) {
+		return 0;
+	}
+
+	return loottable_data->maxcash;
+}
+
+Mob* lua_GetTopHateClient(Mob* npc) {
+	return npc ? npc->CastToNPC()->GetTopHateClient() : 0;
+}
+
+bool lua_IsVegasLootEligible(Mob* npc, Mob* top_client) {
+	return npc ? npc->CastToNPC()->IsVegasLootEligible(top_client) : false;
+}
+
+uint32 lua_GetVegasItem(uint32 id_min, uint32 id_max, float difficulty_min, float difficulty_max, bool raidonly, uint32 lowest_drop_npc_id, uint32 max_drop_npc_id) {
+	return NPC::GetVegasItems(id_min, id_max, difficulty_min, difficulty_max, lowest_drop_npc_id, max_drop_npc_id, raidonly)->ID;
+}
+
+bool lua_IsItemLore(uint32 item_id) {
+	auto item_data = database.GetItem(item_id);
+
+	if (item_data) {
+		return item_data->LoreGroup != 0;
+	}
+
+	return false;
+}
+
+bool lua_IsItemRaidOnly(uint32 item_id) {
+	auto item_data = database.GetItem(item_id);
+
+	if (item_data) {
+		std::unique_ptr<EQ::ItemInstance> item_inst(database.CreateItem(item_data));
+
+		if (item_inst) {
+			return item_inst->GetItemRaidOnly();
+		}
+	}
+
+	return 0.0f;
+}
+// VegasEQ - END
+
 luabind::scope lua_register_general() {
 	return luabind::namespace_("eq")
 	[(
@@ -6841,7 +6979,23 @@ luabind::scope lua_register_general() {
 		luabind::def("add_expedition_lockout_by_char_id", (void(*)(uint32, std::string, std::string, uint32, std::string))&lua_add_expedition_lockout_by_char_id),
 		luabind::def("remove_expedition_lockout_by_char_id", &lua_remove_expedition_lockout_by_char_id),
 		luabind::def("remove_all_expedition_lockouts_by_char_id", (void(*)(uint32))&lua_remove_all_expedition_lockouts_by_char_id),
-		luabind::def("remove_all_expedition_lockouts_by_char_id", (void(*)(uint32, std::string))&lua_remove_all_expedition_lockouts_by_char_id)
+		luabind::def("remove_all_expedition_lockouts_by_char_id", (void(*)(uint32, std::string))&lua_remove_all_expedition_lockouts_by_char_id),
+
+		// VegasEQ - START
+		luabind::def("GetItemDifficulty", &lua_GetItemDifficulty),
+		luabind::def("GetItemGearScore", &lua_GetItemGearScore),
+		luabind::def("GetItemShardScore", &lua_GetItemShardScore),
+		luabind::def("GetItemLowestDropNPCID", &lua_GetItemLowestDropNPCID),
+		luabind::def("GetItemMaxCharges", &lua_GetItemMaxCharges),
+		luabind::def("GetItemMinDropLevel", &lua_GetItemMinDropLevel),
+		luabind::def("GetLoottableMinCash", &lua_GetLoottableMinCash),
+		luabind::def("GetLoottableMaxCash", &lua_GetLoottableMaxCash),
+		luabind::def("GetTopHateClient", &lua_GetTopHateClient),
+		luabind::def("IsVegasLootEligible", &lua_IsVegasLootEligible),
+		luabind::def("GetVegasItem", &lua_GetVegasItem),
+		luabind::def("IsItemLore", &lua_IsItemLore),
+		luabind::def("IsItemRaidOnly", &lua_IsItemRaidOnly)
+		// VegasEQ - END
 	)];
 }
 

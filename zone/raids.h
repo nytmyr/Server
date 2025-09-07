@@ -280,6 +280,10 @@ public:
 	void HandleBotGroupDisband(uint32 owner, uint32 gid = RAID_GROUPLESS);
 	void HandleOfflineBots(uint32 owner);
 
+	// VegasEQ - START
+	float GetRaidTotalGearScore();
+	// VegasEQ - END
+
 	RaidMember members[MAX_RAID_MEMBERS];
 	char leadername[64];
 	char main_assister_pcs[MAX_NO_RAID_MAIN_ASSISTERS][64];

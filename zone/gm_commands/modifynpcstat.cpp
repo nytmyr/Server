@@ -48,7 +48,8 @@ std::map<std::string, std::string> GetModifyNPCStatMap()
 		{ "sta", "Stamina" },
 		{ "str", "Strength" },
 		{ "trackable", "Trackable" },
-		{ "wis", "Wisdom" }
+		{ "wis", "Wisdom" },
+		{ "difficulty", "raid_points" } // VegasEQ
 	};
 
 	return identifiers_map;

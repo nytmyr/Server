@@ -55,7 +55,6 @@ void command_ban(Client *c, const Seperator *sep);
 void command_bugs(Client *c, const Seperator *sep);
 void command_camerashake(Client *c, const Seperator *sep);
 void command_castspell(Client *c, const Seperator *sep);
-void command_char_change(Client* c, const Seperator* sep);
 void command_chat(Client *c, const Seperator *sep);
 void command_clearxtargets(Client *c, const Seperator *sep);
 void command_copycharacter(Client *c, const Seperator *sep);
@@ -93,7 +92,7 @@ void command_fixmob(Client *c, const Seperator *sep);
 void command_flagedit(Client *c, const Seperator *sep);
 void command_fleeinfo(Client *c, const Seperator *sep);
 void command_forage(Client* c, const Seperator* sep);
-void command_gear_score(Client* c, const Seperator* sep);
+// void command_gear_score(Client* c, const Seperator* sep); // TODO - VegasEQ - Implement after
 void command_gearup(Client *c, const Seperator *sep);
 void command_giveitem(Client *c, const Seperator *sep);
 void command_givemoney(Client *c, const Seperator *sep);
@@ -173,8 +172,8 @@ void command_shutdown(Client *c, const Seperator *sep);
 void command_spawn(Client *c, const Seperator *sep);
 void command_spawneditmass(Client *c, const Seperator *sep);
 void command_spawnfix(Client *c, const Seperator *sep);
-void command_spell_score(Client* c, const Seperator* sep);
-void command_spell_info(Client* c, const Seperator* sep);
+// void command_spell_score(Client* c, const Seperator* sep); // TODO - VegasEQ - Implement after
+// void command_spell_info(Client* c, const Seperator* sep); // TODO - VegasEQ - Implement after
 void command_stun(Client *c, const Seperator *sep);
 void command_summon(Client *c, const Seperator *sep);
 void command_summonburiedplayercorpse(Client *c, const Seperator *sep);
@@ -205,6 +204,12 @@ void command_zonebootup(Client *c, const Seperator *sep);
 void command_zoneshutdown(Client *c, const Seperator *sep);
 void command_zonevariable(Client *c, const Seperator *sep);
 void command_zsave(Client *c, const Seperator *sep);
+
+// VegasEQ - START
+void command_charchange(Client* c, const Seperator* sep);
+void command_get_gearscore(Client* c, const Seperator* sep);
+void command_get_shardscore(Client* c, const Seperator* sep);
+// VegasEQ - END
 
 #include "bot.h"
 void command_bot(Client*c, const Seperator *sep);

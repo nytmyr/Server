@@ -149,6 +149,13 @@ uint32 Lua_Group::GetAverageLevel() {
 	return self->GetAvgLevel();
 }
 
+// VegasEQ - START
+float Lua_Group::GetGroupTotalGearScore() {
+	Lua_Safe_Call_Real();
+	return self->GetGroupTotalGearScore();
+}
+// VegasEQ - END
+
 luabind::scope lua_register_group() {
 	return luabind::class_<Lua_Group>("Group")
 	.def(luabind::constructor<>())
@@ -179,7 +186,11 @@ luabind::scope lua_register_group() {
 	.def("SplitExp", (void(Lua_Group::*)(uint32,Lua_Mob))&Lua_Group::SplitExp)
 	.def("SplitMoney", (void(Lua_Group::*)(uint32,uint32,uint32,uint32))&Lua_Group::SplitMoney)
 	.def("SplitMoney", (void(Lua_Group::*)(uint32,uint32,uint32,uint32,Lua_Client))&Lua_Group::SplitMoney)
-	.def("TeleportGroup", (void(Lua_Group::*)(Lua_Mob,uint32,uint32,float,float,float,float))&Lua_Group::TeleportGroup);
+	.def("TeleportGroup", (void(Lua_Group::*)(Lua_Mob,uint32,uint32,float,float,float,float))&Lua_Group::TeleportGroup)
+
+	// VegasEQ - START
+	.def("GetGroupTotalGearScore", (uint32(Lua_Group::*)(Lua_Mob)) & Lua_Group::GetGroupTotalGearScore);
+	// VegasEQ - END
 }
 
 #endif

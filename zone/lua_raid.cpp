@@ -166,6 +166,13 @@ bool Lua_Raid::DoesAnyMemberHaveExpeditionLockout(std::string expedition_name, s
 	return self->AnyMemberHasDzLockout(expedition_name, event_name); // max_check_count deprecated
 }
 
+// VegasEQ - START
+float Lua_Raid::GetRaidTotalGearScore() {
+	Lua_Safe_Call_Real();
+	return self->GetRaidTotalGearScore();
+}
+// VegasEQ - END
+
 luabind::scope lua_register_raid() {
 	return luabind::class_<Lua_Raid>("Raid")
 	.def(luabind::constructor<>())
@@ -198,7 +205,11 @@ luabind::scope lua_register_raid() {
 	.def("SplitMoney", (void(Lua_Raid::*)(uint32,uint32,uint32,uint32,uint32))&Lua_Raid::SplitMoney)
 	.def("SplitMoney", (void(Lua_Raid::*)(uint32,uint32,uint32,uint32,uint32,Lua_Client))&Lua_Raid::SplitMoney)
 	.def("TeleportGroup", (int(Lua_Raid::*)(Lua_Mob,uint32,uint32,float,float,float,float,uint32))&Lua_Raid::TeleportGroup)
-	.def("TeleportRaid", (int(Lua_Raid::*)(Lua_Mob,uint32,uint32,float,float,float,float))&Lua_Raid::TeleportRaid);
+	.def("TeleportRaid", (int(Lua_Raid::*)(Lua_Mob,uint32,uint32,float,float,float,float))&Lua_Raid::TeleportRaid)
+
+	// VegasEQ - START
+	.def("GetRaidTotalGearScore", (uint32(Lua_Raid::*)(Lua_Mob)) & Lua_Raid::GetRaidTotalGearScore);
+	// VegasEQ - END
 }
 
 #endif

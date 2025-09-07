@@ -6049,6 +6049,144 @@ std::string Perl__get_pet_type_name(uint8 pet_type)
 	return PetType::GetName(pet_type);
 }
 
+// VegasEQ - START
+float Perl__GetItemDifficulty(uint32 item_id) {
+	auto item_data = database.GetItem(item_id);
+
+	if (item_data) {
+		std::unique_ptr<EQ::ItemInstance> item_inst(database.CreateItem(item_data));
+
+		if (item_inst) {
+			return item_inst->GetItemDifficulty();
+		}
+	}
+
+	return 0.0f;
+}
+
+float Perl__GetItemGearScore(uint32 item_id) {
+	auto item_data = database.GetItem(item_id);
+
+	if (item_data) {
+		std::unique_ptr<EQ::ItemInstance> item_inst(database.CreateItem(item_data));
+
+		if (item_inst) {
+			return item_inst->GetItemGearScore();
+		}
+	}
+
+	return 0.0f;
+}
+
+float Perl__GetItemShardScore(uint32 item_id) {
+	auto item_data = database.GetItem(item_id);
+
+	if (item_data) {
+		std::unique_ptr<EQ::ItemInstance> item_inst(database.CreateItem(item_data));
+
+		if (item_inst) {
+			return item_inst->GetItemShardScore();
+		}
+	}
+
+	return 0.0f;
+}
+
+uint32 Perl__GetItemLowestDropNPCID(uint32 item_id) {
+	auto item_data = database.GetItem(item_id);
+
+	if (item_data) {
+		std::unique_ptr<EQ::ItemInstance> item_inst(database.CreateItem(item_data));
+
+		if (item_inst) {
+			return item_inst->GetItemLowestDropNPCID();
+		}
+	}
+
+	return 0.0f;
+}
+
+int16 Perl__GetItemMaxCharges(uint32 item_id) {
+	auto item_data = database.GetItem(item_id);
+
+	if (item_data) {
+		return item_data->MaxCharges;
+	}
+
+	return 0;
+}
+
+uint16 Perl__GetItemMinDropLevel(uint32 item_id) {
+	auto item_data = database.GetItem(item_id);
+
+	if (item_data) {
+		std::unique_ptr<EQ::ItemInstance> item_inst(database.CreateItem(item_data));
+
+		if (item_inst) {
+			return item_inst->GetItemMinDropLevel();
+		}
+	}
+
+	return 0.0f;
+}
+
+uint32 Perl__GetLoottableMinCash(uint32 loottable_id) {
+	auto loottable_data = zone->GetLootTable(loottable_id);
+
+	if (!loottable_data) {
+		return 0;
+	}
+
+	return loottable_data->mincash;
+}
+
+uint32 Perl__GetLoottableMaxCash(uint32 loottable_id) {
+	auto  loottable_data = zone->GetLootTable(loottable_id);
+
+	if (!loottable_data) {
+		return 0;
+	}
+
+	return loottable_data->maxcash;
+}
+
+Mob* Perl__GetTopHateClient(Mob* npc) {
+	return npc ? npc->CastToNPC()->GetTopHateClient() : 0;
+}
+
+bool Perl__IsVegasLootEligible(Mob* npc, Mob* top_client) {
+	return npc ? npc->CastToNPC()->IsVegasLootEligible(top_client) : false;
+}
+
+uint32 Perl__GetVegasItem(uint32 id_min, uint32 id_max, float difficulty_min, float difficulty_max, bool raidonly, uint32 lowest_drop_npc_id, uint32 max_drop_npc_id) {
+	return NPC::GetVegasItems(id_min, id_max, difficulty_min, difficulty_max, lowest_drop_npc_id, max_drop_npc_id, raidonly)->ID;
+}
+
+bool Perl__IsItemLore(uint32 item_id) {
+	auto item_data = database.GetItem(item_id);
+
+	if (item_data) {
+		return item_data->LoreGroup != 0;
+	}
+
+	return false;
+}
+
+bool Perl__IsItemRaidOnly(uint32 item_id) {
+	auto item_data = database.GetItem(item_id);
+
+	if (item_data) {
+		std::unique_ptr<EQ::ItemInstance> item_inst(database.CreateItem(item_data));
+
+		if (item_inst) {
+			return item_inst->GetItemRaidOnly();
+		}
+	}
+
+	return 0.0f;
+}
+// VegasEQ - END
+
 void perl_register_quest()
 {
 	perl::interpreter perl(PERL_GET_THX);
@@ -7056,6 +7194,22 @@ void perl_register_quest()
 	 */
 	package.add("is_content_flag_enabled", &Perl__IsContentFlagEnabled);
 	package.add("set_content_flag", &Perl__SetContentFlag);
+
+	// VegasEQ - START
+	package.add("GetItemDifficulty", &Perl__GetItemDifficulty);
+	package.add("GetItemGearScore", &Perl__GetItemGearScore);
+	package.add("GetItemShardScore", &Perl__GetItemShardScore);
+	package.add("GetItemLowestDropNPCID", &Perl__GetItemLowestDropNPCID);
+	package.add("GetItemMaxCharges", &Perl__GetItemMaxCharges);
+	package.add("GetItemMinDropLevel", &Perl__GetItemMinDropLevel);
+	package.add("GetLoottableMinCash", &Perl__GetItemMinDropLevel);
+	package.add("GetLoottableMaxCash", &Perl__GetLoottableMaxCash);
+	package.add("GetTopHateClient", &Perl__GetTopHateClient);
+	package.add("IsVegasLootEligible", &Perl__IsVegasLootEligible);
+	package.add("GetVegasItem", &Perl__GetVegasItem);
+	package.add("IsItemLore", &Perl__IsItemLore);
+	package.add("IsItemRaidOnly", &Perl__IsItemRaidOnly);
+	// VegasEQ - END
 
 }
 

@@ -1910,12 +1910,13 @@ const NPCType *ZoneDatabase::LoadNPCTypesData(uint32 npc_type_id, bool bulk_load
 		t->keeps_sold_items       = n.keeps_sold_items;
 		t->multiquest_enabled     = n.multiquest_enabled != 0;
 
-		// VegasEQ
+		// VegasEQ - START
 		t->difficulty			  = n.difficulty;
 		t->raid_points			  = n.raid_points;
 		t->is_valeen_spawned	  = n.is_valeen_spawned;
 		t->hide_npc			      = n.hide_npc;
 		t->in_zone_id			  = n.in_zone_id;
+		// VegasEQ - END
 
 		// If NPC with duplicate NPC id already in table,
 		// free item we attempted to add.

@@ -2995,3 +2995,34 @@ void Raid::EmptyRaidMembers()
 		members[i].member_name[0]  = '\0';
 	}
 }
+
+// VegasEQ - START
+float Raid::GetRaidTotalGearScore() {
+	float total_score = 0;
+
+	for (const auto& m : members) {
+		if (!m.member) {
+			continue;
+		}
+
+		for (int i = EQ::invslot::EQUIPMENT_BEGIN; i <= EQ::invslot::EQUIPMENT_END; i++) {
+			if (m.member->IsClient()) {
+				const EQ::ItemData* item = database.GetItem(m.member->CastToClient()->GetItemIDAt(i));
+
+				if (item) {
+					total_score += item->GearScore;
+				}
+			}
+			else if (m.is_bot) {
+				const EQ::ItemInstance* inst = m.member->CastToBot()->GetBotItem(i);
+
+				if (inst && inst->GetItem()) {
+					total_score += inst->GetItem()->GearScore;
+				}
+			}
+		}
+	}
+
+	return total_score;
+}
+// VegasEQ - END

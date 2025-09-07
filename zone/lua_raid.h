@@ -54,6 +54,10 @@ public:
 	int GetGroupNumber(int member_index);
 	bool DoesAnyMemberHaveExpeditionLockout(std::string expedition_name, std::string event_name);
 	bool DoesAnyMemberHaveExpeditionLockout(std::string expedition_name, std::string event_name, int max_check_count);
+
+	// VegasEQ - START
+	float GetRaidTotalGearScore();
+	// VegasEQ - END
 };
 
 #endif

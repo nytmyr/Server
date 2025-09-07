@@ -5,7 +5,7 @@
 #include "../common/global_define.h"
 #include "embperl.h"
 #include "npc.h"
-#include "data_bucket.h"
+#include "../common/data_bucket.h"
 
 void Perl_NPC_SignalNPC(NPC* self, int signal_id) // @categories Script Utility
 {
@@ -960,7 +960,7 @@ uint32 Perl_NPC_GetNPCTintIndex(NPC* self)
 	return self->GetNPCTintIndex();
 }
 
-// VegasEQ
+// VegasEQ - START
 float Perl_NPC_GetDifficulty(NPC* self) {
 	return self->GetDifficulty();
 }
@@ -1001,79 +1001,46 @@ void Perl_NPC_SetNPCInZoneID(NPC* self, int32 in_zone_id_) {
 	self->SetNPCInZoneID(in_zone_id_);
 }
 
-void Perl_NPC_AddVegasLoot(NPC* self, float difficulty_min, float difficulty_max, bool raid_only, uint32 bonus_chance)
-{
-	uint32 id_min = RuleI(Vegas, MinVegasItemID);
-	uint32 id_max = RuleI(Vegas, MaxVegasItemID);
-	uint16 zoneid = zone->GetZoneID();
-	uint8 zone_era; // 0 = Classic, 1 = Kunark, 2 = Velious, 3 = Luclin, 4 = PoP
-	uint32 zone_range_min, zone_range_max;
-	self->GetVegasZoneRange(zoneid, &zone_era, &zone_range_min, &zone_range_max);
-	float diff_min = self->GetDifficulty() * RuleR(Vegas, RaidMinDifficultyMultiplier);
-	float diff_max = self->GetDifficulty() * RuleR(Vegas, RaidMaxDifficultyMultiplier);
+void Perl_NPC_AddVegasLoot(NPC* self) {
+	auto top_client = self->GetTopHateClient();
 
-	if (bonus_chance && (zone->random.Int(0, 100) >= bonus_chance)) {
-		diff_min = self->GetDifficulty() * RuleR(Vegas, RaidMinDifficultyBonusMultiplier);
-		diff_max = self->GetDifficulty() * RuleR(Vegas, RaidMaxDifficultyBonusMultiplier);
-		diff_min *= RuleR(Vegas, OverallBonusDropMinDifficultyMultiplier);
-		diff_max *= RuleR(Vegas, OverallBonusDropMaxDifficultyMultiplier);
-	}
-	else {
-		diff_min *= RuleR(Vegas, OverallNormalDropMinDifficultyMultiplier);
-		diff_max *= RuleR(Vegas, OverallNormalDropMaxDifficultyMultiplier);
-	}
-
-	std::string query;
-	std::string vegas_loot_type;
-	std::string item_name;
-	Mob* top_client = self->GetTopHateClient();
-
-	if (top_client && self->IsVegasLootEligible(top_client) && entity_list.GetClientByCharID(top_client->CastToClient()->CharacterID())) {
-		const EQ::ItemData* chosen_item = self->GetVegasItems(id_min, id_max, difficulty_min ? difficulty_min : diff_min, difficulty_max ? difficulty_max : diff_max, zone_range_min, zone_range_max, raid_only);
-
-		if (chosen_item) {
-			self->AddItem(chosen_item, chosen_item->MaxCharges, RuleB(Vegas, EquipVegasDrops));
-			LogVegasLoot("Added [{}] to [{}] for [{}]", database.CreateItemLink(chosen_item->ID), self->GetCleanName(), top_client->GetCleanName()); //deleteme
-
-			if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasLootLogging)) {
-				std::string key = "TotalRandomDrops";
-				std::string bucket_value = DataBucket::GetData(key);
-
-				if (Strings::IsNumber(bucket_value) && Strings::ToUnsignedInt(bucket_value) > 0) {
-					DataBucket::SetData(key, std::to_string(Strings::ToUnsignedInt(bucket_value) + 1));
-				}
-				else {
-					DataBucket::SetData(key, std::to_string(1));
-				}
-			}
-
-			//Discord send
-			if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasDiscordLogging)) {
-				std::ostringstream output;
-				output <<
-					"Added [Raid Item] [" << chosen_item->Name << "](http://vegaseq.com/Allaclone/?a=item&id=" << chosen_item->ID << ") [ID: " << chosen_item->ID << "] [GS:" << int(chosen_item->GearScore) << "] [" << (self->GetNPCTypeID(), self->IsRaidTarget() ? "Raid" : self->IsRareSpawn() ? "Rare" : "Common") << "]"
-					" to [" << self->GetCleanName() << "](http://vegaseq.com/Allaclone/?a=npc&id=" << self->GetNPCTypeID() << ") [ID: " << self->GetNPCTypeID() << "] [Level: " << int(self->GetLevel()) << "] [MobDiff: " << int(self->GetDifficulty()) << "]"
-					" For [" << top_client->GetCleanName() << "](http://vegaseq.com/charbrowser/index.php?page=character&char=" << top_client->GetCleanName() << ") [ID: " << top_client->CastToClient()->CharacterID() << "] [Level: " << int(top_client->CastToClient()->GetLevel()) << "]"
-					" in [" << zone->GetLongName() << "](http://vegaseq.com/Allaclone/?a=zone&name=" << zone->GetShortName() << ") [Instance: " << zone->GetInstanceID() << "]"
-					;
-				std::string out_final = output.str();
-				zone->SendDiscordMessage("rngitems", out_final);
-			}
-
-			//Database Logging
-			if (top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasLootLogging)) {
-				vegas_loot_type = "Raid";
-				item_name = chosen_item->Name;
-				//std::replace(item_name.begin(), item_name.end(), "\`", "\'");
-				query = StringFormat(
-					"INSERT INTO rng_items "
-					"SET `npc_id` = '%i', `npc_name` = '%s', `npc_level` = '%i', `type` = '%s', `npc_diff` = '%f', `item_id` = '%i', `raid_item` = '%i', `item` = '%s', `item_diff` = '%f', `item_gearscore` = '%f', `zone_id` = '%i', `zone` = '%s', `zone_instance_id` = '%i', `time` = NOW(), `charid` = '%i', `char` = '%s', `char_level` = '%i' ",
-					self->GetNPCTypeID(), Strings::Escape(self->GetCleanName()).c_str(), self->GetLevel(), vegas_loot_type, double(self->GetDifficulty()), chosen_item->ID, raid_only, Strings::Escape(chosen_item->Name).c_str(), double(chosen_item->Difficulty), double(chosen_item->GearScore), zone->GetZoneID(), zone->GetShortName(), zone->GetInstanceID(), top_client->CastToClient()->CharacterID(), top_client->CastToClient()->GetCleanName(), top_client->CastToClient()->GetLevel());
-				self->QueryVegasLoot(query, top_client->CastToClient()->GetCleanName(), self->GetCleanName());
-			}
-		}
+	if (top_client && self->IsVegasLootEligible(top_client)) {
+		self->AttemptVegasLoot(top_client);
 	}
 }
+
+void Perl_NPC_AddVegasLoot(NPC* self, float difficulty_min) {
+	auto top_client = self->GetTopHateClient();
+
+	if (top_client && self->IsVegasLootEligible(top_client)) {
+		self->AttemptVegasLoot(top_client, difficulty_min);
+	}
+}
+
+void Perl_NPC_AddVegasLoot(NPC* self, float difficulty_min, float difficulty_max) {
+	auto top_client = self->GetTopHateClient();
+
+	if (top_client && self->IsVegasLootEligible(top_client)) {
+		self->AttemptVegasLoot(top_client, difficulty_min, difficulty_max);
+	}
+}
+
+void Perl_NPC_AddVegasLoot(NPC* self, float difficulty_min, float difficulty_max, bool raid_only) {
+	auto top_client = self->GetTopHateClient();
+
+	if (top_client && self->IsVegasLootEligible(top_client)) {
+		self->AttemptVegasLoot(top_client, difficulty_min, difficulty_max, raid_only);
+	}
+}
+
+void Perl_NPC_AddVegasLoot(NPC* self, float difficulty_min, float difficulty_max, bool raid_only, uint32 bonus_chance) {
+	auto top_client = self->GetTopHateClient();
+
+	if (top_client && self->IsVegasLootEligible(top_client)) {
+		self->AttemptVegasLoot(top_client, difficulty_min, difficulty_max, raid_only, bonus_chance);
+	}
+}
+// VegasEQ - END
 
 void perl_register_npc()
 {
@@ -1259,7 +1226,7 @@ void perl_register_npc()
 	package.add("StopWandering", &Perl_NPC_StopWandering);
 	package.add("UpdateWaypoint", &Perl_NPC_UpdateWaypoint);
 
-	// VegasEQ
+	// VegasEQ - START
 	package.add("GetDifficulty", &Perl_NPC_GetDifficulty);
 	package.add("SetDifficulty", &Perl_NPC_SetDifficulty);
 	package.add("GetRaidPoints", &Perl_NPC_GetRaidPoints);
@@ -1270,9 +1237,12 @@ void perl_register_npc()
 	package.add("SetHideNPC", &Perl_NPC_SetHideNPC);
 	package.add("GetNPCInZoneID", &Perl_NPC_GetNPCInZoneID);
 	package.add("SetNPCInZoneID", &Perl_NPC_SetNPCInZoneID);
-
-	// VegasEQ loot
+	package.add("AddVegasLoot", (void(*)(NPC*))&Perl_NPC_AddVegasLoot);
+	package.add("AddVegasLoot", (void(*)(NPC*, float))&Perl_NPC_AddVegasLoot);
+	package.add("AddVegasLoot", (void(*)(NPC*, float, float))&Perl_NPC_AddVegasLoot);
+	package.add("AddVegasLoot", (void(*)(NPC*, float, float, bool))&Perl_NPC_AddVegasLoot);
 	package.add("AddVegasLoot", (void(*)(NPC*, float, float, bool, uint32))&Perl_NPC_AddVegasLoot);
+	// VegasEQ - END
 }
 
 #endif //EMBPERL_XS_CLASSES

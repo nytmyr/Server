@@ -1,6 +1,8 @@
 #include "../command.h"
 
 void command_spell_info(Client* c, const Seperator* sep) {
+	return; // TODO - VegasEQ - Implement after
+
 	uint8 gm_access_level = AccountStatus::Max;
 
 	if (!strcasecmp(sep->arg[1], "help")) {

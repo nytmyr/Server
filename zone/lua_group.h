@@ -53,6 +53,10 @@ public:
 	uint8 GetMemberRole(const char* name);
 	bool DoesAnyMemberHaveExpeditionLockout(std::string expedition_name, std::string event_name);
 	bool DoesAnyMemberHaveExpeditionLockout(std::string expedition_name, std::string event_name, int max_check_count);
+
+	// VegasEQ - START
+	float GetGroupTotalGearScore();
+	// VegasEQ - END
 };
 
 #endif

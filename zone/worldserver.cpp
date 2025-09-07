@@ -4595,6 +4595,10 @@ void WorldServer::ProcessReload(const ServerReload::Request& request)
 
 		case ServerReload::Type::Loot:
 			zone->ReloadLootTables();
+
+			// VegasEQ - START
+			zone->LoadVegasLootDrops();
+			// VegasEQ - END
 			break;
 
 		case ServerReload::Type::Maps:

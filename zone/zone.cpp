@@ -1178,6 +1178,10 @@ bool Zone::Init(bool is_static) {
 
 	content_db.LoadGlobalLoot();
 
+	// VegasEQ - START
+	zone->LoadVegasLootDrops();
+	// VegasEQ - END
+
 	npc_scale_manager->LoadScaleData();
 
 	LoadGrids();

@@ -170,6 +170,10 @@ public:
 
 	bool AnyMemberHasDzLockout(const std::string& expedition, const std::string& event);
 
+	// VegasEQ - START
+	float GetGroupTotalGearScore();
+	// VegasEQ - END
+
 	Mob*	members[MAX_GROUP_MEMBERS] {nullptr};
 	char	membername[MAX_GROUP_MEMBERS][64] {""};
 	uint8	MemberRoles[MAX_GROUP_MEMBERS] {0};

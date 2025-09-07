@@ -35,8 +35,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #include "fastmath.h"
 #include "mob.h"
 #include "npc.h"
-
 #include "bot.h"
+#include "../common/data_bucket.h"
 
 extern QueryServ* QServ;
 extern WorldServer worldserver;
@@ -2834,6 +2834,34 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 			}
 		}
 
+		// VegasEQ - VegasLoot - START
+		if (RuleB(VegasLoot, EnableVegasDrops) || RuleB(Vegas, EnableVegasKillAchievements)) {
+			Mob* top_client = GetTopHateClient();
+
+			if (top_client && entity_list.GetClientByCharID(top_client->CastToClient()->CharacterID())) {
+				if (RuleB(VegasLoot, EnableVegasDrops)) {
+					LogVegasLoot("Starting VegasLootProcess - attack.cpp - on [{}] for [{}]", GetCleanName(), top_client ? top_client->GetCleanName() : "UNKNOWN"); //deleteme
+					bool kill_eligible = IsVegasLootEligible(top_client);
+
+					if (kill_eligible) {
+						LogVegasLoot("VegasLootProcess::kill_eligible - attack.cpp - on [{}] for [{}]", GetCleanName(), top_client ? top_client->GetCleanName() : "UNKNOWN"); //deleteme
+						AttemptVegasLoot(top_client);
+					}
+					else {
+						Emote("'s fortunes decay away.");
+					}
+				}
+
+				if (RuleB(Vegas, EnableVegasKillAchievements) && top_client->CastToClient()->Admin() < RuleI(Vegas, MinStatusToBypassVegasKillAchievements)) {
+					DoFirstKillChecks(top_client);
+				}
+			}
+			else {
+				LogVegasLoot("Failed top_client check on [{}] for [{}]", GetCleanName(), top_client ? top_client->GetCleanName() : "UNKNOWN"); //deleteme
+			}
+		}
+		// VegasEQ - VegasLoot - END
+
 		entity_list.RemoveFromAutoXTargets(this);
 
 		corpse = new Corpse(
@@ -2975,6 +3003,39 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 
 		killer_mob->TrySpellOnKill(killed_level, spell);
 	}
+
+	// VegasEQ - START
+	bool is_valid_death = !HasOwner() && !IsMerc() && !GetSwarmInfo();
+	bool is_invalid_merchant = !is_merchant || allow_merchant_corpse;
+	bool is_valid_killer = killer &&
+		(
+			killer->IsClient() ||
+			(killer->HasOwner() && killer->GetUltimateOwner()->IsClient()) ||
+			(killer->IsNPC() && killer->CastToNPC()->GetSwarmInfo() && killer->CastToNPC()->GetSwarmInfo()->GetOwner() && killer->CastToNPC()->GetSwarmInfo()->GetOwner()->IsClient())
+		);
+	bool is_valid_ldon_treasure = killer_mob && is_ldon_treasure;
+	bool is_valid_kill =
+		is_valid_death &&
+		is_invalid_merchant &&
+			(is_valid_killer || is_valid_ldon_treasure);
+
+	if (is_valid_kill) {
+		Mob* top_client = GetTopHateClient();
+
+		if (top_client && top_client->CastToClient()->Admin() < RuleI(VegasLoot, MinStatusToBypassVegasLootLogging)) {
+			auto cash = m_loot_copper + (m_loot_silver * 10) + (m_loot_gold * 100) + (m_loot_platinum * 1000);
+			std::string key = "TotalCashDropped";
+			std::string bucket_value = DataBucket::GetData(key);
+
+			if (Strings::IsNumber(bucket_value) && Strings::ToUnsignedInt(bucket_value) > 0) {
+				DataBucket::SetData(key, std::to_string(Strings::ToUnsignedInt(bucket_value) + cash));
+			}
+			else {
+				DataBucket::SetData(key, std::to_string(1));
+			}
+		}
+	}
+	// VegasEQ - END
 
 	WipeHateList();
 

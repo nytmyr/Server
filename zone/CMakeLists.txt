@@ -324,7 +324,6 @@ set(gm_command_sources
     gm_commands/bugs.cpp
     gm_commands/camerashake.cpp
     gm_commands/castspell.cpp
-    gm_commands/charchange.cpp
     gm_commands/chat.cpp
     gm_commands/clearxtargets.cpp
     gm_commands/copycharacter.cpp
@@ -473,6 +472,9 @@ set(gm_command_sources
     gm_commands/zone_instance.cpp
     gm_commands/zone_shard.cpp
     gm_commands/zsave.cpp
+    gm_commands/charchange.cpp
+    gm_commands/get_gearscore.cpp
+    gm_commands/get_shardscore.cpp
 )
 
 add_library(gm_commands_zone STATIC ${gm_command_sources})

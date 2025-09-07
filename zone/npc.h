@@ -265,11 +265,6 @@ public:
 	void SetSecSkill(uint8 skill_type)	{ sec_melee_type = skill_type; }
 	void SetRangedSkill(uint8 skill_type)	{ ranged_type = skill_type; }
 
-	bool IsStuck() { return isStuck; }
-	void SetIsStuck(bool currentState) { isStuck = currentState; }
-	void SetStuckCount(uint16 newCount) { stuckCount = newCount; }
-	uint16 GetStuckCount() { return stuckCount; }
-
 	uint32	MerchantType;
 	bool	merchant_open;
 	inline void	MerchantOpenShop() { merchant_open = true; }
@@ -644,7 +639,11 @@ public:
 		CalcBonuses();
 	}
 
-	// VegasEQ
+	// VegasEQ - START
+	float CalcDifficulty();
+	float CalcSpecialAbilitiesDifficulty(float base_difficulty);
+	float CalcSpellDifficulty();
+	float CalcProcDifficulty();
 	float GetDifficulty() const { return difficulty; }
 	void SetDifficulty(float difficulty_) { difficulty = difficulty_; }
 	int32 GetRaidPoints() const { return raid_points; }
@@ -656,39 +655,49 @@ public:
 	int32 GetNPCInZoneID() const { return in_zone_id; }
 	void SetNPCInZoneID(int32 in_zone_id_) { in_zone_id = in_zone_id_; }
 
-	// VegasEQ loot stuff
-	bool	IsVegasLootEligible(Mob* top_client);
+	// VegasEQ - VegasLoot
 	virtual Mob* GetTopHateClient();
-	bool	IsOnVegasCoolDown(Mob* top_client);
-	void	AddVegasItemLoot(Mob* top_client);
-	const	EQ::ItemData* GetVegasItems(uint32 id_min, uint32 id_max, float difficulty_min, float difficulty_max, uint32 zone_range_min, uint32 zone_range_max, bool raid_only);
-	bool	NPCBypassesVegasLoot();
-	bool	GuaranteedNormalDrop();
-	bool	GuaranteedBonusDrop();
-	bool	GuaranteedRaidDrop();
-	bool	NPCBypassesVegasRaidLoot();
-	bool	SpecialNPCPassesVegasLoot();
-	bool	SpecialZonePassesVegasLoot();
-	int		GetRollCount(float npc_diff);
-	int		GetRaidRollCount(float npc_diff);
-	int		GetBonusRollCount(float npc_diff);
-	int		GetRollMax();
-	int		GetRollToHit(auto roll_max, auto random_drop_multiplier);
-	int		GetBonusRollMax();
-	int		GetBonusRollToHit(auto roll_max, auto random_drop_multiplier);
-	int		GetRaidRollMax();
-	int		GetRaidRollToHit(auto roll_max, auto random_drop_multiplier);
-	void	AddVegasSpellLoot(Mob* top_client);
-	void	AddVegasBagLoot(Mob* top_client);
-	void	AddVegasBridleLoot(Mob* top_client);
-	void	AddVegasEpicTokenLoot(Mob* top_client);
-	void	AddVegasShardLoot(Mob* top_client, float shard_multiplier, bool guaranteed_shard_drop);
-	int		GetShardAmount();
-	void	GetVegasZoneRange(uint16 zoneid, uint8* zone_era, uint32* zone_range_min, uint32* zone_range_max);
-	void	GetVegasDifficultyRange(uint16 zoneid, float* difficulty_min, float* difficulty_max, float* difficulty_bonus_min, float* difficulty_bonus_max);
-	void	DoFirstKillChecks(Mob* top_client);
-	void	DoFirstKillAchievements(Mob* top_client, std::string key);
-	void	QueryVegasLoot(std::string query, std::string killer_name, std::string killed_name);
+	bool GuaranteedBonusDrop();
+	bool GuaranteedNormalDrop();
+	bool GuaranteedRaidDrop();
+	bool IsOnVegasCoolDown(Mob* top_client);
+	bool IsVegasLootEligible(Mob* top_client);
+	bool NPCNotCountAsVegasLoot();
+	bool RaidTargetsNotCountAsRaid();
+	bool SpecialNPCPassesVegasLoot();
+	bool SpecialZonePassesVegasLoot();
+	bool NonRaidNPCCanGetRaidLoot();
+	static const EQ::ItemData* GetVegasItems(uint32 id_min, uint32 id_max, float difficulty_min, float difficulty_max, uint32 zone_range_min, uint32 zone_range_max, bool raid_only);
+	void AddVegasItem(Mob* top_client, const EQ::ItemData* chosen_item, std::string loot_type = "Common", std::string added_type = "Added", bool raid_only = false, bool equip = RuleB(VegasLoot, EquipVegasDrops));
+	int GetBonusRollCount(float npc_diff);
+	int GetBonusRollMax();
+	int GetBonusRollToHit(auto roll_max, auto random_drop_multiplier);
+	int GetRaidRollCount(float npc_diff);
+	int GetRaidRollMax();
+	int GetRaidRollToHit(auto roll_max, auto random_drop_multiplier);
+	int GetRollCount(float npc_diff);
+	int GetRollMax();
+	int GetRollToHit(auto roll_max, auto random_drop_multiplier);
+	int GetShardAmount();
+	void AttemptVegasBagLoot(Mob* top_client);
+	void AttemptVegasBridleLoot(Mob* top_client);
+	void AttemptVegasEpicTokenLoot(Mob* top_client);
+	void AttemptVegasLoot(Mob* top_client, float difficulty_min = 0.0f, float difficulty_max = 0.0f, bool raid_only = false, float bonus_chance = 0);
+	void AttemptVegasShardLoot(Mob* top_client, float shard_multiplier, bool guaranteed_shard_drop);
+	void AttemptVegasSpellLoot(Mob* top_client);
+	void DoFirstKillAchievements(Mob* top_client, std::string key);
+	void DoFirstKillChecks(Mob* top_client);
+	void GetVegasDifficultyRange(uint16 zone_id, float* difficulty_min, float* difficulty_max, float* difficulty_bonus_min, float* difficulty_bonus_max);
+	void GetVegasZoneRange(uint16 zoneid, uint8* zone_era, uint32* zone_range_min, uint32* zone_range_max);
+	void QueryVegasLoot(std::string query, std::string killer_name, std::string killed_name);
+
+	// Pathing
+	bool IsStuck() { return isStuck; }
+	void SetIsStuck(bool currentState) { isStuck = currentState; }
+	void SetStuckCount(uint16 newCount) { stuckCount = newCount; }
+	uint16 GetStuckCount() { return stuckCount; }
+	bool CanPathFromNextPosition(glm::vec3 nextPos);
+	// VegasEQ - END
 
 protected:
 
@@ -819,8 +828,10 @@ protected:
 	uint8	sec_melee_type;				//Sets the Secondary Weapon attack message and animation
 	uint8   ranged_type;				//Sets the Ranged Weapon attack message and animation
 
+	// VegasEQ - START
 	bool	isStuck;
 	uint16	stuckCount;
+	// VegasEQ - END
 
 	SwarmPet *swarmInfoPtr;
 
@@ -853,12 +864,13 @@ protected:
 	// check is ran in scripts, the remainder is what is returned
 	Handin m_hand_in = {};
 
-	// VegasEQ
+	// VegasEQ - START
 	float			difficulty;
 	int32     		raid_points;
 	bool     		is_valeen_spawned;
 	bool     		hide_npc;
 	int32     		in_zone_id;
+	// VegasEQ - END
 public:
 	const Handin GetHandin() { return m_hand_in; }
 

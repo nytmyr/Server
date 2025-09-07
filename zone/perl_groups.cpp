@@ -157,6 +157,13 @@ uint32_t Perl_Group_GetAverageLevel(Group* self) // @categories Script Utility, 
 	return self->GetAvgLevel();
 }
 
+// VegasEQ - START
+float Perl_Group_GetGroupTotalGearScore(Group* self) // @categories Group
+{
+	return self->GetGroupTotalGearScore();
+}
+// VegasEQ - END
+
 void perl_register_group()
 {
 	perl::interpreter perl(PERL_GET_THX);
@@ -190,6 +197,10 @@ void perl_register_group()
 	package.add("SplitMoney", (void(*)(Group*, uint32, uint32, uint32, uint32))&Perl_Group_SplitMoney);
 	package.add("SplitMoney", (void(*)(Group*, uint32, uint32, uint32, uint32, Client*))&Perl_Group_SplitMoney);
 	package.add("TeleportGroup", &Perl_Group_TeleportGroup);
+
+	// VegasEQ - START
+	package.add("GetGroupTotalGearScore", &Perl_Group_GetGroupTotalGearScore);
+	// VegasEQ - END
 }
 
 #endif //EMBPERL_XS_CLASSES

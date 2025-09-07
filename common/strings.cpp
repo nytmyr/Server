@@ -48,6 +48,8 @@
 #include <string>
 
 //Const char based
+#include "eqemu_logsys.h"
+#include "rulesys.h"
 #include "strings_legacy.cpp" // legacy c functions
 #include "strings_misc.cpp" // anything non "Strings" scoped
 
@@ -970,3 +972,194 @@ bool Strings::IsValidJson(const std::string &json)
 
 	return result;
 }
+
+// VegasEQ - START
+std::string Strings::ReplaceWhitespaces(std::string s) {
+	std::string new_string = "";          // Our new string.
+	for (int i = 0; i < s.length(); i++) {      // Iterate the original string.
+		if (s[i] == ' ') {                  // If the character at position 'i' is a whitespace, append '%20' instead.
+			new_string += "%20";
+		}
+		else {
+			new_string += s[i];          // Else append the original character to the new string.
+		}
+	}
+	return new_string;                // Return your new string.
+}
+
+bool Strings::DelimitedStringContains(std::string delimiter, std::string string_one, std::string match_one, std::string string_two, std::string match_two) {
+	const auto& split_string_one = Split(string_one, delimiter);
+	const auto& split_string_two = Split(string_two, delimiter);
+
+	if (delimiter.empty() || split_string_one.empty() || match_one.empty()) {
+		return false;
+	}
+
+	if (!string_two.empty() && match_two.empty()) {
+		return false;
+	}
+
+	if (!string_two.empty() && split_string_one.size() != split_string_two.size()) {
+		return false;
+	}
+
+	int i = 0;
+
+	for (const auto& result : split_string_one) {
+		try {
+			if (
+				result == match_one &&
+				(string_two.empty() ||
+					(split_string_two[i] == match_two)
+				)
+			) {
+				return true;
+			}
+
+			++i;
+		}
+
+		catch (const std::exception& e) {
+			LogInfo("Invalid entry in DelimitedStringContains: [{}]", e.what());
+		}
+	}
+
+	return false;
+}
+
+int Strings::GetDelimitedStringsMatchingElement(std::string delimiter, std::string string_one, std::string match_one, std::string string_two, std::string match_two) {
+	const auto& split_string_one = Split(string_one, delimiter);
+	const auto& split_string_two = Split(string_two, delimiter);
+
+	if (delimiter.empty() || split_string_one.empty() || match_one.empty()) {
+		return -1;
+	}
+
+	if (!string_two.empty() && match_two.empty()) {
+		return -1;
+	}
+
+	if (!string_two.empty() && split_string_one.size() != split_string_two.size()) {
+		return -1;
+	}
+
+	int i = 0;
+
+	for (const auto& result : split_string_one) {
+		try {
+			if (
+				result == match_one &&
+				(string_two.empty() ||
+					(split_string_two[i] == match_two)
+				)
+			) {
+				return i;
+			}
+
+			++i;
+		}
+
+		catch (const std::exception& e) {
+			LogInfo("Invalid entry in GetDelimitedStringsMatchingElement: [{}]", e.what());
+		}
+	}
+
+	return -1;
+}
+
+int Strings::GetElementMatchingOperator(std::string delimiter, std::string string_one, float variable, uint8 type) {
+	const auto& split_string_one = Split(string_one, delimiter);
+
+	if (delimiter.empty() || split_string_one.empty() || !ComparisonType::IsValid(type)) {
+		return -1;
+	}
+
+	int i = -1;
+
+	for (const auto& result : split_string_one) {
+		try {
+			if (IsNumber(result)) {
+				auto e = ToFloat(result);
+
+				switch (type) {
+					case ComparisonType::Greater: {
+						if (e > variable) {
+							return i;
+						}
+
+						break;
+					}
+					case ComparisonType::Lesser: {
+						if (e < variable) {
+							return i;
+						}
+
+						break;
+					}
+					case ComparisonType::GreaterOrEqual: {
+						if (e >= variable) {
+							return i;
+						}
+
+						break;
+					}
+					case ComparisonType::LesserOrEqual: {
+						if (e <= variable) {
+							return i;
+						}
+
+						break;
+					}
+					case ComparisonType::Equal: {
+						if (e == variable) {
+							return i;
+						}
+
+						break;
+					}
+					default:
+						break;
+				}
+			}
+
+			++i;
+		}
+
+		catch (const std::exception& e) {
+			LogInfo("Invalid entry in GetElementMatchingOperator: [{}]", e.what());
+		}
+	}
+
+	return -1;
+}
+
+std::vector<float> Strings::GetFloatVectorFromDelimitedString(const std::string& string, const std::string& delimiter) {
+	std::vector<float> result;
+
+	for (const auto& val : Strings::Split(string, delimiter)) {
+		try {
+			result.push_back(std::stof(val));
+		} catch (...) {
+			LogWarning("Invalid float in string: [{}]", val);
+			result.push_back(0.0f);
+		}
+	}
+
+	return result;
+}
+
+std::vector<uint32> Strings::GetUIntVectorFromDelimitedString(const std::string& string, const std::string& delimiter) {
+	std::vector<uint32> result;
+
+	for (const auto& val : Strings::Split(string, delimiter)) {
+		try {
+			result.push_back(std::stoul(val));
+		} catch (...) {
+			LogWarning("Invalid unsigned integer in string: [{}]", val);
+			result.push_back(0);
+		}
+	}
+
+	return result;
+}
+// VegasEQ - END

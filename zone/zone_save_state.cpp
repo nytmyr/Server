@@ -438,6 +438,10 @@ bool Zone::LoadZoneState(
 	std::vector<uint32_t> lootdrop_ids = GetLootdropIds(spawn_states);
 	zone->LoadLootDrops(lootdrop_ids);
 
+	// VegasEQ - START
+	zone->LoadVegasLootDrops();
+	// VegasEQ - END
+
 	// we have to load grids first otherwise setting grid/wp will not work
 	zone->initgrids_timer.Trigger();
 	zone->Process();
