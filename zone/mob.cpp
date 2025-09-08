@@ -547,7 +547,7 @@ Mob::~Mob()
 	AI_Stop();
 	if (GetPet()) {
 		if (GetPet()->Charmed()) {
-			GetPet()->BuffFadeByEffect(SE_Charm);
+			GetPet()->BuffFadeByEffect(SpellEffect::Charm);
 		}
 		else {
 			SetPet(0);
@@ -625,7 +625,7 @@ void Mob::BreakCharmPetIfConditionsMet() {
 	auto pet = GetPet();
 	if (pet && pet->GetPetType() == PetType::Charmed && HasAnInvisibilityEffect()) {
 		if (RuleB(Pets, LivelikeBreakCharmOnInvis) || IsInvisible(pet)) {
-			pet->BuffFadeByEffect(SE_Charm);
+			pet->BuffFadeByEffect(SpellEffect::Charm);
 		}
 		LogRules(
 			"Pets:LivelikeBreakCharmOnInvis for [{}] invisible [{}] hidden [{}] improved_hidden (shroud of stealth) [{}] invisible_animals [{}] invisible_undead [{}]",
@@ -1442,7 +1442,7 @@ void Mob::FillSpawnStruct(NewSpawn_Struct* ns, Mob* ForWho)
 	// 3 - Mobs in water do not sink. A value of 3 in this field appears to be the default setting for all mobs
 	// (in water or not) according to 6.2 era packet collects.
 	if(IsClient())
-		ns->spawn.flymode = FindType(SE_Levitate) ? 2 : 0;
+		ns->spawn.flymode = FindType(SpellEffect::Levitate) ? 2 : 0;
 	else
 		ns->spawn.flymode = flymode;
 
@@ -3909,7 +3909,7 @@ bool Mob::RandomizeFeatures(bool send_illusion, bool set_variables)
 
 	// Adjust all settings based on the min and max for each feature of each race and gender
 	switch (GetRace()) {
-		case HUMAN:
+		case Race::Human:
 			new_hair_color = zone->random.Int(0, 19);
 
 			if (current_gender == Gender::Male) {
@@ -3921,7 +3921,7 @@ bool Mob::RandomizeFeatures(bool send_illusion, bool set_variables)
 			}
 
 			break;
-		case BARBARIAN:
+		case Race::Barbarian:
 			new_hair_color  = zone->random.Int(0, 19);
 			new_luclin_face = zone->random.Int(0, 87);
 
@@ -3934,7 +3934,7 @@ bool Mob::RandomizeFeatures(bool send_illusion, bool set_variables)
 			}
 
 			break;
-		case ERUDITE:
+		case Race::Erudite:
 			if (current_gender == Gender::Male) {
 				new_beard_color = zone->random.Int(0, 19);
 				new_beard       = zone->random.Int(0, 5);
@@ -3944,7 +3944,7 @@ bool Mob::RandomizeFeatures(bool send_illusion, bool set_variables)
 			}
 
 			break;
-		case WOOD_ELF:
+		case Race::WoodElf:
 			new_hair_color = zone->random.Int(0, 19);
 
 			if (current_gender == Gender::Male) {
@@ -3954,7 +3954,7 @@ bool Mob::RandomizeFeatures(bool send_illusion, bool set_variables)
 			}
 
 			break;
-		case HIGH_ELF:
+		case Race::HighElf:
 			new_hair_color = zone->random.Int(0, 14);
 
 			if (current_gender == Gender::Male) {
@@ -3966,7 +3966,7 @@ bool Mob::RandomizeFeatures(bool send_illusion, bool set_variables)
 			}
 
 			break;
-		case DARK_ELF:
+		case Race::DarkElf:
 			new_hair_color = zone->random.Int(13, 18);
 
 			if (current_gender == Gender::Male) {
@@ -3978,7 +3978,7 @@ bool Mob::RandomizeFeatures(bool send_illusion, bool set_variables)
 			}
 
 			break;
-		case HALF_ELF:
+		case Race::HalfElf:
 			new_hair_color = zone->random.Int(0, 19);
 
 			if (current_gender == Gender::Male) {
@@ -3990,7 +3990,7 @@ bool Mob::RandomizeFeatures(bool send_illusion, bool set_variables)
 			}
 
 			break;
-		case DWARF:
+		case Race::Dwarf:
 			new_hair_color  = zone->random.Int(0, 19);
 			new_beard_color = new_hair_color;
 
@@ -4003,7 +4003,7 @@ bool Mob::RandomizeFeatures(bool send_illusion, bool set_variables)
 			}
 
 			break;
-		case TROLL:
+		case Race::Troll:
 			new_eye_color_one = zone->random.Int(0, 10);
 			new_eye_color_two = zone->random.Int(0, 10);
 
@@ -4013,14 +4013,14 @@ bool Mob::RandomizeFeatures(bool send_illusion, bool set_variables)
 			}
 
 			break;
-		case OGRE:
+		case Race::Ogre:
 			if (current_gender == Gender::Female) {
 				new_hair_style = zone->random.Int(0, 3);
 				new_hair_color = zone->random.Int(0, 23);
 			}
 
 			break;
-		case HALFLING:
+		case Race::Halfling:
 			new_hair_color = zone->random.Int(0, 19);
 
 			if (current_gender == Gender::Male) {
@@ -4032,7 +4032,7 @@ bool Mob::RandomizeFeatures(bool send_illusion, bool set_variables)
 			}
 
 			break;
-		case GNOME:
+		case Race::Gnome:
 			new_hair_color = zone->random.Int(0, 24);
 
 			if (current_gender == Gender::Male) {
@@ -4044,14 +4044,14 @@ bool Mob::RandomizeFeatures(bool send_illusion, bool set_variables)
 			}
 
 			break;
-		case IKSAR:
-		case VAHSHIR:
+		case Race::Iksar:
+		case Race::VahShir:
 			new_luclin_face = zone->random.Int(0, 7);
 			break;
-		case FROGLOK:
+		case Race::Froglok2:
 			new_luclin_face = zone->random.Int(0, 9);
 			break;
-		case DRAKKIN:
+		case Race::Drakkin:
 			new_hair_color       = zone->random.Int(0, 3);
 			new_beard_color      = new_hair_color;
 			new_eye_color_one    = zone->random.Int(0, 11);
@@ -4113,8 +4113,8 @@ bool Mob::RandomizeFeatures(bool send_illusion, bool set_variables)
 
 uint16 Mob::GetFactionRace() {
 	uint16 current_race = GetRace();
-	if (IsPlayerRace(current_race) || current_race == TREE ||
-		current_race == MINOR_ILL_OBJ) {
+	if (IsPlayerRace(current_race) || current_race == Race::Tree ||
+		current_race == Race::MinorIllusion) {
 		return current_race;
 	}
 	else {
@@ -5722,7 +5722,7 @@ int Mob::GetSnaredAmount()
 
 		for(int j = 0; j < EFFECT_COUNT; j++)
 		{
-			if (spells[buffs[i].spellid].effect_id[j] == SE_MovementSpeed)
+			if (spells[buffs[i].spellid].effect_id[j] == SpellEffect::MovementSpeed)
 			{
 				int64 val = CalcSpellEffectValue_formula(spells[buffs[i].spellid].formula[j], spells[buffs[i].spellid].base_value[j], spells[buffs[i].spellid].max_value[j], buffs[i].casterlevel, buffs[i].spellid);
 				//int effect = CalcSpellEffectValue(buffs[i].spellid, spells[buffs[i].spellid].effectid[j], buffs[i].casterlevel);
@@ -5920,7 +5920,7 @@ bool Mob::TrySpellTrigger(Mob *target, uint32 spell_id, int effect)
 	if (!target || !IsValidSpell(spell_id))
 		return false;
 
-	/*The effects SE_SpellTrigger (SPA 340) and SE_Chance_Best_in_Spell_Grp (SPA 469) work as follows, you typically will have 2-3 different spells each with their own
+	/*The effects SpellEffect::SpellTrigger (SPA 340) and SpellEffect::Chance_Best_in_Spell_Grp (SPA 469) work as follows, you typically will have 2-3 different spells each with their own
 	chance to be triggered with all chances equaling up to 100 pct, with only 1 spell out of the group being ultimately cast.
 	(ie Effect1 trigger spellA with 30% chance, Effect2 triggers spellB with 20% chance, Effect3 triggers spellC with 50% chance).
 	The following function ensures a statistically accurate chance for each spell to be cast based on their chance values. These effects are also  used in spells where there
@@ -5935,7 +5935,7 @@ bool Mob::TrySpellTrigger(Mob *target, uint32 spell_id, int effect)
 
 	for (int i = 0; i < EFFECT_COUNT; i++)
 	{
-		if (spells[spell_id].effect_id[i] == SE_SpellTrigger || spells[spell_id].effect_id[i] == SE_Chance_Best_in_Spell_Grp)
+		if (spells[spell_id].effect_id[i] == SpellEffect::SpellTrigger || spells[spell_id].effect_id[i] == SpellEffect::Chance_Best_in_Spell_Grp)
 			total_chance += spells[spell_id].base_value[i];
 	}
 
@@ -5945,7 +5945,7 @@ bool Mob::TrySpellTrigger(Mob *target, uint32 spell_id, int effect)
 
 		for (int i = 0; i < EFFECT_COUNT; i++){
 			//Find spells with SPA 340 and add the cumulative percent chances to the roll array
-			if ((spells[spell_id].effect_id[i] == SE_SpellTrigger) || (spells[spell_id].effect_id[i] == SE_Chance_Best_in_Spell_Grp)){
+			if ((spells[spell_id].effect_id[i] == SpellEffect::SpellTrigger) || (spells[spell_id].effect_id[i] == SpellEffect::Chance_Best_in_Spell_Grp)){
 				const int cumulative_chance = current_chance + spells[spell_id].base_value[i];
 				chance_array[i] = cumulative_chance;
 				current_chance = cumulative_chance;
@@ -5968,11 +5968,11 @@ bool Mob::TrySpellTrigger(Mob *target, uint32 spell_id, int effect)
 	}
 
 	if (CastSpell) {
-		if (spells[spell_id].effect_id[effect_slot] == SE_SpellTrigger && IsValidSpell(spells[spell_id].limit_value[effect_slot])) {
+		if (spells[spell_id].effect_id[effect_slot] == SpellEffect::SpellTrigger && IsValidSpell(spells[spell_id].limit_value[effect_slot])) {
 			SpellFinished(spells[spell_id].limit_value[effect_slot], target, EQ::spells::CastingSlot::Item, 0, -1, spells[spells[spell_id].limit_value[effect_slot]].resist_difficulty);
 			return true;
 		}
-		else if (IsClient() && spells[spell_id].effect_id[effect_slot] == SE_Chance_Best_in_Spell_Grp) {
+		else if (IsClient() && spells[spell_id].effect_id[effect_slot] == SpellEffect::Chance_Best_in_Spell_Grp) {
 			uint32 best_spell_id = CastToClient()->GetHighestScribedSpellinSpellGroup(spells[spell_id].limit_value[effect_slot]);
 			if (IsValidSpell(best_spell_id)) {
 				SpellFinished(best_spell_id, target, EQ::spells::CastingSlot::Item, 0, -1, spells[best_spell_id].resist_difficulty);
@@ -5992,7 +5992,7 @@ void Mob::TryTriggerOnCastRequirement()
 			int spell_id = buffs[e].spellid;
 			if (IsValidSpell(spell_id)) {
 				for (int i = 0; i < EFFECT_COUNT; i++) {
-					if ((spells[spell_id].effect_id[i] == SE_TriggerOnReqTarget) || (spells[spell_id].effect_id[i] == SE_TriggerOnReqCaster)) {
+					if ((spells[spell_id].effect_id[i] == SpellEffect::TriggerOnReqTarget) || (spells[spell_id].effect_id[i] == SpellEffect::TriggerOnReqCaster)) {
 						if (PassCastRestriction(spells[spell_id].limit_value[i])) {
 							SpellFinished(spells[spell_id].base_value[i], this, EQ::spells::CastingSlot::Item, 0, -1, spells[spell_id].resist_difficulty);
 							if (!TryFadeEffect(e)) {
@@ -6035,7 +6035,7 @@ void Mob::TryTwincast(Mob *caster, Mob *target, uint32 spell_id)
 		int buff_count = GetMaxTotalSlots();
 		for(int i = 0; i < buff_count; i++)
 		{
-			if(IsEffectInSpell(buffs[i].spellid, SE_FcTwincast))
+			if(IsEffectInSpell(buffs[i].spellid, SpellEffect::FcTwincast))
 			{
 				int32 focus = CalcFocusEffect(focusTwincast, buffs[i].spellid, spell_id);
 				if(focus > 0)
@@ -6061,10 +6061,10 @@ void Mob::ApplyHealthTransferDamage(Mob *caster, Mob *target, uint16 spell_id)
 		This allows for the AE spells to function without repeatedly killing caster
 		Damage or heal portion can be found as regular single use spell effect
 	*/
-	if (IsEffectInSpell(spell_id, SE_Health_Transfer)){
+	if (IsEffectInSpell(spell_id, SpellEffect::Health_Transfer)){
 		for (int i = 0; i < EFFECT_COUNT; i++) {
 
-			if (spells[spell_id].effect_id[i] == SE_Health_Transfer) {
+			if (spells[spell_id].effect_id[i] == SpellEffect::Health_Transfer) {
 				int64 new_hp = GetMaxHP();
 				new_hp -= GetMaxHP()  * spells[spell_id].base_value[i] / 1000;
 
@@ -6268,8 +6268,8 @@ bool Mob::TryFadeEffect(int slot)
 			if (!spells[buffs[slot].spellid].effect_id[i])
 				continue;
 
-			if (spells[buffs[slot].spellid].effect_id[i] == SE_CastOnFadeEffectAlways ||
-				spells[buffs[slot].spellid].effect_id[i] == SE_CastOnRuneFadeEffect)
+			if (spells[buffs[slot].spellid].effect_id[i] == SpellEffect::CastOnFadeEffectAlways ||
+				spells[buffs[slot].spellid].effect_id[i] == SpellEffect::CastOnRuneFadeEffect)
 			{
 				uint16 spell_id = spells[buffs[slot].spellid].base_value[i];
 				BuffFadeBySlot(slot);
@@ -6653,9 +6653,9 @@ void Mob::TrySpellOnKill(uint8 level, uint16 spell_id)
 {
 	if (IsValidSpell(spell_id))
 	{
-		if(IsEffectInSpell(spell_id, SE_ProcOnSpellKillShot)) {
+		if(IsEffectInSpell(spell_id, SpellEffect::ProcOnSpellKillShot)) {
 			for (int i = 0; i < EFFECT_COUNT; i++) {
-				if (spells[spell_id].effect_id[i] == SE_ProcOnSpellKillShot)
+				if (spells[spell_id].effect_id[i] == SpellEffect::ProcOnSpellKillShot)
 				{
 					if (IsValidSpell(spells[spell_id].limit_value[i]) && spells[spell_id].max_value[i] <= level)
 					{
@@ -6990,11 +6990,11 @@ void Mob::DoGravityEffect()
 	int buff_count = GetMaxTotalSlots();
 	for (int slot = 0; slot < buff_count; slot++)
 	{
-		if (IsValidSpell(buffs[slot].spellid) && IsEffectInSpell(buffs[slot].spellid, SE_GravityEffect))
+		if (IsValidSpell(buffs[slot].spellid) && IsEffectInSpell(buffs[slot].spellid, SpellEffect::GravityEffect))
 		{
 			for (int i = 0; i < EFFECT_COUNT; i++)
 			{
-				if(spells[buffs[slot].spellid].effect_id[i] == SE_GravityEffect) {
+				if(spells[buffs[slot].spellid].effect_id[i] == SpellEffect::GravityEffect) {
 
 					int casterId = buffs[slot].casterid;
 					if(casterId)
@@ -7201,7 +7201,7 @@ void Mob::CastOnCurer(uint32 spell_id)
 {
 	for(int i = 0; i < EFFECT_COUNT; i++)
 	{
-		if (spells[spell_id].effect_id[i] == SE_CastOnCurer)
+		if (spells[spell_id].effect_id[i] == SpellEffect::CastOnCurer)
 		{
 			if(IsValidSpell(spells[spell_id].base_value[i]))
 			{
@@ -7215,7 +7215,7 @@ void Mob::CastOnCure(uint32 spell_id)
 {
 	for(int i = 0; i < EFFECT_COUNT; i++)
 	{
-		if (spells[spell_id].effect_id[i] == SE_CastOnCure)
+		if (spells[spell_id].effect_id[i] == SpellEffect::CastOnCure)
 		{
 			if(IsValidSpell(spells[spell_id].base_value[i]))
 			{
@@ -7232,7 +7232,7 @@ void Mob::CastOnNumHitFade(uint32 spell_id)
 
 	for(int i = 0; i < EFFECT_COUNT; i++)
 	{
-		if (spells[spell_id].effect_id[i] == SE_CastonNumHitFade)
+		if (spells[spell_id].effect_id[i] == SpellEffect::CastonNumHitFade)
 		{
 			if(IsValidSpell(spells[spell_id].base_value[i]))
 			{
@@ -7797,7 +7797,7 @@ bool Mob::CanRaceEquipItem(uint32 item_id)
 	}
 
 	auto item_races = itm->Races;
-	if(item_races == PLAYER_RACE_ALL_MASK) {
+	if(item_races == RaceBitmask::All) {
 		return true;
 	}
 
