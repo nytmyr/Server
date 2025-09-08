@@ -1279,12 +1279,12 @@ void SharedDatabase::LoadItems(void *data, uint32 size, int32 items, uint32 max_
 		item.ScriptFileID = e.scriptfileid;
 
 		// VegasEQ - START
-		item.GearScore = Strings::ToFloat(row[ItemField::GearScore]);
-		item.ShardScore = Strings::ToFloat(row[ItemField::ShardScore]);
-		item.MinDropLevel = Strings::ToInt(row[ItemField::MinDropLevel]);
-		item.Difficulty = Strings::ToFloat(row[ItemField::difficulty]);
-		item.LowestDropNPCID = Strings::ToInt(row[ItemField::lowest_drop_npc_id]);
-		item.RaidOnly = Strings::ToInt(row[ItemField::raid_only]);
+		item.GearScore = static_cast<float>(e.GearScore);
+		item.ShardScore = static_cast<float>(e.ShardScore);
+		item.MinDropLevel = static_cast<int32>(e.MinDropLevel);
+		item.Difficulty = static_cast<float>(e.difficulty);
+		item.LowestDropNPCID = static_cast<int32>(e.lowest_drop_npc_id);
+		item.RaidOnly = static_cast<int32>(e.raid_only);
 		// VegasEQ - END
 
 		try {

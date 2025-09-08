@@ -1299,7 +1299,7 @@ bool IsManaTapSpell(uint16 spell_id)
 bool IsStaminaTapSpell(uint16 spell_id)
 {
 	return (
-		IsEffectInSpell(spell_id, SE_CurrentEndurance) &&
+		IsEffectInSpell(spell_id, SpellEffect::CurrentEndurance) &&
 		spells[spell_id].target_type == ST_Tap
 	);
 }
@@ -1390,9 +1390,10 @@ bool IsIllusionSpell(uint16 spell_id)
 }
 
 bool IsAnyPlayerIllusionSpell(uint16 spell_id) {
-	if (IsEffectInSpell(spell_id, SE_Illusion)) {
+	if (IsEffectInSpell(spell_id, SpellEffect::Illusion)) {
 		return true;
 	}
+
 	return false;
 }
 

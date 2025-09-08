@@ -5424,7 +5424,7 @@ float NPC::CalcSpellDifficulty() {
 						}
 
 						CalcSpellEffectValue(AIspells[i].spellid, x, GetLevel(), 10, this);
-						if (IsEffectInSpell(AIspells[i].spellid, SE_CurrentHP)) {
+						if (IsEffectInSpell(AIspells[i].spellid, SpellEffect::CurrentHP)) {
 
 						}
 					}

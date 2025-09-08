@@ -527,7 +527,7 @@ void command_charchange(Client* c, const Seperator* sep) //TODO vegas - add star
 
 						if (item_data) {
 							if (
-								(item_data->Races != PLAYER_RACE_ALL_MASK && !(item_data->Races & GetPlayerRaceBit(chosenRace))) ||
+								(item_data->Races != RaceBitmask::All && !(item_data->Races & GetPlayerRaceBit(chosenRace))) ||
 								(item_data->Classes != Class::ALL_CLASSES_BITMASK && !(item_data->Classes & GetPlayerClassBit(chosenClass))) ||
 								(item_data->Deity != 0 && !(item_data->Deity & Deity::GetBitmask(chosenDeity)))
 								) {
@@ -565,25 +565,25 @@ void command_charchange(Client* c, const Seperator* sep) //TODO vegas - add star
 					auto maxSkillAtMaxLevel = SkillCaps::Instance()->GetSkillCap(chosenClass, (EQ::skills::SkillType)skillIndex, maxLevel).cap;
 					bool trainedSkill = EQ::skills::IsTrainedSkill((EQ::skills::SkillType)skillIndex);
 
-					if (skillIndex == EQ::skills::SkillTinkering && chosenRace != GNOME) {
+					if (skillIndex == EQ::skills::SkillTinkering && chosenRace != Race::Gnome) {
 						c->SetSkill(EQ::skills::SkillTinkering, 0);
 					}
-					else if (skillIndex == EQ::skills::SkillTinkering && chosenRace == GNOME) {
+					else if (skillIndex == EQ::skills::SkillTinkering && chosenRace == Race::Gnome) {
 						c->SetSkill(EQ::skills::SkillTinkering, std::max(50, std::min(int(rawSkill), int(maxSkill))));
 					}
-					else if (skillIndex == EQ::skills::SkillSneak && (chosenRace == HALFLING || chosenRace == VAHSHIR)) {
+					else if (skillIndex == EQ::skills::SkillSneak && (chosenRace == Race::Halfling || chosenRace == Race::VahShir)) {
 						c->SetSkill(EQ::skills::SkillSneak, std::max(50, std::min(int(rawSkill), int(maxSkill))));
 					}
-					else if (skillIndex == EQ::skills::SkillHide && (chosenRace == DARK_ELF || chosenRace == HALFLING || chosenRace == WOOD_ELF)) {
+					else if (skillIndex == EQ::skills::SkillHide && (chosenRace == Race::DarkElf || chosenRace == Race::Halfling || chosenRace == Race::WoodElf)) {
 						c->SetSkill(EQ::skills::SkillHide, std::max(50, std::min(int(rawSkill), int(maxSkill))));
 					}
-					else if (skillIndex == EQ::skills::SkillForage && (chosenRace == IKSAR || chosenRace == WOOD_ELF)) {
+					else if (skillIndex == EQ::skills::SkillForage && (chosenRace == Race::Iksar || chosenRace == Race::WoodElf)) {
 						c->SetSkill(EQ::skills::SkillForage, std::max(50, std::min(int(rawSkill), int(maxSkill))));
 					}
-					else if (skillIndex == EQ::skills::SkillSwimming && chosenRace == IKSAR) {
+					else if (skillIndex == EQ::skills::SkillSwimming && chosenRace == Race::Iksar) {
 						c->SetSkill(EQ::skills::SkillSwimming, std::max(125, std::min(int(rawSkill), int(maxSkill))));
 					}
-					else if (skillIndex == EQ::skills::SkillSafeFall && chosenRace == VAHSHIR) {
+					else if (skillIndex == EQ::skills::SkillSafeFall && chosenRace == Race::VahShir) {
 						c->SetSkill(EQ::skills::SkillSafeFall, std::max(50, std::min(int(rawSkill), int(maxSkill))));
 					}
 					else if (EQ::skills::IsSpecializedSkill((EQ::skills::SkillType)skillIndex)) {
@@ -941,10 +941,10 @@ void bot_command_type_ids(Client* c, const Seperator* sep)
 	};
 
 	const uint16 race_values[16] = {
-		HUMAN, BARBARIAN, ERUDITE, WOOD_ELF,
-		HIGH_ELF, DARK_ELF, HALF_ELF, DWARF,
-		TROLL, OGRE, HALFLING, GNOME,
-		IKSAR, VAHSHIR, FROGLOK2, DRAKKIN
+		Race::Human, Race::Barbarian, Race::Erudite, Race::WoodElf,
+		Race::HighElf, Race::DarkElf, Race::HalfElf, Race::Dwarf,
+		Race::Troll, Race::Ogre, Race::Halfling, Race::Gnome,
+		Race::Iksar, Race::VahShir, Race::Froglok2, Race::Drakkin
 	};
 
 	const std::string deity_substrs[17] = {

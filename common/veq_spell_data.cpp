@@ -153,8 +153,8 @@ float CalculateDirectDamageScore(Mob* caster, uint32 spell_id, uint8 spell_level
 
 		bool is_valid_spell = spell.base_value[i] < 0 &&
 			(
-				effect_id == SE_CurrentHPOnce ||
-				(effect_id == SE_CurrentHP && spell.buff_duration == 0 && spell.aoe_duration == 0)
+				effect_id == SpellEffect::CurrentHPOnce ||
+				(effect_id == SpellEffect::CurrentHP && spell.buff_duration == 0 && spell.aoe_duration == 0)
 			);
 
 		if (is_valid_spell) {
@@ -194,7 +194,7 @@ float CalculateDamageOverTimeScore(Mob* caster, uint32 spell_id, uint8 spell_lev
 		const auto effect_id = spell.effect_id[i];
 
 		bool is_valid_spell =
-			effect_id == SE_CurrentHP &&
+			effect_id == SpellEffect::CurrentHP &&
 			spell.base_value[i] < 0 &&
 			spell.buff_duration > 0;
 
@@ -242,7 +242,7 @@ float CalculateSlowScore(Mob* caster, uint32 spell_id, uint8 spell_level) {
 		const auto effect_id = spell.effect_id[i];
 
 		bool is_valid_spell =
-			effect_id == SE_AttackSpeed &&
+			effect_id == SpellEffect::AttackSpeed &&
 			spell.max_value[i] < 100;
 
 		if (is_valid_spell) {
@@ -281,7 +281,7 @@ float CalculateAERainScore(Mob* caster, uint32 spell_id, uint8 spell_level) {
 		const auto effect_id = spell.effect_id[i];
 
 		bool is_valid_spell =
-			effect_id == SE_CurrentHP &&
+			effect_id == SpellEffect::CurrentHP &&
 			spell.base_value[i] < 0 &&
 			spell.aoe_range > 0 &&
 			spell.aoe_duration > 1000;
@@ -333,8 +333,8 @@ float CalculateLifeTapScore(Mob* caster, uint32 spell_id, uint8 spell_level) {
 		bool is_valid_spell =
 			spell.base_value[i] < 0 &&
 			(
-				effect_id == SE_CurrentHPOnce ||
-				(effect_id == SE_CurrentHP && spell.buff_duration == 0 && spell.aoe_duration == 0)
+				effect_id == SpellEffect::CurrentHPOnce ||
+				(effect_id == SpellEffect::CurrentHP && spell.buff_duration == 0 && spell.aoe_duration == 0)
 			) &&
 			(
 				spell.target_type == ST_Tap ||
@@ -381,8 +381,8 @@ float CalculateHealScore(Mob* caster, uint32 spell_id, uint8 spell_level) {
 
 		bool is_valid_spell = spell.base_value[i] > 0 &&
 							  (
-								  effect_id == SE_CurrentHPOnce ||
-								  (effect_id == SE_CurrentHP && spell.buff_duration == 0 && spell.aoe_duration == 0)
+								  effect_id == SpellEffect::CurrentHPOnce ||
+								  (effect_id == SpellEffect::CurrentHP && spell.buff_duration == 0 && spell.aoe_duration == 0)
 							  );
 
 		if (is_valid_spell) {
@@ -422,7 +422,7 @@ float CalculateHealOverTimeScore(Mob* caster, uint32 spell_id, uint8 spell_level
 		const auto effect_id = spell.effect_id[i];
 
 		bool is_valid_spell =
-			effect_id == SE_HealOverTime &&
+			effect_id == SpellEffect::HealOverTime &&
 			spell.base_value[i] > 0 &&
 			spell.buff_duration > 0;
 
@@ -470,7 +470,7 @@ float CalculateHasteScore(Mob* caster, uint32 spell_id, uint8 spell_level) {
 		const auto effect_id = spell.effect_id[i];
 
 		bool is_valid_spell =
-			effect_id == SE_AttackSpeed &&
+			effect_id == SpellEffect::AttackSpeed &&
 			spell.max_value[i] > 100;
 
 		if (is_valid_spell) {
@@ -565,11 +565,11 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 		 *  - Fix Lich's from scoring DoTs, adjust MoT to be appropriate like mana regen
 		 */
 		switch (effect_id) {
-			case SE_CurrentHP:
-			case SE_CurrentHPOnce: { // DDs, Instant Heals, DoTs, HoTs, Lifetaps
+			case SpellEffect::CurrentHP:
+			case SpellEffect::CurrentHPOnce: { // DDs, Instant Heals, DoTs, HoTs, Lifetaps
 				bool is_instant_spell = spell.base_value[i] != 0 && spell.buff_duration == 0 && spell.aoe_duration == 0;
 
-				if (effect_id == SE_CurrentHPOnce || is_instant_spell) {
+				if (effect_id == SpellEffect::CurrentHPOnce || is_instant_spell) {
 					LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {}.", spell.name, spell_id, (IsLifetapSpell(spell_id) ? "LifeTap" : spell.base_value[i] < 0 ? "DD" : "Instant Heal"), spell_value); //deleteme
 
 					if (spell.base_value[i] < 0) { // DD/Lifetap
@@ -626,7 +626,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 
 				break;
 			}
-			case SE_ArmorClass: {
+			case SpellEffect::ArmorClass: {
 					duration = std::fmax(1.0f, std::fmin(duration, 50.0f)); // Only score up to 5 minutes.
 					LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} for {} ticks [{}].", spell.name, spell_id, (spell.base_value[i] < 0 ? "AC Debuff" : "AC Buff"), spell_value, duration, Strings::SecondsToTime(duration * 6)); //deleteme
 
@@ -645,7 +645,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 				}
 
 				break;
-			case SE_ATK: {
+			case SpellEffect::ATK: {
 					duration = std::fmax(1.0f, std::fmin(duration, 50.0f)); // Only score up to 5 minutes.
 					LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} for {} ticks [{}].", spell.name, spell_id, (spell.base_value[i] < 0 ? "ATK Debuff" : "ATK Buff"), spell_value, duration, Strings::SecondsToTime(duration * 6)); //deleteme
 
@@ -664,7 +664,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 				}
 
 				break;
-			case SE_MovementSpeed: {
+			case SpellEffect::MovementSpeed: {
 				if (spell.base_value[i] < -500) {
 					continue;
 				}
@@ -687,13 +687,13 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 
 				break;
 			}
-			case SE_STR:
-			case SE_DEX:
-			case SE_AGI:
-			case SE_STA:
-			case SE_INT:
-			case SE_WIS:
-			case SE_CHA: {
+			case SpellEffect::STR:
+			case SpellEffect::DEX:
+			case SpellEffect::AGI:
+			case SpellEffect::STA:
+			case SpellEffect::INT:
+			case SpellEffect::WIS:
+			case SpellEffect::CHA: {
 				duration = std::fmax(1.0f, std::fmin(duration, 50.0f)); // Only score up to 5 minutes.
 				LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} for {} ticks [{}].", spell.name, spell_id, (spell.base_value[i] < 0 ? "Base Stat Debuff" : "Base Stat Buff"), spell_value, duration, Strings::SecondsToTime(duration * 6)); //deleteme
 
@@ -712,7 +712,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 
 				break;
 			}
-			case SE_AttackSpeed: {
+			case SpellEffect::AttackSpeed: {
 				spell_value = caster->CalcSpellEffectValue(spell_id, effect_id, spell.base_value[effect_id], spell_level);
 				duration = std::fmax(1.0f, std::fmin(duration, 50.0f)); // Only score up to 5 minutes.
 				LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} for {} ticks [{}].", spell.name, spell_id, (spell.base_value[i] < 100 ? "Slow" : "Haste"), (spell_value - 100), duration, Strings::SecondsToTime(duration * 6)); //deleteme
@@ -735,7 +735,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 
 				break;
 			}
-			case SE_Invisibility: {
+			case SpellEffect::Invisibility: {
 				duration = std::fmax(1.0f, std::fmin(duration, 50.0f)); // Only score up to 5 minutes.
 				LogSpellScoreDetail("Checking {} [{}] as an {} --- effect value of {} for {} ticks [{}].", spell.name, spell_id, "Invis", spell_value, duration, Strings::SecondsToTime(duration * 6)); //deleteme
 				spell_value += (spell_value * (duration / 100));
@@ -745,7 +745,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 
 				break;
 			}
-			case SE_SeeInvis: {
+			case SpellEffect::SeeInvis: {
 				duration = std::fmax(1.0f, std::fmin(duration, 50.0f)); // Only score up to 5 minutes.
 				LogSpellScoreDetail("Checking {} [{}] as an {} --- effect value of {} for {} ticks [{}].", spell.name, spell_id, "See Invis", spell_value, duration, Strings::SecondsToTime(duration * 6)); //deleteme
 				spell_value += (spell_value * (duration / 100));
@@ -755,7 +755,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 
 				break;
 			}
-			case SE_WaterBreathing: {
+			case SpellEffect::WaterBreathing: {
 				duration = std::fmax(1.0f, std::fmin(duration, 50.0f)); // Only score up to 5 minutes.
 				LogSpellScoreDetail("Checking {} [{}] as an {} --- effect value of {} for {} ticks [{}].", spell.name, spell_id, "Water Breathing", spell_value, duration, Strings::SecondsToTime(duration * 6)); //deleteme
 				spell_value += (spell_value * (duration / 100));
@@ -765,11 +765,11 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 
 				break;
 			}
-			case SE_CurrentMana:
-			case SE_CurrentManaOnce: {
+			case SpellEffect::CurrentMana:
+			case SpellEffect::CurrentManaOnce: {
 				bool is_instant_spell = spell.base_value[i] != 0 && spell.buff_duration == 0 && spell.aoe_duration == 0;
 
-				if (effect_id == SE_CurrentHPOnce || is_instant_spell) {
+				if (effect_id == SpellEffect::CurrentHPOnce || is_instant_spell) {
 					LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {}.", spell.name, spell_id, (IsManaTapSpell(spell_id) ? "ManaTap" : spell.base_value[i] < 0 ? "Mana DD" : "Instant Mana"), spell_value); //deleteme
 
 					if (spell.base_value[i] < 0) { // Mana DD/ManaTap
@@ -826,15 +826,15 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 
 				break;
 			}
-			//case SE_NPCFrenzy:
-			//case SE_NPCAwareness:
-			//case SE_ChangeFrenzyRad:
-			//case SE_Harmony:
-			case SE_Lull: {
+			//case SpellEffect::NPCFrenzy:
+			//case SpellEffect::NPCAwareness:
+			//case SpellEffect::ChangeFrenzyRad:
+			//case SpellEffect::Harmony:
+			case SpellEffect::Lull: {
 				spell_value = 0.0f;
 				float level_cap_multiplier = 1.0f;
-				auto frenzy_effect_index = GetSpellEffectIndex(spell_id, SE_ChangeFrenzyRad);
-				auto harmony_effect_index = GetSpellEffectIndex(spell_id, SE_Harmony);
+				auto frenzy_effect_index = GetSpellEffectIndex(spell_id, SpellEffect::ChangeFrenzyRad);
+				auto harmony_effect_index = GetSpellEffectIndex(spell_id, SpellEffect::Harmony);
 
 				if (frenzy_effect_index > 0) {
 					level_cap_multiplier += spell.max_value[frenzy_effect_index];
@@ -868,7 +868,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 
 				break;
 			}
-			case SE_AddFaction: {
+			case SpellEffect::AddFaction: {
 				LogSpellScoreDetail("Checking {} [{}] as an {} --- effect value of {}.", spell.name, spell_id, "Add Faction", spell_value); //deleteme
 				spell_value *= VegasSpellTypeMultipliers::AddFaction;
 				spell_value = IsTargetTypeOnlySpell(spell_id) ? spell_value * VegasSpellTypeMultipliers::TargetTypeOnly : spell_value;
@@ -877,7 +877,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 
 				break;
 			}
-			case SE_Blind: {
+			case SpellEffect::Blind: {
 				bool is_cure = (spell.good_effect && spell.base_value[i] > 0);
 				spell_value = is_cure ? VegasSpellTypeMultipliers::CureBlind : VegasSpellTypeMultipliers::Blind;
 
@@ -890,7 +890,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 
 				break;
 			}
-			case SE_Stun: {
+			case SpellEffect::Stun: {
 				spell_value = VegasSpellTypeMultipliers::StunBase;
 				duration = std::fmin(30.0f, spell.base_value[i] / 1000.0f); // Only score up to 30 seconds
 				auto max_level = spell.max_value[i] == 0 ? RuleI(NPC, MaxNPCLevel) : spell.max_value[i];
@@ -904,7 +904,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 
 				break;
 			}
-			case SE_Charm: {
+			case SpellEffect::Charm: {
 				spell_value = VegasSpellTypeMultipliers::Charm;
 
 				duration = std::fmax(1.0f, std::fmin(duration, 50.0f)); // Only score up to 5 minutes.
@@ -919,7 +919,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 
 				break;
 			}
-			case SE_Fear: {
+			case SpellEffect::Fear: {
 				spell_value = VegasSpellTypeMultipliers::Fear;
 
 				duration = std::fmax(1.0f, std::fmin(duration, 50.0f)); // Only score up to 5 minutes.
@@ -934,7 +934,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 
 				break;
 			}
-			case SE_Stamina: {
+			case SpellEffect::Stamina: {
 				LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {}.", spell.name, spell_id, "Stamina", spell_value); //deleteme
 				spell_score += spell_value;
 				e.stamina_score += spell_value;
@@ -942,7 +942,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 
 				bool is_instant_spell = spell.base_value[i] != 0 && spell.buff_duration == 0 && spell.aoe_duration == 0;
 
-				if (effect_id == SE_CurrentHPOnce || is_instant_spell) {
+				if (effect_id == SpellEffect::CurrentHPOnce || is_instant_spell) {
 					LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {}.", spell.name, spell_id, (IsStaminaTapSpell(spell_id) ? "StaminaTap" : spell.base_value[i] < 0 ? "Stamina DD" : "Instant Stamina"), spell_value); //deleteme
 
 					if (spell.base_value[i] < 0) { // Stamina DD/StaminaTap
@@ -999,510 +999,510 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 
 				break;
 			}
-			case SE_BindAffinity:
+			case SpellEffect::BindAffinity:
 				spell_score += VegasSpellTypeMultipliers::BindAffinity;
 				e.bind_affinity_score += VegasSpellTypeMultipliers::BindAffinity;
 				break;
-			case SE_Gate:
+			case SpellEffect::Gate:
 				spell_score += VegasSpellTypeMultipliers::Gate;
 				e.gate_score += VegasSpellTypeMultipliers::Gate;
 				break;
-			case SE_CancelMagic:
-			case SE_InvisVsUndead:
-			case SE_InvisVsAnimals:
-			case SE_Mez:
-			case SE_SummonItem:
-			case SE_SummonPet:
-//case SE_Confuse:
-			case SE_DiseaseCounter:
-			case SE_PoisonCounter:
-//case SE_DetectHostile:
-//case SE_DetectMagic:
-			case SE_TwinCastBlocker:
-			case SE_DivineAura:
-			case SE_Destroy:
-			case SE_ShadowStep:
-			case SE_Berserk:
-			case SE_Lycanthropy:
-			case SE_Vampirism:
-			case SE_ResistFire:
-			case SE_ResistCold:
-			case SE_ResistPoison:
-			case SE_ResistDisease:
-			case SE_ResistMagic:
-//case SE_DetectTraps:
-			case SE_SenseDead:
-			case SE_SenseSummoned:
-			case SE_SenseAnimals:
-			case SE_Rune:
-			case SE_TrueNorth:
-			case SE_Levitate:
-			case SE_Illusion:
-			case SE_DamageShield:
-//case SE_TransferItem:
-			case SE_Identify:
-//case SE_ItemID:
-			case SE_WipeHateList:
-			case SE_SpinTarget:
-			case SE_InfraVision:
-			case SE_UltraVision:
-			case SE_EyeOfZomm:
-			case SE_ReclaimPet:
-			case SE_TotalHP:
-//case SE_CorpseBomb:
-			case SE_NecPet:
-//case SE_PreserveCorpse:
-			case SE_BindSight:
-			case SE_FeignDeath:
-			case SE_VoiceGraft:
-			case SE_Sentinel:
-			case SE_LocateCorpse:
-			case SE_AbsorbMagicAtt:
-//case SE_EnchantLight:
-			case SE_Revive:
-			case SE_SummonPC:
-			case SE_Teleport:
-			case SE_TossUp:
-			case SE_WeaponProc:
-			case SE_MagnifyVision:
-			case SE_Succor:
-			case SE_ModelSize:
-//case SE_Cloak:
-			case SE_SummonCorpse:
-			case SE_InstantHate:
-			case SE_StopRain:
-			case SE_NegateIfCombat:
-			case SE_Sacrifice:
-			case SE_Silence:
-			case SE_ManaPool:
-			case SE_AttackSpeed2:
-			case SE_Root:
-			case SE_HealOverTime:
-			case SE_CompleteHeal:
-			case SE_Fearless:
-			case SE_CallPet:
-			case SE_Translocate:
-			case SE_AntiGate:
-			case SE_SummonBSTPet:
-			case SE_AlterNPCLevel:
-			case SE_Familiar:
-			case SE_SummonItemIntoBag:
-			case SE_IncreaseArchery:
-			case SE_ResistAll:
-			case SE_CastingLevel:
-			case SE_SummonHorse:
-			case SE_ChangeAggro:
-			case SE_Hunger:
-			case SE_CurseCounter:
-			case SE_MagicWeapon:
-			case SE_Amplification:
-			case SE_AttackSpeed3:
-			case SE_HealRate:
-			case SE_ReverseDS:
-			case SE_ReduceSkill:
-			case SE_Screech:
-			case SE_ImprovedDamage:
-			case SE_ImprovedHeal:
-			case SE_SpellResistReduction:
-			case SE_IncreaseSpellHaste:
-			case SE_IncreaseSpellDuration:
-			case SE_IncreaseRange:
-			case SE_SpellHateMod:
-			case SE_ReduceReagentCost:
-			case SE_ReduceManaCost:
-			case SE_FcStunTimeMod:
-			case SE_LimitMaxLevel:
-			case SE_LimitResist:
-			case SE_LimitTarget:
-			case SE_LimitEffect:
-			case SE_LimitSpellType:
-			case SE_LimitSpell:
-			case SE_LimitMinDur:
-			case SE_LimitInstant:
-			case SE_LimitMinLevel:
-			case SE_LimitCastTimeMin:
-			case SE_LimitCastTimeMax:
-			case SE_Teleport2:
-//case SE_ElectricityResist:
-			case SE_PercentalHeal:
-			case SE_StackingCommand_Block:
-			case SE_StackingCommand_Overwrite:
-			case SE_DeathSave:
-			case SE_SuspendPet:
-			case SE_TemporaryPets:
-			case SE_BalanceHP:
-			case SE_DispelDetrimental:
-			case SE_SpellCritDmgIncrease:
-			case SE_IllusionCopy:
-			case SE_SpellDamageShield:
-			case SE_Reflect:
-			case SE_AllStats:
-			case SE_MakeDrunk:
-			case SE_MitigateSpellDamage:
-			case SE_MitigateMeleeDamage:
-			case SE_NegateAttacks:
-			case SE_AppraiseLDonChest:
-			case SE_DisarmLDoNTrap:
-			case SE_UnlockLDoNChest:
-			case SE_PetPowerIncrease:
-			case SE_MeleeMitigation:
-			case SE_CriticalHitChance:
-			case SE_SpellCritChance:
-			case SE_CrippBlowChance:
-			case SE_AvoidMeleeChance:
-			case SE_RiposteChance:
-			case SE_DodgeChance:
-			case SE_ParryChance:
-			case SE_DualWieldChance:
-			case SE_DoubleAttackChance:
-			case SE_MeleeLifetap:
-			case SE_AllInstrumentMod:
-			case SE_ResistSpellChance:
-			case SE_ResistFearChance:
-			case SE_HundredHands:
-			case SE_MeleeSkillCheck:
-			case SE_HitChance:
-			case SE_DamageModifier:
-			case SE_MinDamageModifier:
-			case SE_BalanceMana:
-			case SE_IncreaseBlockChance:
-			case SE_CurrentEndurance:
-			case SE_EndurancePool:
-			case SE_Amnesia:
-			case SE_Hate:
-			case SE_SkillAttack:
-			case SE_FadingMemories:
-			case SE_StunResist:
-			case SE_StrikeThrough:
-			case SE_SkillDamageTaken:
-			case SE_CurrentEnduranceOnce:
-			case SE_Taunt:
-			case SE_ProcChance:
-			case SE_RangedProc:
-			case SE_IllusionOther:
-			case SE_MassGroupBuff:
-			case SE_GroupFearImmunity:
-			case SE_Rampage:
-			case SE_AETaunt:
-			case SE_FleshToBone:
-//case SE_PurgePoison:
-			case SE_DispelBeneficial:
-			case SE_PetShield:
-			case SE_AEMelee:
-			case SE_FrenziedDevastation:
-			case SE_PetMaxHP:
-			case SE_MaxHPChange:
-			case SE_PetAvoidance:
-			case SE_Accuracy:
-			case SE_HeadShot:
-			case SE_PetCriticalHit:
-			case SE_SlayUndead:
-			case SE_SkillDamageAmount:
-			case SE_Packrat:
-			case SE_BlockBehind:
-			case SE_DoubleRiposte:
-			case SE_GiveDoubleRiposte:
-			case SE_GiveDoubleAttack:
-			case SE_TwoHandBash:
-			case SE_ReduceSkillTimer:
-			case SE_ReduceFallDamage:
-			case SE_PersistantCasting:
-			case SE_ExtendedShielding:
-			case SE_StunBashChance:
-			case SE_DivineSave:
-			case SE_Metabolism:
-			case SE_ReduceApplyPoisonTime:
-			case SE_ChannelChanceSpells:
-//case SE_FreePet:
-			case SE_GivePetGroupTarget:
-			case SE_IllusionPersistence:
-			case SE_FeignedCastOnChance:
-//case SE_StringUnbreakable:
-			case SE_ImprovedReclaimEnergy:
-			case SE_IncreaseChanceMemwipe:
-			case SE_CharmBreakChance:
-			case SE_RootBreakChance:
-			case SE_TrapCircumvention:
-			case SE_SetBreathLevel:
-			case SE_RaiseSkillCap:
-			case SE_SecondaryForte:
-			case SE_SecondaryDmgInc:
-			case SE_SpellProcChance:
-			case SE_ConsumeProjectile:
-			case SE_FrontalBackstabChance:
-			case SE_FrontalBackstabMinDmg:
-			case SE_Blank:
-			case SE_ShieldDuration:
-			case SE_ShroudofStealth:
-			case SE_PetDiscipline:
-			case SE_TripleBackstab:
-			case SE_CombatStability:
-			case SE_AddSingingMod:
-			case SE_SongModCap:
-			case SE_RaiseStatCap:
-			case SE_TradeSkillMastery:
-			case SE_HastenedAASkill:
-			case SE_MasteryofPast:
-			case SE_ExtraAttackChance:
-			case SE_AddPetCommand:
-			case SE_ReduceTradeskillFail:
-			case SE_MaxBindWound:
-			case SE_BardSongRange:
-			case SE_BaseMovementSpeed:
-			case SE_CastingLevel2:
-			case SE_CriticalDoTChance:
-			case SE_CriticalHealChance:
-			case SE_CriticalMend:
-			case SE_Ambidexterity:
-			case SE_UnfailingDivinity:
-			case SE_FinishingBlow:
-			case SE_Flurry:
-			case SE_PetFlurry:
-			case SE_FeignedMinion:
-			case SE_ImprovedBindWound:
-			case SE_DoubleSpecialAttack:
-//case SE_LoHSetHeal:
-			case SE_NimbleEvasion:
-			case SE_FcDamageAmt:
-			case SE_SpellDurationIncByTic:
-			case SE_SkillAttackProc:
-			case SE_CastOnFadeEffect:
-			case SE_IncreaseRunSpeedCap:
-			case SE_Purify:
-			case SE_StrikeThrough2:
-			case SE_FrontalStunResist:
-			case SE_CriticalSpellChance:
-//case SE_ReduceTimerSpecial:
-			case SE_FcSpellVulnerability:
-			case SE_FcDamageAmtIncoming:
-			case SE_ChangeHeight:
-			case SE_WakeTheDead:
-			case SE_Doppelganger:
-			case SE_ArcheryDamageModifier:
-			case SE_FcDamagePctCrit:
-			case SE_FcDamageAmtCrit:
-			case SE_OffhandRiposteFail:
-			case SE_MitigateDamageShield:
-			case SE_ArmyOfTheDead:
-//case SE_Appraisal:
-			case SE_ZoneSuspendMinion:
-			case SE_GateCastersBindpoint:
-			case SE_ReduceReuseTimer:
-			case SE_LimitCombatSkills:
-			case SE_Sanctuary:
-			case SE_ForageAdditionalItems:
-			case SE_Invisibility2:
-			case SE_InvisVsUndead2:
-			case SE_ImprovedInvisAnimals:
-			case SE_ItemHPRegenCapIncrease:
-			case SE_ItemManaRegenCapIncrease:
-			case SE_CriticalHealOverTime:
-			case SE_ShieldBlock:
-			case SE_ReduceHate:
-			case SE_GateToHomeCity:
-			case SE_DefensiveProc:
-			case SE_HPToMana:
-			case SE_NoBreakAESneak:
-			case SE_SpellSlotIncrease:
-			case SE_MysticalAttune:
-			case SE_DelayDeath:
-			case SE_ManaAbsorbPercentDamage:
-			case SE_CriticalDamageMob:
-			case SE_Salvage:
-			case SE_SummonToCorpse:
-			case SE_CastOnRuneFadeEffect:
-			case SE_BardAEDot:
-			case SE_BlockNextSpellFocus:
-//case SE_IllusionaryTarget:
-			case SE_PercentXPIncrease:
-			case SE_SummonAndResAllCorpses:
-			case SE_TriggerOnCast:
-			case SE_SpellTrigger:
-			case SE_ItemAttackCapIncrease:
-			case SE_ImmuneFleeing:
-			case SE_InterruptCasting:
-			case SE_ChannelChanceItems:
-			case SE_AssassinateLevel:
-			case SE_HeadShotLevel:
-			case SE_DoubleRangedAttack:
-			case SE_LimitManaMin:
-			case SE_ShieldEquipDmgMod:
-			case SE_ManaBurn:
-			case SE_PersistentEffect:
-			case SE_IncreaseTrapCount:
-			case SE_AdditionalAura:
-//case SE_DeactivateAllTraps:
-//case SE_LearnTrap:
-//case SE_ChangeTriggerType:
-			case SE_FcMute:
-//case SE_PassiveSenseTrap:
-			case SE_ProcOnKillShot:
-			case SE_SpellOnDeath:
-			case SE_PotionBeltSlots:
-			case SE_BandolierSlots:
-			case SE_TripleAttackChance:
-			case SE_ProcOnSpellKillShot:
-//case SE_GroupShielding:
-			case SE_SetBodyType:
-//case SE_FactionMod:
-			case SE_CorruptionCounter:
-			case SE_ResistCorruption:
-			case SE_AttackSpeed4:
-			case SE_ForageSkill:
-			case SE_CastOnFadeEffectAlways:
-			case SE_ApplyEffect:
-			case SE_DotCritDmgIncrease:
-//case SE_Fling:
-			case SE_CastOnFadeEffectNPC:
-			case SE_SpellEffectResistChance:
-			case SE_ShadowStepDirectional:
-			case SE_Knockdown:
-//case SE_KnockTowardCaster:
-			case SE_NegateSpellEffect:
-			case SE_SympatheticProc:
-			case SE_Leap:
-			case SE_LimitSpellGroup:
-			case SE_CastOnCurer:
-			case SE_CastOnCure:
-			case SE_SummonCorpseZone:
-			case SE_FcTimerRefresh:
-			case SE_FcTimerLockout:
-			case SE_LimitManaMax:
-			case SE_FcHealAmt:
-			case SE_FcHealPctIncoming:
-			case SE_FcHealAmtIncoming:
-			case SE_FcHealPctCritIncoming:
-			case SE_FcHealAmtCrit:
-			case SE_PetMeleeMitigation:
-			case SE_SwarmPetDuration:
-			case SE_FcTwincast:
-			case SE_HealGroupFromMana:
-			case SE_ManaDrainWithDmg:
-			case SE_EndDrainWithDmg:
-			case SE_LimitSpellClass:
-			case SE_LimitSpellSubclass:
-			case SE_TwoHandBluntBlock:
-			case SE_CastonNumHitFade:
-			case SE_CastonFocusEffect:
-			case SE_LimitHPPercent:
-			case SE_LimitManaPercent:
-			case SE_LimitEndPercent:
-			case SE_LimitClass:
-			case SE_LimitRace:
-			case SE_FcBaseEffects:
-			case SE_LimitCastingSkill:
-			case SE_FFItemClass:
-			case SE_ACv2:
-			case SE_ManaRegen_v2:
-			case SE_SkillDamageAmount2:
-			case SE_AddMeleeProc:
-			case SE_FcLimitUse:
-			case SE_FcIncreaseNumHits:
-			case SE_LimitUseMin:
-			case SE_LimitUseType:
-			case SE_GravityEffect:
-			case SE_Display:
-			case SE_IncreaseExtTargetWindow:
-			case SE_SkillProcAttempt:
-			case SE_LimitToSkill:
-			case SE_SkillProcSuccess:
-//case SE_PostEffect:
-//case SE_PostEffectData:
-//case SE_ExpandMaxActiveTrophyBen:
-			case SE_CriticalDotDecay:
-			case SE_CriticalHealDecay:
-			case SE_CriticalRegenDecay:
-//case SE_BeneficialCountDownHold:
-//case SE_TeleporttoAnchor:
-//case SE_TranslocatetoAnchor:
-			case SE_Assassinate:
-			case SE_FinishingBlowLvl:
-			case SE_DistanceRemoval:
-			case SE_TriggerOnReqTarget:
-			case SE_TriggerOnReqCaster:
-			case SE_ImprovedTaunt:
-//case SE_AddMercSlot:
-			case SE_AStacker:
-			case SE_BStacker:
-			case SE_CStacker:
-			case SE_DStacker:
-			case SE_MitigateDotDamage:
-			case SE_MeleeThresholdGuard:
-			case SE_SpellThresholdGuard:
-			case SE_TriggerMeleeThreshold:
-			case SE_TriggerSpellThreshold:
-			case SE_AddHatePct:
-			case SE_AddHateOverTimePct:
-			case SE_ResourceTap:
-			case SE_FactionModPct:
-			case SE_DamageModifier2:
-			case SE_Ff_Override_NotFocusable:
-			case SE_ImprovedDamage2:
-			case SE_FcDamageAmt2:
-			case SE_Shield_Target:
-			case SE_PC_Pet_Rampage:
-			case SE_PC_Pet_AE_Rampage:
-			case SE_PC_Pet_Flurry_Chance:
-			case SE_DS_Mitigation_Amount:
-			case SE_DS_Mitigation_Percentage:
-			case SE_Chance_Best_in_Spell_Grp:
-			case SE_Trigger_Best_in_Spell_Grp:
-			case SE_Double_Melee_Round:
-			case SE_Buy_AA_Rank:
-			case SE_Double_Backstab_Front:
-			case SE_Pet_Crit_Melee_Damage_Pct_Owner:
-			case SE_Trigger_Spell_Non_Item:
-			case SE_Weapon_Stance:
-			case SE_Hatelist_To_Top_Index:
-			case SE_Hatelist_To_Tail_Index:
-			case SE_Ff_Value_Min:
-			case SE_Ff_Value_Max:
-			case SE_Fc_Cast_Spell_On_Land:
-			case SE_Skill_Base_Damage_Mod:
-			case SE_Fc_Spell_Damage_Pct_IncomingPC:
-			case SE_Fc_Spell_Damage_Amt_IncomingPC:
-			case SE_Ff_CasterClass:
-			case SE_Ff_Same_Caster:
-//case SE_Extend_Tradeskill_Cap:
-//case SE_Defender_Melee_Force_Pct_PC:
-			case SE_Worn_Endurance_Regen_Cap:
-			case SE_Ff_ReuseTimeMin:
-			case SE_Ff_ReuseTimeMax:
-			case SE_Ff_Endurance_Min:
-			case SE_Ff_Endurance_Max:
-			case SE_Pet_Add_Atk:
-			case SE_Ff_DurationMax:
-			case SE_Critical_Melee_Damage_Mod_Max:
-//case SE_Ff_FocusCastProcNoBypass:
-			case SE_AddExtraAttackPct_1h_Primary:
-			case SE_AddExtraAttackPct_1h_Secondary:
-			case SE_Fc_CastTimeMod2:
-			case SE_Fc_CastTimeAmt:
-			case SE_Fearstun:
-			case SE_Melee_Damage_Position_Mod:
-			case SE_Melee_Damage_Position_Amt:
-			case SE_Damage_Taken_Position_Mod:
-			case SE_Damage_Taken_Position_Amt:
-			case SE_Fc_Amplify_Mod:
-			case SE_Fc_Amplify_Amt:
-			case SE_Health_Transfer:
-			case SE_Fc_ResistIncoming:
-			case SE_Ff_FocusTimerMin:
-			case SE_Proc_Timer_Modifier :
-//case SE_Mana_Max_Percent:
-//case SE_Endurance_Max_Percent:
-			case SE_AC_Avoidance_Max_Percent:
-			case SE_AC_Mitigation_Max_Percent:
-//case SE_Attack_Offense_Max_Percent:
-			case SE_Attack_Accuracy_Max_Percent:
-//case SE_Luck_Amount:
-//case SE_Luck_Percent:
-			case SE_Endurance_Absorb_Pct_Damage:
-			case SE_Instant_Mana_Pct:
-			case SE_Instant_Endurance_Pct:
-			case SE_Duration_HP_Pct:
-			case SE_Duration_Mana_Pct:
-			case SE_Duration_Endurance_Pct:
+			case SpellEffect::CancelMagic:
+			case SpellEffect::InvisVsUndead:
+			case SpellEffect::InvisVsAnimals:
+			case SpellEffect::Mez:
+			case SpellEffect::SummonItem:
+			case SpellEffect::SummonPet:
+//case SpellEffect::Confuse:
+			case SpellEffect::DiseaseCounter:
+			case SpellEffect::PoisonCounter:
+//case SpellEffect::DetectHostile:
+//case SpellEffect::DetectMagic:
+			case SpellEffect::TwinCastBlocker:
+			case SpellEffect::DivineAura:
+			case SpellEffect::Destroy:
+			case SpellEffect::ShadowStep:
+			case SpellEffect::Berserk:
+			case SpellEffect::Lycanthropy:
+			case SpellEffect::Vampirism:
+			case SpellEffect::ResistFire:
+			case SpellEffect::ResistCold:
+			case SpellEffect::ResistPoison:
+			case SpellEffect::ResistDisease:
+			case SpellEffect::ResistMagic:
+//case SpellEffect::DetectTraps:
+			case SpellEffect::SenseDead:
+			case SpellEffect::SenseSummoned:
+			case SpellEffect::SenseAnimals:
+			case SpellEffect::Rune:
+			case SpellEffect::TrueNorth:
+			case SpellEffect::Levitate:
+			case SpellEffect::Illusion:
+			case SpellEffect::DamageShield:
+//case SpellEffect::TransferItem:
+			case SpellEffect::Identify:
+//case SpellEffect::ItemID:
+			case SpellEffect::WipeHateList:
+			case SpellEffect::SpinTarget:
+			case SpellEffect::InfraVision:
+			case SpellEffect::UltraVision:
+			case SpellEffect::EyeOfZomm:
+			case SpellEffect::ReclaimPet:
+			case SpellEffect::TotalHP:
+//case SpellEffect::CorpseBomb:
+			case SpellEffect::NecPet:
+//case SpellEffect::PreserveCorpse:
+			case SpellEffect::BindSight:
+			case SpellEffect::FeignDeath:
+			case SpellEffect::VoiceGraft:
+			case SpellEffect::Sentinel:
+			case SpellEffect::LocateCorpse:
+			case SpellEffect::AbsorbMagicAtt:
+//case SpellEffect::EnchantLight:
+			case SpellEffect::Revive:
+			case SpellEffect::SummonPC:
+			case SpellEffect::Teleport:
+			case SpellEffect::TossUp:
+			case SpellEffect::WeaponProc:
+			case SpellEffect::MagnifyVision:
+			case SpellEffect::Succor:
+			case SpellEffect::ModelSize:
+//case SpellEffect::Cloak:
+			case SpellEffect::SummonCorpse:
+			case SpellEffect::InstantHate:
+			case SpellEffect::StopRain:
+			case SpellEffect::NegateIfCombat:
+			case SpellEffect::Sacrifice:
+			case SpellEffect::Silence:
+			case SpellEffect::ManaPool:
+			case SpellEffect::AttackSpeed2:
+			case SpellEffect::Root:
+			case SpellEffect::HealOverTime:
+			case SpellEffect::CompleteHeal:
+			case SpellEffect::Fearless:
+			case SpellEffect::CallPet:
+			case SpellEffect::Translocate:
+			case SpellEffect::AntiGate:
+			case SpellEffect::SummonBSTPet:
+			case SpellEffect::AlterNPCLevel:
+			case SpellEffect::Familiar:
+			case SpellEffect::SummonItemIntoBag:
+			case SpellEffect::IncreaseArchery:
+			case SpellEffect::ResistAll:
+			case SpellEffect::CastingLevel:
+			case SpellEffect::SummonHorse:
+			case SpellEffect::ChangeAggro:
+			case SpellEffect::Hunger:
+			case SpellEffect::CurseCounter:
+			case SpellEffect::MagicWeapon:
+			case SpellEffect::Amplification:
+			case SpellEffect::AttackSpeed3:
+			case SpellEffect::HealRate:
+			case SpellEffect::ReverseDS:
+			case SpellEffect::ReduceSkill:
+			case SpellEffect::Screech:
+			case SpellEffect::ImprovedDamage:
+			case SpellEffect::ImprovedHeal:
+			case SpellEffect::SpellResistReduction:
+			case SpellEffect::IncreaseSpellHaste:
+			case SpellEffect::IncreaseSpellDuration:
+			case SpellEffect::IncreaseRange:
+			case SpellEffect::SpellHateMod:
+			case SpellEffect::ReduceReagentCost:
+			case SpellEffect::ReduceManaCost:
+			case SpellEffect::FcStunTimeMod:
+			case SpellEffect::LimitMaxLevel:
+			case SpellEffect::LimitResist:
+			case SpellEffect::LimitTarget:
+			case SpellEffect::LimitEffect:
+			case SpellEffect::LimitSpellType:
+			case SpellEffect::LimitSpell:
+			case SpellEffect::LimitMinDur:
+			case SpellEffect::LimitInstant:
+			case SpellEffect::LimitMinLevel:
+			case SpellEffect::LimitCastTimeMin:
+			case SpellEffect::LimitCastTimeMax:
+			case SpellEffect::Teleport2:
+//case SpellEffect::ElectricityResist:
+			case SpellEffect::PercentalHeal:
+			case SpellEffect::StackingCommand_Block:
+			case SpellEffect::StackingCommand_Overwrite:
+			case SpellEffect::DeathSave:
+			case SpellEffect::SuspendPet:
+			case SpellEffect::TemporaryPets:
+			case SpellEffect::BalanceHP:
+			case SpellEffect::DispelDetrimental:
+			case SpellEffect::SpellCritDmgIncrease:
+			case SpellEffect::IllusionCopy:
+			case SpellEffect::SpellDamageShield:
+			case SpellEffect::Reflect:
+			case SpellEffect::AllStats:
+			case SpellEffect::MakeDrunk:
+			case SpellEffect::MitigateSpellDamage:
+			case SpellEffect::MitigateMeleeDamage:
+			case SpellEffect::NegateAttacks:
+			case SpellEffect::AppraiseLDonChest:
+			case SpellEffect::DisarmLDoNTrap:
+			case SpellEffect::UnlockLDoNChest:
+			case SpellEffect::PetPowerIncrease:
+			case SpellEffect::MeleeMitigation:
+			case SpellEffect::CriticalHitChance:
+			case SpellEffect::SpellCritChance:
+			case SpellEffect::CrippBlowChance:
+			case SpellEffect::AvoidMeleeChance:
+			case SpellEffect::RiposteChance:
+			case SpellEffect::DodgeChance:
+			case SpellEffect::ParryChance:
+			case SpellEffect::DualWieldChance:
+			case SpellEffect::DoubleAttackChance:
+			case SpellEffect::MeleeLifetap:
+			case SpellEffect::AllInstrumentMod:
+			case SpellEffect::ResistSpellChance:
+			case SpellEffect::ResistFearChance:
+			case SpellEffect::HundredHands:
+			case SpellEffect::MeleeSkillCheck:
+			case SpellEffect::HitChance:
+			case SpellEffect::DamageModifier:
+			case SpellEffect::MinDamageModifier:
+			case SpellEffect::BalanceMana:
+			case SpellEffect::IncreaseBlockChance:
+			case SpellEffect::CurrentEndurance:
+			case SpellEffect::EndurancePool:
+			case SpellEffect::Amnesia:
+			case SpellEffect::Hate:
+			case SpellEffect::SkillAttack:
+			case SpellEffect::FadingMemories:
+			case SpellEffect::StunResist:
+			case SpellEffect::StrikeThrough:
+			case SpellEffect::SkillDamageTaken:
+			case SpellEffect::CurrentEnduranceOnce:
+			case SpellEffect::Taunt:
+			case SpellEffect::ProcChance:
+			case SpellEffect::RangedProc:
+			case SpellEffect::IllusionOther:
+			case SpellEffect::MassGroupBuff:
+			case SpellEffect::GroupFearImmunity:
+			case SpellEffect::Rampage:
+			case SpellEffect::AETaunt:
+			case SpellEffect::FleshToBone:
+//case SpellEffect::PurgePoison:
+			case SpellEffect::DispelBeneficial:
+			case SpellEffect::PetShield:
+			case SpellEffect::AEMelee:
+			case SpellEffect::FrenziedDevastation:
+			case SpellEffect::PetMaxHP:
+			case SpellEffect::MaxHPChange:
+			case SpellEffect::PetAvoidance:
+			case SpellEffect::Accuracy:
+			case SpellEffect::HeadShot:
+			case SpellEffect::PetCriticalHit:
+			case SpellEffect::SlayUndead:
+			case SpellEffect::SkillDamageAmount:
+			case SpellEffect::Packrat:
+			case SpellEffect::BlockBehind:
+			case SpellEffect::DoubleRiposte:
+			case SpellEffect::GiveDoubleRiposte:
+			case SpellEffect::GiveDoubleAttack:
+			case SpellEffect::TwoHandBash:
+			case SpellEffect::ReduceSkillTimer:
+			case SpellEffect::ReduceFallDamage:
+			case SpellEffect::PersistantCasting:
+			case SpellEffect::ExtendedShielding:
+			case SpellEffect::StunBashChance:
+			case SpellEffect::DivineSave:
+			case SpellEffect::Metabolism:
+			case SpellEffect::ReduceApplyPoisonTime:
+			case SpellEffect::ChannelChanceSpells:
+//case SpellEffect::FreePet:
+			case SpellEffect::GivePetGroupTarget:
+			case SpellEffect::IllusionPersistence:
+			case SpellEffect::FeignedCastOnChance:
+//case SpellEffect::StringUnbreakable:
+			case SpellEffect::ImprovedReclaimEnergy:
+			case SpellEffect::IncreaseChanceMemwipe:
+			case SpellEffect::CharmBreakChance:
+			case SpellEffect::RootBreakChance:
+			case SpellEffect::TrapCircumvention:
+			case SpellEffect::SetBreathLevel:
+			case SpellEffect::RaiseSkillCap:
+			case SpellEffect::SecondaryForte:
+			case SpellEffect::SecondaryDmgInc:
+			case SpellEffect::SpellProcChance:
+			case SpellEffect::ConsumeProjectile:
+			case SpellEffect::FrontalBackstabChance:
+			case SpellEffect::FrontalBackstabMinDmg:
+			case SpellEffect::Blank:
+			case SpellEffect::ShieldDuration:
+			case SpellEffect::ShroudofStealth:
+			case SpellEffect::PetDiscipline:
+			case SpellEffect::TripleBackstab:
+			case SpellEffect::CombatStability:
+			case SpellEffect::AddSingingMod:
+			case SpellEffect::SongModCap:
+			case SpellEffect::RaiseStatCap:
+			case SpellEffect::TradeSkillMastery:
+			case SpellEffect::HastenedAASkill:
+			case SpellEffect::MasteryofPast:
+			case SpellEffect::ExtraAttackChance:
+			case SpellEffect::AddPetCommand:
+			case SpellEffect::ReduceTradeskillFail:
+			case SpellEffect::MaxBindWound:
+			case SpellEffect::BardSongRange:
+			case SpellEffect::BaseMovementSpeed:
+			case SpellEffect::CastingLevel2:
+			case SpellEffect::CriticalDoTChance:
+			case SpellEffect::CriticalHealChance:
+			case SpellEffect::CriticalMend:
+			case SpellEffect::Ambidexterity:
+			case SpellEffect::UnfailingDivinity:
+			case SpellEffect::FinishingBlow:
+			case SpellEffect::Flurry:
+			case SpellEffect::PetFlurry:
+			case SpellEffect::FeignedMinion:
+			case SpellEffect::ImprovedBindWound:
+			case SpellEffect::DoubleSpecialAttack:
+//case SpellEffect::LoHSetHeal:
+			case SpellEffect::NimbleEvasion:
+			case SpellEffect::FcDamageAmt:
+			case SpellEffect::SpellDurationIncByTic:
+			case SpellEffect::SkillAttackProc:
+			case SpellEffect::CastOnFadeEffect:
+			case SpellEffect::IncreaseRunSpeedCap:
+			case SpellEffect::Purify:
+			case SpellEffect::StrikeThrough2:
+			case SpellEffect::FrontalStunResist:
+			case SpellEffect::CriticalSpellChance:
+//case SpellEffect::ReduceTimerSpecial:
+			case SpellEffect::FcSpellVulnerability:
+			case SpellEffect::FcDamageAmtIncoming:
+			case SpellEffect::ChangeHeight:
+			case SpellEffect::WakeTheDead:
+			case SpellEffect::Doppelganger:
+			case SpellEffect::ArcheryDamageModifier:
+			case SpellEffect::FcDamagePctCrit:
+			case SpellEffect::FcDamageAmtCrit:
+			case SpellEffect::OffhandRiposteFail:
+			case SpellEffect::MitigateDamageShield:
+			case SpellEffect::ArmyOfTheDead:
+//case SpellEffect::Appraisal:
+			case SpellEffect::ZoneSuspendMinion:
+			case SpellEffect::GateCastersBindpoint:
+			case SpellEffect::ReduceReuseTimer:
+			case SpellEffect::LimitCombatSkills:
+			case SpellEffect::Sanctuary:
+			case SpellEffect::ForageAdditionalItems:
+			case SpellEffect::Invisibility2:
+			case SpellEffect::InvisVsUndead2:
+			case SpellEffect::ImprovedInvisAnimals:
+			case SpellEffect::ItemHPRegenCapIncrease:
+			case SpellEffect::ItemManaRegenCapIncrease:
+			case SpellEffect::CriticalHealOverTime:
+			case SpellEffect::ShieldBlock:
+			case SpellEffect::ReduceHate:
+			case SpellEffect::GateToHomeCity:
+			case SpellEffect::DefensiveProc:
+			case SpellEffect::HPToMana:
+			case SpellEffect::NoBreakAESneak:
+			case SpellEffect::SpellSlotIncrease:
+			case SpellEffect::MysticalAttune:
+			case SpellEffect::DelayDeath:
+			case SpellEffect::ManaAbsorbPercentDamage:
+			case SpellEffect::CriticalDamageMob:
+			case SpellEffect::Salvage:
+			case SpellEffect::SummonToCorpse:
+			case SpellEffect::CastOnRuneFadeEffect:
+			case SpellEffect::BardAEDot:
+			case SpellEffect::BlockNextSpellFocus:
+//case SpellEffect::IllusionaryTarget:
+			case SpellEffect::PercentXPIncrease:
+			case SpellEffect::SummonAndResAllCorpses:
+			case SpellEffect::TriggerOnCast:
+			case SpellEffect::SpellTrigger:
+			case SpellEffect::ItemAttackCapIncrease:
+			case SpellEffect::ImmuneFleeing:
+			case SpellEffect::InterruptCasting:
+			case SpellEffect::ChannelChanceItems:
+			case SpellEffect::AssassinateLevel:
+			case SpellEffect::HeadShotLevel:
+			case SpellEffect::DoubleRangedAttack:
+			case SpellEffect::LimitManaMin:
+			case SpellEffect::ShieldEquipDmgMod:
+			case SpellEffect::ManaBurn:
+			case SpellEffect::PersistentEffect:
+			case SpellEffect::IncreaseTrapCount:
+			case SpellEffect::AdditionalAura:
+//case SpellEffect::DeactivateAllTraps:
+//case SpellEffect::LearnTrap:
+//case SpellEffect::ChangeTriggerType:
+			case SpellEffect::FcMute:
+//case SpellEffect::PassiveSenseTrap:
+			case SpellEffect::ProcOnKillShot:
+			case SpellEffect::SpellOnDeath:
+			case SpellEffect::PotionBeltSlots:
+			case SpellEffect::BandolierSlots:
+			case SpellEffect::TripleAttackChance:
+			case SpellEffect::ProcOnSpellKillShot:
+//case SpellEffect::GroupShielding:
+			case SpellEffect::SetBodyType:
+//case SpellEffect::FactionMod:
+			case SpellEffect::CorruptionCounter:
+			case SpellEffect::ResistCorruption:
+			case SpellEffect::AttackSpeed4:
+			case SpellEffect::ForageSkill:
+			case SpellEffect::CastOnFadeEffectAlways:
+			case SpellEffect::ApplyEffect:
+			case SpellEffect::DotCritDmgIncrease:
+//case SpellEffect::Fling:
+			case SpellEffect::CastOnFadeEffectNPC:
+			case SpellEffect::SpellEffectResistChance:
+			case SpellEffect::ShadowStepDirectional:
+			case SpellEffect::Knockdown:
+//case SpellEffect::KnockTowardCaster:
+			case SpellEffect::NegateSpellEffect:
+			case SpellEffect::SympatheticProc:
+			case SpellEffect::Leap:
+			case SpellEffect::LimitSpellGroup:
+			case SpellEffect::CastOnCurer:
+			case SpellEffect::CastOnCure:
+			case SpellEffect::SummonCorpseZone:
+			case SpellEffect::FcTimerRefresh:
+			case SpellEffect::FcTimerLockout:
+			case SpellEffect::LimitManaMax:
+			case SpellEffect::FcHealAmt:
+			case SpellEffect::FcHealPctIncoming:
+			case SpellEffect::FcHealAmtIncoming:
+			case SpellEffect::FcHealPctCritIncoming:
+			case SpellEffect::FcHealAmtCrit:
+			case SpellEffect::PetMeleeMitigation:
+			case SpellEffect::SwarmPetDuration:
+			case SpellEffect::FcTwincast:
+			case SpellEffect::HealGroupFromMana:
+			case SpellEffect::ManaDrainWithDmg:
+			case SpellEffect::EndDrainWithDmg:
+			case SpellEffect::LimitSpellClass:
+			case SpellEffect::LimitSpellSubclass:
+			case SpellEffect::TwoHandBluntBlock:
+			case SpellEffect::CastonNumHitFade:
+			case SpellEffect::CastonFocusEffect:
+			case SpellEffect::LimitHPPercent:
+			case SpellEffect::LimitManaPercent:
+			case SpellEffect::LimitEndPercent:
+			case SpellEffect::LimitClass:
+			case SpellEffect::LimitRace:
+			case SpellEffect::FcBaseEffects:
+			case SpellEffect::LimitCastingSkill:
+			case SpellEffect::FFItemClass:
+			case SpellEffect::ACv2:
+			case SpellEffect::ManaRegen_v2:
+			case SpellEffect::SkillDamageAmount2:
+			case SpellEffect::AddMeleeProc:
+			case SpellEffect::FcLimitUse:
+			case SpellEffect::FcIncreaseNumHits:
+			case SpellEffect::LimitUseMin:
+			case SpellEffect::LimitUseType:
+			case SpellEffect::GravityEffect:
+			case SpellEffect::Display:
+			case SpellEffect::IncreaseExtTargetWindow:
+			case SpellEffect::SkillProcAttempt:
+			case SpellEffect::LimitToSkill:
+			case SpellEffect::SkillProcSuccess:
+//case SpellEffect::PostEffect:
+//case SpellEffect::PostEffectData:
+//case SpellEffect::ExpandMaxActiveTrophyBen:
+			case SpellEffect::CriticalDotDecay:
+			case SpellEffect::CriticalHealDecay:
+			case SpellEffect::CriticalRegenDecay:
+//case SpellEffect::BeneficialCountDownHold:
+//case SpellEffect::TeleporttoAnchor:
+//case SpellEffect::TranslocatetoAnchor:
+			case SpellEffect::Assassinate:
+			case SpellEffect::FinishingBlowLvl:
+			case SpellEffect::DistanceRemoval:
+			case SpellEffect::TriggerOnReqTarget:
+			case SpellEffect::TriggerOnReqCaster:
+			case SpellEffect::ImprovedTaunt:
+//case SpellEffect::AddMercSlot:
+			case SpellEffect::AStacker:
+			case SpellEffect::BStacker:
+			case SpellEffect::CStacker:
+			case SpellEffect::DStacker:
+			case SpellEffect::MitigateDotDamage:
+			case SpellEffect::MeleeThresholdGuard:
+			case SpellEffect::SpellThresholdGuard:
+			case SpellEffect::TriggerMeleeThreshold:
+			case SpellEffect::TriggerSpellThreshold:
+			case SpellEffect::AddHatePct:
+			case SpellEffect::AddHateOverTimePct:
+			case SpellEffect::ResourceTap:
+			case SpellEffect::FactionModPct:
+			case SpellEffect::DamageModifier2:
+			case SpellEffect::Ff_Override_NotFocusable:
+			case SpellEffect::ImprovedDamage2:
+			case SpellEffect::FcDamageAmt2:
+			case SpellEffect::Shield_Target:
+			case SpellEffect::PC_Pet_Rampage:
+			case SpellEffect::PC_Pet_AE_Rampage:
+			case SpellEffect::PC_Pet_Flurry_Chance:
+			case SpellEffect::DS_Mitigation_Amount:
+			case SpellEffect::DS_Mitigation_Percentage:
+			case SpellEffect::Chance_Best_in_Spell_Grp:
+			case SpellEffect::Trigger_Best_in_Spell_Grp:
+			case SpellEffect::Double_Melee_Round:
+			case SpellEffect::Buy_AA_Rank:
+			case SpellEffect::Double_Backstab_Front:
+			case SpellEffect::Pet_Crit_Melee_Damage_Pct_Owner:
+			case SpellEffect::Trigger_Spell_Non_Item:
+			case SpellEffect::Weapon_Stance:
+			case SpellEffect::Hatelist_To_Top_Index:
+			case SpellEffect::Hatelist_To_Tail_Index:
+			case SpellEffect::Ff_Value_Min:
+			case SpellEffect::Ff_Value_Max:
+			case SpellEffect::Fc_Cast_Spell_On_Land:
+			case SpellEffect::Skill_Base_Damage_Mod:
+			case SpellEffect::Fc_Spell_Damage_Pct_IncomingPC:
+			case SpellEffect::Fc_Spell_Damage_Amt_IncomingPC:
+			case SpellEffect::Ff_CasterClass:
+			case SpellEffect::Ff_Same_Caster:
+//case SpellEffect::Extend_Tradeskill_Cap:
+//case SpellEffect::Defender_Melee_Force_Pct_PC:
+			case SpellEffect::Worn_Endurance_Regen_Cap:
+			case SpellEffect::Ff_ReuseTimeMin:
+			case SpellEffect::Ff_ReuseTimeMax:
+			case SpellEffect::Ff_Endurance_Min:
+			case SpellEffect::Ff_Endurance_Max:
+			case SpellEffect::Pet_Add_Atk:
+			case SpellEffect::Ff_DurationMax:
+			case SpellEffect::Critical_Melee_Damage_Mod_Max:
+//case SpellEffect::Ff_FocusCastProcNoBypass:
+			case SpellEffect::AddExtraAttackPct_1h_Primary:
+			case SpellEffect::AddExtraAttackPct_1h_Secondary:
+			case SpellEffect::Fc_CastTimeMod2:
+			case SpellEffect::Fc_CastTimeAmt:
+			case SpellEffect::Fearstun:
+			case SpellEffect::Melee_Damage_Position_Mod:
+			case SpellEffect::Melee_Damage_Position_Amt:
+			case SpellEffect::Damage_Taken_Position_Mod:
+			case SpellEffect::Damage_Taken_Position_Amt:
+			case SpellEffect::Fc_Amplify_Mod:
+			case SpellEffect::Fc_Amplify_Amt:
+			case SpellEffect::Health_Transfer:
+			case SpellEffect::Fc_ResistIncoming:
+			case SpellEffect::Ff_FocusTimerMin:
+			case SpellEffect::Proc_Timer_Modifier :
+//case SpellEffect::Mana_Max_Percent:
+//case SpellEffect::Endurance_Max_Percent:
+			case SpellEffect::AC_Avoidance_Max_Percent:
+			case SpellEffect::AC_Mitigation_Max_Percent:
+//case SpellEffect::Attack_Offense_Max_Percent:
+			case SpellEffect::Attack_Accuracy_Max_Percent:
+//case SpellEffect::Luck_Amount:
+//case SpellEffect::Luck_Percent:
+			case SpellEffect::Endurance_Absorb_Pct_Damage:
+			case SpellEffect::Instant_Mana_Pct:
+			case SpellEffect::Instant_Endurance_Pct:
+			case SpellEffect::Duration_HP_Pct:
+			case SpellEffect::Duration_Mana_Pct:
+			case SpellEffect::Duration_Endurance_Pct:
 			default:
 				break;
 		}
