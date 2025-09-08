@@ -1879,7 +1879,7 @@ void NPC::AttemptVegasBagLoot(Mob* top_client) {
 	int roll_max = int(RuleI(VegasLoot, VegasBagRollMax) / std::max(0.01f, RuleR(VegasLoot, BagMultiplier)));
 	auto npc_level = GetLevel();
 	int rolled;
-	std::string vegas_loot_type;
+	std::string vegas_loot_type = raid_target && !RaidTargetsNotCountAsRaid() ? "Raid-Bag" : rare_spawn ? "Rare-Bag" : "Common-Bag";
 
 
 	LogVegasLoot("INFO: Rule sizes - bag_tier_min_levels ({}), bag_tier_max_levels ({}), bag_tier_lootdrop_ids ({}).", bag_tier_min_levels.size(), bag_tier_max_levels.size(), bag_tier_lootdrop_ids.size()); //deleteme
@@ -1889,8 +1889,6 @@ void NPC::AttemptVegasBagLoot(Mob* top_client) {
 		bag_tier_max_levels.size() == bag_tier_lootdrop_ids.size()
 	) {
 		while (roll_count >= 1) {
-			const std::vector<float>* chosen_type = nullptr;
-
 			rolled = zone->random.Int(1, roll_max);
 
 			if (rolled >= roll_max) {
@@ -1980,7 +1978,7 @@ void NPC::AttemptVegasBridleLoot(Mob* top_client) {
 	int roll_max = int(RuleI(VegasLoot, VegasBridleRollMax) / std::max(0.01f, RuleR(VegasLoot, BridleMultiplier)));
 	auto npc_level = GetLevel();
 	int rolled;
-	std::string vegas_loot_type;
+	std::string vegas_loot_type = raid_target && !RaidTargetsNotCountAsRaid() ? "Raid-Bridle" : rare_spawn ? "Rare-Bridle" : "Common-Bridle";
 
 
 	LogVegasLoot("INFO: Rule sizes - bridle_tier_min_levels ({}), bridle_tier_max_levels ({}), bridle_tier_lootdrop_ids ({}).", bridle_tier_min_levels.size(), bridle_tier_max_levels.size(), bridle_tier_lootdrop_ids.size()); //deleteme
@@ -1990,8 +1988,6 @@ void NPC::AttemptVegasBridleLoot(Mob* top_client) {
 		bridle_tier_max_levels.size() == bridle_tier_lootdrop_ids.size()
 	) {
 		while (roll_count >= 1) {
-			const std::vector<float>* chosen_type = nullptr;
-
 			rolled = zone->random.Int(1, roll_max);
 
 			if (rolled >= roll_max) {
@@ -2079,8 +2075,11 @@ void NPC::QueryVegasLoot(std::string query, std::string killer_name, std::string
 		Logs::MySQLError, "Failed to save Vegas loot database information. Query was empty.";
 		return;
 	}
+
 	LogVegasLootDetail("VegasQueryLoot::[{}]", query); //deleteme
+
 	auto results = database.QueryDatabase(query);
+
 	if (!results.Success()) {
 		Logs::MySQLError, "Failed to save database information for [{}] on killing [{}]", killer_name, killed_name;
 	}
