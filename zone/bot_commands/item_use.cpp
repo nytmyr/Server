@@ -1,22 +1,114 @@
+#include <ranges>
+
 #include "../bot_command.h"
+#include "boost/mpl/vector/aux_/empty.hpp"
 
 void bot_command_item_use(Client* c, const Seperator* sep)
 {
 	if (helper_is_help_or_usage(sep->arg[1])) {
-		c->Message(Chat::White, "usage: [%s empty] will display only bots that can use the item in an empty slot.", sep->arg[0]);
-		c->Message(Chat::White, "usage: [%s caster] will display only caster bots that can use the item.", sep->arg[0]);
-		c->Message(Chat::White, "usage: [%s hybrid] will display only hybrid bots that can use the item.", sep->arg[0]);
-		c->Message(Chat::White, "usage: [%s melee] will display only melee bots that can use the item.", sep->arg[0]);
-		c->Message(Chat::White, "usage: [%s wiscaster] will display only Wisdom-based Caster bots that can use the item.", sep->arg[0]);
-		c->Message(Chat::White, "usage: [%s intcaster] will display only Intelligence-based Caster bots that can use the item.", sep->arg[0]);
-		c->Message(Chat::White, "usage: [%s plate] will display only Plate-wearing bots that can use the item.", sep->arg[0]);
-		c->Message(Chat::White, "usage: [%s chain] will display only Chain-wearing bots that can use the item.", sep->arg[0]);
-		c->Message(Chat::White, "usage: [%s leather] will display only Leather-wearing bots that can use the item.", sep->arg[0]);
-		c->Message(Chat::White, "usage: [%s cloth] will display only Cloth-wearing bots that can use the item.", sep->arg[0]);
-		c->Message(Chat::White, "usage: [%s haste] will display bots that have no or lesser haste than the item.", sep->arg[0]);
-		c->Message(Chat::White, "usage: You can also use empty or haste as an argument to narrow down further, for example [%s caster empty], [%s plate haste] or even [%s empty haste]", sep->arg[0], sep->arg[0], sep->arg[0]);
+		BotCommandHelpParams p;
+
+		p.description = { "Outputs a list of bots that can use the item on your cursor."};
+		p.notes = {
+			fmt::format(
+				"- If you are swapping an existing item on a bot, it is recommended to remove both the item from your cursor and the item from the bot before attempting to give the bot the item to prevent desyncs.",
+				"- If you are attempting to give an item that be used in multiple slots, be sure the slot you intend to give it to is empty first.",
+				"- You can combine multiple filter types."
+			)
+		};
+		p.example_format ={ fmt::format("{} [filter] [actionable]", sep->arg[0]) };
+		p.examples_one =
+		{
+			"To check only plate wearing bots:",
+			fmt::format(
+				"{} plate",
+				sep->arg[0]
+			)
+		};
+		p.examples_two =
+		{
+			"To check only upgrades based on gearscore for Warriors:",
+			fmt::format(
+				"{} gearscore byclass 1",
+				sep->arg[0]
+			)
+		};
+		p.examples_three =
+		{
+			"To check both gearscore upgrades and melee upgrades:",
+			fmt::format(
+				"{} gearscore melee",
+				sep->arg[0]
+			)
+		};
+		p.actionables = { "target, byname, ownergroup, ownerraid, targetgroup, namesgroup, healrotationtargets, mmr, byclass, byrace, spawned" };
+		p.options = { "empty, caster, hybrid, melee, wiscaster, intcaster, plate, chain, leather, cloth, haste, gearscore" };
+		p.options_one =
+		{
+			"[empty] search empty slots",
+			"[caster] search only caster bots",
+			"[hybrid] search only hybrid bots",
+			"[melee] search only melee bots",
+			"[wiscaster] search only Wisdom-based Caster bots",
+			"[intcaster] search only Intelligence-based Caster bots",
+			"[plate] search only Plate-wearing bots",
+			"[chain] search only Chain-wearing bots",
+			"[leather] search only Leather-wearing bots",
+			"[cloth] search only Cloth-wearing bots",
+			"[haste] search only bots that have a lesser haste value than the item",
+			"[gearscore] search only bots that have a lesser gearscore than the item in the equippable slot"
+		};
+
+		std::string popup_text = c->SendBotCommandHelpWindow(p);
+		popup_text = DialogueWindow::Table(popup_text);
+
+		c->SendPopupToClient(sep->arg[0], popup_text.c_str());
+
+		if (RuleB(Bots, SendClassRaceOnHelp)) {
+			c->Message(
+				Chat::Yellow,
+				fmt::format(
+					"Use {} for information about race/class IDs.",
+					Saylink::Silent("^classracelist")
+				).c_str()
+			);
+		}
+
 		return;
 	}
+
+	constexpr int Filter_Empty      = 0;
+	constexpr int Filter_Caster     = 1;
+	constexpr int Filter_Hybrid     = 2;
+	constexpr int Filter_Melee      = 3;
+	constexpr int Filter_WisCaster  = 4;
+	constexpr int Filter_IntCaster  = 5;
+	constexpr int Filter_Plate      = 6;
+	constexpr int Filter_Chain      = 7;
+	constexpr int Filter_Leather    = 8;
+	constexpr int Filter_Cloth      = 9;
+	constexpr int Filter_Haste      = 10;
+	constexpr int Filter_GearScore  = 11;
+
+	struct Cmd {
+		std::string cmd{}; // command
+		int id; // id
+	};
+
+	std::vector<Cmd> filters = {
+		Cmd{.cmd = "empty", .id = Filter_Empty },
+		Cmd{.cmd = "caster", .id = Filter_Caster },
+		Cmd{.cmd = "hybrid", .id = Filter_Hybrid },
+		Cmd{.cmd = "melee", .id = Filter_Melee },
+		Cmd{.cmd = "wiscaster", .id = Filter_WisCaster },
+		Cmd{.cmd = "intcaster", .id = Filter_IntCaster },
+		Cmd{.cmd = "plate", .id = Filter_Plate },
+		Cmd{.cmd = "chain", .id = Filter_Chain },
+		Cmd{.cmd = "leather", .id = Filter_Leather },
+		Cmd{.cmd = "cloth", .id = Filter_Cloth },
+		Cmd{.cmd = "haste", .id = Filter_Haste },
+		Cmd{.cmd = "gearscore", .id = Filter_GearScore },
+	};
 
 	bool empty_only = false;
 	int8 class_mask = 0;
@@ -31,65 +123,63 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 	bool cloth_only = false;
 	bool haste_only = false;
 	int haste_value = 0;
-
+	bool gear_score_only = false;
 	int ab_arg = 2;
-	std::string arg1 = sep->arg[1];
-	std::string arg2 = sep->arg[2];
+	bool valid_filter = false;
 
-	if (arg1.compare("empty") == 0 || arg2.compare("empty") == 0) {
-		empty_only = true;
+	for (int i = 1; i <= sep->argnum; ++i) {
+		for (const auto &cmd: filters) {
+			if (cmd.cmd == Strings::ToLower(sep->arg[i])) {
+				switch (cmd.id) {
+					case Filter_Empty:
+						empty_only = true;
+						break;
+					case Filter_Caster:
+						caster_only = true;
+						break;
+					case Filter_Hybrid:
+						hybrid_only = true;
+						break;
+					case Filter_Melee:
+						melee_only = true;
+						break;
+					case Filter_WisCaster:
+						wis_caster_only = true;
+						break;
+					case Filter_IntCaster:
+						int_caster_only = true;
+						break;
+					case Filter_Plate:
+						plate_only = true;
+						break;
+					case Filter_Chain:
+						chain_only = true;
+						break;
+					case Filter_Leather:
+						leather_only = true;
+						break;
+					case Filter_Cloth:
+						cloth_only = true;
+						break;
+					case Filter_Haste:
+						haste_only = true;
+						break;
+					case Filter_GearScore:
+						gear_score_only = true;
+						break;
+				}
 
-		if (arg2.compare("empty") == 0) {
-			++ab_arg;
-		}
-	}
+				if (i > 1) {
+					++ab_arg;
+				}
 
-	if (arg1.compare("haste") == 0 || arg2.compare("haste") == 0) {
-		haste_only = true;
-
-		if (arg2.compare("haste") == 0) {
-			++ab_arg;
-		}
-	}
-
-	if (arg1.compare("caster") == 0) {
-		caster_only = true;
-	}
-	else if (arg1.compare("hybrid") == 0) {
-		hybrid_only = true;
-	}
-	else if (arg1.compare("melee") == 0) {
-		melee_only = true;
-	}
-	else if (arg1.compare("wiscaster") == 0) {
-		wis_caster_only = true;
-	}
-	else if (arg1.compare("intcaster") == 0) {
-		int_caster_only = true;
-	}
-	else if (arg1.compare("plate") == 0) {
-		plate_only = true;
-	}
-	else if (arg1.compare("chain") == 0) {
-		chain_only = true;
-	}
-	else if (arg1.compare("leather") == 0) {
-		leather_only = true;
-	}
-	else if (arg1.compare("cloth") == 0) {
-		cloth_only = true;
-	}
-	else {
-		if (arg1.empty()) {
-			--ab_arg;
-		}
-		else {
-			if (!(arg1.compare("empty") == 0) && !(arg1.compare("haste") == 0)) {
-				c->Message(Chat::White, "Please choose the correct subtype. For help use %s help.", sep->arg[0]);
-
-				return;
+				valid_filter = true;
 			}
 		}
+	}
+
+	if (!valid_filter) {
+		--ab_arg;
 	}
 
 	const auto item_instance = c->GetInv().GetItem(EQ::invslot::slotCursor);
@@ -217,6 +307,7 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 			
 			for (int16 equipable_slot = EQ::invslot::EQUIPMENT_BEGIN; equipable_slot <= EQ::invslot::EQUIPMENT_END; ++equipable_slot) {
 				equipped_inst = bot_iter->GetInv()[equipable_slot];
+
 				if (equipped_inst && equipped_inst->GetItem()) {
 					equipped_item = equipped_inst->GetItem();
 
@@ -243,8 +334,16 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 
 			equipped_inst = bot_iter->GetInv()[slot_iter];
 
-			if (equipped_inst && empty_only) {
-				continue;
+			if (equipped_inst) {
+				if (empty_only) {
+					continue;
+				}
+
+				auto equipped_data = equipped_inst->GetItem();
+
+				if (gear_score_only && equipped_data && item_data->GearScore <= equipped_data->GearScore) {
+					continue;
+				}
 			}
 
 			refined_equipable_slot_list.push_back(slot_iter);

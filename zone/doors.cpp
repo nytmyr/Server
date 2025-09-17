@@ -239,7 +239,7 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 	if (sender && m_dz_switch_id != 0) {
 		sender->UpdateTasksOnTouchSwitch(m_dz_switch_id);
 
-		//cheat_manager.SetExemptStatus(Port, true); // TODO - vegas
+		//cheat_manager.SetExemptStatus(Port, true); // TODO - VegasEQ
 		sender->SetAntiCheatExempt();
 
 		if (sender->TryMovePCDynamicZoneSwitch(m_dz_switch_id)) {
@@ -561,7 +561,7 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 				sender->KeyRingAdd(player_key);
 			}
 
-			//cheat_manager.SetExemptStatus(Port, true); // TODO - vegas
+			//cheat_manager.SetExemptStatus(Port, true); // TODO - VegasEQ
 			sender->SetAntiCheatExempt();
 
 			sender->MovePC(
@@ -579,7 +579,7 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 			}
 
 			if (ZoneID(m_destination_zone_name) == zone->GetZoneID()) {
-				//cheat_manager.SetExemptStatus(Port, true); // TODO - vegas
+				//cheat_manager.SetExemptStatus(Port, true); // TODO - VegasEQ
 				sender->SetAntiCheatExempt();
 
 				sender->MovePC(
@@ -592,7 +592,7 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 				);
 			}
 			else {
-				//cheat_manager.SetExemptStatus(Port, true); // TODO - vegas
+				//cheat_manager.SetExemptStatus(Port, true); // TODO - VegasEQ
 				sender->SetAntiCheatExempt();
 
 				sender->MovePC(
@@ -608,7 +608,7 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 
 		if ((!IsDoorOpen() || m_open_type == 58) && (!required_key_item)) {
 			if (ZoneID(m_destination_zone_name) == zone->GetZoneID()) {
-				//cheat_manager.SetExemptStatus(Port, true); // TODO - vegas
+				//cheat_manager.SetExemptStatus(Port, true); // TODO - VegasEQ
 				sender->SetAntiCheatExempt();
 
 				sender->MovePC(
@@ -621,7 +621,7 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 				);
 			}
 			else {
-				//cheat_manager.SetExemptStatus(Port, true); // TODO - vegas
+				//cheat_manager.SetExemptStatus(Port, true); // TODO - VegasEQ
 				sender->SetAntiCheatExempt();
 
 				sender->MovePC(

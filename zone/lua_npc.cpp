@@ -1074,6 +1074,46 @@ void Lua_NPC::SetNPCInZoneID(int in_zone_id) {
 	self->SetNPCInZoneID(in_zone_id);
 }
 
+bool Lua_NPC::GetSkipVegasLoot() {
+	Lua_Safe_Call_Bool();
+	return self->GetSkipVegasLoot();
+}
+
+void Lua_NPC::SetSkipVegasLoot(bool skip_vegas_loot) {
+	Lua_Safe_Call_Void();
+	self->SetSkipVegasLoot(skip_vegas_loot);
+}
+
+bool Lua_NPC::GetPassVegasLoot() {
+	Lua_Safe_Call_Bool();
+	return self->GetPassVegasLoot();
+}
+
+void Lua_NPC::SetPassVegasLoot(bool pass_vegas_loot) {
+	Lua_Safe_Call_Void();
+	self->SetPassVegasLoot(pass_vegas_loot);
+}
+
+bool Lua_NPC::GetRaidTargetNotCountAsRaid() {
+	Lua_Safe_Call_Bool();
+	return self->GetRaidTargetNotCountAsRaid();
+}
+
+void Lua_NPC::SetRaidTargetNotCountAsRaid(bool skip_vegas_loot) {
+	Lua_Safe_Call_Void();
+	self->SetRaidTargetNotCountAsRaid(skip_vegas_loot);
+}
+
+bool Lua_NPC::GetNonRaidTargetThatCanRaidRoll() {
+	Lua_Safe_Call_Bool();
+	return self->GetNonRaidTargetThatCanRaidRoll();
+}
+
+void Lua_NPC::SetNonRaidTargetThatCanRaidRoll(bool non_raid_can_raid_roll) {
+	Lua_Safe_Call_Void();
+	self->SetNonRaidTargetThatCanRaidRoll(non_raid_can_raid_roll);
+}
+
 void Lua_NPC::AddVegasLoot() {
 	Lua_Safe_Call_Void();
 	auto top_client = self->GetTopHateClient();
@@ -1311,6 +1351,14 @@ luabind::scope lua_register_npc() {
 	.def("SetHideNPC", (void(Lua_NPC::*)(bool))&Lua_NPC::SetHideNPC)
 	.def("GetNPCInZoneID", (int(Lua_NPC::*)(void))&Lua_NPC::GetNPCInZoneID)
 	.def("SetNPCInZoneID", (void(Lua_NPC::*)(int))&Lua_NPC::SetNPCInZoneID)
+	.def("GetSkipVegasLoot", (bool(Lua_NPC::*)(void))&Lua_NPC::GetSkipVegasLoot)
+	.def("SetSkipVegasLoot", (void(Lua_NPC::*)(bool))&Lua_NPC::SetSkipVegasLoot)
+	.def("GetPassVegasLoot", (bool(Lua_NPC::*)(void))&Lua_NPC::GetPassVegasLoot)
+	.def("SetPassVegasLoot", (void(Lua_NPC::*)(bool))&Lua_NPC::SetPassVegasLoot)
+	.def("GetRaidTargetNotCountAsRaid", (bool(Lua_NPC::*)(void))&Lua_NPC::GetRaidTargetNotCountAsRaid)
+	.def("SetRaidTargetNotCountAsRaid", (void(Lua_NPC::*)(bool))&Lua_NPC::SetRaidTargetNotCountAsRaid)
+	.def("GetNonRaidTargetThatCanRaidRoll", (bool(Lua_NPC::*)(void))&Lua_NPC::GetNonRaidTargetThatCanRaidRoll)
+	.def("SetNonRaidTargetThatCanRaidRoll", (void(Lua_NPC::*)(bool))&Lua_NPC::SetNonRaidTargetThatCanRaidRoll)
 	.def("AddVegasLoot", (void(Lua_NPC::*)(void))&Lua_NPC::AddVegasLoot)
 	.def("AddVegasLoot", (void(Lua_NPC::*)(float))&Lua_NPC::AddVegasLoot)
 	.def("AddVegasLoot", (void(Lua_NPC::*)(float, float))&Lua_NPC::AddVegasLoot)

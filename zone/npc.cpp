@@ -455,11 +455,15 @@ NPC::NPC(const NPCType *npc_type_data, Spawn2 *in_respawn, const glm::vec4 &posi
 	m_npc_tint_id  = npc_type_data->m_npc_tint_id;
 
 	// VegasEQ - START
-	difficulty			= npc_type_data->difficulty;
-	raid_points			= npc_type_data->raid_points;
-	is_valeen_spawned	= npc_type_data->is_valeen_spawned;
-	hide_npc			= npc_type_data->hide_npc;
-	in_zone_id			= npc_type_data->in_zone_id;
+	difficulty                 = npc_type_data->difficulty;
+	raid_points                = npc_type_data->raid_points;
+	is_valeen_spawned          = npc_type_data->is_valeen_spawned;
+	hide_npc                   = npc_type_data->hide_npc;
+	in_zone_id                 = npc_type_data->in_zone_id;
+	skip_vegas_loot            = npc_type_data->skip_vegas_loot;
+	pass_vegas_loot            = npc_type_data->pass_vegas_loot;
+	raid_not_count_as_raid     = npc_type_data->raid_not_count_as_raid;
+	non_raid_can_raid_roll     = npc_type_data->non_raid_can_raid_roll;
 	// VegasEQ - END
 
 	npc_scale_manager->ScaleNPC(this);
@@ -2524,6 +2528,34 @@ void NPC::ModifyNPCStat(const std::string& stat, const std::string& value)
 		raid_points = Strings::ToInt(value);
 		return;
 	}
+	else if (stat_lower == "is_valeen_spawned") { // VegasEQ
+		is_valeen_spawned = Strings::ToBool(value);
+		return;
+	}
+	else if (stat_lower == "hide_npc") { // VegasEQ
+		is_valeen_spawned = Strings::ToBool(value);
+		return;
+	}
+	else if (stat_lower == "in_zone_id") { // VegasEQ
+		in_zone_id = Strings::ToInt(value);
+		return;
+	}
+	else if (stat_lower == "skip_vegas_loot") { // VegasEQ
+		skip_vegas_loot = Strings::ToBool(value);
+		return;
+	}
+	else if (stat_lower == "pass_vegas_loot") { // VegasEQ
+		pass_vegas_loot = Strings::ToBool(value);
+		return;
+	}
+	else if (stat_lower == "raid_not_count_as_raid") { // VegasEQ
+		raid_not_count_as_raid = Strings::ToBool(value);
+		return;
+	}
+	else if (stat_lower == "non_raid_can_raid_roll") { // VegasEQ
+		non_raid_can_raid_roll = Strings::ToBool(value);
+		return;
+	}
 }
 
 float NPC::GetNPCStat(const std::string& stat)
@@ -2691,6 +2723,27 @@ float NPC::GetNPCStat(const std::string& stat)
 	}
 	else if (stat_lower == "raid_points") { // VegasEQ
 		return raid_points;
+	}
+	else if (stat_lower == "is_valeen_spawned") { // VegasEQ
+		return is_valeen_spawned;
+	}
+	else if (stat_lower == "hide_npc") { // VegasEQ
+		return hide_npc;
+	}
+	else if (stat_lower == "in_zone_id") { // VegasEQ
+		return in_zone_id;
+	}
+	else if (stat_lower == "skip_vegas_loot") { // VegasEQ
+		return skip_vegas_loot;
+	}
+	else if (stat_lower == "pass_vegas_loot") { // VegasEQ
+		return pass_vegas_loot;
+	}
+	else if (stat_lower == "raid_not_count_as_raid") { // VegasEQ
+		return raid_not_count_as_raid;
+	}
+	else if (stat_lower == "non_raid_can_raid_roll") { // VegasEQ
+		return non_raid_can_raid_roll;
 	}
 
 	return 0.0f;
@@ -3918,7 +3971,7 @@ void NPC::HandleRoambox()
 		return;
 	}
 
-	if (IsStuck() && zone->GetZoneID() != 98) { //TODO - Fix Erud's Crossing (ZoneID 98)
+	if (IsStuck() && zone->GetZoneID() != 98) { //TODO - VegasEQ - Fix Erud's Crossing (ZoneID 98)
 		uint16 moveDistance = zone->random.Int(10, 100);
 		//uint8 moveAngle = zone->random.Int(1, 359);
 		//LogTestDebug("[{}] [#{}] is stuck and TryMoveAlong {} units at an angle of {}", GetCleanName(), GetID(), moveDistance, moveAngle); //deleteme
@@ -3985,7 +4038,7 @@ void NPC::HandleRoambox()
 
 			for (auto &h: heights) {
 				if (CanPathTo(requested_x, requested_y, requested_z + h)) {
-					//if (CanPathFromNextPosition(requested_pos)) { // TODO - necessary?
+					//if (CanPathFromNextPosition(requested_pos)) { // TODO - VegasEQ - necessary?
 						LogNPCRoamBox("[{}] Found line of sight to path attempt [{}] at height [{}]", GetCleanName(), i, h);
 						can_path = true;
 					//}

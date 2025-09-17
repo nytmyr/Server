@@ -1177,35 +1177,57 @@ void NPC::GetVegasZoneRange(uint16 zoneid, uint8* zone_era, uint32* zone_range_m
 		auto e = Strings::GetDelimitedStringsMatchingElement(",", RuleS(VegasLoot, SpecialEventZones), std::to_string(zone->GetZoneID()), RuleS(VegasLoot, SpecialEventZoneVersions), std::to_string(zone->GetInstanceVersion()));
 
 		if (e >= 0) {
-			auto split_string_min = Strings::Split(RuleS(VegasLoot, SpecialEventZonesIDMin), ",");
-			auto split_string_max = Strings::Split(RuleS(VegasLoot, SpecialEventZonesIDMax), ",");
+			try {
+				std::vector<std::string> split_string_min, split_string_max;
 
-			*zone_range_min = Strings::IsNumber(split_string_min[e]) ? Strings::ToInt(split_string_min[e]) : 0;
-			*zone_range_max = Strings::IsNumber(split_string_max[e]) ? Strings::ToInt(split_string_max[e]) : 0;
+				split_string_min = Strings::Split(RuleS(VegasLoot, SpecialEventZonesIDMin), ",");
+				split_string_max = Strings::Split(RuleS(VegasLoot, SpecialEventZonesIDMax), ",");
+
+				*zone_era       = static_cast<unsigned char>(VegasEra::SpecialEvent);
+				*zone_range_min = (e < split_string_min.size() && !split_string_min[e].empty() && Strings::IsNumber(split_string_min[e]))
+			? Strings::ToUnsignedInt(split_string_min[e]) : 0;
+				*zone_range_max = (e < split_string_max.size() && !split_string_max[e].empty() && Strings::IsNumber(split_string_max[e]))
+					? Strings::ToUnsignedInt(split_string_max[e]) : 0;
+
+				LogVegasLootDetail("GetVegasZoneRange - Special Zone: {} [{}] [v{}]- Era [{}], RangeMin [{}], RangeMax [{}].",
+					zone->GetShortName(), zone->GetZoneID(), zone->GetInstanceVersion(),
+					*zone_era, *zone_range_min, *zone_range_max); //deleteme
+
+				return;
+
+			}
+
+			catch (const std::exception& ex) {
+				LogError("Exception in SpecialEventZones or SpecialEventZoneVersions: {}", ex.what());
+
+				*zone_range_min = 0;
+				*zone_range_max = 0;
+			}
 		}
 	}
-	else if ((zoneid < Zones::FIELDOFBONE || zoneid == Zones::SHADOWREST || zoneid == Zones::HIGHPASSHOLD) && (zoneid != Zones::NEKTROPOS && zoneid != Zones::NERIAKD && zoneid != Zones::AVIAK)) { //Classic
-		*zone_era = 0;
+
+	if ((zoneid < Zones::FIELDOFBONE || zoneid == Zones::SHADOWREST || zoneid == Zones::HIGHPASSHOLD) && (zoneid != Zones::NEKTROPOS && zoneid != Zones::NERIAKD && zoneid != Zones::AVIAK)) { //Classic
+		*zone_era       = static_cast<unsigned char>(VegasEra::Classic);
 		*zone_range_min = RuleI(VegasLoot, ClassicZoneNPCIDMin);
 		*zone_range_max = RuleI(VegasLoot, ClassicZoneNPCIDMax);
 	}
 	else if (zoneid >= Zones::FIELDOFBONE && zoneid <= Zones::VEESHAN) { //Kunark
-		*zone_era = 1;
+		*zone_era       = static_cast<unsigned char>(VegasEra::Kunark);
 		*zone_range_min = RuleI(VegasLoot, KunarkZoneNPCIDMin);
 		*zone_range_max = RuleI(VegasLoot, KunarkZoneNPCIDMax);
 	}
 	else if (zoneid >= Zones::ICECLAD && zoneid <= Zones::THURGADINB) { //Velious
-		*zone_era = 2;
+		*zone_era       = static_cast<unsigned char>(VegasEra::Velious);
 		*zone_range_min = RuleI(VegasLoot, VeliousZoneNPCIDMin);
 		*zone_range_max = RuleI(VegasLoot, VeliousZoneNPCIDMax);
 	}
 	else if (zoneid >= Zones::SHADOWHAVEN && zoneid <= Zones::JAGGEDPINE) { //Luclin
-		*zone_era = 3;
+		*zone_era       = static_cast<unsigned char>(VegasEra::Luclin);
 		*zone_range_min = RuleI(VegasLoot, LuclinZoneNPCIDMin);
 		*zone_range_max = RuleI(VegasLoot, LuclinZoneNPCIDMax);
 	}
 	else if (zoneid >= Zones::CODECAY && zoneid <= Zones::POTIMEB) { //PoP
-		*zone_era = 4;
+		*zone_era       = static_cast<unsigned char>(VegasEra::PlanesOfPower);
 		*zone_range_min = RuleI(VegasLoot, PoPZoneNPCIDMin);
 		*zone_range_max = RuleI(VegasLoot, PoPZoneNPCIDMax);
 	}
@@ -1333,7 +1355,7 @@ bool NPC::IsOnVegasCoolDown(Mob* top_client) {
 	std::string key;
 	std::string bucket_value;
 
-	//if (respawn_time < RuleI(VegasLoot, QuickRespawnMaxToTriggerLockout)) {
+	//if (GetLevel() <= RuleB(MaxLevelBeforeRespawnLockoutStopsForVegasLoot) && respawn_time <= RuleI(VegasLoot, QuickRespawnMaxToTriggerLockout)) {
 		key = "" + std::to_string(top_hate_character_id) + "_" + std::to_string(s2) + "_" + std::to_string(nid) + "_" + std::to_string(npc_instance) + "_respawnrnghold";
 		LogVegasLootDetail("Respawn Key Check [{}]", key); //deleteme
 		bucket_value = DataBucket::GetData(key);
@@ -1365,7 +1387,7 @@ bool NPC::IsOnVegasCoolDown(Mob* top_client) {
 }
 
 bool NPC::NPCNotCountAsVegasLoot() {
-	return Strings::DelimitedStringContains(",", RuleS(VegasLoot, NPCNotCountAsVegasLoot), std::to_string(GetNPCTypeID()));
+	return GetSkipVegasLoot() || Strings::DelimitedStringContains(",", RuleS(VegasLoot, NPCNotCountAsVegasLoot), std::to_string(GetNPCTypeID()));
 }
 
 bool NPC::GuaranteedNormalDrop() {
@@ -1381,11 +1403,11 @@ bool NPC::GuaranteedRaidDrop() {
 }
 
 bool NPC::RaidTargetsNotCountAsRaid() {
-	return Strings::DelimitedStringContains(",", RuleS(VegasLoot, RaidTargetsNotCountAsRaid), std::to_string(GetNPCTypeID()));
+	return GetRaidTargetNotCountAsRaid() || Strings::DelimitedStringContains(",", RuleS(VegasLoot, RaidTargetsNotCountAsRaid), std::to_string(GetNPCTypeID()));
 }
 
 bool NPC::SpecialNPCPassesVegasLoot() {
-	return Strings::DelimitedStringContains(",", RuleS(VegasLoot, NPCSpecialIDPassesLootChecks), std::to_string(GetNPCTypeID()));
+	return GetPassVegasLoot() || Strings::DelimitedStringContains(",", RuleS(VegasLoot, NPCSpecialIDPassesLootChecks), std::to_string(GetNPCTypeID()));
 }
 
 bool NPC::SpecialZonePassesVegasLoot() {
@@ -1393,7 +1415,7 @@ bool NPC::SpecialZonePassesVegasLoot() {
 }
 
 bool NPC::NonRaidNPCCanGetRaidLoot() {
-	return Strings::DelimitedStringContains(",", RuleS(VegasLoot, NonRaidTargetsThatCanRaidRoll), std::to_string(GetNPCTypeID()));
+	return GetNonRaidTargetThatCanRaidRoll() || Strings::DelimitedStringContains(",", RuleS(VegasLoot, NonRaidTargetsThatCanRaidRoll), std::to_string(GetNPCTypeID()));
 }
 
 int NPC::GetRollCount(float npc_diff) {
@@ -1427,7 +1449,7 @@ int NPC::GetRaidRollCount(float npc_diff) {
 		if (e >= 0) {
 			auto raid_rolls = Strings::Split(RuleS(VegasLoot, RaidTargetTierRollCounts), ",");
 
-			return Strings::IsNumber(raid_rolls[e]) ? Strings::ToInt(raid_rolls[e]) : 0;
+			return (!raid_rolls.empty() && raid_rolls.size() >= e && Strings::IsNumber(raid_rolls[e])) ? Strings::ToInt(raid_rolls[e]) : 0;
 		}
 
 		return RuleI(VegasLoot, RaidTargetBaseRaidRollsCount);
@@ -1827,7 +1849,7 @@ void NPC::AttemptVegasSpellLoot(Mob* top_client) {
 					}
 
 					AddItem(chosen_item->ID, 1, RuleB(VegasLoot, EquipVegasDrops));
-					LogVegasLoot("Added spell [{}] to [{}] for [{}].", chosen_item->Name, GetCleanName(), top_client->GetCleanName()); //deleteme
+					LogVegasLoot("Added spell [{}] to [{}] for [{}]", database.CreateItemLink(chosen_item->ID), GetCleanName(), top_client->GetCleanName());
 
 					//Discord send
 					if (top_client->CastToClient()->Admin() < RuleI(VegasLoot, MinStatusToBypassVegasLootDiscordLogging)) {
@@ -1931,7 +1953,7 @@ void NPC::AttemptVegasBagLoot(Mob* top_client) {
 						}
 
 						AddItem(chosen_item->ID, 1, RuleB(VegasLoot, EquipVegasDrops));
-						LogVegasLoot("Added bag [{}] to [{}] for [{}].", chosen_item->Name, GetCleanName(), top_client->GetCleanName()); //deleteme
+						LogVegasLoot("Added bag [{}] to [{}] for [{}]", database.CreateItemLink(chosen_item->ID), GetCleanName(), top_client->GetCleanName());
 
 						//Discord send
 						if (top_client->CastToClient()->Admin() < RuleI(VegasLoot, MinStatusToBypassVegasLootDiscordLogging)) {
@@ -2030,7 +2052,7 @@ void NPC::AttemptVegasBridleLoot(Mob* top_client) {
 						}
 
 						AddItem(chosen_item->ID, 1, RuleB(VegasLoot, EquipVegasDrops));
-						LogVegasLoot("Added bridle [{}] to [{}] for [{}].", chosen_item->Name, GetCleanName(), top_client->GetCleanName()); //deleteme
+						LogVegasLoot("Added bridle [{}] to [{}] for [{}]", database.CreateItemLink(chosen_item->ID), GetCleanName(), top_client->GetCleanName());
 
 						//Discord send
 						if (top_client->CastToClient()->Admin() < RuleI(VegasLoot, MinStatusToBypassVegasLootDiscordLogging)) {

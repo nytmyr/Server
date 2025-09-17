@@ -1178,7 +1178,7 @@ RULE_BOOL(Items, DisableSpellFocusEffects, false, "Enable this to disable Spell 
 RULE_BOOL(Items, SummonItemAllowInvisibleAugments, false, "Enable this to allow augments to be put in invisible augment slots of items in Client::SummonItem")
 RULE_BOOL(Items, AugmentItemAllowInvisibleAugments, false, "Enable this to allow augments to be put in invisible augment slots by players")
 RULE_BOOL(Items, AlwaysReturnHandins, true, "Enable this to always return handins to the player")
-RULE_BOOL(Items, NPCUseRecommendedLevels, false, "Enable to have NPCs scale item stats by recommended levels")
+RULE_BOOL(Items, NPCUseRecommendedLevels, true, "Enable to have NPCs scale item stats by recommended levels")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(Parcel)
@@ -1199,6 +1199,7 @@ RULE_INT(EvolvingItems, DelayUponEquipping, 30000, "Delay in ms before an evolvi
 RULE_BOOL(EvolvingItems, DestroyAugmentsOnEvolve, false, "If this is enabled, any augments in an item will be destroyed when the item evolves. Otherwise, send augments to the player via the parcel system (requires that the Parcel System be enabled).")
 RULE_CATEGORY_END()
 
+// VegasEQ - START
 RULE_CATEGORY(Vegas)
 RULE_INT(Vegas, ShardItemID, 550002, "Item ID for Shards. Default 550002.")
 RULE_INT(Vegas, EpicTokenItemID, 550001, "Item ID for an Epic Token. Default 550001.")
@@ -1230,12 +1231,29 @@ RULE_REAL(VegasLoot, MinDifficultyToTriggerVegasLoot, 0.00, "Difficulty must be 
 RULE_INT(VegasLoot, LevelDifferenceForVegasDrops, 10, "Maximum level difference between mob and highest getting kill credit. Default 10.")
 RULE_INT(VegasLoot, MinVegasLootDropID, 310000, "Minimum LootDrop ID to load for zones. Default 310000.")
 RULE_INT(VegasLoot, MaxVegasLootDropID, 349999, "Maximum LootDrop ID to load for zones. Default 349999.")
-
-// TODO - VegsLoot
 RULE_INT(VegasLoot, MaxLevelBeforeRespawnLockoutStopsForVegasLoot, 10, "This is the maximum level before lockouts stop on vegas loot spawn points (newbie zones can be farmed for quick respawns. Triggers along with QuickRespawnVegasLootLockoutPeriod). Default 10.")
 RULE_INT(VegasLoot, QuickRespawnMaxToTriggerLockout, 180, "This is the respawn duration at which spawns will begin to bypass vegas loot lockouts. Default 180.")
 RULE_INT(VegasLoot, QuickRespawnVegasLootLockoutPeriod, 180, "This is minimum amount of respawn time a spawn point must have to avoid lockouts for Vegas Loot. Default 180.")
+RULE_STRING(VegasLoot, GuaranteedNormalDrops, "", "Comma-delimited list of NPC IDs that get guaranteed drops")
+RULE_STRING(VegasLoot, GuaranteedBonusDrops, "", "Comma-delimited list of NPC IDs that get guaranteed bonus drops")
+RULE_STRING(VegasLoot, GuaranteedRaidDrops, "", "Comma-delimited list of NPC IDs that get guaranteed raid drops")
+RULE_STRING(VegasLoot, SpecialEventZones, "", "Comma-delimited list of zones where special event loot rules apply.")
+RULE_STRING(VegasLoot, SpecialEventZoneVersions, "", "Comma-delimited list of zone versions where special event loot rules apply.")
+RULE_STRING(VegasLoot, SpecialEventZonesIDMin, "", "Comma-delimited list of min lootdrop IDs where special event loot rules apply.")
+RULE_STRING(VegasLoot, SpecialEventZonesIDMax, "", "Comma-delimited list of max lootdrop IDs where special event loot rules apply.")
+RULE_STRING(VegasLoot, NPCNotCountAsVegasLoot, "", "Comma-delimited list of NPCs that skip vegas loot.")
+RULE_STRING(VegasLoot, NPCSpecialIDPassesLootChecks, "500101", "Comma-delimited list of NPCs that pass loot eligibility checks.")
 
+// VegasEQ - VegasLoot - Base Multipliers
+RULE_REAL(VegasLoot, RandomDropMultiplier, 1.00, "Multiplier for Random Vegas drops. Default 1.00.")
+RULE_REAL(VegasLoot, RandomDropMultiplierScaling, 2.00, "Scaling Multiplier for Random Vegas drops up until RandomDropScaleLevelLimit. Default 2.00.")
+RULE_INT(VegasLoot, RandomDropScaleLevelLimit, 30, "Level at which RandomDropMultiplierScaling stops taking effect. Default 30.")
+RULE_REAL(VegasLoot, BagMultiplier, 1.00, "Multiplier for WR Bag drops. Default 1.00.")
+RULE_REAL(VegasLoot, BridleMultiplier, 1.00, "Multiplier for Bridle drops. Default 1.00.")
+RULE_REAL(VegasLoot, CashMultiplier, 1.00, "Multiplier for Cash drops. Default 1.00.")
+RULE_REAL(VegasLoot, SpellMultiplier, 1.00, "Multiplier for Spell drops. Default 1.00.")
+
+// VegasEQ - VegasLoot - Tokens
 RULE_INT(VegasLoot, MinLevelForEpicToken, 45, "Minimum Level to be eligible for Epic Token Drops. Default 45.")
 RULE_REAL(VegasLoot, EpicTokenMultiplier, 1.00, "Multiplier for Epic Token drops for Normal Targets. Default 1.00.")
 RULE_REAL(VegasLoot, EpicTokenRaidRollMultiplier, 1.00, "Multiplier for Epic Token drops for Raid Targets, formula is RaidTargetEpicTokenRollMax - RaidDifficultyValue. Default 1.00.")
@@ -1246,8 +1264,10 @@ RULE_INT(VegasLoot, RaidTargetEpicTokenRollMax, 2500, "Maximum Roll for an Epic 
 RULE_INT(VegasLoot, RaidTargetEpicTokenRollCount, 1, "Roll counts for an Epic Token on Raid Targets. Default 1.")
 RULE_INT(VegasLoot, RareTargetEpicTokenRollCount, 1, "Roll counts for an Epic Token on Rare Targets. Default 1.")
 RULE_INT(VegasLoot, NormalTargetEpicTokenRollCount, 1, "Roll counts for an Epic Token on Normal Targets. Default 1.")
-RULE_STRING(VegasLoot, RaidTargetsNotCountAsRaid, "201074", "Comma-delimited list of NPC IDs that skip raid checks.") // TODO - VegasLoot - move to npc_types column
-RULE_STRING(VegasLoot, NonRaidTargetsThatCanRaidRoll, "", "Comma-delimited list of non raid target NPC IDs that get raid drop checks.") // TODO - VegasLoot - move to npc_types column
+
+// VegasEQ - VegasLoot - Items
+RULE_STRING(VegasLoot, RaidTargetsNotCountAsRaid, "201074", "Comma-delimited list of NPC IDs that skip raid checks.")
+RULE_STRING(VegasLoot, NonRaidTargetsThatCanRaidRoll, "", "Comma-delimited list of non raid target NPC IDs that get raid drop checks.")
 RULE_INT(VegasLoot, NormalTargetRollsCount, 1, "Number of Normal Vegas rolls a normal target gets. Default 1.")
 RULE_INT(VegasLoot, RareTargetRollsCount, 2, "Number of Normal Vegas rolls a rare spawn gets. Default 2.")
 RULE_INT(VegasLoot, RaidTargetNormalRollsCount, 4, "Number of Normal Vegas rolls a raid target gets. Default 4.")
@@ -1290,9 +1310,6 @@ RULE_INT(VegasLoot, LuclinZoneNPCIDMax, 224999, "Maximum NPC ID to select from f
 RULE_INT(VegasLoot, PoPZoneNPCIDMin, 150000, "Minimum NPC ID to select from for Vegas items for PoP Zone drops. Default 150000.")
 RULE_INT(VegasLoot, PoPZoneNPCIDMax, 224999, "Maximum NPC ID to select from for Vegas items for PoP Zone drops. Default 224999.")
 
-RULE_STRING(VegasLoot, NPCNotCountAsVegasLoot, "", "Comma-delimited list of NPCs that skip vegas loot.") // TODO - VegasLoot - move to npc_types column
-RULE_STRING(VegasLoot, NPCSpecialIDPassesLootChecks, "500101", "Comma-delimited list of NPCs that pass loot eligibility checks.") // TODO - VegasLoot - move to npc_types column
-
 // VegasEQ - VegasLoot - Difficulties
 RULE_REAL(VegasLoot, RaidTargetNormalRollMaxDifficulty, 1131570.0, "Maximum Difficulty a Raid Target can be to receive regular Vegas Rolls (Don't want mobs dropping same tables after a certain point). Default 1131570.0.")
 RULE_REAL(VegasLoot, DifficultyFloorMin, 21.0, "Min of what anything below DifficultyFloor difficulty will search for. Default 20.0.")
@@ -1322,14 +1339,7 @@ RULE_REAL(VegasLoot, OverallNormalDropMaxDifficultyMultiplier, 1.00, "This an ov
 RULE_REAL(VegasLoot, OverallBonusDropMinDifficultyMultiplier, 1.00, "This an overall multiplier to the minimum difficulty of bonus drops. Default 1.00.")
 RULE_REAL(VegasLoot, OverallBonusDropMaxDifficultyMultiplier, 1.00, "This an overall multiplier to the maximum difficulty of bonus drops. Default 1.00.")
 
-RULE_REAL(VegasLoot, RandomDropMultiplier, 1.00, "Multiplier for Random Vegas drops. Default 1.00.")
-RULE_REAL(VegasLoot, RandomDropMultiplierScaling, 2.00, "Scaling Multiplier for Random Vegas drops up until RandomDropScaleLevelLimit. Default 2.00.")
-RULE_INT(VegasLoot, RandomDropScaleLevelLimit, 30, "Level at which RandomDropMultiplierScaling stops taking effect. Default 30.")
-RULE_REAL(VegasLoot, BagMultiplier, 1.00, "Multiplier for WR Bag drops. Default 1.00.")
-RULE_REAL(VegasLoot, BridleMultiplier, 1.00, "Multiplier for Bridle drops. Default 1.00.")
-RULE_REAL(VegasLoot, CashMultiplier, 1.00, "Multiplier for Cash drops. Default 1.00.")
-RULE_REAL(VegasLoot, SpellMultiplier, 1.00, "Multiplier for Spell drops. Default 1.00.")
-
+// VegasEQ - VegasLoot - Shards
 RULE_INT(VegasLoot, ShardRollUpperLimit, 3, "Upper limit for Shard rolls. Default 3.")
 RULE_REAL(VegasLoot, ShardBonusLootMultiplier, 3.00, "Multiplier for Shards on bonus drops. Default 3.00.")
 RULE_REAL(VegasLoot, ShardHotZoneMultiplier, 1.50, "Hot Zone multiplier for Shard drops. Default 1.50.")
@@ -1374,19 +1384,10 @@ RULE_INT(VegasLoot, VegasBridleRollMax, 2500, "Maximum Roll for Vegas Bridle Rol
 RULE_STRING(VegasLoot, VegasBridleTiersMinLevels, "20,36,56,63", "Minimum level for bags by tier. Default '20,36,56,63'")
 RULE_STRING(VegasLoot, VegasBridleTiersMaxLevels, "35,55,62,99", "Maximum level for bags by tier. Default '35,55,62,99'")
 RULE_STRING(VegasLoot, VegasBridleTiersLootDropIDs, "330000,330100,330200,330300", "LootdropID for bags by tier. Default '320000,320100,320200,330300,340400,310500,310600'")
-
-RULE_STRING(VegasLoot, SpecialEventZones, "", "Comma-delimited list of zones where special event loot rules apply.")
-RULE_STRING(VegasLoot, SpecialEventZoneVersions, "", "Comma-delimited list of zone versions where special event loot rules apply.")
-RULE_STRING(VegasLoot, SpecialEventZonesIDMin, "", "Comma-delimited list of min lootdrop IDs where special event loot rules apply.")
-RULE_STRING(VegasLoot, SpecialEventZonesIDMax, "", "Comma-delimited list of max lootdrop IDs where special event loot rules apply.")
-
-RULE_STRING(VegasLoot, GuaranteedNormalDrops, "", "Comma-delimited list of NPC IDs that get guaranteed drops")
-RULE_STRING(VegasLoot, GuaranteedBonusDrops, "", "Comma-delimited list of NPC IDs that get guaranteed bonus drops")
-RULE_STRING(VegasLoot, GuaranteedRaidDrops, "", "Comma-delimited list of NPC IDs that get guaranteed raid drops")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(VegasAnticheat)
-RULE_STRING(VegasAnticheat, AntiCheatExemptKey, "AntiCheatExempt", "Data bucket key to check for. Default 'AntiCheatExempt-<char_id>'.")
+RULE_STRING(VegasAnticheat, AntiCheatExemptKey, "AntiCheatExempt-", "Data bucket key to check for. Default 'AntiCheatExempt-'.")
 RULE_INT(VegasAnticheat, AntiCheatExemptDuration, 3, "Duration of cheat exemption. Default 3 = 3 seconds")
 RULE_BOOL(VegasAnticheat, DoChecksForIllusionGlitching, true, "Controls where or not coords are updating and doors are checked to see if a client is trying to illusion or horse through the door.")
 RULE_REAL(VegasAnticheat, UpdateRangeForIllusionChecks, 50.0, "This is how far one must travel to initiate an update of the client's position for the illusion glitch check. Default 50.0.")
@@ -1398,19 +1399,19 @@ RULE_STRING(VegasScaling, SpecialScalingZones, "", "Comma-delimited list of zone
 RULE_STRING(VegasScaling, SpecialScalingZonesVersions, "", "Comma-delimited list of zone versions where special scaling rules apply.")
 RULE_BOOL(VegasScaling, EnableFlatRateScaling, false, "If all stats are set to a flat rate or not. Uses VegasScaling:FlatRateScaling. Default False.")
 RULE_REAL(VegasScaling, FlatRateScaling, 1.25, "Multiplier of all stats after scaling if EnableFlatRateScaling is enabled. Default 1.25.")
-RULE_STRING(VegasScaling, SpecialZoneScalingCommonMaxHP, "", "Comma-delimited list of zones where special scaling rules apply.")
-RULE_STRING(VegasScaling, SpecialZoneScalingCommonMinHit, "", "Comma-delimited list of zones where special scaling rules apply.")
-RULE_STRING(VegasScaling, SpecialZoneScalingCommonMaxHit, "", "Comma-delimited list of zones where special scaling rules apply.")
-RULE_STRING(VegasScaling, SpecialZoneScalingRareMaxHP, "", "Comma-delimited list of zones where special scaling rules apply.")
-RULE_STRING(VegasScaling, SpecialZoneScalingRareMinHit, "", "Comma-delimited list of zones where special scaling rules apply.")
-RULE_STRING(VegasScaling, SpecialZoneScalingRareMaxHit, "", "Comma-delimited list of zones where special scaling rules apply.")
-RULE_STRING(VegasScaling, SpecialZoneScalingRaidMaxHP, "", "Comma-delimited list of zones where special scaling rules apply.")
-RULE_STRING(VegasScaling, SpecialZoneScalingRaidMinHit, "", "Comma-delimited list of zones where special scaling rules apply.")
-RULE_STRING(VegasScaling, SpecialZoneScalingRaidMaxHit, "", "Comma-delimited list of zones where special scaling rules apply.")
+RULE_STRING(VegasScaling, SpecialZoneScalingCommonMaxHP, "", "Comma-delimited list of Common Max HP values to be multiplied by matching SpecialScalingZones and SpecialScalingZonesVersions.")
+RULE_STRING(VegasScaling, SpecialZoneScalingCommonMinHit, "", "Comma-delimited list of Common Min Hit values to be multiplied by matching SpecialScalingZones and SpecialScalingZonesVersions.")
+RULE_STRING(VegasScaling, SpecialZoneScalingCommonMaxHit, "", "Comma-delimited list of Common Max Hit values to be multiplied by matching SpecialScalingZones and SpecialScalingZonesVersions.")
+RULE_STRING(VegasScaling, SpecialZoneScalingRareMaxHP, "", "Comma-delimited list of Rare Max HP values to be multiplied by matching SpecialScalingZones and SpecialScalingZonesVersions.")
+RULE_STRING(VegasScaling, SpecialZoneScalingRareMinHit, "", "Comma-delimited list of Rare Min Hit values to be multiplied by matching SpecialScalingZones and SpecialScalingZonesVersions.")
+RULE_STRING(VegasScaling, SpecialZoneScalingRareMaxHit, "", "Comma-delimited list of Rare Max Hit values to be multiplied by matching SpecialScalingZones and SpecialScalingZonesVersions.")
+RULE_STRING(VegasScaling, SpecialZoneScalingRaidMaxHP, "", "Comma-delimited list of Raid Max HP values to be multiplied by matching SpecialScalingZones and SpecialScalingZonesVersions.")
+RULE_STRING(VegasScaling, SpecialZoneScalingRaidMinHit, "", "Comma-delimited list of Raid Min Hit values to be multiplied by matching SpecialScalingZones and SpecialScalingZonesVersions.")
+RULE_STRING(VegasScaling, SpecialZoneScalingRaidMaxHit, "", "Comma-delimited list of Raid Max Hit values to be multiplied by matching SpecialScalingZones and SpecialScalingZonesVersions.")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(CharChange)
-RULE_BOOL(CharChange, CommandEnabled, false, "Is #charchange command enabled?. Default False.")
+RULE_BOOL(CharChange, CommandEnabled, true, "Is #charchange command enabled?. Default True.")
 RULE_INT(CharChange, ExpansionLimitForCharChange, 5, "Maximum expansion limit for #charchange to use in char_create_combinations. Default 5.")
 RULE_INT(CharChange, BaseCost, 10000, "Base cost for #charchange. Default .")
 RULE_INT(CharChange, ClassCost, 15000, "Class cost for #charchange. Default 15000.")
@@ -1420,11 +1421,11 @@ RULE_INT(CharChange, RaceCost, 10000, "Race cost for #charchange. Default 10000.
 RULE_INT(CharChange, LevelScaleStart, 30, "Level at which cost scaling starts for #charchange. Default 30.")
 RULE_INT(CharChange, LockoutDuration, 2592000, "Duration in seconds between allowed attempts of #charchange. Default 2592000 (30 day).")
 RULE_REAL(CharChange, ScaleRate, 1.0175, "Scale rate for #charchange per level (each level increases by x amount). Default 1.0175.")
-RULE_BOOL(CharChange, RequireSpecificZone, false, "Whether or not #charchange requires a specific zone to be used in. Default False.")
+RULE_BOOL(CharChange, RequireSpecificZone, true, "Whether or not #charchange requires a specific zone to be used in. Default True.")
 RULE_INT(CharChange, RequiredZone, 202, "Zone required for #charchange if RequireSpecificZone is enabled. Default = 202/PoK.")
-RULE_BOOL(CharChange, RequiresAltCurrency, false, "Is Alt Currency required for #charchange. Default False.")
+RULE_BOOL(CharChange, RequiresAltCurrency, true, "Is Alt Currency required for #charchange. Default True.")
 RULE_INT(CharChange, RequiredAltCurrency, 70, "Alt Currency required for #charchange if RequiresAltCurrency is enabled. Default 70.")
-RULE_BOOL(CharChange, CharChangeDiscordOutputEnabled, false, "Output #charchange usage to Discord. Default False.")
+RULE_BOOL(CharChange, CharChangeDiscordOutputEnabled, true, "Output #charchange usage to Discord. Default True.")
 RULE_STRING(CharChange, CharChangeDiscordWebhook, "charchanges", "Webhook name to send Discord output to")
 RULE_CATEGORY_END()
 
@@ -1432,6 +1433,7 @@ RULE_CATEGORY(Website)
 RULE_STRING(Website, AllacloneURL, "http://vegaseq.com/allaclone/", "Website URL for Allaclone")
 RULE_STRING(Website, CharBrowserURL, "http://vegaseq.com/charbrowser/", "Website URL for CharBrowser")
 RULE_CATEGORY_END()
+// VegasEQ - END
 
 #undef RULE_CATEGORY
 #undef RULE_INT

@@ -162,9 +162,13 @@ struct NPCType
 	// VegasEQ - START
 	float       	difficulty;
 	int32_t     	raid_points;
-	int32_t     	is_valeen_spawned;
-	int32_t     	hide_npc;
+	bool            is_valeen_spawned;
+	bool            hide_npc;
 	int32_t     	in_zone_id;
+	bool            skip_vegas_loot;
+	bool            pass_vegas_loot;
+	bool            raid_not_count_as_raid;
+	bool            non_raid_can_raid_roll;
 	// VegasEQ - END
 
 };

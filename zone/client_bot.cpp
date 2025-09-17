@@ -117,7 +117,7 @@ int Client::GetBotSpawnLimit(uint8 class_id)
 		bot_spawn_limit = Strings::ToInt(bucket_value);
 	}
 
-	if (!class_id || !bot_spawn_limit) { // TODO - finish fixing this, method?
+	if (!class_id || !bot_spawn_limit) { // TODO - VegasEQ-  finish fixing this, method?
 		const int extra_unlocks_level = RuleI(Bots, LevelForExtraBots);
 
 		if (RuleB(Bots, TieredSpawnLimits) && GetLevel() <= extra_unlocks_level) {

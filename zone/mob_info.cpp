@@ -434,6 +434,44 @@ inline std::string GetMobAttributeByString(Mob *mob, const std::string &attribut
 			return Strings::Commify(std::to_string(npc->GetHeroicStrikethrough())) + scaling_modified;
 		}
 
+		// VegasEQ - START
+		if (attribute == "difficulty") {
+			return std::to_string((int)npc->GetDifficulty());
+		}
+
+		if (attribute == "raid_points") {
+			return std::to_string(npc->GetRaidPoints());
+		}
+
+		if (attribute == "is_valeen_spawned") {
+			return std::to_string(npc->GetIsValeenSpawned());
+		}
+
+		if (attribute == "hide_npc") {
+			return std::to_string(npc->GetIsHideNPC());
+		}
+
+		if (attribute == "in_zone_id") {
+			return std::to_string(npc->GetNPCInZoneID());
+		}
+
+		if (attribute == "skip_vegas_loot") {
+			return std::to_string(npc->GetSkipVegasLoot());
+		}
+
+		if (attribute == "pass_vegas_loot") {
+			return std::to_string(npc->GetPassVegasLoot());
+		}
+
+		if (attribute == "raid_not_count_as_raid") {
+			return std::to_string(npc->GetRaidTargetNotCountAsRaid());
+		}
+
+		if (attribute == "non_raid_can_raid_roll") {
+			return std::to_string(npc->GetNonRaidTargetThatCanRaidRoll());
+		}
+		// VegasEQ - END
+
 		npc->GetNPCEmote(npc->GetEmoteID(), 0);
 	}
 
@@ -801,6 +839,22 @@ void Mob::DisplayInfo(Mob *mob)
 			};
 
 			window_text += WriteDisplayInfoSection(mob, "NPC Attributes", npc_attributes, 1, true);
+
+			// VegasEQ - START
+			std::vector<std::string> vegas_stats = {
+				"difficulty",
+				"raid_points",
+				"is_valeen_spawned",
+				"hide_npc",
+				"in_zone_id",
+				"skip_vegas_loot",
+				"pass_vegas_loot",
+				"raid_not_count_as_raid",
+				"non_raid_can_raid_roll",
+			};
+
+			window_text += WriteDisplayInfoSection(mob, "Vegas", vegas_stats, 1, true);
+			// VegasEQ - END
 
 			/**
 			 * Print Roambox

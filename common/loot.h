@@ -37,6 +37,15 @@ struct VegasItem {
 	float difficulty;
 	int16 maxcharges;
 };
+
+enum class VegasEra : int {
+	Classic,
+	Kunark,
+	Velious,
+	Luclin,
+	PlanesOfPower,
+	SpecialEvent = 100
+};
 // VegasEQ - END
 
 #endif //CODE_LOOT_H

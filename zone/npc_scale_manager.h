@@ -96,8 +96,7 @@ public:
 		"special_abilities"
 	};
 
-	void ScaleNPC(NPC* npc, bool always_scale = false, bool override_special_abilities = false, float scale_mult = 1.0);
-	bool GetSpecialScalingZoneValues(NPC* npc, float* special_zone_max_hp, float* special_zone_min_hit, float* special_zone_max_hit);
+	void ScaleNPC(NPC* npc, bool always_scale = false, bool override_special_abilities = false, float scale_mult = 1.0f);
 	void ResetNPCScaling(NPC* npc);
 	bool IsAutoScaled(NPC* npc);
 	bool LoadScaleData();
@@ -117,6 +116,11 @@ public:
 	bool ApplyGlobalBaseScalingToNPCDynamically(NPC * &npc);
 
 	uint32 GetClassLevelDamageMod(uint32 level, uint32 npc_class);
+
+	// VegasEQ - START
+	bool IsSpecialScalingZone();
+	void GetSpecialScalingZoneValues(NPC* npc, float* special_zone_max_hp, float* special_zone_min_hit, float* special_zone_max_hit);
+	// VegasEQ - END
 };
 
 extern NpcScaleManager *npc_scale_manager;

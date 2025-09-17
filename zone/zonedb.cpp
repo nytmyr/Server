@@ -1911,11 +1911,15 @@ const NPCType *ZoneDatabase::LoadNPCTypesData(uint32 npc_type_id, bool bulk_load
 		t->multiquest_enabled     = n.multiquest_enabled != 0;
 
 		// VegasEQ - START
-		t->difficulty			  = n.difficulty;
-		t->raid_points			  = n.raid_points;
-		t->is_valeen_spawned	  = n.is_valeen_spawned;
-		t->hide_npc			      = n.hide_npc;
-		t->in_zone_id			  = n.in_zone_id;
+		t->difficulty             = n.difficulty;
+		t->raid_points            = n.raid_points;
+		t->is_valeen_spawned      = n.is_valeen_spawned != 0;
+		t->hide_npc               = n.hide_npc != 0;
+		t->in_zone_id             = n.in_zone_id;
+		t->skip_vegas_loot        = n.skip_vegas_loot != 0;
+		t->pass_vegas_loot        = n.pass_vegas_loot != 0;
+		t->raid_not_count_as_raid = n.raid_not_count_as_raid != 0;
+		t->non_raid_can_raid_roll = n.non_raid_can_raid_roll != 0;
 		// VegasEQ - END
 
 		// If NPC with duplicate NPC id already in table,

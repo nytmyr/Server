@@ -226,6 +226,14 @@ public:
 	void SetHideNPC(bool hide_npc_);
 	int32 GetNPCInZoneID();
 	void SetNPCInZoneID(int32 in_zone_id_);
+	bool GetSkipVegasLoot();
+	void SetSkipVegasLoot(bool skip_vegas_loot_);
+	bool GetPassVegasLoot();
+	void SetPassVegasLoot(bool pass_vegas_loot_);
+	bool GetRaidTargetNotCountAsRaid();
+	void SetRaidTargetNotCountAsRaid(bool raid_not_count_as_raid_);
+	bool GetNonRaidTargetThatCanRaidRoll();
+	void SetNonRaidTargetThatCanRaidRoll(bool non_raid_can_raid_roll);
 	void AddVegasLoot();
 	void AddVegasLoot(float difficulty_min);
 	void AddVegasLoot(float difficulty_min, float difficulty_max);

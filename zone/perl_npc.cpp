@@ -1001,6 +1001,38 @@ void Perl_NPC_SetNPCInZoneID(NPC* self, int32 in_zone_id_) {
 	self->SetNPCInZoneID(in_zone_id_);
 }
 
+bool Perl_NPC_GetSkipVegasLoot(NPC* self) {
+	return self->GetSkipVegasLoot();
+}
+
+void Perl_NPC_SetSkipVegasLoot(NPC* self, bool skip_vegas_loot) {
+	self->SetSkipVegasLoot(skip_vegas_loot);
+}
+
+bool Perl_NPC_GetPassVegasLoot(NPC* self) {
+	return self->GetPassVegasLoot();
+}
+
+void Perl_NPC_SetPassVegasLoot(NPC* self, bool pass_vegas_loot) {
+	self->SetPassVegasLoot(pass_vegas_loot);
+}
+
+bool Perl_NPC_GetRaidTargetNotCountAsRaid(NPC* self) {
+	return self->GetRaidTargetNotCountAsRaid();
+}
+
+void Perl_NPC_SetRaidTargetNotCountAsRaid(NPC* self, bool raid_not_count_as_raid) {
+	self->SetRaidTargetNotCountAsRaid(raid_not_count_as_raid);
+}
+
+bool Perl_NPC_GetNonRaidTargetThatCanRaidRoll(NPC* self) {
+	return self->GetNonRaidTargetThatCanRaidRoll();
+}
+
+void Perl_NPC_SetNonRaidTargetThatCanRaidRoll(NPC* self, bool non_raid_can_raid_roll) {
+	self->SetNonRaidTargetThatCanRaidRoll(non_raid_can_raid_roll);
+}
+
 void Perl_NPC_AddVegasLoot(NPC* self) {
 	auto top_client = self->GetTopHateClient();
 
@@ -1237,6 +1269,14 @@ void perl_register_npc()
 	package.add("SetHideNPC", &Perl_NPC_SetHideNPC);
 	package.add("GetNPCInZoneID", &Perl_NPC_GetNPCInZoneID);
 	package.add("SetNPCInZoneID", &Perl_NPC_SetNPCInZoneID);
+	package.add("GetSkipVegasLoot", &Perl_NPC_GetSkipVegasLoot);
+	package.add("SetSkipVegasLoot", &Perl_NPC_SetSkipVegasLoot);
+	package.add("GetPassVegasLoot", &Perl_NPC_GetPassVegasLoot);
+	package.add("SetPassVegasLoot", &Perl_NPC_SetPassVegasLoot);
+	package.add("GetRaidTargetNotCountAsRaid", &Perl_NPC_GetRaidTargetNotCountAsRaid);
+	package.add("SetRaidTargetNotCountAsRaid", &Perl_NPC_SetRaidTargetNotCountAsRaid);
+	package.add("GetNonRaidTargetThatCanRaidRoll", &Perl_NPC_GetNonRaidTargetThatCanRaidRoll);
+	package.add("SetNonRaidTargetThatCanRaidRoll", &Perl_NPC_SetNonRaidTargetThatCanRaidRoll);
 	package.add("AddVegasLoot", (void(*)(NPC*))&Perl_NPC_AddVegasLoot);
 	package.add("AddVegasLoot", (void(*)(NPC*, float))&Perl_NPC_AddVegasLoot);
 	package.add("AddVegasLoot", (void(*)(NPC*, float, float))&Perl_NPC_AddVegasLoot);

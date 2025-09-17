@@ -4977,7 +4977,7 @@ bool Mob::HateSummon() {
 					SummonPC
 				);
 
-				//cheat_manager.SetExemptStatus(Port, true); // TODO - vegas
+				//cheat_manager.SetExemptStatus(Port, true); // TODO - VegasEQ
 				target->CastToClient()->SetAntiCheatExempt();
 			} else {
 				bool target_is_client_pet = (

@@ -49,7 +49,15 @@ std::map<std::string, std::string> GetModifyNPCStatMap()
 		{ "str", "Strength" },
 		{ "trackable", "Trackable" },
 		{ "wis", "Wisdom" },
-		{ "difficulty", "raid_points" } // VegasEQ
+		{ "difficulty", "NPC Difficulty" }, // VegasEQ - START
+		{ "raid_points", "Raid Points" },
+		{ "is_valeen_spawned", "IsValeenSpawned" },
+		{ "hide_npc", "Hide NPC" },
+		{ "in_zone_id", "In Zone ID" },
+		{ "skip_vegas_loot", "Skip Vegas Loot" },
+		{ "pass_vegas_loot", "Pass Vegas Loot" },
+		{ "raid_not_count_as_raid", "Not Count As Raid" },
+		{ "non_raid_can_raid_roll", "Forced Raid Roll" } // VegasEQ - END
 	};
 
 	return identifiers_map;

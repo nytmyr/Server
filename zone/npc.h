@@ -648,6 +648,8 @@ public:
 	void SetDifficulty(float difficulty_) { difficulty = difficulty_; }
 	int32 GetRaidPoints() const { return raid_points; }
 	void SetRaidPoints(int32 raid_points_) { raid_points = raid_points_; }
+
+	// VegasEQ - Allaclone
 	bool GetIsValeenSpawned() const { return is_valeen_spawned; }
 	void SetValeenSpawned(bool is_valeen_spawned_) { is_valeen_spawned = is_valeen_spawned_; }
 	bool GetIsHideNPC() const { return hide_npc; }
@@ -656,6 +658,14 @@ public:
 	void SetNPCInZoneID(int32 in_zone_id_) { in_zone_id = in_zone_id_; }
 
 	// VegasEQ - VegasLoot
+	bool GetSkipVegasLoot() const { return skip_vegas_loot; }
+	void SetSkipVegasLoot(bool skip_vegas_loot_) { skip_vegas_loot = skip_vegas_loot_; }
+	bool GetPassVegasLoot() const { return pass_vegas_loot; }
+	void SetPassVegasLoot(bool pass_vegas_loot_) { pass_vegas_loot = pass_vegas_loot_; }
+	bool GetRaidTargetNotCountAsRaid() const { return raid_not_count_as_raid; }
+	void SetRaidTargetNotCountAsRaid(bool raid_not_count_as_raid_) { raid_not_count_as_raid = raid_not_count_as_raid_; }
+	bool GetNonRaidTargetThatCanRaidRoll() const { return non_raid_can_raid_roll; }
+	void SetNonRaidTargetThatCanRaidRoll(bool non_raid_can_raid_roll_) { non_raid_can_raid_roll = non_raid_can_raid_roll_; }
 	virtual Mob* GetTopHateClient();
 	bool GuaranteedBonusDrop();
 	bool GuaranteedNormalDrop();
@@ -870,6 +880,10 @@ protected:
 	bool     		is_valeen_spawned;
 	bool     		hide_npc;
 	int32     		in_zone_id;
+	bool     		skip_vegas_loot;
+	bool     		pass_vegas_loot;
+	bool     		raid_not_count_as_raid;
+	bool     		non_raid_can_raid_roll;
 	// VegasEQ - END
 public:
 	const Handin GetHandin() { return m_hand_in; }
