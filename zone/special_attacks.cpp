@@ -2350,7 +2350,7 @@ void Mob::Taunt(NPC *who, bool always_succeed, int chance_bonus, bool from_spell
 					bonus_hate +
 					RuleI(Combat, TauntOverAggro) +
 					1 +
-					RuleI(Aggro, AdditionalTauntHate)
+					RuleI(Vegas, AdditionalTauntHate)
 				);
 			}
 			else if (IsBot()) {
@@ -2359,7 +2359,7 @@ void Mob::Taunt(NPC *who, bool always_succeed, int chance_bonus, bool from_spell
 					bonus_hate +
 					RuleI(Combat, TauntOverAggro) +
 					1 +
-					RuleI(Bots, BotAdditionalTauntHate)
+					RuleI(VegasBots, BotAdditionalTauntHate)
 				);
 			}
 			else {

@@ -3992,7 +3992,7 @@ void NPC::HandleRoambox()
 			).c_str()
 		); //deleteme
 
-		if (RuleB(Pathing, OutputStuckToDiscord)) {
+		if (RuleB(VegasPathing, OutputStuckToDiscord)) {
 			std::ostringstream output;
 			output <<
 				"Stuck NPC in [" << zone->GetLongName() << "](" << RuleS(Website, AllacloneURL) << "?a=zone&name=" << zone->GetShortName() << ")"
@@ -4001,7 +4001,7 @@ void NPC::HandleRoambox()
 				" | #goto " << int(GetX()) << " " << int(GetY()) << " " << int(GetZ()) << " " << int(GetHeading()) << ""
 				;
 			std::string out_final = output.str();
-			zone->SendDiscordMessage(RuleS(Pathing, StuckDiscordWebhook), out_final);
+			zone->SendDiscordMessage(RuleS(VegasPathing, StuckDiscordWebhook), out_final);
 		}
 
 		auto curPos = glm::vec3(EQ::Clamp(GetX(), m_roambox.min_x, m_roambox.max_x), EQ::Clamp(GetY(), m_roambox.min_y, m_roambox.max_y), GetZ());
@@ -4009,7 +4009,7 @@ void NPC::HandleRoambox()
 		curPos.z = ((zone->zonemap->FindBestZ(curPos, nullptr) != BEST_Z_INVALID) ? zone->zonemap->FindBestZ(curPos, nullptr) : (GetFixedZ(curPos) != BEST_Z_INVALID) ? GetFixedZ(curPos) : curPos.z);
 		Teleport(curPos);
 
-		if (GetStuckCount() >= RuleI(Pathing, StuckCountLimit)) {
+		if (GetStuckCount() >= RuleI(VegasPathing, StuckCountLimit)) {
 			TryMoveAlong(moveDistance, CalculateHeadingToTarget(m_SpawnPoint.x, m_SpawnPoint.y));
 		}
 	}
@@ -4020,7 +4020,7 @@ void NPC::HandleRoambox()
 		// make several attempts to find a valid next move in the box
 		bool can_path = false;
 
-		for (int i = 0; i < RuleI(Pathing, NumTriesToFindNextRoamPoint); i++) {
+		for (int i = 0; i < RuleI(VegasPathing, NumTriesToFindNextRoamPoint); i++) {
 			auto move_x      = static_cast<float>(zone->random.Real(-m_roambox.distance, m_roambox.distance));
 			auto move_y      = static_cast<float>(zone->random.Real(-m_roambox.distance, m_roambox.distance));
 			auto requested_x = EQ::Clamp((GetX() + move_x), m_roambox.min_x, m_roambox.max_x);
@@ -4028,7 +4028,7 @@ void NPC::HandleRoambox()
 			auto requested_z = GetGroundZ(requested_x, requested_y);
 			auto requested_pos = glm::vec3(requested_x, requested_y, requested_z);
 
-			if (std::abs(requested_z - GetZ()) > RuleI(Pathing, RoamPointMaxZVariation)) {
+			if (std::abs(requested_z - GetZ()) > RuleI(VegasPathing, RoamPointMaxZVariation)) {
 				LogNPCRoamBox("[{}] | Failed to find reasonable ground [{}]", GetCleanName(), i);
 				continue;
 			}
@@ -5511,7 +5511,7 @@ bool NPC::CanPathFromNextPosition(glm::vec3 nextPos) {
 	opts.offset = GetZOffset();
 	opts.flags = PathingNotDisabled ^ PathingZoneLine;
 
-	for (int i = 0; i < RuleI(Pathing, NumTriesToFindNextRoamPoint); i++) {
+	for (int i = 0; i < RuleI(VegasPathing, NumTriesToFindNextRoamPoint); i++) {
 		auto move_x = static_cast<float>(zone->random.Real(-m_roambox.distance, m_roambox.distance));
 		auto move_y = static_cast<float>(zone->random.Real(-m_roambox.distance, m_roambox.distance));
 		auto tempX = EQ::Clamp((nextPos.x + move_x), m_roambox.min_x, m_roambox.max_x);

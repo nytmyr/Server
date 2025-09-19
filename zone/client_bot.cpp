@@ -117,12 +117,12 @@ int Client::GetBotSpawnLimit(uint8 class_id)
 		bot_spawn_limit = Strings::ToInt(bucket_value);
 	}
 
-	if (!class_id || !bot_spawn_limit) { // TODO - VegasEQ-  finish fixing this, method?
-		const int extra_unlocks_level = RuleI(Bots, LevelForExtraBots);
+	if (!class_id || !bot_spawn_limit) {
+		const int extra_unlocks_level = RuleI(VegasBots, LevelForExtraBots);
 
-		if (RuleB(Bots, TieredSpawnLimits) && GetLevel() <= extra_unlocks_level) {
-			const auto& tier_levels = Strings::Split(RuleS(Bots, UnlockLevelByTier), ",");
-			const auto& tier_limits = Strings::Split(RuleS(Bots, SpawnLimitsByTier), ",");
+		if (RuleB(VegasBots, TieredSpawnLimits) && GetLevel() <= extra_unlocks_level) {
+			const auto& tier_levels = Strings::Split(RuleS(VegasBots, UnlockLevelByTier), ",");
+			const auto& tier_limits = Strings::Split(RuleS(VegasBots, SpawnLimitsByTier), ",");
 
 			if (
 				!tier_levels.empty() &&
@@ -149,11 +149,11 @@ int Client::GetBotSpawnLimit(uint8 class_id)
 									bot_spawn_limit = tier_limit;
 								}
 							} catch (const std::exception& e) {
-								LogInfo("Invalid entry in Rule Bots:SpawnLimitsByTier: [{}]", e.what());
+								LogInfo("Invalid entry in Rule VegasBots:SpawnLimitsByTier: [{}]", e.what());
 							}
 						}
 					} catch (const std::exception& e) {
-						LogInfo("Invalid entry in Rule Bots:UnlockLevelByTier: [{}]", e.what());
+						LogInfo("Invalid entry in Rule VegasBots:UnlockLevelByTier: [{}]", e.what());
 					}
 				}
 			}

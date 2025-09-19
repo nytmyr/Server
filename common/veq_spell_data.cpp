@@ -37,7 +37,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateSpellScores(Mob* caster, const SPDa
 		spell_level = GetSpellMinimumLevel(spell.id);
 
 		if (spell_level > RuleI(Character, MaxLevel)) {
-			spell_level = RuleI(NPC, MaxNPCLevel); // NPC only spell
+			spell_level = RuleI(VegasNPCs, MaxNPCLevel); // NPC only spell
 		}
 		else {
 			spell_level = RuleI(Character, MaxLevel);
@@ -509,7 +509,7 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 		spell_level = GetSpellMinimumLevel(spell.id);
 
 		if (spell_level > RuleI(Character, MaxLevel)) {
-			spell_level = RuleI(NPC, MaxNPCLevel); // NPC only spell
+			spell_level = RuleI(VegasNPCs, MaxNPCLevel); // NPC only spell
 		}
 		else {
 			spell_level = RuleI(Character, MaxLevel);
@@ -893,8 +893,8 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 			case SpellEffect::Stun: {
 				spell_value = VegasSpellTypeMultipliers::StunBase;
 				duration = std::fmin(30.0f, spell.base_value[i] / 1000.0f); // Only score up to 30 seconds
-				auto max_level = spell.max_value[i] == 0 ? RuleI(NPC, MaxNPCLevel) : spell.max_value[i];
-				float level_cap_multiplier = max_level / RuleI(NPC, MaxNPCLevel);
+				auto max_level = spell.max_value[i] == 0 ? RuleI(VegasNPCs, MaxNPCLevel) : spell.max_value[i];
+				float level_cap_multiplier = max_level / RuleI(VegasNPCs, MaxNPCLevel);
 				LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} for {} seconds up to level {} and level_cap_multiplier of {}.", spell.name, spell_id, "Stun", spell_value, duration, spell.max_value[i], 1.0f + level_cap_multiplier); //deleteme
 				spell_value += (VegasSpellTypeMultipliers::StunMultiplier * duration);
 				spell_value = IsTargetTypeOnlySpell(spell_id) ? spell_value * VegasSpellTypeMultipliers::TargetTypeOnly : spell_value;
@@ -908,8 +908,8 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 				spell_value = VegasSpellTypeMultipliers::Charm;
 
 				duration = std::fmax(1.0f, std::fmin(duration, 50.0f)); // Only score up to 5 minutes.
-				auto max_level = spell.max_value[i] == 0 ? RuleI(NPC, MaxNPCLevel) : spell.max_value[i];
-				float level_cap_multiplier = max_level / RuleI(NPC, MaxNPCLevel);
+				auto max_level = spell.max_value[i] == 0 ? RuleI(VegasNPCs, MaxNPCLevel) : spell.max_value[i];
+				float level_cap_multiplier = max_level / RuleI(VegasNPCs, MaxNPCLevel);
 				LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} for {} seconds up to level {} and level_cap_multiplier of {}.", spell.name, spell_id, "Charm", spell_value, duration, spell.max_value[i], 1.0f + level_cap_multiplier); //deleteme
 				spell_value += (VegasSpellTypeMultipliers::Charm * duration);
 				spell_value = IsTargetTypeOnlySpell(spell_id) ? spell_value * VegasSpellTypeMultipliers::TargetTypeOnly : spell_value;
@@ -923,8 +923,8 @@ VeqSpellScoreRepository::VeqSpellScore UpdateFullScore(Mob* caster, const SPDat_
 				spell_value = VegasSpellTypeMultipliers::Fear;
 
 				duration = std::fmax(1.0f, std::fmin(duration, 50.0f)); // Only score up to 5 minutes.
-				auto max_level = spell.max_value[i] == 0 ? RuleI(NPC, MaxNPCLevel) : spell.max_value[i];
-				float level_cap_multiplier = max_level / RuleI(NPC, MaxNPCLevel);
+				auto max_level = spell.max_value[i] == 0 ? RuleI(VegasNPCs, MaxNPCLevel) : spell.max_value[i];
+				float level_cap_multiplier = max_level / RuleI(VegasNPCs, MaxNPCLevel);
 				LogSpellScoreDetail("Checking {} [{}] as a {} --- effect value of {} for {} seconds up to level {} and level_cap_multiplier of {}.", spell.name, spell_id, "Fear", spell_value, duration, spell.max_value[i], 1.0f + level_cap_multiplier); //deleteme
 				spell_value += (VegasSpellTypeMultipliers::Fear * duration);
 				spell_value = IsTargetTypeOnlySpell(spell_id) ? spell_value * VegasSpellTypeMultipliers::TargetTypeOnly : spell_value;

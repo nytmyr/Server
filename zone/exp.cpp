@@ -1219,9 +1219,9 @@ void Raid::SplitExp(ExpSource exp_source, const uint64 exp, Mob* other) {
 
 	float raid_modifier = 1.0f;
 
-	if (RuleB(Character, EnableRaidMemberEXPMultiplier)) {
-		if (member_count > RuleI(Character, MaxNumberRaidMembersEXPModifier)) {
-			member_modifier = RuleI(Character, MaxNumberRaidMembersEXPModifier);
+	if (RuleB(VegasEXP, EnableRaidMemberEXPMultiplier)) {
+		if (member_count > RuleI(VegasEXP, MaxNumberRaidMembersEXPModifier)) {
+			member_modifier = RuleI(VegasEXP, MaxNumberRaidMembersEXPModifier);
 		}
 		else {
 			member_modifier = member_count;
@@ -1232,13 +1232,13 @@ void Raid::SplitExp(ExpSource exp_source, const uint64 exp, Mob* other) {
 				EQ::ValueWithin(member_count, 2, MAX_GROUP_MEMBERS - 1) ||
 				EQ::ValueWithin(member_count, MAX_GROUP_MEMBERS, MAX_RAID_MEMBERS - 1)
 			) {
-				raid_modifier = 1 + RuleR(Character, RaidMemberEXPMultiplier) * (member_modifier - 1); // 2 = 1.2x, 3 = 1.4x, 4 = 1.6x, 5 = 1.8x, 6 = 2x, 7 = 2.2x etc.
+				raid_modifier = 1 + RuleR(VegasEXP, RaidMemberEXPMultiplier) * (member_modifier - 1); // 2 = 1.2x, 3 = 1.4x, 4 = 1.6x, 5 = 1.8x, 6 = 2x, 7 = 2.2x etc.
 			}
 			if (member_modifier == MAX_GROUP_MEMBERS) {
 				raid_modifier = RuleR(Character, FullGroupEXPModifier);
 			}
 			else if (member_modifier == MAX_RAID_MEMBERS) {
-				raid_modifier = RuleR(Character, FullRaidEXPModifier);
+				raid_modifier = RuleR(VegasEXP, FullRaidEXPModifier);
 			}
 		}
 	}

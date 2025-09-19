@@ -696,7 +696,7 @@ bool Client::Process() {
 			}
 			OnDisconnect(false);
 			return false;
-			if (RuleB(World, HardDisconnectOnCamp)) {
+			if (RuleB(Vegas, HardDisconnectOnCamp)) {
 				if (instalog) {
 					camp_cheat_bypass = true;
 					OnDisconnect(true);
@@ -895,10 +895,10 @@ void Client::BulkSendMerchantInventory(int merchant_id, int npcid) {
 		}
 	}
 
-	uint32 merchant_slots = RuleI(Merchant, MaxItemsListedDefault); //The max number of items passed in the transaction.
+	uint32 merchant_slots = RuleI(VegasMerchants, MaxItemsListedDefault); //The max number of items passed in the transaction.
 
 	if (m_ClientVersionBit & EQ::versions::maskRoFAndLater) { // RoF+ can send 200 items
-		merchant_slots = RuleI(Merchant, MaxItemsListedRoF2);
+		merchant_slots = RuleI(VegasMerchants, MaxItemsListedRoF2);
 	}
 
 	auto temporary_merchant_list = zone->tmpmerchanttable[npcid];
