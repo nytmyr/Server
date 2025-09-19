@@ -198,7 +198,10 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 		return;
 	}
 
-	if (item_data->ItemClass != EQ::item::ItemClassCommon || item_data->Slots == 0) {
+	bool valid_item_class = Bot::IsQuiver(item_data) ||
+		(item_data->ItemClass == EQ::item::ItemClassCommon && item_data->Slots != 0);
+
+	if (!valid_item_class) {
 		c->Message(Chat::Yellow, "'%s' is not an equipable item!", item_data->Name);
 
 		return;
@@ -206,8 +209,8 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 
 	std::vector<int16> equipable_slot_list;
 
-	for (int16 equipable_slot = EQ::invslot::EQUIPMENT_BEGIN; equipable_slot <= EQ::invslot::EQUIPMENT_END; ++equipable_slot) {
-		if (item_data->Slots & (1 << equipable_slot)) {
+	for (int16 equipable_slot = BotInventorySlots::EQUIPMENT_BEGIN; equipable_slot <= BotInventorySlots::EQUIPMENT_END; ++equipable_slot) { // VegasEQ
+		if (Bot::IsQuiver(item_data) || item_data->Slots & (1 << equipable_slot)) {
 			equipable_slot_list.emplace_back(equipable_slot);
 		}
 	}
@@ -305,7 +308,7 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 			equipped_inst = nullptr;
 
 			
-			for (int16 equipable_slot = EQ::invslot::EQUIPMENT_BEGIN; equipable_slot <= EQ::invslot::EQUIPMENT_END; ++equipable_slot) {
+			for (int16 equipable_slot = BotInventorySlots::EQUIPMENT_BEGIN; equipable_slot <= BotInventorySlots::EQUIPMENT_END; ++equipable_slot) { // VegasEQ
 				equipped_inst = bot_iter->GetInv()[equipable_slot];
 
 				if (equipped_inst && equipped_inst->GetItem()) {
@@ -381,7 +384,7 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 							),
 							bot_iter->GetCleanName()
 						),
-						EQ::invslot::GetInvPossessionsSlotName(slot_iter),
+						Bot::GetInvPossessionsSlotName(slot_iter),
 						linker.GenerateLink(),
 						Saylink::Silent(
 							fmt::format(
@@ -406,7 +409,7 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 							),
 							bot_iter->GetCleanName()
 						),
-						EQ::invslot::GetInvPossessionsSlotName(slot_iter),
+						Bot::GetInvPossessionsSlotName(slot_iter),
 						Saylink::Silent(
 							fmt::format(
 								"^inventorygive byname {}",

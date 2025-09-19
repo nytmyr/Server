@@ -48,7 +48,7 @@ void bot_command_inventory_give(Client* c, const Seperator* sep)
 	if (sep->IsNumber(slot_arg)) {
 		chosen_slot = atoi(sep->arg[slot_arg]);
 
-		if (!EQ::ValueWithin(chosen_slot, EQ::invslot::EQUIPMENT_BEGIN, EQ::invslot::EQUIPMENT_END)) {
+		if (!EQ::ValueWithin(chosen_slot, BotInventorySlots::EQUIPMENT_BEGIN, BotInventorySlots::EQUIPMENT_END)) { // VegasEQ
 			c->Message(Chat::Yellow, "Please enter a valid inventory slot.");
 
 			return;
@@ -111,26 +111,29 @@ void bot_command_inventory_list(Client* c, const Seperator* sep)
 	EQ::SayLinkEngine linker;
 	linker.SetLinkType(EQ::saylink::SayLinkItemInst);
 
-	uint32      inventory_count = 0;
-	for (uint16 slot_id         = EQ::invslot::EQUIPMENT_BEGIN; slot_id <= EQ::invslot::EQUIPMENT_END; ++slot_id) {
+	uint32 inventory_count = 0;
+
+	for (uint16 slot_id = BotInventorySlots::EQUIPMENT_BEGIN; slot_id <= BotInventorySlots::EQUIPMENT_END; ++slot_id) { // VegasEQ
 		if (slot_id == EQ::invslot::slotSecondary && is_2h_weapon) {
 			continue;
 		}
 
 		inst = my_bot->CastToBot()->GetBotItem(slot_id);
+
 		if (!inst || !inst->GetItem()) {
 			c->Message(
 				Chat::White,
 				fmt::format(
 					"Slot {} ({}) | Empty",
 					slot_id,
-					EQ::invslot::GetInvPossessionsSlotName(slot_id)
+					Bot::GetInvPossessionsSlotName(slot_id)
 				).c_str()
 			);
 			continue;
 		}
 
 		item = inst->GetItem();
+
 		if (slot_id == EQ::invslot::slotPrimary && item->IsType2HWeapon()) {
 			is_2h_weapon = true;
 		}
@@ -141,7 +144,7 @@ void bot_command_inventory_list(Client* c, const Seperator* sep)
 			fmt::format(
 				"Slot {} ({}) | {} | {}",
 				slot_id,
-				EQ::invslot::GetInvPossessionsSlotName(slot_id),
+				Bot::GetInvPossessionsSlotName(slot_id),
 				linker.GenerateLink(),
 				Saylink::Silent(
 					fmt::format("^inventoryremove {}", slot_id),
@@ -211,8 +214,9 @@ void bot_command_inventory_remove(Client* c, const Seperator* sep)
 	}
 
 	auto slot_id = static_cast<uint16>(Strings::ToUnsignedInt(sep->arg[1]));
-	if (slot_id > EQ::invslot::EQUIPMENT_END || slot_id < EQ::invslot::EQUIPMENT_BEGIN) {
-		c->Message(Chat::White, "Valid slots are 0 to 22.");
+
+	if (slot_id > BotInventorySlots::EQUIPMENT_END || slot_id < BotInventorySlots::EQUIPMENT_BEGIN) { // VegasEQ
+		c->Message(Chat::White, fmt::format("Valid slots are {} to {}.", BotInventorySlots::EQUIPMENT_END, BotInventorySlots::EQUIPMENT_BEGIN).c_str()); // VegasEQ
 		return;
 	}
 
@@ -234,7 +238,7 @@ void bot_command_inventory_remove(Client* c, const Seperator* sep)
 		my_bot->OwnerMessage(
 			fmt::format(
 				"My {} (Slot {}) {} already unequipped.",
-				EQ::invslot::GetInvPossessionsSlotName(slot_id),
+				Bot::GetInvPossessionsSlotName(slot_id),
 				slot_id,
 				slot_message
 			)
@@ -299,7 +303,7 @@ void bot_command_inventory_remove(Client* c, const Seperator* sep)
 			fmt::format(
 				"I have unequipped {} from my {} (Slot {}).",
 				linker.GenerateLink(),
-				EQ::invslot::GetInvPossessionsSlotName(slot_id),
+				Bot::GetInvPossessionsSlotName(slot_id),
 				slot_id
 			)
 		);
@@ -354,7 +358,7 @@ void bot_command_inventory_window(Client* c, const Seperator* sep)
 	);
 
 	std::string window_text = "<table>";
-	for (uint16 slot_id     = EQ::invslot::EQUIPMENT_BEGIN; slot_id <= EQ::invslot::EQUIPMENT_END; ++slot_id) {
+	for (uint16 slot_id     = BotInventorySlots::EQUIPMENT_BEGIN; slot_id <= BotInventorySlots::EQUIPMENT_END; ++slot_id) { // VegasEQ
 		const EQ::ItemData    * item = nullptr;
 		const EQ::ItemInstance* inst = my_bot->CastToBot()->GetBotItem(slot_id);
 		if (inst) {
@@ -364,7 +368,7 @@ void bot_command_inventory_window(Client* c, const Seperator* sep)
 		window_text.append(
 			fmt::format(
 				"<tr><td>{}</td><td>{}{}</c></td></tr>",
-				EQ::invslot::GetInvPossessionsSlotName(slot_id),
+				Bot::GetInvPossessionsSlotName(slot_id),
 				item ? "<c \"#00FF00\">" : "<c \"#FFFF00\">",
 				item ? item->Name : "Empty"
 			)

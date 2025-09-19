@@ -3671,7 +3671,7 @@ bool Bot::Spawn(Client* botCharacterOwner) {
 		// I re-enabled this until I can sort it out
 		const auto& m = GetBotItemSlots();
 		uint8 material_from_slot = 0xFF;
-		for (int slot_id = EQ::invslot::EQUIPMENT_BEGIN; slot_id <= EQ::invslot::EQUIPMENT_END; ++slot_id) {
+		for (int slot_id = BotInventorySlots::EQUIPMENT_BEGIN; slot_id <= BotInventorySlots::EQUIPMENT_END; ++slot_id) { // VegasEQ
 			if (m.find(slot_id) != m.end()) {
 				material_from_slot = EQ::InventoryProfile::CalcMaterialFromSlot(slot_id);
 				if (material_from_slot != 0xFF) {
@@ -4019,12 +4019,61 @@ void Bot::LevelBotWithClient(Client* c, uint8 new_level, bool send_appearance) {
 
 // Returns the item id that is in the bot inventory collection for the specified slot.
 EQ::ItemInstance* Bot::GetBotItem(uint16 slot_id) {
+	if (slot_id == BotInventorySlots::Quiver) {
+		auto t_inv = GetInv().GetPersonal();
+		auto inst = t_inv[slot_id];
+
+		if (!inst) {
+			return nullptr;
+		}
+
+		auto item = inst->GetItem();
+
+		if (item && IsQuiver(item)) {
+			return inst;
+		}
+	}
+
 	EQ::ItemInstance* item = m_inv.GetItem(slot_id);
+
 	if (item) {
 		return item;
 	}
 
 	return nullptr;
+}
+
+int16 Bot::PutItem(int16 slot_id, const EQ::ItemInstance& inst,EQ::InventoryProfile& inventory_inst) {
+	if (!inst) {
+		return slot_id;
+	}
+
+	auto item = inst.GetItem(); //deleteme
+
+	if (slot_id == BotInventorySlots::Quiver) {
+		inventory_inst.DeleteItem(slot_id);
+
+		auto inst_clone = inst.Clone();
+
+		if (!inst_clone) {
+			//Why do we not delete the poped item here????
+			inventory_inst.PopItem(slot_id);
+
+			return slot_id;
+		}
+
+		inst_clone->SetEvolveEquipped(false);
+
+		if (inst_clone->IsEvolving()) {
+			inst_clone->SetEvolveEquipped(true);
+		}
+
+		inventory_inst.ForceIntoInv(slot_id, inst_clone);
+
+		return slot_id;
+	}
+
+	inventory_inst.PutItem(slot_id, inst);
 }
 
 // Adds the specified item it bot to the NPC equipment array and to the bot inventory collection.
@@ -4077,7 +4126,7 @@ void Bot::BotTradeAddItem(const EQ::ItemInstance* inst, uint16 slot_id, bool sav
 			return;
 		}
 
-		m_inv.PutItem(slot_id, *inst);
+		PutItem(slot_id, *inst, m_inv);
 	}
 
 	auto item_id = inst ? inst->GetID() : 0;
@@ -4131,7 +4180,7 @@ void Bot::AddBotItem(
 		return;
 	}
 
-	m_inv.PutItem(slot_id, *inst);
+	PutItem(slot_id, *inst, m_inv);
 	safe_delete(inst);
 
 	BotAddEquipItem(slot_id, item_id);
@@ -4141,7 +4190,7 @@ uint32 Bot::CountBotItem(uint32 item_id) {
 	uint32 item_count = 0;
 	EQ::ItemInstance *inst = nullptr;
 
-	for (uint16 slot_id = EQ::invslot::EQUIPMENT_BEGIN; slot_id <= EQ::invslot::EQUIPMENT_END; ++slot_id) {
+	for (uint16 slot_id = BotInventorySlots::EQUIPMENT_BEGIN; slot_id <= BotInventorySlots::EQUIPMENT_END; ++slot_id) { // VegasEQ
 		inst = GetBotItem(slot_id);
 		if (!inst || !inst->GetItem()) {
 			continue;
@@ -4158,7 +4207,7 @@ uint32 Bot::CountBotItem(uint32 item_id) {
 int16 Bot::HasBotItem(uint32 item_id) {
 	EQ::ItemInstance const *inst = nullptr;
 
-	for (uint16 slot_id = EQ::invslot::EQUIPMENT_BEGIN; slot_id <= EQ::invslot::EQUIPMENT_END; ++slot_id) {
+	for (uint16 slot_id = BotInventorySlots::EQUIPMENT_BEGIN; slot_id <= BotInventorySlots::EQUIPMENT_END; ++slot_id) { // VegasEQ
 		inst = GetBotItem(slot_id);
 		if (!inst || !inst->GetItem()) {
 			continue;
@@ -4173,7 +4222,7 @@ int16 Bot::HasBotItem(uint32 item_id) {
 void Bot::RemoveBotItem(uint32 item_id) {
 	EQ::ItemInstance *inst = nullptr;
 
-	for (uint16 slot_id = EQ::invslot::EQUIPMENT_BEGIN; slot_id <= EQ::invslot::EQUIPMENT_END; ++slot_id) {
+	for (uint16 slot_id = BotInventorySlots::EQUIPMENT_BEGIN; slot_id <= BotInventorySlots::EQUIPMENT_END; ++slot_id) { // VegasEQ
 		inst = GetBotItem(slot_id);
 		if (!inst || !inst->GetItem()) {
 			continue;
@@ -4298,7 +4347,7 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 		bot_equip_order.emplace_back(chosen_slot);
 	}
 	else {
-		for (int16 i = 0; i < invslot::EQUIPMENT_COUNT; ++i) {
+		for (int16 i = 0; i < BotInventorySlots::EQUIPMENT_COUNT; ++i) {
 			bot_equip_order.push_back(i);
 		}
 	}
@@ -4494,7 +4543,11 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 			}
 		}
 
-		if (!trade_instance->IsType(item::ItemClassCommon)) {
+		auto trade_item = trade_instance->GetItem();
+		bool valid_item_class = trade_instance->IsType(item::ItemClassCommon) ||
+			IsQuiver(trade_item);
+
+		if (!valid_item_class) {
 			if (trade_event_exists) {
 				event_trade.push_back(ClientTrade(trade_instance, trade_index));
 				continue;
@@ -4505,16 +4558,12 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 			}
 		}
 
-		if (
-			(
-				!trade_instance->IsClassEquipable(GetClass()) &&
-				!RuleB(Bots, AllowBotEquipAnyClassGear)
-			) ||
-			GetLevel() < trade_instance->GetItem()->ReqLevel ||
-			(
-				!trade_instance->IsRaceEquipable(GetBaseRace()) &&
-				!RuleB(Bots, AllowBotEquipAnyRaceGear)
-			)
+		bool is_level_equippable = GetLevel() >= trade_instance->GetItem()->ReqLevel;
+		bool is_class_equippable = RuleB(Bots, AllowBotEquipAnyClassGear) || trade_instance->IsClassEquipable(GetClass());
+		bool is_race_equippable = RuleB(Bots, AllowBotEquipAnyRaceGear) || trade_instance->IsRaceEquipable(GetBaseRace());
+
+		if (!IsQuiver(trade_item) &&
+			(!is_level_equippable || !is_class_equippable || !is_race_equippable)
 		) {
 			if (trade_event_exists) {
 				event_trade.push_back(ClientTrade(trade_instance, trade_index));
@@ -4578,8 +4627,12 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 			//if ((stage_loop == stageStackable) && !trade_instance->IsStackable())
 			//	continue;
 
+			auto trade_item = trade_instance->GetItem();
+
 			for (auto index : bot_equip_order) {
-				if (!(trade_instance->GetItem()->Slots & (1 << index))) {
+				bool valid_quiver = index == BotInventorySlots::Quiver && IsQuiver(trade_item);
+
+				if (!valid_quiver && !(trade_instance->GetItem()->Slots & (1 << index))) {
 					continue;
 				}
 
@@ -4859,7 +4912,7 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 			)
 		);
 
-		m_inv.PutItem(trade_iterator.to_bot_slot, *trade_iterator.trade_item_instance);
+		PutItem(trade_iterator.to_bot_slot, *trade_iterator.trade_item_instance, m_inv);
 		BotAddEquipItem(trade_iterator.to_bot_slot, (trade_iterator.trade_item_instance ? trade_iterator.trade_item_instance->GetID() : 0));
 
 		if (parse->BotHasQuestSub(EVENT_EQUIP_ITEM_BOT)) {
@@ -4880,7 +4933,7 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 
 		// database currently has unattuned item saved in inventory..it will be attuned on next bot load
 		// this prevents unattuned item returns in the mean time (TODO: re-work process)
-		if (trade_iterator.to_bot_slot >= invslot::EQUIPMENT_BEGIN && trade_iterator.to_bot_slot <= invslot::EQUIPMENT_END) {
+		if (trade_iterator.to_bot_slot >= BotInventorySlots::EQUIPMENT_BEGIN && trade_iterator.to_bot_slot <= BotInventorySlots::EQUIPMENT_END) { // VegasEQ
 			auto attune_item = m_inv.GetItem(trade_iterator.to_bot_slot);
 			if (attune_item && attune_item->GetItem()->Attuneable) {
 				attune_item->SetAttuned(true);
@@ -5728,7 +5781,7 @@ void Bot::EquipBot() {
 	GetBotItems(m_inv);
 	const EQ::ItemInstance* inst = nullptr;
 	const EQ::ItemData* item = nullptr;
-	for (int slot_id = EQ::invslot::EQUIPMENT_BEGIN; slot_id <= EQ::invslot::EQUIPMENT_END; ++slot_id) {
+	for (int slot_id = BotInventorySlots::EQUIPMENT_BEGIN; slot_id <= BotInventorySlots::EQUIPMENT_END; ++slot_id + 1) { // VegasEQ
 		inst = GetBotItem(slot_id);
 		if (inst) {
 			item = inst->GetItem();
@@ -5830,15 +5883,32 @@ void Bot::SetAttackTimer() {
 
 		int hhe = (itembonuses.HundredHands + spellbonuses.HundredHands);
 		int speed = 0;
-		int delay = 36;
+		int delay = 3600;
+
 		if (ItemToUse == nullptr) {
-			delay = GetHandToHandDelay();
+			delay = 100 * GetHandToHandDelay();
 		} else {
-			delay = ItemToUse->Delay;
+			delay = 100 * ItemToUse->Delay;
 		}
 
-		speed = (RuleB(Spells, Jun182014HundredHandsRevamp) ? static_cast<int>(((delay / haste_mod) + ((hhe / 1000.0f) * (delay / haste_mod))) * 100) : static_cast<int>(((delay / haste_mod) + ((hhe / 100.0f) * delay)) * 100));
-		TimerToUse->SetAtTrigger(std::max(RuleI(Combat, MinHastedDelay), speed), true, true);
+		speed = delay / haste_mod;
+
+		//LogTestDebug("Starting [{}] attack timer for {} is [{}]. Delay: [{}], HasteMod: [{}], Speed: [{}]", Bot::GetInvPossessionsSlotName(i), GetCleanName(), speed / 100, delay, haste_mod, speed); //deleteme
+
+		if (ItemToUse && ItemToUse->ItemType == EQ::item::ItemTypeBow) { // VegasEQ
+			speed = std::max(speed - GetQuiverHaste(speed), RuleI(Combat, QuiverHasteCap));
+		}
+		else {
+			if (RuleB(Spells, Jun182014HundredHandsRevamp))
+				speed = static_cast<int>(speed + ((hhe / 1000.0f) * speed));
+			else
+				speed = static_cast<int>(speed + ((hhe / 100.0f) * delay));
+		}
+
+		speed = std::max(RuleI(Combat, MinHastedDelay), speed);
+
+		TimerToUse->SetAtTrigger(speed, true, true);
+		//LogTestDebug("Capped [{}] attack timer for {} is [{}]. Delay: [{}], HasteMod: [{}], Speed: [{}]", Bot::GetInvPossessionsSlotName(i), GetCleanName(), speed / 100.0, delay, haste_mod, speed); //deleteme
 
 		if (i == EQ::invslot::slotPrimary)
 			PrimaryWeapon = ItemToUse;
@@ -7342,7 +7412,7 @@ void Bot::ProcessBotInspectionRequest(Bot* inspectedBot, Client* client) {
 		const EQ::ItemData* item = nullptr;
 		const EQ::ItemInstance* inst = nullptr;
 
-		for (int16 L = EQ::invslot::EQUIPMENT_BEGIN; L <= EQ::invslot::EQUIPMENT_END; L++) {
+		for (int16 L = BotInventorySlots::EQUIPMENT_BEGIN; L <= BotInventorySlots::EQUIPMENT_END; L++) { // VegasEQ
 			inst = inspectedBot->GetBotItem(L);
 
 			if (inst) {
@@ -7779,7 +7849,7 @@ uint32 Bot::CalcCurrentWeight() {
 	const EQ::ItemData* TempItem = nullptr;
 	EQ::ItemInstance* inst = nullptr;
 	uint32 Total = 0;
-	for (int i = EQ::invslot::EQUIPMENT_BEGIN; i <= EQ::invslot::EQUIPMENT_END; ++i) {
+	for (int i = BotInventorySlots::EQUIPMENT_BEGIN; i <= BotInventorySlots::EQUIPMENT_END; ++i) { // VegasEQ
 		inst = GetBotItem(i);
 		if (inst) {
 			TempItem = inst->GetItem();
@@ -9493,6 +9563,10 @@ EQ::ItemInstance *Bot::GetClickItem(uint16 slot_id)
 
 void Bot::DoItemClick(const EQ::ItemData *item, uint16 slot_id)
 {
+	if (!item) {
+		return ;
+	}
+
 	bool is_casting_bard_song = false;
 	Mob* tar = (GetOwner()->GetTarget() ? GetOwner()->GetTarget() : this);
 
@@ -13513,10 +13587,40 @@ bool Bot::HasControllablePet(uint8 ranks_required) {
 }
 
 // VegasEQ - START
+bool Bot::IsQuiver(const EQ::ItemData *item) {
+	if (!item) {
+		return false;
+	}
+
+	return item->ItemClass == EQ::item::ItemClassBag && item->BagType == EQ::item::BagTypeQuiver && item->BagWR > 0;
+
+}
+const char* Bot::GetInvPossessionsSlotName(int16 inv_slot) {
+	if (inv_slot == BotInventorySlots::Quiver) { // VegasEQ
+		return "Quiver";
+	}
+
+	return EQ::invslot::GetInvPossessionsSlotName(inv_slot);
+}
+
+int Bot::GetQuiverHaste(int delay) {
+	const EQ::ItemInstance* inst = GetBotItem(BotInventorySlots::Quiver);
+
+	if (inst) {
+		const EQ::ItemData* item = inst->GetItem();
+
+		if (item && IsQuiver(item)) {
+			return (item->BagWR * 0.0025f * delay) + 1;
+		}
+	}
+
+	return 0;
+}
+
 float Bot::GetTotalGearScore() {
 	uint32 total_score = 0;
 
-	for (int i = EQ::invslot::EQUIPMENT_BEGIN; i <= EQ::invslot::EQUIPMENT_END; i++) {
+	for (int i = BotInventorySlots::EQUIPMENT_BEGIN; i <= BotInventorySlots::EQUIPMENT_END; i++) { // VegasEQ
 		const EQ::ItemInstance* inst = GetBotItem(i);
 
 		if (inst && inst->GetItem()) {

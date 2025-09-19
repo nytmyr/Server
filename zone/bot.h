@@ -235,6 +235,16 @@ namespace BotAnimEmpathy {
 	constexpr uint8 BackOff             = 3;
 };
 
+// VegasEQ - START
+namespace BotInventorySlots {
+	const int16 EQUIPMENT_BEGIN             = EQ::invslot::EQUIPMENT_BEGIN;
+	const int16 EQUIPMENT_END               = EQ::invslot::EQUIPMENT_END + 1; // This acts as a Quiver slot
+	const int16 EQUIPMENT_COUNT             = (EQUIPMENT_END - EQUIPMENT_BEGIN) + 1;
+
+	const int16 Quiver                      = EQUIPMENT_END;
+};
+// VegasEQ - END
+
 class Bot : public NPC {
 	friend class Mob;
 public:
@@ -790,6 +800,7 @@ public:
 	Mob* GetBotOwner() { return this->_botOwner; }
 	uint32 GetBotRangedValue();
 	EQ::ItemInstance* GetBotItem(uint16 slot_id);
+	static int16 PutItem(int16 slot_id, const EQ::ItemInstance& inst, EQ::InventoryProfile &inventory_inst);
 	bool GetSpawnStatus() { return _spawnStatus; }
 	uint8 GetPetChooserID() { return _petChooserID; }
 	bool HasControllablePet(uint8 ranks_required = 0);
@@ -1117,7 +1128,10 @@ public:
 	static bool CheckSpawnLimit(Client* c, uint8 bot_class = Class::None);
 
 	// VegasEQ - START
+	static bool IsQuiver(const EQ::ItemData* item);
+	int GetQuiverHaste(int delay);
 	float GetTotalGearScore();
+	static const char* GetInvPossessionsSlotName(int16 inv_slot);
 	// VegasEQ - END
 
 protected:

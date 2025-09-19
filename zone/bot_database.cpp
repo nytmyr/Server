@@ -990,7 +990,7 @@ bool BotDatabase::LoadItems(const uint32 bot_id, EQ::InventoryProfile& inventory
 	}
 
 	for (const auto& e : l) {
-		if (!EQ::ValueWithin(e.slot_id, EQ::invslot::EQUIPMENT_BEGIN, EQ::invslot::EQUIPMENT_END)) {
+		if (!EQ::ValueWithin(e.slot_id, BotInventorySlots::EQUIPMENT_BEGIN, BotInventorySlots::EQUIPMENT_END)) { // VegasEQ
 			continue;
 		}
 
@@ -1034,7 +1034,7 @@ bool BotDatabase::LoadItems(const uint32 bot_id, EQ::InventoryProfile& inventory
 		if (inst->GetItem()->Attuneable) {
 			if (e.inst_no_drop) {
 				inst->SetAttuned(true);
-			} else if (EQ::ValueWithin(e.slot_id, EQ::invslot::EQUIPMENT_BEGIN, EQ::invslot::EQUIPMENT_END)) {
+			} else if (EQ::ValueWithin(e.slot_id, BotInventorySlots::EQUIPMENT_BEGIN, BotInventorySlots::EQUIPMENT_END)) { // VegasEQ
 				inst->SetAttuned(true);
 			}
 		}
@@ -1047,7 +1047,7 @@ bool BotDatabase::LoadItems(const uint32 bot_id, EQ::InventoryProfile& inventory
 		inst->SetOrnamentationIDFile(e.ornament_id_file);
 		inst->SetOrnamentHeroModel(e.ornament_hero_model);
 
-		if (inventory_inst.PutItem(e.slot_id, *inst) == INVALID_INDEX) {
+		if (Bot::PutItem(e.slot_id, *inst, inventory_inst) == INVALID_INDEX) {
 			LogError(
 				"Warning: Invalid slot_id for item in inventory: bot_id [{}] item_id [{}] slot_id [{}]",
 				bot_id,
@@ -1075,7 +1075,7 @@ bool BotDatabase::DeleteItems(const uint32 bot_id)
 
 bool BotDatabase::LoadItemBySlot(const uint32 bot_id, const uint32 slot_id, uint32& item_id)
 {
-	if (!bot_id || slot_id > EQ::invslot::EQUIPMENT_END) {
+	if (!bot_id || slot_id > BotInventorySlots::EQUIPMENT_END) { // VegasEQ
 		return false;
 	}
 
@@ -1129,7 +1129,7 @@ bool BotDatabase::SaveItemBySlot(Bot* b, const uint32 slot_id, const EQ::ItemIns
 	if (
 		!b ||
 		!b->GetBotID() ||
-		slot_id > EQ::invslot::EQUIPMENT_END
+		slot_id > BotInventorySlots::EQUIPMENT_END // VegasEQ
 	) {
 		return false;
 	}
@@ -1178,7 +1178,7 @@ bool BotDatabase::SaveItemBySlot(Bot* b, const uint32 slot_id, const EQ::ItemIns
 
 bool BotDatabase::DeleteItemBySlot(const uint32 bot_id, const uint32 slot_id)
 {
-	if (!bot_id || slot_id > EQ::invslot::EQUIPMENT_END) {
+	if (!bot_id || slot_id > BotInventorySlots::EQUIPMENT_END) { // VegasEQ
 		return false;
 	}
 
@@ -1202,7 +1202,7 @@ bool BotDatabase::SaveEquipmentColor(const uint32 bot_id, const int16 slot_id, c
 
 	const bool all_flag = (slot_id == -2);
 
-	if (!EQ::ValueWithin(slot_id, EQ::invslot::EQUIPMENT_BEGIN, EQ::invslot::EQUIPMENT_END) && !all_flag) {
+	if (!EQ::ValueWithin(slot_id, BotInventorySlots::EQUIPMENT_BEGIN, BotInventorySlots::EQUIPMENT_END) && !all_flag) { // VegasEQ
 		return false;
 	}
 
@@ -1510,10 +1510,10 @@ bool BotDatabase::LoadPetItems(const uint32 bot_id, uint32* pet_items)
 		return true;
 	}
 
-	int16 slot_id = EQ::invslot::EQUIPMENT_BEGIN;
+	int16 slot_id = BotInventorySlots::EQUIPMENT_BEGIN;
 
 	for (const auto& e : l) {
-		if (!EQ::ValueWithin(slot_id, EQ::invslot::EQUIPMENT_BEGIN, EQ::invslot::EQUIPMENT_END)) {
+		if (!EQ::ValueWithin(slot_id, BotInventorySlots::EQUIPMENT_BEGIN, BotInventorySlots::EQUIPMENT_END)) { // VegasEQ
 			break;
 		}
 
@@ -1552,7 +1552,7 @@ bool BotDatabase::SavePetItems(const uint32 bot_id, const uint32* pet_items, boo
 
 	std::vector<BotPetInventoriesRepository::BotPetInventories> v;
 
-	for (int slot_id = EQ::invslot::EQUIPMENT_BEGIN; slot_id <= EQ::invslot::EQUIPMENT_END; ++slot_id) {
+	for (int slot_id = BotInventorySlots::EQUIPMENT_BEGIN; slot_id <= BotInventorySlots::EQUIPMENT_END; ++slot_id) { // VegasEQ
 		if (!pet_items[slot_id]) {
 			continue;
 		}

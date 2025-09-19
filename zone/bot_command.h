@@ -997,7 +997,7 @@ namespace ActionableBots
 				continue;
 
 			mod_skill_value = base_skill_value;
-			for (int16 index = EQ::invslot::EQUIPMENT_BEGIN; index <= EQ::invslot::EQUIPMENT_END; ++index) {
+			for (int16 index = BotInventorySlots::EQUIPMENT_BEGIN; index <= BotInventorySlots::EQUIPMENT_END; ++index) { // VegasEQ
 				const EQ::ItemInstance* indexed_item = bot_iter->GetBotItem(index);
 				if (indexed_item && indexed_item->GetItem()->SkillModType == skill_type)
 					mod_skill_value += (base_skill_value * (((float)indexed_item->GetItem()->SkillModValue) / 100.0f));

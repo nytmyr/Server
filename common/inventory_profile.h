@@ -214,6 +214,10 @@ namespace EQ
 
 		inline int16 PushItem(int16 slot_id, ItemInstance* inst) { return _PutItem(slot_id, inst); }
 
+		// VegasEQ - START
+		inline void ForceIntoInv(int16 slot_id, ItemInstance* inst) { m_inv[slot_id] = inst; } // Do not use without sanity checks
+		// VegasEQ - END
+
 	protected:
 		///////////////////////////////
 		// Protected Methods

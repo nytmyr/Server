@@ -27,8 +27,8 @@ void bot_command_click_item(Client* c, const Seperator* sep)
 	if (sep->IsNumber(1)) {
 		++ab_arg;
 		slot_id = atoi(sep->arg[1]);
-		if (slot_id < EQ::invslot::EQUIPMENT_BEGIN || slot_id > EQ::invslot::EQUIPMENT_END) {
-			c->Message(Chat::Yellow, "You must specify a valid inventory slot from 0 to 22. Use %s help for more information", sep->arg[0]);
+		if (slot_id < BotInventorySlots::EQUIPMENT_BEGIN || slot_id > BotInventorySlots::EQUIPMENT_END) { // VegasEQ
+			c->Message(Chat::Yellow, "You must specify a valid inventory slot from {} to {}. Use %s help for more information", BotInventorySlots::EQUIPMENT_BEGIN, BotInventorySlots::EQUIPMENT_END, sep->arg[0]);
 			return;
 		}
 	}
