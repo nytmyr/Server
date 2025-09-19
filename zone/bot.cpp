@@ -5394,8 +5394,9 @@ void Bot::DoClassAttacks(Mob *target, bool IsRiposte) {
 	}
 
 	bool taunt_time = taunt_timer.Check();
-	bool ca_time = classattack_timer.Check(false);
-	bool ma_time = monkattack_timer.Check(false);
+	bool ca_time    = classattack_timer.Check(false);
+	bool ma_time    = monkattack_timer.Check(false);
+	bool ce_time    = classepic_timer.Check(); // VegasEQ
 
 	if (taunt_time) {
 
@@ -5405,13 +5406,32 @@ void Bot::DoClassAttacks(Mob *target, bool IsRiposte) {
 			taunt_timer.Disable();
 			return;
 		}
+	}
 
-		if (!IsAttackAllowed(target)) {
-			return;
+	if (ce_time) { // VegasEQ
+		switch (GetClass()) {
+			case Class::Monk: {
+				if (!RuleB(VegasBots, MonkEpicEnabled)) {
+					classepic_timer.Disable();
+
+					break;
+				}
+
+				if (HasEpicEquipped() && CanBuffStack(RuleI(VegasBots, MonkEpicSpell), GetLevel(), true) >= 0) {
+					CastSpell(RuleI(VegasBots, MonkEpicSpell), GetID());
+					classepic_timer.Start(RuleI(VegasBots, MonkEpicDelay));
+				}
+
+				break;
+			}
+			default:
+				classepic_timer.Disable();
+
+				break;
 		}
 	}
 
-	if ((ca_time || ma_time) && !IsAttackAllowed(target)) {
+	if ((ca_time || ma_time)) {
 		return;
 	}
 
@@ -7466,6 +7486,10 @@ void Bot::CalcBotStats(bool showtext) {
 
 	if (GetClass() == Class::Monk && GetLevel() >= 10) {
 		monkattack_timer.Start(1000);
+	}
+
+	if (HasEpicEquipped()) {
+		classattack_timer.Start(1000);
 	}
 
 	LoadAAs();
@@ -13629,5 +13653,26 @@ float Bot::GetTotalGearScore() {
 	}
 
 	return total_score;
+}
+
+bool Bot::HasEpicEquipped() {
+	switch (GetClass()) {
+		case Class::Monk: {
+			int epic_ids[] = { 10652, 610652, 810652 };
+
+			for (int i : epic_ids) {
+				if (HasBotItem(i) != INVALID_INDEX) {
+					return true;
+				}
+			}
+
+			break;
+		}
+		default:
+			break;
+	}
+
+	classattack_timer.Disable();
+	return false;
 }
 // VegasEQ - END

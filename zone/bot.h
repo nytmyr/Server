@@ -1132,6 +1132,7 @@ public:
 	int GetQuiverHaste(int delay);
 	float GetTotalGearScore();
 	static const char* GetInvPossessionsSlotName(int16 inv_slot);
+	bool HasEpicEquipped();
 	// VegasEQ - END
 
 protected:

@@ -137,6 +137,7 @@ NPC::NPC(const NPCType *npc_type_data, Spawn2 *in_respawn, const glm::vec4 &posi
 	  classattack_timer(1000),
 	  monkattack_timer(1000),
 	  knightattack_timer(1000),
+	  classepic_timer(1000), // VegasEQ
 	  assist_timer(AIassistcheck_delay),
 	  qglobal_purge_timer(30000),
 	  send_hp_update_timer(2000),
@@ -375,6 +376,11 @@ NPC::NPC(const NPCType *npc_type_data, Spawn2 *in_respawn, const glm::vec4 &posi
 	// some overrides -- really we need to be able to set skills for mobs in the DB
 	// There are some known low level SHM/BST pets that do not follow this, which supports
 	// the theory of needing to be able to set skills for each mob separately
+
+	if (!IsBot()) { // VegasEQ
+		classattack_timer.Disable();
+	}
+
 	if (IsBot()) {
 		if (GetClass() != Class::Paladin && GetClass() != Class::ShadowKnight) {
 			knightattack_timer.Disable();

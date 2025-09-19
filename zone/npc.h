@@ -841,6 +841,8 @@ protected:
 	// VegasEQ - START
 	bool	isStuck;
 	uint16	stuckCount;
+
+	Timer	classepic_timer;            //Class epic timers
 	// VegasEQ - END
 
 	SwarmPet *swarmInfoPtr;

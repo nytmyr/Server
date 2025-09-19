@@ -1205,6 +1205,9 @@ RULE_BOOL(VegasBots, TieredSpawnLimits, true, "Determines whether or not bot spa
 RULE_STRING(VegasBots, SpawnLimitsByTier, "1,2,3,4,5", "Spawn limits for bot spawn tiers in a comma-delimited list. Default '1,2,3,4,5'")
 RULE_STRING(VegasBots, UnlockLevelByTier, "5,10,25,40,50", "Level required to unlock spawn limit tiers in a comma-delimited list. Default '5,10,25,40,50'")
 RULE_INT(VegasBots, LevelForExtraBots, 50, "Level at which you can surpass the tier limits via other methods. Default 50.")
+RULE_BOOL(VegasBots, MonkEpicEnabled, false, "Determines whether or not Monk Bots will use their epic if equipped. Default False.")
+RULE_INT(VegasBots, MonkEpicDelay, 19000, "MS delay for Monk Epic Timer. Default 19000.")
+RULE_INT(VegasBots, MonkEpicSpell, 1940, "Spell ID for Monk Epic. Default 1940.")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(VegasNPCs)
