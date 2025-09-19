@@ -1032,17 +1032,14 @@ int Strings::GetDelimitedStringsMatchingElement(std::string delimiter, std::stri
 	const auto& split_string_two = Split(string_two, delimiter);
 
 	if (delimiter.empty() || split_string_one.empty() || match_one.empty()) {
-		LogTestDebug("delimiter.empty() || split_string_one.empty() || match_one.empty(), returning"); //deleteme
 		return -1;
 	}
 
 	if (!string_two.empty() && match_two.empty()) {
-		LogTestDebug("!string_two.empty() && match_two.empty(), returning"); //deleteme
 		return -1;
 	}
 
 	if (!string_two.empty() && split_string_one.size() != split_string_two.size()) {
-		LogTestDebug("!string_two.empty() && split_string_one.size() != split_string_two.size(), returning"); //deleteme
 		return -1;
 	}
 
@@ -1056,11 +1053,9 @@ int Strings::GetDelimitedStringsMatchingElement(std::string delimiter, std::stri
 					(split_string_two[i] == match_two)
 				)
 			) {
-				LogTestDebug("Found a match in string1, element [{}] = [{}] -- [{}] = [{}]", i, result, !string_two.empty() ? split_string_two[i] : "unused string2", !match_two.empty() ? match_two : "unused match_two"); //deleteme
 				return i;
 			}
 
-			LogTestDebug("No match found for element [{}], continuing", i); //deleteme
 			++i;
 		}
 

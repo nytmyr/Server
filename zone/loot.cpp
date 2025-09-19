@@ -1768,7 +1768,7 @@ void NPC::AttemptVegasSpellLoot(Mob* top_client) {
 	int rolled;
 	std::string vegas_loot_type;
 
-	LogVegasLoot("INFO: Rule sizes - spell_tier_min_levels ({}), spell_tier_max_levels ({}), spell_tier_lootdrop_ids ({}), spell_tier_bonus_low_lootdrop_ids ({}), spell_tier_bonus_high_lootdrop_ids ({}).", spell_tier_min_levels.size(), spell_tier_max_levels.size(), spell_tier_lootdrop_ids.size(), spell_tier_bonus_low_lootdrop_ids.size(), spell_tier_bonus_high_lootdrop_ids.size()); //deleteme
+	//LogVegasLootDetail("INFO: Rule sizes - spell_tier_min_levels ({}), spell_tier_max_levels ({}), spell_tier_lootdrop_ids ({}), spell_tier_bonus_low_lootdrop_ids ({}), spell_tier_bonus_high_lootdrop_ids ({}).", spell_tier_min_levels.size(), spell_tier_max_levels.size(), spell_tier_lootdrop_ids.size(), spell_tier_bonus_low_lootdrop_ids.size(), spell_tier_bonus_high_lootdrop_ids.size()); // Debug
 
 	if (
 		spell_tier_min_levels.size() == spell_tier_max_levels.size() &&
@@ -1781,19 +1781,19 @@ void NPC::AttemptVegasSpellLoot(Mob* top_client) {
 			rolled = zone->random.Int(1, roll_max);
 
 			if (rolled >= (RuleI(VegasLoot, VegasSpellRollMaxHit) / std::max(0.01f, RuleR(VegasLoot, SpellMultiplier)))) {
-				LogVegasLoot("Max Spell Roll hit on [{}] for [{}]. Roll [{}] | To Hit [{}].", GetCleanName(), top_client->GetCleanName(), rolled, RuleI(VegasLoot, VegasSpellRollMaxHit)); //deleteme
+				LogVegasLoot("Max Spell Roll hit on [{}] for [{}]. Roll [{}] | To Hit [{}].", GetCleanName(), top_client->GetCleanName(), rolled, RuleI(VegasLoot, VegasSpellRollMaxHit)); // Debug
 				raid_target && !RaidTargetsNotCountAsRaid() ? vegas_loot_type = "Raid-Max" : rare_spawn ? vegas_loot_type = "Rare-Max" : vegas_loot_type = "Common-Max";
 
 				chosen_type = &spell_tier_bonus_high_lootdrop_ids;
 			}
 			else if (rolled >= (RuleI(VegasLoot, VegasSpellRollNormalHit) / std::max(0.01f, RuleR(VegasLoot, SpellMultiplier)))) {
-				LogVegasLoot("Normal Spell Roll hit on [{}] for [{}]. Roll [{}] | To Hit [{}].", GetCleanName(), top_client->GetCleanName(), rolled, RuleI(VegasLoot, VegasSpellRollNormalHit)); //deleteme
+				LogVegasLoot("Normal Spell Roll hit on [{}] for [{}]. Roll [{}] | To Hit [{}].", GetCleanName(), top_client->GetCleanName(), rolled, RuleI(VegasLoot, VegasSpellRollNormalHit)); // Debug
 				raid_target && !RaidTargetsNotCountAsRaid() ? vegas_loot_type = "Raid-Normal" : rare_spawn ? vegas_loot_type = "Rare-Normal" : vegas_loot_type = "Common-Normal";
 
 				chosen_type = &spell_tier_lootdrop_ids;
 			}
 			else if (rolled >= (RuleI(VegasLoot, VegasSpellRollMinHit) / std::max(0.01f, RuleR(VegasLoot, SpellMultiplier)))) {
-				LogVegasLoot("Min Spell Roll hit on [{}] for [{}]. Roll [{}] | To Hit [{}].", GetCleanName(), top_client->GetCleanName(), rolled, RuleI(VegasLoot, VegasSpellRollMinHit)); //deleteme
+				LogVegasLoot("Min Spell Roll hit on [{}] for [{}]. Roll [{}] | To Hit [{}].", GetCleanName(), top_client->GetCleanName(), rolled, RuleI(VegasLoot, VegasSpellRollMinHit)); // Debug
 				raid_target && !RaidTargetsNotCountAsRaid() ? vegas_loot_type = "Raid-Min" : rare_spawn ? vegas_loot_type = "Rare-Min" : vegas_loot_type = "Common-Min";
 
 				chosen_type = &spell_tier_bonus_low_lootdrop_ids;
@@ -1805,7 +1805,7 @@ void NPC::AttemptVegasSpellLoot(Mob* top_client) {
 			}
 
 			if (chosen_type->size() != spell_tier_min_levels.size()) {
-				LogVegasLoot("ERROR: chosen_type size doesn't match the rules.",); //deleteme
+				LogVegasLoot("ERROR: chosen_type size doesn't match the rules."); // Debug
 
 				return;
 			}
@@ -1814,37 +1814,27 @@ void NPC::AttemptVegasSpellLoot(Mob* top_client) {
 				uint32 x = static_cast<uint32>((*chosen_type)[i]);
 
 				if (x <= 0) {
-					LogVegasLoot("chosen_type[{}] is <= 0, skipping.", i); //deleteme
-
 					continue;
 				}
 
 				if (spell_tier_min_levels[i] <= 0 || spell_tier_max_levels[i] <= 0) {
-					LogVegasLoot("Invalid tier [{}]: min_level=[{}], max_level=[{}], chosen_type[{}]=[{}], skipping.", i, spell_tier_min_levels[i], spell_tier_max_levels[i], i, x);
+					LogVegasLoot("Invalid tier [{}]: min_level=[{}], max_level=[{}], chosen_type[{}]=[{}], skipping.", i, spell_tier_min_levels[i], spell_tier_max_levels[i], i, x); // Debug
 
 					continue;
 				}
-
-				LogVegasLoot("Running checks on chosen_type[{}] for lootdrop ID - {}.", i, x); //deleteme
 
 				if (npc_level >= spell_tier_min_levels[i] && npc_level <= spell_tier_max_levels[i]) {
 					const EQ::ItemData* chosen_item = nullptr;
 					auto chosen_loot_drop = zone->GetLootdrop(x);
 					const auto chosen_loot_drop_entries = zone->GetLootdropEntries(x);
 
-					LogVegasLoot("chosen_loot_drop.id = {}, chosen_loot_drop_entries size = {}.", chosen_loot_drop.id, chosen_loot_drop_entries.size()); //deleteme
-
 					if (chosen_loot_drop.id == 0 || chosen_loot_drop_entries.empty()) {
-						LogVegasLoot("No spell loot drop found on [{}] for [{}].", GetCleanName(), top_client->GetCleanName()); //deleteme
-
 						continue;
 					}
 
 					chosen_item = database.GetItem(chosen_loot_drop_entries[zone->random.Int(0, chosen_loot_drop_entries.size())].item_id);
 
 					if (!chosen_item) {
-						LogVegasLoot("No spell item found on [{}] for [{}].", GetCleanName(), top_client->GetCleanName()); //deleteme
-
 						break;
 					}
 
@@ -1881,15 +1871,13 @@ void NPC::AttemptVegasSpellLoot(Mob* top_client) {
 
 					break;
 				}
-
-				LogVegasLoot("DEBUG: chosen_type[{}] ({}) doesn't match something - npc_level ({}), min_level ({}), max_level ({}) skipping.", i, x, npc_level, spell_tier_min_levels[i], spell_tier_max_levels[i]); //deleteme
 			}
 
 			--roll_count;
 		}
 	}
 	else {
-		LogVegasLoot("ERROR: Spell Tier rules are mismatched sizes."); //deleteme
+		LogVegasLoot("ERROR: Spell Tier rules are mismatched sizes."); // Debug
 	}
 }
 
@@ -1904,7 +1892,7 @@ void NPC::AttemptVegasBagLoot(Mob* top_client) {
 	std::string vegas_loot_type = raid_target && !RaidTargetsNotCountAsRaid() ? "Raid-Bag" : rare_spawn ? "Rare-Bag" : "Common-Bag";
 
 
-	LogVegasLoot("INFO: Rule sizes - bag_tier_min_levels ({}), bag_tier_max_levels ({}), bag_tier_lootdrop_ids ({}).", bag_tier_min_levels.size(), bag_tier_max_levels.size(), bag_tier_lootdrop_ids.size()); //deleteme
+	//LogVegasLootDetail("INFO: Rule sizes - bag_tier_min_levels ({}), bag_tier_max_levels ({}), bag_tier_lootdrop_ids ({}).", bag_tier_min_levels.size(), bag_tier_max_levels.size(), bag_tier_lootdrop_ids.size()); // Debug
 
 	if (
 		bag_tier_min_levels.size() == bag_tier_max_levels.size() &&
@@ -1918,37 +1906,27 @@ void NPC::AttemptVegasBagLoot(Mob* top_client) {
 					uint32 x = static_cast<uint32>((bag_tier_lootdrop_ids)[i]);
 
 					if (x <= 0) {
-						LogVegasLoot("chosen_type[{}] is <= 0, skipping.", i); //deleteme
-
 						continue;
 					}
 
 					if (bag_tier_min_levels[i] <= 0 || bag_tier_max_levels[i] <= 0) {
-						LogVegasLoot("Invalid tier [{}]: min_level=[{}], max_level=[{}], chosen_type[{}]=[{}], skipping.", i, bag_tier_min_levels[i], bag_tier_max_levels[i], i, x);
+						LogVegasLoot("Invalid tier [{}]: min_level=[{}], max_level=[{}], chosen_type[{}]=[{}], skipping.", i, bag_tier_min_levels[i], bag_tier_max_levels[i], i, x); // Debug
 
 						continue;
 					}
-
-					LogVegasLoot("Running checks on chosen_type[{}] for lootdrop ID - {}.", i, x); //deleteme
 
 					if (npc_level >= bag_tier_min_levels[i] && npc_level <= bag_tier_max_levels[i]) {
 						const EQ::ItemData* chosen_item = nullptr;
 						auto chosen_loot_drop = zone->GetLootdrop(x);
 						const auto chosen_loot_drop_entries = zone->GetLootdropEntries(x);
 
-						LogVegasLoot("chosen_loot_drop.id = {}, chosen_loot_drop_entries size = {}.", chosen_loot_drop.id, chosen_loot_drop_entries.size()); //deleteme
-
 						if (chosen_loot_drop.id == 0 || chosen_loot_drop_entries.empty()) {
-							LogVegasLoot("No bag loot drop found on [{}] for [{}].", GetCleanName(), top_client->GetCleanName()); //deleteme
-
 							continue;
 						}
 
 						chosen_item = database.GetItem(chosen_loot_drop_entries[zone->random.Int(0, chosen_loot_drop_entries.size())].item_id);
 
 						if (!chosen_item) {
-							LogVegasLoot("No bag item found on [{}] for [{}].", GetCleanName(), top_client->GetCleanName()); //deleteme
-
 							break;
 						}
 
@@ -2003,7 +1981,7 @@ void NPC::AttemptVegasBridleLoot(Mob* top_client) {
 	std::string vegas_loot_type = raid_target && !RaidTargetsNotCountAsRaid() ? "Raid-Bridle" : rare_spawn ? "Rare-Bridle" : "Common-Bridle";
 
 
-	LogVegasLoot("INFO: Rule sizes - bridle_tier_min_levels ({}), bridle_tier_max_levels ({}), bridle_tier_lootdrop_ids ({}).", bridle_tier_min_levels.size(), bridle_tier_max_levels.size(), bridle_tier_lootdrop_ids.size()); //deleteme
+	//LogVegasLootDetail("INFO: Rule sizes - bridle_tier_min_levels ({}), bridle_tier_max_levels ({}), bridle_tier_lootdrop_ids ({}).", bridle_tier_min_levels.size(), bridle_tier_max_levels.size(), bridle_tier_lootdrop_ids.size()); // Debug
 
 	if (
 		bridle_tier_min_levels.size() == bridle_tier_max_levels.size() &&
@@ -2017,37 +1995,27 @@ void NPC::AttemptVegasBridleLoot(Mob* top_client) {
 					uint32 x = static_cast<uint32>((bridle_tier_lootdrop_ids)[i]);
 
 					if (x <= 0) {
-						LogVegasLoot("chosen_type[{}] is <= 0, skipping.", i); //deleteme
-
 						continue;
 					}
 
 					if (bridle_tier_min_levels[i] <= 0 || bridle_tier_max_levels[i] <= 0) {
-						LogVegasLoot("Invalid tier [{}]: min_level=[{}], max_level=[{}], chosen_type[{}]=[{}], skipping.", i, bridle_tier_min_levels[i], bridle_tier_max_levels[i], i, x);
+						LogVegasLoot("Invalid tier [{}]: min_level=[{}], max_level=[{}], chosen_type[{}]=[{}], skipping.", i, bridle_tier_min_levels[i], bridle_tier_max_levels[i], i, x); // Debug
 
 						continue;
 					}
-
-					LogVegasLoot("Running checks on chosen_type[{}] for lootdrop ID - {}.", i, x); //deleteme
 
 					if (npc_level >= bridle_tier_min_levels[i] && npc_level <= bridle_tier_max_levels[i]) {
 						const EQ::ItemData* chosen_item = nullptr;
 						auto chosen_loot_drop = zone->GetLootdrop(x);
 						const auto chosen_loot_drop_entries = zone->GetLootdropEntries(x);
 
-						LogVegasLoot("chosen_loot_drop.id = {}, chosen_loot_drop_entries size = {}.", chosen_loot_drop.id, chosen_loot_drop_entries.size()); //deleteme
-
 						if (chosen_loot_drop.id == 0 || chosen_loot_drop_entries.empty()) {
-							LogVegasLoot("No bridle loot drop found on [{}] for [{}].", GetCleanName(), top_client->GetCleanName()); //deleteme
-
 							continue;
 						}
 
 						chosen_item = database.GetItem(chosen_loot_drop_entries[zone->random.Int(0, chosen_loot_drop_entries.size())].item_id);
 
 						if (!chosen_item) {
-							LogVegasLoot("No bridle item found on [{}] for [{}].", GetCleanName(), top_client->GetCleanName()); //deleteme
-
 							break;
 						}
 

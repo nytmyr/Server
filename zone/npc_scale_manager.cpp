@@ -767,8 +767,6 @@ bool NpcScaleManager::IsSpecialScalingZone() {
 
 void NpcScaleManager::GetSpecialScalingZoneValues(NPC* npc, float* special_zone_max_hp, float* special_zone_min_hit, float* special_zone_max_hit) {
 	if (!IsSpecialScalingZone()) {
-		LogTestDebug("{} [{}] is not a special scaling zone", zone->GetShortName(), zone->GetZoneID()); //deleteme
-
 		return;
 	}
 
@@ -777,8 +775,7 @@ void NpcScaleManager::GetSpecialScalingZoneValues(NPC* npc, float* special_zone_
 		RuleS(VegasScaling, SpecialScalingZonesVersions), std::to_string(zone->GetInstanceVersion()));
 
 	if (e < 0) {
-		LogTestDebug("GetSpecialScalingZoneValues:: No matching zone/version found for zone ID {} and version {}",
-			zone->GetZoneID(), zone->GetInstanceVersion()); //deleteme
+		//LogTestDebug("GetSpecialScalingZoneValues:: No matching zone/version found for zone ID {} and version {}", zone->GetZoneID(), zone->GetInstanceVersion()); //deleteme
 
 		*special_zone_max_hp = 1.0f;
 		*special_zone_min_hit = 1.0f;
@@ -813,10 +810,7 @@ void NpcScaleManager::GetSpecialScalingZoneValues(NPC* npc, float* special_zone_
         *special_zone_max_hit = (e < zone_max_hit.size() && !zone_max_hit[e].empty() && Strings::IsFloat(zone_max_hit[e]))
             ? Strings::ToFloat(zone_max_hit[e]) : 1.0f;
 
-        LogTestDebug("Scaling {} [{}] [{}] for zone {} [{}] version {}: max_hp = {}x, min_hit = {}x, max_hit = {}x",
-			npc->GetCleanName(), npc->GetNPCTypeID(), (npc->IsRaidTarget() ? "Raid" : npc->IsRareSpawn() ? "Rare" : "Common"),
-			zone->GetShortName(), zone->GetZoneID(), zone->GetInstanceVersion(),
-            *special_zone_max_hp, *special_zone_min_hit, *special_zone_max_hit); //deleteme
+        //LogTestDebug("Scaling {} [{}] [{}] for zone {} [{}] version {}: max_hp = {}x, min_hit = {}x, max_hit = {}x", npc->GetCleanName(), npc->GetNPCTypeID(), (npc->IsRaidTarget() ? "Raid" : npc->IsRareSpawn() ? "Rare" : "Common"), zone->GetShortName(), zone->GetZoneID(), zone->GetInstanceVersion(), *special_zone_max_hp, *special_zone_min_hit, *special_zone_max_hit); //deleteme
     }
 
     catch (const std::exception& ex) {
