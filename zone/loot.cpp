@@ -1283,22 +1283,24 @@ void NPC::GetVegasDifficultyRange(uint16 zone_id, float* difficulty_min, float* 
 }
 
 bool NPC::IsVegasLootEligible(Mob* top_client) {
-	if (!IsOnVegasCoolDown(top_client)) {
-		LogVegasLoot("VegasLootProcess::!IsOnVegasCoolDown - attack.cpp - on [{}] for [{}]", GetCleanName(), top_client ? top_client->GetCleanName() : "UNKNOWN"); //deleteme
-		int top_hate_char_id = top_client->CastToClient()->CharacterID();
-		Raid* raid = entity_list.GetRaidByClient(top_client->CastToClient());
-		Group* group = top_client->GetGroup();
-		int level_diff = 0;
+	if (IsOnVegasCoolDown(top_client)) {
+		return false;
+	}
 
-		if (top_hate_char_id) {
-			LogVegasLoot("VegasLootProcess::top_hate_char_id - attack.cpp - on [{}] for [{}]", GetCleanName(), top_client ? top_client->GetCleanName() : "UNKNOWN"); //deleteme
-			raid ? level_diff = raid->GetHighestLevel() - GetLevel() : group ? level_diff = group->GetHighestLevel() - GetLevel() : level_diff = top_client->CastToClient()->GetLevel() - GetLevel();
+	LogVegasLoot("VegasLootProcess::!IsOnVegasCoolDown - attack.cpp - on [{}] for [{}]", GetCleanName(), top_client ? top_client->GetCleanName() : "UNKNOWN"); //deleteme
+	int top_hate_char_id = top_client->CastToClient()->CharacterID();
+	Raid* raid = entity_list.GetRaidByClient(top_client->CastToClient());
+	Group* group = top_client->GetGroup();
+	int level_diff = 0;
 
-			if (level_diff > RuleI(VegasLoot, LevelDifferenceForVegasDrops)) {
-				LogVegasLootDetail("[{}] on [{}]:::Failed level checks [{}] - [{}] - [{} - {} = {}]", top_client->GetCleanName(), GetCleanName(), raid ? "has raid" : "no raid", group ? "has group" : "no group", raid ? raid->GetHighestLevel() : group ? group->GetHighestLevel() : top_client->CastToClient()->GetLevel(), GetLevel(), raid ? raid->GetHighestLevel() - GetLevel() : group ? group->GetHighestLevel() - GetLevel() : top_client->CastToClient()->GetLevel() - GetLevel());
+	if (top_hate_char_id) {
+		LogVegasLoot("VegasLootProcess::top_hate_char_id - attack.cpp - on [{}] for [{}]", GetCleanName(), top_client ? top_client->GetCleanName() : "UNKNOWN"); //deleteme
+		raid ? level_diff = raid->GetHighestLevel() - GetLevel() : group ? level_diff = group->GetHighestLevel() - GetLevel() : level_diff = top_client->CastToClient()->GetLevel() - GetLevel();
 
-				return false;
-			}
+		if (level_diff > RuleI(VegasLoot, LevelDifferenceForVegasDrops)) {
+			LogVegasLootDetail("[{}] on [{}]:::Failed level checks [{}] - [{}] - [{} - {} = {}]", top_client->GetCleanName(), GetCleanName(), raid ? "has raid" : "no raid", group ? "has group" : "no group", raid ? raid->GetHighestLevel() : group ? group->GetHighestLevel() : top_client->CastToClient()->GetLevel(), GetLevel(), raid ? raid->GetHighestLevel() - GetLevel() : group ? group->GetHighestLevel() - GetLevel() : top_client->CastToClient()->GetLevel() - GetLevel());
+
+			return false;
 		}
 	}
 
@@ -1356,8 +1358,8 @@ bool NPC::IsOnVegasCoolDown(Mob* top_client) {
 	std::string bucket_value;
 
 	//if (GetLevel() <= RuleB(MaxLevelBeforeRespawnLockoutStopsForVegasLoot) && respawn_time <= RuleI(VegasLoot, QuickRespawnMaxToTriggerLockout)) {
-		key = "" + std::to_string(top_hate_character_id) + "_" + std::to_string(s2) + "_" + std::to_string(nid) + "_" + std::to_string(npc_instance) + "_respawnrnghold";
-		LogVegasLootDetail("Respawn Key Check [{}]", key); //deleteme
+		key = std::to_string(top_hate_character_id) + "_" + std::to_string(s2) + "_" + std::to_string(nid) + "_" + std::to_string(npc_instance) + "_respawnrnghold";
+		LogVegasLootDetail("_respawnrnghold Respawn Key Check [{}]", key); //deleteme
 		bucket_value = DataBucket::GetData(key);
 
 		if (Strings::IsNumber(bucket_value) && Strings::ToUnsignedInt(bucket_value) == 2) {
@@ -1372,8 +1374,8 @@ bool NPC::IsOnVegasCoolDown(Mob* top_client) {
 	//}
 
 	std::string zone_name = zone->GetShortName();
-	key = "" + std::to_string(top_hate_character_id) + "_" + (zone_name) + "_" + std::to_string(nid) + "_" + std::to_string(npc_instance);
-	LogVegasLootDetail("Respawn Key Check [{}]", key); //deleteme
+	key = std::to_string(top_hate_character_id) + "_" + (zone_name) + "_" + std::to_string(nid) + "_" + std::to_string(npc_instance);
+	LogVegasLootDetail("Lockout Respawn Key Check [{}]", key); //deleteme
 	bucket_value = DataBucket::GetData(key);
 
 	if (!bucket_value.empty()) {
