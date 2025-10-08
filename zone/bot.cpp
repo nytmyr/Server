@@ -1923,14 +1923,11 @@ bool Bot::BotRangedAttack(Mob* other, bool can_double_attack) {
 
 	// Check if throwing weapon has insufficient charges
 	bool is_throwing_weapon_with_insufficient_ammo = ranged_weapon &&
-		(ranged_weapon->ItemType == EQ::item::ItemTypeSmallThrowing || ranged_weapon->ItemType == EQ::item::ItemTypeLargeThrowing) &&
 		(
-			!ammo_item || ammo_item->GetCharges() < 1 || // Not enough ammo
-			(
-				(RuleI(Bots, StackSizeMin) != -1 && ranged_item->GetCharges() != ranged_weapon->StackSize) || // Invalid stack size
-				ranged_item->GetCharges() < RuleI(Bots, StackSizeMin) // Charges below minimum
-			)
-		);
+			ranged_weapon->ItemType == EQ::item::ItemTypeSmallThrowing ||
+			ranged_weapon->ItemType == EQ::item::ItemTypeLargeThrowing
+		) &&
+		(!ammo_item || ammo_item->GetCharges() < 1); // Not enough ammo
 
 	// Final ranged weapon validity check
 	bool is_invalid_ranged_weapon = is_invalid_ranged_weapon_type || is_bow_with_invalid_ammo || is_throwing_weapon_with_insufficient_ammo;
@@ -4459,10 +4456,10 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 		}
 		// VegasEQ - END
 
-		if (RuleI(Bots, StackSizeMin) != -1) {
+		if (RuleI(Bots, StackSizeMin) > 0) {
 			if (
 				trade_instance->IsStackable() &&
-				trade_instance->GetCharges() < RuleI(Bots, StackSizeMin)
+				trade_instance->GetCharges() != RuleI(Bots, StackSizeMin)
 			) { // temp until partial stacks are implemented
 				if (trade_event_exists) {
 					event_trade.push_back(ClientTrade(trade_instance, trade_index));
@@ -4472,7 +4469,7 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 				client->Message(
 					Chat::Yellow,
 					fmt::format(
-						"{} is too small of a stack, you need atleast {}, the trade has been cancelled!",
+						"{} is too small of a stack, you need exactly {}, the trade has been cancelled!",
 						item_link,
 						RuleI(Bots, StackSizeMin)
 					).c_str()
