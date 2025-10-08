@@ -239,8 +239,7 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 	if (sender && m_dz_switch_id != 0) {
 		sender->UpdateTasksOnTouchSwitch(m_dz_switch_id);
 
-		//cheat_manager.SetExemptStatus(Port, true); // TODO - VegasEQ
-		sender->SetAntiCheatExempt();
+		sender->cheat_manager.SetExemptStatus(Port, true);
 
 		if (sender->TryMovePCDynamicZoneSwitch(m_dz_switch_id)) {
 			safe_delete(outapp);
@@ -561,8 +560,7 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 				sender->KeyRingAdd(player_key);
 			}
 
-			//cheat_manager.SetExemptStatus(Port, true); // TODO - VegasEQ
-			sender->SetAntiCheatExempt();
+			sender->cheat_manager.SetExemptStatus(Port, true);
 
 			sender->MovePC(
 				zone->GetZoneID(),
@@ -579,8 +577,7 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 			}
 
 			if (ZoneID(m_destination_zone_name) == zone->GetZoneID()) {
-				//cheat_manager.SetExemptStatus(Port, true); // TODO - VegasEQ
-				sender->SetAntiCheatExempt();
+				sender->cheat_manager.SetExemptStatus(Port, true);
 
 				sender->MovePC(
 					zone->GetZoneID(),
@@ -592,8 +589,7 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 				);
 			}
 			else {
-				//cheat_manager.SetExemptStatus(Port, true); // TODO - VegasEQ
-				sender->SetAntiCheatExempt();
+				sender->cheat_manager.SetExemptStatus(Port, true);
 
 				sender->MovePC(
 					ZoneID(m_destination_zone_name),
@@ -608,8 +604,7 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 
 		if ((!IsDoorOpen() || m_open_type == 58) && (!required_key_item)) {
 			if (ZoneID(m_destination_zone_name) == zone->GetZoneID()) {
-				//cheat_manager.SetExemptStatus(Port, true); // TODO - VegasEQ
-				sender->SetAntiCheatExempt();
+				sender->cheat_manager.SetExemptStatus(Port, true);
 
 				sender->MovePC(
 					zone->GetZoneID(),
@@ -621,8 +616,7 @@ void Doors::HandleClick(Client *sender, uint8 trigger)
 				);
 			}
 			else {
-				//cheat_manager.SetExemptStatus(Port, true); // TODO - VegasEQ
-				sender->SetAntiCheatExempt();
+				sender->cheat_manager.SetExemptStatus(Port, true);
 
 				sender->MovePC(
 					ZoneID(m_destination_zone_name),
