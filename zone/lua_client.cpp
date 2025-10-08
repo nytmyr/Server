@@ -3629,6 +3629,21 @@ float Lua_Client::GetTotalGearScore() {
 	Lua_Safe_Call_Real();
 	return self->GetTotalGearScore();
 }
+
+void Lua_Client::SetAntiCheatExempt() {
+	Lua_Safe_Call_Void();
+	self->SetAntiCheatExempt();
+}
+
+void Lua_Client::SetAntiCheatExempt(int duration) {
+	Lua_Safe_Call_Void();
+	self->SetAntiCheatExempt(duration);
+}
+
+bool Lua_Client::GetAntiCheatExempt() {
+	Lua_Safe_Call_Bool();
+	return self->GetAntiCheatExempt();
+}
 // VegasEQ - END
 
 luabind::scope lua_register_client() {
@@ -4236,7 +4251,11 @@ luabind::scope lua_register_client() {
 	.def("WorldKick", (void(Lua_Client::*)(void))&Lua_Client::WorldKick)
 
 	// VegasEQ - START
-	.def("GetTotalGearScore", (uint32(Lua_Client::*)(void))& Lua_Client::GetTotalGearScore);
+	.def("GetTotalGearScore", (uint32(Lua_Client::*)(void))&Lua_Client::GetTotalGearScore)
+	.def("SetAntiCheatExempt", (void(Lua_Client::*)(void))&Lua_Client::SetAntiCheatExempt)
+	.def("SetAntiCheatExempt", (void(Lua_Client::*)(int))&Lua_Client::SetAntiCheatExempt)
+	.def("GetAntiCheatExempt", (bool(Lua_Client::*)(void))&Lua_Client::GetAntiCheatExempt)
+	.def("GetAntiCheatExempt", (bool(Lua_Client::*)(void))&Lua_Client::GetAntiCheatExempt);
 	// VegasEQ - END
 }
 

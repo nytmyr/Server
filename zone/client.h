@@ -1966,6 +1966,7 @@ public:
 	void DoIllusionWearCheck(); //Checks for illusion wears to warp back.
 	bool DoDoorIllusionCheatChecks();
 	void SetAntiCheatExempt(int duration = RuleI(VegasAnticheat, AntiCheatExemptDuration)) const;
+	bool GetAntiCheatExempt();
 	float GetTotalGearScore();
 	// VegasEQ - END
 

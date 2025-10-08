@@ -3368,6 +3368,21 @@ float Perl_Client_GetTotalGearScore(Client* self) // @categories Client
 {
 	return self->GetTotalGearScore();
 }
+
+void Perl_Client_SetAntiCheatExempt(Client* self) // @categories Client
+{
+	self->SetAntiCheatExempt();
+}
+
+void Perl_Client_SetAntiCheatExempt(Client* self, int duration) // @categories Client
+{
+	self->SetAntiCheatExempt(duration);
+}
+
+bool Perl_Client_GetAntiCheatExempt(Client* self) // @categories Client
+{
+	return self->GetAntiCheatExempt();
+}
 // VegasEQ - END
 
 void perl_register_client()
@@ -3979,6 +3994,9 @@ void perl_register_client()
 
 	// VegasEQ - START
 	package.add("GetTotalGearScore", &Perl_Client_GetTotalGearScore);
+	package.add("SetAntiCheatExempt", (void(*)(Client*))&Perl_Client_SetAntiCheatExempt);
+	package.add("SetAntiCheatExempt", (void(*)(Client*, int))&Perl_Client_SetAntiCheatExempt);
+	package.add("GetAntiCheatExempt", &Perl_Client_GetAntiCheatExempt);
 	// VegasEQ - END
 }
 

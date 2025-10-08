@@ -1405,7 +1405,7 @@ RULE_STRING(VegasLoot, VegasBridleTiersLootDropIDs, "330000,330100,330200,330300
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(VegasAnticheat)
-RULE_STRING(VegasAnticheat, AntiCheatExemptKey, "AntiCheatExempt-", "Data bucket key to check for. Default 'AntiCheatExempt-'.")
+RULE_STRING(VegasAnticheat, AntiCheatExemptKey, "AntiCheatExempt", "Data bucket key to check for. Default 'AntiCheatExempt'.")
 RULE_INT(VegasAnticheat, AntiCheatExemptDuration, 3, "Duration of cheat exemption. Default 3 = 3 seconds")
 RULE_BOOL(VegasAnticheat, DoChecksForIllusionGlitching, true, "Controls where or not coords are updating and doors are checked to see if a client is trying to illusion or horse through the door.")
 RULE_REAL(VegasAnticheat, UpdateRangeForIllusionChecks, 50.0, "This is how far one must travel to initiate an update of the client's position for the illusion glitch check. Default 50.0.")

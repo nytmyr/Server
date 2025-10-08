@@ -650,6 +650,9 @@ public:
 
 	// VegasEQ - START
 	float			GetTotalGearScore();
+	void            SetAntiCheatExempt();
+	void            SetAntiCheatExempt(int duration);
+	bool            GetAntiCheatExempt();
 	// VegasEQ - END
 };
 

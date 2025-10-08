@@ -13349,8 +13349,24 @@ bool Client::DoDoorIllusionCheatChecks() {
 }
 
 void Client::SetAntiCheatExempt(int duration) const {
-	std::string key = RuleS(VegasAnticheat, AntiCheatExemptKey) + std::to_string(CharacterID());
-	DataBucket::SetData(key, std::to_string(1), std::to_string(duration));
+	std::string key = RuleS(VegasAnticheat, AntiCheatExemptKey);
+
+	auto k = DataBucketKey{
+		.key              = key,
+		.value            = std::to_string(1),
+		.expires          = std::to_string(duration),
+		.character_id     = CharacterID(),
+		.zone_id          = static_cast<uint16>(zone->GetZoneID()),
+		.instance_id      = static_cast<uint16>(zone->GetInstanceID()),
+	};
+
+	DataBucket::SetData(k);
+}
+
+bool Client::GetAntiCheatExempt() {
+	std::string key = RuleS(VegasAnticheat, AntiCheatExemptKey);
+
+	return !DataBucket::GetData(key).empty();
 }
 
 float Client::GetTotalGearScore() {
