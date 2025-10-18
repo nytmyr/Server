@@ -185,11 +185,11 @@ int bot_command_init(void)
 		bot_command_add("spelldelays", "Controls the delay between casts for a specific spell type", AccountStatus::Player, bot_command_spell_delays) ||
 		bot_command_add("spellholds", "Controls whether a bot holds the specified spell type or not", AccountStatus::Player, bot_command_spell_holds) ||
 		bot_command_add("spellidlepriority", "Controls the order of casts by spell type when out of combat", AccountStatus::Player, bot_command_spell_idle_priority) ||
-		bot_command_add("spellmaxhppct", "Controls at what HP percent a bot will stop casting different spell types", AccountStatus::Player, bot_command_spell_max_hp_pct) ||
-		bot_command_add("spellmaxmanapct", "Controls at what mana percent a bot will stop casting different spell types", AccountStatus::Player, bot_command_spell_max_mana_pct) ||
+		bot_command_add("spellmaxhppct", "Controls at what HP percent a bot will start casting different spell types", AccountStatus::Player, bot_command_spell_max_hp_pct) ||
+		bot_command_add("spellmaxmanapct", "Controls at what mana percent a bot will start casting different spell types", AccountStatus::Player, bot_command_spell_max_mana_pct) ||
 		bot_command_add("spellmaxthresholds", "Controls the minimum target HP threshold for a spell to be cast for a specific type", AccountStatus::Player, bot_command_spell_max_thresholds) ||
-		bot_command_add("spellminhppct", "Controls at what HP percent a bot will start casting different spell types", AccountStatus::Player, bot_command_spell_min_hp_pct) ||
-		bot_command_add("spellminmanapct", "Controls at what mana percent a bot will start casting different spell types", AccountStatus::Player, bot_command_spell_min_mana_pct) ||
+		bot_command_add("spellminhppct", "Controls at what HP percent a bot will stop casting different spell types", AccountStatus::Player, bot_command_spell_min_hp_pct) ||
+		bot_command_add("spellminmanapct", "Controls at what mana percent a bot will stop casting different spell types", AccountStatus::Player, bot_command_spell_min_mana_pct) ||
 		bot_command_add("spellminthresholds", "Controls the maximum target HP threshold for a spell to be cast for a specific type", AccountStatus::Player, bot_command_spell_min_thresholds) ||
 		bot_command_add("spellresistlimits", "Controls the resist limits for bots to cast spells on their target", AccountStatus::Player, bot_command_spell_resist_limits) ||
 		bot_command_add("spellpursuepriority", "Controls the order of casts by spell type when pursuing in combat", AccountStatus::Player, bot_command_spell_pursue_priority) ||
