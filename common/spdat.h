@@ -742,7 +742,7 @@ namespace BotSpellTypes
 	constexpr uint16	COMMANDED_END              = BotSpellTypes::AELull;            // Do not remove this, increment as needed
 	constexpr uint16	DISCIPLINE_START           = BotSpellTypes::Discipline;        // Do not remove or change this
 	constexpr uint16	DISCIPLINE_END             = BotSpellTypes::DiscUtility;       // Do not remove this, increment as needed
-	constexpr uint16 	PARENT_TYPE_END            = BotSpellTypes::PreCombatBuffSong; // This is the last ID of the original bot spell types, the rest are considered sub types.
+	constexpr uint16 	PARENT_TYPE_END            = BotSpellTypes::HateLine;          // This is the last ID of the original bot spell types, the rest are considered sub types.
 }
 
 static std::map<uint16, std::string> spell_type_names = {
