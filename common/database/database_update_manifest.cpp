@@ -6932,6 +6932,8 @@ ALTER TABLE `items_evolving_details`
 		.condition = "empty",
 		.match = "",
 		.sql = R"(
+DROP TABLE IF EXISTS character_pet_name;
+
 CREATE TABLE `character_pet_name` (
     `character_id` INT(11) NOT NULL PRIMARY KEY,
     `name` VARCHAR(64) NOT NULL

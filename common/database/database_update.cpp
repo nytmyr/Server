@@ -63,15 +63,6 @@ void DatabaseUpdate::CheckDbUpdates()
 		m_database->QueryDatabase(fmt::format("UPDATE `db_version` SET `version` = {}", b.server_database_version));
 	}
 
-	if (UpdateManifest(manifest_entries_custom, v.custom_database_version, b.custom_database_version)) {
-		LogInfo(
-			"Updates ran successfully, setting database version to [{}] from [{}]",
-			b.custom_database_version,
-			v.custom_database_version
-		);
-		m_database->QueryDatabase(fmt::format("UPDATE `db_version` SET `custom_version` = {}", b.custom_database_version));
-	}
-
 	if (b.bots_database_version > 0) {
 		if (UpdateManifest(bot_manifest_entries, v.bots_database_version, b.bots_database_version)) {
 			LogInfo(
@@ -86,6 +77,15 @@ void DatabaseUpdate::CheckDbUpdates()
 				)
 			);
 		}
+	}
+
+	if (UpdateManifest(manifest_entries_custom, v.custom_database_version, b.custom_database_version)) {
+		LogInfo(
+			"Updates ran successfully, setting database version to [{}] from [{}]",
+			b.custom_database_version,
+			v.custom_database_version
+		);
+		m_database->QueryDatabase(fmt::format("UPDATE `db_version` SET `custom_version` = {}", b.custom_database_version));
 	}
 }
 

@@ -256,7 +256,7 @@ ALTER TABLE `bot_data`
 
 UPDATE `bot_command_settings` SET `aliases`= 'bh' WHERE `bot_command`='behindmob';
 UPDATE `bot_command_settings` SET `aliases`= 'bs|settings' WHERE `bot_command`='botsettings';
-UPDATE `bot_command_settings` SET `aliases`= CASE WHEN LENGTH(`aliases`) > 0 THEN CONCAT(`aliases`, '|followdistance') ELSE 'followd||followdistance' END WHERE `bot_command`='botfollowdistance' AND `aliases` NOT LIKE '%followdistance%';
+UPDATE `bot_command_settings` SET `aliases`= CASE WHEN LENGTH(`aliases`) > 0 THEN CONCAT(`aliases`, '|followdistance') ELSE 'followd|followdistance' END WHERE `bot_command`='botfollowdistance' AND `aliases` NOT LIKE '%followdistance%';
 UPDATE `bot_command_settings` SET `aliases`= CASE WHEN LENGTH(`aliases`) > 0 THEN CONCAT(`aliases`, '|ranged|toggleranged|btr') ELSE 'ranged|toggleranged|btr' END WHERE `bot_command`='bottoggleranged' AND `aliases` NOT LIKE '%ranged|toggleranged|btr%';
 UPDATE `bot_command_settings` SET `aliases`= 'distranged|dr' WHERE `bot_command`='distanceranged';
 UPDATE `bot_command_settings` SET `aliases`= 'copy' WHERE `bot_command`='copysettings';
@@ -268,7 +268,7 @@ UPDATE `bot_command_settings` SET `aliases`= CASE WHEN LENGTH(`aliases`) > 0 THE
 UPDATE `bot_command_settings` SET `aliases`= CASE WHEN LENGTH(`aliases`) > 0 THEN CONCAT(`aliases`, '|ir') ELSE 'invremove|ir' END WHERE `bot_command`='inventoryremove' AND `aliases` NOT LIKE '%ir%';
 UPDATE `bot_command_settings` SET `aliases`= CASE WHEN LENGTH(`aliases`) > 0 THEN CONCAT(`aliases`, '|iw') ELSE 'invwindow|iw' END WHERE `bot_command`='inventorywindow' AND `aliases` NOT LIKE '%iw%';
 UPDATE `bot_command_settings` SET `aliases`= CASE WHEN LENGTH(`aliases`) > 0 THEN CONCAT(`aliases`, '|iu') ELSE 'iu' END WHERE `bot_command`='itemuse' AND `aliases` NOT LIKE '%iu%';
-UPDATE `bot_command_settings` SET `aliases`= CASE WHEN LENGTH(`aliases`) > 0 THEN CONCAT(`aliases`, '|pst') ELSE 'pset||pst' END WHERE `bot_command`='petsettype' AND `aliases` NOT LIKE '%pst%';
+UPDATE `bot_command_settings` SET `aliases`= CASE WHEN LENGTH(`aliases`) > 0 THEN CONCAT(`aliases`, '|pst') ELSE 'pset|pst' END WHERE `bot_command`='petsettype' AND `aliases` NOT LIKE '%pst%';
 UPDATE `bot_command_settings` SET `aliases`= 'mmr' WHERE `bot_command`='maxmeleerange';
 UPDATE `bot_command_settings` SET `aliases`= CASE WHEN LENGTH(`aliases`) > 0 THEN CONCAT(`aliases`, '|pp') ELSE 'pp' END WHERE `bot_command`='pickpocket' AND `aliases` NOT LIKE '%pp%';
 UPDATE `bot_command_settings` SET `aliases`= 'sithp' WHERE `bot_command`='sithppercent';
@@ -296,7 +296,7 @@ UPDATE `bot_command_settings` SET `aliases`= 'announcecasts' WHERE `bot_command`
 	ManifestEntry{
 		.version = 9047,
 		.description = "2024_05_18_bot_update_spell_types.sql",
-		.check = "SELECT * FROM `bot_spells_entries` WHERE `type` >= 1024",
+		.check = "SELECT * FROM `bot_spells_entries` WHERE `type` < 0", // VegasEQ
 		.condition = "not_empty",
 		.match = "",
 		.sql = R"(
@@ -327,7 +327,7 @@ UPDATE `bot_spells_entries` SET `type` = 21 WHERE `type` = 2097152;
 	ManifestEntry{
 		.version = 9048,
 		.description = "2024_05_18_bot_fear_spell_type.sql",
-		.check = "SELECT * FROM `bot_spells_entries` where `type` = 22",
+		.check = "SELECT * FROM `bot_spells_entries` where `type` = 1", // VegasEQ
 		.condition = "empty",
 		.match = "",
 		.sql = R"(
@@ -528,7 +528,7 @@ UPDATE bot_spells_entries SET `type` = 17 WHERE `spell_id` = 3229;
 	ManifestEntry{
 		.version = 9050,
 		.description = "2024_11_26_add_commanded_spelltypes.sql",
-		.check = "SELECT * FROM `bot_spells_entries` where `type` = 100",
+		.check = "SELECT * FROM `bot_spells_entries` where `type` = 1", // VegasEQ
 		.condition = "empty",
 		.match = "",
 		.sql = R"(
@@ -1097,7 +1097,7 @@ WHERE bot_spells_entries.spell_id = spells_new.id);
 	ManifestEntry{
 		.version = 9051,
 		.description = "2024_11_26_remove_sk_icb.sql",
-		.check = "SELECT * FROM `bot_spells_entries` where `type` = 24",
+		.check = "SELECT * FROM `bot_spells_entries` where `type` = 1", // VegasEQ
 		.condition = "empty",
 		.match = "",
 		.sql = R"(
@@ -1221,7 +1221,7 @@ ENGINE=InnoDB
 	ManifestEntry{
 		.version = 9053,
 		.description = "2024_12_26_discipline_inserts.sql",
-		.check = "SELECT * FROM `bot_spells_entries` where `type` = 200",
+		.check = "SELECT * FROM `bot_spells_entries` where `type` = 1", // VegasEQ
 		.condition = "empty",
 		.match = "",
 		.sql = R"(
@@ -1812,7 +1812,7 @@ WHERE bot_spells_entries.spell_id = spells_new.id);
 	ManifestEntry{
 		.version = 9054,
 		.description = "2024_12_29_discipline_subtypes_inserts.sql",
-		.check = "SELECT * FROM `bot_spells_entries` where `type` = 201",
+		.check = "SELECT * FROM `bot_spells_entries` where `type` = 1", // VegasEQ
 		.condition = "empty",
 		.match = "",
 		.sql = R"(
