@@ -272,6 +272,13 @@ void bot_command_cast(Client* c, const Seperator* sep)
 				}
 
 				break;
+			case BotSpellTypes::Rune:
+				if (!RuleB(Bots, AllowCommandedRunes)) {
+					c->Message(Chat::Yellow, "This commanded type is currently disabled.");
+					return;
+				}
+
+				break;
 			case BotSpellTypes::SummonCorpse:
 				if (!RuleB(Bots, AllowCommandedSummonCorpse)) {
 					c->Message(Chat::Yellow, "This commanded type is currently disabled.");
