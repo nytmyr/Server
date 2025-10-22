@@ -1195,7 +1195,7 @@ RULE_INT(Vegas, MinStatusToBypassVegasKillAchievements, 100, "Minimum status to 
 RULE_INT(Vegas, AdditionalTauntHate, 7, "Additional Hate added to the taunter on each successful Taunt. Default 7, stock 0.")
 RULE_BOOL(Vegas, HardDisconnectOnCamp, true, "When enabled, if a client camps to character select they will have a hard disconnect dropping then from CLE")
 RULE_BOOL(Vegas, DetrimentalBeneficalConflict, true, "If set to false, detrimental and beneficial spells cannot block or overwrite one another, they will instead attempt to find other buff slots. Default True.")
-RULE_INT(Vegas, CorpseSummonRange, 100, "Maximum range to be able to /corpse. Default 150, stock 100.")
+RULE_INT(Vegas, CorpseSummonRange, 150, "Maximum range to be able to /corpse. Default 150, stock 100.")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(VegasBots)
