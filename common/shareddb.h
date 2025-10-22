@@ -82,15 +82,14 @@ public:
 	bool UpdateInjectedCommandSettings(const std::vector<std::pair<std::string, uint8>> &injected);
 	bool UpdateOrphanedCommandSettings(const std::vector<std::string> &orphaned);
 	bool GetCommandSubSettings(std::vector<CommandSubsettingsRepository::CommandSubsettings> &command_subsettings);
-	uint32 GetTotalTimeEntitledOnAccount(uint32 AccountID);
 	bool SetGMInvul(uint32 account_id, bool gminvul);
 	bool SetGMFlymode(uint32 account_id, uint8 flymode);
-	void SetMailKey(int CharID, int IPAddress, int MailKey);
+	void SetMailKey(uint32 character_id, uint32 ip_address, uint32 mail_key);
 	struct MailKeys {
 		std::string mail_key;
 		std::string mail_key_full;
 	};
-	MailKeys GetMailKey(int character_id);
+	MailKeys GetMailKey(uint32 character_id);
 	bool SaveCursor(
 		uint32 char_id,
 		std::list<EQ::ItemInstance *>::const_iterator &start,
