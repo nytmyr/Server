@@ -10736,6 +10736,102 @@ void Bot::LoadDefaultBotSettings() {
 		LogBotSettingsDetail("{} says, 'IdlePriority = [{}] | EngagedPriority = [{}] | PursuePriority = [{}]'", GetCleanName(), GetDefaultSpellTypeIdlePriority(i, GetClass(), bot_stance), GetDefaultSpellTypeEngagedPriority(i, GetClass(), bot_stance), GetDefaultSpellTypePursuePriority(i, GetClass(), bot_stance));
 		LogBotSettingsDetail("{} says, 'TargetCount = [{}] | AnnounceCast = [{}]'", GetCleanName(), GetDefaultSpellTypeAEOrGroupTargetCount(i, bot_stance), GetDefaultSpellTypeAnnounceCast(i, bot_stance));
 	}
+
+	// VegasEQ - Test Output - START
+	if (RuleB(Bots, OutputDefaultSettingInserts)) {
+		auto bot_class = GetClass();
+
+		LogTestDebugDetail("INSERT INTO `bot_default_settings` (`class_id`, `stance`, `setting_category`, `setting_id`, `value`, `category_name`, `setting_name`) VALUES");
+
+		for (uint16 stance = Stance::Unknown; stance <= Stance::AEBurn; ++stance) {
+			if (IsValidBotStance(stance)) {
+				for (uint16 i = BotSettingCategories::START; i <= BotSettingCategories::END; ++i) {
+					if (i == BotSettingCategories::BaseSetting) {
+						for (uint16 x = BotBaseSettings::START_ALL; x <= BotBaseSettings::END; ++x) {
+							LogTestDebugDetail("({}, {}, {}, {}, {}, '{}', '{}'),",
+								bot_class,
+								stance,
+								i,
+								x,
+								GetDefaultSetting(BotSettingCategories::BaseSetting, x, stance),
+								GetBotSpellCategoryName(i),
+								GetBotSettingCategoryName(x)
+							);
+						}
+
+
+					}
+					else {
+						for (uint16 x = BotSpellTypes::START; x <= BotSpellTypes::END; ++x) {
+							int value = 0;
+
+							switch (i) {
+								case BotSettingCategories::SpellHold:
+									value = GetDefaultSpellTypeHold(x, stance);
+									break;
+								case BotSettingCategories::SpellDelay:
+									value = GetDefaultSpellTypeDelay(x, stance);
+									break;
+								case BotSettingCategories::SpellMinThreshold:
+									value = GetDefaultSpellTypeMinThreshold(x, stance);
+									break;
+								case BotSettingCategories::SpellMaxThreshold:
+									value = GetDefaultSpellTypeMaxThreshold(x, stance);
+									break;
+								case BotSettingCategories::SpellTypeResistLimit:
+									value = GetDefaultSpellTypeResistLimit(x, stance);
+									break;
+								case BotSettingCategories::SpellTypeAggroCheck:
+									value = GetDefaultSpellTypeAggroCheck(x, stance);
+									break;
+								case BotSettingCategories::SpellTypeMinManaPct:
+									value = GetDefaultSpellTypeMinManaLimit(x, stance);
+									break;
+								case BotSettingCategories::SpellTypeMaxManaPct:
+									value = GetDefaultSpellTypeMaxManaLimit(x, stance);
+									break;
+								case BotSettingCategories::SpellTypeMinHPPct:
+									value = GetDefaultSpellTypeMinHPLimit(x, stance);
+									break;
+								case BotSettingCategories::SpellTypeMaxHPPct:
+									value = GetDefaultSpellTypeMaxHPLimit(x, stance);
+									break;
+								case BotSettingCategories::SpellTypeIdlePriority:
+									value = GetDefaultSpellTypeIdlePriority(x, GetClass(), stance);
+									break;
+								case BotSettingCategories::SpellTypeEngagedPriority:
+									value = GetDefaultSpellTypeEngagedPriority(x, GetClass(), stance);
+									break;
+								case BotSettingCategories::SpellTypePursuePriority:
+									value = GetDefaultSpellTypePursuePriority(x, GetClass(), stance);
+									break;
+								case BotSettingCategories::SpellTypeAEOrGroupTargetCount:
+									value = GetDefaultSpellTypeAEOrGroupTargetCount(x, stance);
+									break;
+								case BotSettingCategories::SpellTypeAnnounceCast:
+									value = GetDefaultSpellTypeAnnounceCast(x, stance);
+									break;
+								default:
+									break;
+							}
+
+							LogTestDebugDetail("({}, {}, {}, {}, {}, '{}', '{}'){}",
+								bot_class,
+								stance,
+								i,
+								x,
+								value,
+								GetBotSpellCategoryName(i),
+								GetSpellTypeNameByID(x),
+								((stance == Stance::AEBurn && i == BotSettingCategories::END && x == BotSpellTypes::END) ? ";" : ",")
+							);
+						}
+					}
+				}
+			}
+		}
+		// VegasEQ - Test Output - END
+	}
 }
 
 void Bot::SetBotSpellRecastTimer(uint16 spell_type, Mob* tar, bool precast) {

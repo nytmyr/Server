@@ -1206,6 +1206,7 @@ RULE_INT(VegasBots, LevelForExtraBots, 50, "Level at which you can surpass the t
 RULE_BOOL(VegasBots, MonkEpicEnabled, false, "Determines whether or not Monk Bots will use their epic if equipped. Default False.")
 RULE_INT(VegasBots, MonkEpicDelay, 19000, "MS delay for Monk Epic Timer. Default 19000.")
 RULE_INT(VegasBots, MonkEpicSpell, 1940, "Spell ID for Monk Epic. Default 1940.")
+RULE_BOOL(VegasBots, OutputDefaultSettingInserts, false, "Outputs INSERT INTO lines for bot_default_settings per bot spawned. Very spammy. Default False.")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(VegasNPCs)
