@@ -842,8 +842,6 @@ RULE_INT(Bots, MezSuccessDelay, 2500, "2500 (2.5 sec) Default. Delay between suc
 RULE_INT(Bots, AEMezSuccessDelay, 5000, "5000 (5 sec) Default. Delay between successful AEMez attempts.")
 RULE_INT(Bots, MezFailDelay, 1250, "1250 (1.25 sec) Default. Delay between failed Mez attempts.")
 RULE_INT(Bots, MezAEFailDelay, 4000, "4000 (4 sec) Default. Delay between failed AEMez attempts.")
-RULE_INT(Bots, MinGroupHealTargets, 3, "Minimum number of targets in valid range that are required for a group heal to cast. Default 3.")
-RULE_INT(Bots, MinGroupCureTargets, 3, "Minimum number of targets in valid range that are required for a cure heal to cast. Default 3.")
 RULE_INT(Bots, MinTargetsForAESpell, 3, "Minimum number of targets in valid range that are required for an AE spell to cast. Default 3.")
 RULE_INT(Bots, MinTargetsForGroupSpell, 3, "Minimum number of targets in valid range that are required for an group spell to cast. Default 3.")
 RULE_BOOL(Bots, AllowBuffingHealingFamiliars, false, "Determines if bots are allowed to buff and heal familiars. Default false.")
