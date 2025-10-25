@@ -3,6 +3,83 @@
 std::vector<ManifestEntry> manifest_entries_custom = {
 	ManifestEntry{
 		.version = 1,
+		.description = "2025_10_22_drop_unused_tables",
+		.check = "SHOW TABLES LIKE `aa_actions`",
+		.condition = "not_empty",
+		.match = "",
+		.sql = R"(
+DROP TABLE IF EXISTS `aa_actions`;
+DROP TABLE IF EXISTS `aa_effects`;
+DROP TABLE IF EXISTS `aa_required_level_cost`;
+DROP TABLE IF EXISTS `aa_timers`;
+DROP TABLE IF EXISTS `altadv_vars`;
+DROP TABLE IF EXISTS `augment_work_orders`;
+DROP TABLE IF EXISTS `botguildmembers_old`;
+DROP TABLE IF EXISTS `bot_groups`;
+DROP TABLE IF EXISTS `bot_group_members`;
+DROP TABLE IF EXISTS `character_backup`;
+DROP TABLE IF EXISTS `character_lookup`;
+DROP TABLE IF EXISTS `class_skill`;
+DROP TABLE IF EXISTS `client_faction_associations`;
+DROP TABLE IF EXISTS `client_faction_names`;
+DROP TABLE IF EXISTS `client_server_faction_map`;
+DROP TABLE IF EXISTS `commands_old`;
+DROP TABLE IF EXISTS `custom_faction_mappings`;
+DROP TABLE IF EXISTS `faction_list_mod_prefix`;
+DROP TABLE IF EXISTS `faction_list_prefix`;
+DROP TABLE IF EXISTS `faction_values_prefix`;
+DROP TABLE IF EXISTS `fear_hints`;
+DROP TABLE IF EXISTS `goallists_backup_9_25_2022`;
+DROP TABLE IF EXISTS `inventory_snapshots_v1_bak`;
+DROP TABLE IF EXISTS `merc_inventory`;
+DROP TABLE IF EXISTS `merc_merchant_entries`;
+DROP TABLE IF EXISTS `merc_merchant_templates`;
+DROP TABLE IF EXISTS `merc_merchant_template_entries`;
+DROP TABLE IF EXISTS `merc_name_types`;
+DROP TABLE IF EXISTS `merc_npc_types`;
+DROP TABLE IF EXISTS `merc_spell_lists`;
+DROP TABLE IF EXISTS `merc_spell_list_entries`;
+DROP TABLE IF EXISTS `merc_stance_entries`;
+DROP TABLE IF EXISTS `merc_stats`;
+DROP TABLE IF EXISTS `merc_subtypes`;
+DROP TABLE IF EXISTS `merc_templates`;
+DROP TABLE IF EXISTS `merc_types`;
+DROP TABLE IF EXISTS `merc_weaponinfo`;
+DROP TABLE IF EXISTS `npc_faction_entries_prefix`;
+DROP TABLE IF EXISTS `npc_faction_prefix`;
+DROP TABLE IF EXISTS `npc_types_metadata`;
+DROP TABLE IF EXISTS `p2002_items`;
+DROP TABLE IF EXISTS `proximities_backup_9203`;
+DROP TABLE IF EXISTS `races`;
+DROP TABLE IF EXISTS `spawn2_backup_2023_10_29`;
+DROP TABLE IF EXISTS `starting_items_backup_9243`;
+DROP TABLE IF EXISTS `tasks_backup_9_25_2022`;
+DROP TABLE IF EXISTS `task_activities_backup_9203`;
+DROP TABLE IF EXISTS `tool_game_objects`;
+DROP TABLE IF EXISTS `tool_gearup_armor_sets`;
+DROP TABLE IF EXISTS `veq_zone`;
+DROP VIEW IF EXISTS `vwmercnpctypes`;
+DROP TABLE IF EXISTS `zoneserver_auth`;
+DROP TABLE IF EXISTS `zone_server`;
+DROP TABLE IF EXISTS `zone_state_dump`;
+
+DROP VIEW IF EXISTS `vw_gearscore`;
+DROP VIEW IF EXISTS `vw_itemdrops`;
+DROP VIEW IF EXISTS `vw_itemdrops_bulk`;
+DROP VIEW IF EXISTS `vw_itemdrops_diff`;
+DROP VIEW IF EXISTS `vw_itemdrops_difftotal`;
+DROP VIEW IF EXISTS `vw_itemdrops_min`;
+DROP VIEW IF EXISTS `vw_random_item_drop_calculator`;
+DROP VIEW IF EXISTS `vw_gearscore`;
+DROP VIEW IF EXISTS `vw_gearscore`;
+DROP VIEW IF EXISTS `vw_gearscore`;
+DROP VIEW IF EXISTS `vw_gearscore`;
+
+)",
+		.content_schema_update = false,
+	},
+	ManifestEntry{
+		.version = 2,
 		.description = "2025_10_15_correct_raid_members_table",
 		.check = "SHOW COLUMNS FROM `raid_members` LIKE 'id'",
 		.condition = "empty",
@@ -36,7 +113,7 @@ AUTO_INCREMENT=11118
 		.content_schema_update = false,
 	},
 	ManifestEntry{
-		.version = 2,
+		.version = 3,
 		.description = "2025_10_15_update_items_table_column_names",
 		.check = "SHOW COLUMNS FROM `items` LIKE 'GearScoreOld'",
 		.condition = "not_empty",
@@ -60,7 +137,7 @@ ALTER TABLE `items`
 )",
 		.content_schema_update = false,
 	},ManifestEntry{
-		.version = 3,
+		.version = 4,
 		.description = "2025_10_15_migrate_bot_settings",
 		.check = "SHOW COLUMNS FROM `bot_data` LIKE 'petsettype_setting'",
 		.condition = "not_empty",
@@ -141,7 +218,7 @@ INSERT INTO bot_settings SELECT 0, bd.bot_id, bs.stance_id, 13, 4, `slow_thresho
 		.content_schema_update = false,
 	},
 	ManifestEntry{
-		.version = 4,
+		.version = 5,
 		.description = "2025_10_15_migrate_bot_settings_part_two",
 		.check = "SHOW COLUMNS FROM `bot_data` LIKE 'snare_threshold'",
 		.condition = "not_empty",
@@ -267,7 +344,7 @@ ALTER TABLE `character_data`
 		.content_schema_update = false,
 	},
 	ManifestEntry{
-		.version = 5,
+		.version = 6,
 		.description = "2025_10_15_correct_bot_spells",
 		.check = "SELECT * FROM `bot_spells_entries` WHERE `type` >= 1024",
 		.condition = "not_empty",
@@ -327,7 +404,7 @@ UPDATE bot_spells_entries b SET b.spell_id = 3362 WHERE b.spell_id = 25204; -- R
 		.content_schema_update = false,
 	},
 	ManifestEntry{
-		.version = 6,
+		.version = 7,
 		.description = "2025_10_15_update_bot_data_columns",
 		.check = "SHOW TABLES LIKE 'bot_data'",
 		.condition = "not_empty",
@@ -344,7 +421,7 @@ COLLATE='latin1_swedish_ci';
 		.content_schema_update = false,
 	},
 	ManifestEntry{
-		.version = 7,
+		.version = 8,
 		.description = "2025_10_15_update_npc_types_columns",
 		.check = "SHOW COLUMNS FROM `npc_types` LIKE 'shard_score'",
 		.condition = "not_empty",
@@ -362,7 +439,7 @@ ALTER TABLE `npc_types`
 		.content_schema_update = false,
 	},
 	ManifestEntry{
-		.version = 8,
+		.version = 9,
 		.description = "2025_10_15_convert_bot_quivers",
 		.check = "SELECT * FROM `data_buckets` WHERE `data_buckets`.key LIKE 'BotQuiver-%'",
 		.condition = "not_empty",
@@ -411,7 +488,7 @@ DELETE FROM `data_buckets` WHERE `data_buckets`.key LIKE 'BotQuiver-%';
 		.content_schema_update = false,
 	},
 	ManifestEntry{
-		.version = 9,
+		.version = 10,
 		.description = "2025_10_15_bot_force_cast_spell_types",
 		.check = "SELECT * FROM `bot_spells_entries` WHERE `type` = 100", // VegasEQ
 		.condition = "empty",
@@ -671,7 +748,7 @@ INSERT INTO `bot_spells_entries` (`npc_spells_id`, `spell_id`, `type`, `minlevel
 		.content_schema_update = false,
 	},
 	ManifestEntry{
-		.version = 10,
+		.version = 11,
 		.description = "2025_10_15_bot_discipline_spell_types",
 		.check = "SELECT * FROM `bot_spells_entries` WHERE `type` = 200", // VegasEQ
 		.condition = "empty",
@@ -731,25 +808,25 @@ INSERT INTO `bot_spells_entries` (`npc_spells_id`, `spell_id`, `type`, `minlevel
 	(3016, 4587, 200, 40, 254, 'Fearless Discipline'),
 
 -- Disciplines - Aggressive
-	(3001, 4672, 200, 53, 56, 'Charge Discipline'),
-	(3001, 4514, 200, 54, 254, 'Mighty Strike Discipline'),
-	(3001, 4501, 200, 57, 254, 'Precision Discipline'),
-	(3001, 4675, 200, 58, 254, 'Fellstrike Discipline'),
-	(3001, 4498, 200, 60, 254, 'Aggressive Discipline'),
-	(3003, 4500, 200, 55, 254, 'Holyforge Discipline'),
-	(3004, 4506, 200, 55, 254, 'Trueshot Discipline'),
-	(3005, 4520, 200, 55, 254, 'Unholy Aura Discipline'),
-	(3007, 4511, 200, 52, 254, 'Thunderkick Discipline'),
-	(3007, 4512, 200, 56, 254, 'Innerflame Discipline'),
-	(3007, 4513, 200, 57, 254, 'Hundred Fists Discipline'),
-	(3007, 4507, 200, 59, 59, 'Silentfist Discipline'),
-	(3007, 4508, 200, 60, 254, 'Ashenhand Discipline'),
-	(3008, 4586, 200, 60, 254, 'Puretone Discipline'),
-	(3009, 4505, 200, 54, 254, 'Deadeye Discipline'),
-	(3009, 4517, 200, 57, 254, 'Kinesthetics Discipline'),
-	(3009, 4677, 200, 58, 254, 'Blinding Speed Discipline'),
-	(3009, 4676, 200, 59, 254, 'Duelist Discipline'),
-	(3015, 4678, 200, 60, 254, 'Bestial Fury Discipline'),
+	(3001, 4672, 201, 53, 56, 'Charge Discipline'),
+	(3001, 4514, 201, 54, 254, 'Mighty Strike Discipline'),
+	(3001, 4501, 201, 57, 254, 'Precision Discipline'),
+	(3001, 4675, 201, 58, 254, 'Fellstrike Discipline'),
+	(3001, 4498, 201, 60, 254, 'Aggressive Discipline'),
+	(3003, 4500, 201, 55, 254, 'Holyforge Discipline'),
+	(3004, 4506, 201, 55, 254, 'Trueshot Discipline'),
+	(3005, 4520, 201, 55, 254, 'Unholy Aura Discipline'),
+	(3007, 4511, 201, 52, 254, 'Thunderkick Discipline'),
+	(3007, 4512, 201, 56, 254, 'Innerflame Discipline'),
+	(3007, 4513, 201, 57, 254, 'Hundred Fists Discipline'),
+	(3007, 4507, 201, 59, 59, 'Silentfist Discipline'),
+	(3007, 4508, 201, 60, 254, 'Ashenhand Discipline'),
+	(3008, 4586, 201, 60, 254, 'Puretone Discipline'),
+	(3009, 4505, 201, 54, 254, 'Deadeye Discipline'),
+	(3009, 4517, 201, 57, 254, 'Kinesthetics Discipline'),
+	(3009, 4677, 201, 58, 254, 'Blinding Speed Discipline'),
+	(3009, 4676, 201, 59, 254, 'Duelist Discipline'),
+	(3015, 4678, 201, 60, 254, 'Bestial Fury Discipline'),
 
 -- Disciplines - Defensive
 	(3001, 4585, 202, 30, 254, 'Resistant Discipline'),
@@ -788,7 +865,7 @@ INSERT INTO `bot_spells_entries` (`npc_spells_id`, `spell_id`, `type`, `minlevel
 		.content_schema_update = false,
 	},
 	ManifestEntry{
-		.version = 11,
+		.version = 12,
 		.description = "2025_10_15_create_bot_default_settings",
 		.check = "SHOW TABLES LIKE 'bot_default_settings'",
 		.condition = "empty",
@@ -814,7 +891,7 @@ ENGINE=InnoDB
 		.content_schema_update = false,
 	},
 	ManifestEntry{
-		.version = 12,
+		.version = 13,
 		.description = "2025_10_15_create_gearscore_and_spellscore_tables",
 		.check = "SHOW TABLES LIKE 'veq_gear_score'",
 		.condition = "empty",
@@ -1004,63 +1081,32 @@ ENGINE=InnoDB
 		.content_schema_update = false,
 	},
 	ManifestEntry{
-		.version = 13,
+		.version = 14,
 		.description = "2025_10_19_update_logsys_catergories",
 		.check = "SHOW TABLES LIKE 'logsys_categories'",
 		.condition = "not_empty",
 		.match = "",
 		.sql = R"(
-UPDATE `logsys_categories`
-SET
-    `log_to_console` = 0,
-    `log_to_file` = 0,
-    `log_to_gmsay` = 0,
-    `log_to_discord` = 0,
-    `discord_webhook_id` = 0;
-
-INSERT INTO `logsys_categories`
-    (`log_category_id`, `log_category_description`, `log_to_console`, `log_to_file`, `log_to_gmsay`, `log_to_discord`, `discord_webhook_id`)
-VALUES
-    (8, 'Crash', 1, 1, 1, 1, 3),  -- Crash
-    (9, 'Debug', 1, 1, 0, 0, 0),  -- Debug
-    (11, 'Error', 1, 1, 1, 1, 2), -- Error
-    (20, 'Quests', 0, 1, 1, 0, 5), -- Quests
-    (35, 'MySQL Error', 1, 1, 1, 1, 12), -- MySQL Error
-    (38, 'Quest Debug', 0, 1, 0, 0, 5), -- Quest Debug
-    (44, 'Client Login', 1, 1, 0, 0, 0), -- Client Login
-    (53, 'Info', 1, 1, 0, 0, 0), -- Info
-    (54, 'Warning', 1, 1, 1, 1, 2), -- Warning
-    (66, 'HotReload', 1, 1, 1, 1, 11), -- HotReload
-    (70, 'Expeditions', 0, 1, 1, 0, 0), -- Expeditions
-    (71, 'DynamicZones', 0, 1, 1, 0, 0), -- DynamicZones
-    (73, 'Cheat', 1, 1, 1, 1, 4), -- Cheat
-    (76, 'HTTP', 1, 1, 1, 0, 0), -- HTTP
-    (81, 'Discord', 1, 3, 0, 0, 0), -- Discord
-    (87, 'QuestErrors', 1, 1, 1, 1, 5), -- QuestErrors
-    (88, 'PlayerEvents', 0, 0, 0, 3, 24), -- PlayerEvents
-    (104, 'TestDebug', 0, 1, 1, 0, 0), -- TestDebug
-    (107, 'VegasLoot', 0, 1, 1, 0, 0)  -- VegasLoot
-ON DUPLICATE KEY UPDATE
-	`log_category_description` = VALUES(`log_category_description`),
-    `log_to_console` = VALUES(`log_to_console`),
-    `log_to_file` = VALUES(`log_to_file`),
-    `log_to_gmsay` = VALUES(`log_to_gmsay`),
-    `log_to_discord` = VALUES(`log_to_discord`),
-    `discord_webhook_id` = VALUES(`discord_webhook_id`);
-
-UPDATE `logsys_categories` SET `log_category_description` = 'MySQL Query' WHERE `log_category_id` = 36;
-UPDATE `logsys_categories` SET `log_category_description` = 'AI CastBeneficial' WHERE `log_category_id` = 61;
-UPDATE `logsys_categories` SET `log_category_description` = 'Checksum Verification' WHERE `log_category_id` = 78;
-UPDATE `logsys_categories` SET `log_category_description` = 'Packet S->C' WHERE `log_category_id` = 83);
-UPDATE `logsys_categories` SET `log_category_description` = 'Packet C->S' WHERE `log_category_id` = 84);
-UPDATE `logsys_categories` SET `log_category_description` = 'Packet S->S' WHERE `log_category_id` = 85);
-UPDATE `logsys_categories` SET `log_category_description` = 'Bugs' WHERE `log_category_id` = 86);
-UPDATE `logsys_categories` SET `log_category_description` = 'QuestErrors' WHERE `log_category_id` = 87);
-UPDATE `logsys_categories` SET `log_category_description` = 'PlayerEvents' WHERE `log_category_id` = 88);
-UPDATE `logsys_categories` SET `log_category_description` = 'DataBuckets' WHERE `log_category_id` = 89);
-UPDATE `logsys_categories` SET `log_category_description` = 'Zoning' WHERE `log_category_id` = 90);
-UPDATE `logsys_categories` SET `log_category_description` = 'EqTime' WHERE `log_category_id` = 91);
-
+UPDATE logsys_categories SET log_to_console = 0, log_to_file = 0, log_to_gmsay = 0, log_to_discord = 0, discord_webhook_id = 0;  -- Disable All
+UPDATE logsys_categories SET log_to_console = 1, log_to_file = 1, log_to_gmsay = 1, log_to_discord = 1, discord_webhook_id = 3 WHERE log_category_id = 8;  -- Crash
+UPDATE logsys_categories SET log_to_console = 1, log_to_file = 1, log_to_gmsay = 0, log_to_discord = 0, discord_webhook_id = 0 WHERE log_category_id = 9;  -- Debug
+UPDATE logsys_categories SET log_to_console = 1, log_to_file = 1, log_to_gmsay = 1, log_to_discord = 1, discord_webhook_id = 2 WHERE log_category_id = 11;  -- Error
+UPDATE logsys_categories SET log_to_console = 0, log_to_file = 1, log_to_gmsay = 1, log_to_discord = 0, discord_webhook_id = 5 WHERE log_category_id = 20;  -- Quests
+UPDATE logsys_categories SET log_to_console = 1, log_to_file = 1, log_to_gmsay = 1, log_to_discord = 1, discord_webhook_id = 12 WHERE log_category_id = 35;  -- MySQL Error
+UPDATE logsys_categories SET log_to_console = 0, log_to_file = 1, log_to_gmsay = 0, log_to_discord = 0, discord_webhook_id = 5 WHERE log_category_id = 38;  -- Quest Debug
+UPDATE logsys_categories SET log_to_console = 1, log_to_file = 1, log_to_gmsay = 0, log_to_discord = 0, discord_webhook_id = 0 WHERE log_category_id = 44;  -- Client Login
+UPDATE logsys_categories SET log_to_console = 1, log_to_file = 1, log_to_gmsay = 0, log_to_discord = 0, discord_webhook_id = 0 WHERE log_category_id = 53;  -- Info
+UPDATE logsys_categories SET log_to_console = 1, log_to_file = 1, log_to_gmsay = 1, log_to_discord = 1, discord_webhook_id = 2 WHERE log_category_id = 54;  -- Warning
+UPDATE logsys_categories SET log_to_console = 1, log_to_file = 1, log_to_gmsay = 1, log_to_discord = 1, discord_webhook_id = 11 WHERE log_category_id = 66;  -- HotReload
+UPDATE logsys_categories SET log_to_console = 0, log_to_file = 1, log_to_gmsay = 1, log_to_discord = 0, discord_webhook_id = 0 WHERE log_category_id = 70;  -- Expeditions
+UPDATE logsys_categories SET log_to_console = 0, log_to_file = 1, log_to_gmsay = 1, log_to_discord = 0, discord_webhook_id = 0 WHERE log_category_id = 71;  -- DynamicZones
+UPDATE logsys_categories SET log_to_console = 1, log_to_file = 1, log_to_gmsay = 1, log_to_discord = 1, discord_webhook_id = 4 WHERE log_category_id = 73;  -- Cheat
+UPDATE logsys_categories SET log_to_console = 1, log_to_file = 1, log_to_gmsay = 1, log_to_discord = 0, discord_webhook_id = 0 WHERE log_category_id = 76;  -- HTTP
+UPDATE logsys_categories SET log_to_console = 1, log_to_file = 3, log_to_gmsay = 0, log_to_discord = 0, discord_webhook_id = 0 WHERE log_category_id = 81;  -- Discord
+UPDATE logsys_categories SET log_to_console = 1, log_to_file = 1, log_to_gmsay = 1, log_to_discord = 1, discord_webhook_id = 5 WHERE log_category_id = 87;  -- QuestErrors
+UPDATE logsys_categories SET log_to_console = 0, log_to_file = 0, log_to_gmsay = 0, log_to_discord = 3, discord_webhook_id = 24 WHERE log_category_id = 88;  -- PlayerEvents
+UPDATE logsys_categories SET log_to_console = 0, log_to_file = 1, log_to_gmsay = 1, log_to_discord = 0, discord_webhook_id = 0 WHERE log_category_id = 104;  -- TestDebug
+UPDATE logsys_categories SET log_to_console = 0, log_to_file = 1, log_to_gmsay = 1, log_to_discord = 0, discord_webhook_id = 0 WHERE log_category_id = 107;  -- VegasLoot
 )",
 		.content_schema_update = false,
 	},
