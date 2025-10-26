@@ -8734,6 +8734,10 @@ bool Mob::IsInGroupOrRaid(Mob* other, bool same_raid_group) {
 		return true;
 	}
 
+	if (other->GetOwner()) {
+		other = other->GetOwner();
+	}
+
 	Raid* raid = IsBot() ? CastToBot()->GetStoredRaid() : (IsRaidGrouped() ? GetRaid() : nullptr);
 
 	if (raid) {

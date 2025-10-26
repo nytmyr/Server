@@ -588,13 +588,6 @@ bool Bot::AIDoSpellCast(int32 i, Mob* tar, int32 mana_cost, uint32* oDontDoAgain
 		SetMana(manaCost);
 	}
 
-	float dist2 = 0;
-
-	if (AIBot_spells[i].type == BotSpellTypes::Escape) {
-		dist2 = 0;
-	} else
-		dist2 = DistanceSquared(m_Position, tar->GetPosition());
-
 	if (IsValidSpellRange(AIBot_spells[i].spellid, tar) && (mana_cost <= GetMana() || IsBotNonSpellFighter())) {
 		casting_spell_AIindex = i;
 		LogAI("spellid [{}] tar [{}] mana [{}] Name [{}]", AIBot_spells[i].spellid, tar->GetName(), mana_cost, spells[AIBot_spells[i].spellid].name);
@@ -1081,7 +1074,8 @@ std::vector<BotSpell_wPriority> Bot::GetPrioritizedBotSpellsBySpellType(Bot* cas
 				if (!AE && IsAnyAESpell(bot_spell_list[i].spellid) && !IsGroupSpell(bot_spell_list[i].spellid)) {
 					continue;
 				}
-				else if (AE && !IsAnyAESpell(bot_spell_list[i].spellid)) {
+
+				if (AE && !IsAnyAESpell(bot_spell_list[i].spellid)) {
 					continue;
 				}
 
