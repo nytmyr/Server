@@ -62,7 +62,7 @@ void bot_command_depart(Client* c, const Seperator* sep)
 	}
 
 	bool single = false;
-	bool group = true;
+	bool group = false;
 	bool ae = false;
 	std::string single_arg = sep->arg[2];
 	bool list = false;
@@ -72,17 +72,13 @@ void bot_command_depart(Client* c, const Seperator* sep)
 	if (!single_arg.compare("single")) {
 		++ab_arg;
 		single = true;
-		group = false;
 	}
 	else if (!single_arg.compare("group")) {
 		++ab_arg;
-		single = false;
 		group = true;
 	}
 	else if (!single_arg.compare("ae")) {
 		++ab_arg;
-		single = false;
-		group = false;
 		ae = true;
 	}
 
@@ -138,17 +134,24 @@ void bot_command_depart(Client* c, const Seperator* sep)
 	bot_spell.ManaCost = 0;
 
 	bool is_success = false;
-	std::map<std::string, std::pair<uint8_t, uint8_t>> list_zones;
+	std::vector<std::tuple<std::string, uint32_t, std::string, uint16_t, uint8_t, uint8_t>> list_zones;
+	uint8 failure_type = CastFailures::Undeclared;
 
 	for (auto bot_iter : sbl) {
 		if (!bot_iter->ValidStateCheck(c)) {
+			failure_type = CastFailures::InvalidState;
 			continue;
 		}
+
+		bot_iter->SetCastFailure(CastFailures::Undeclared);
+
+		bot_iter->SetCommandedSpell(true);
 
 		std::vector<BotSpell_wPriority> bot_spell_list_itr = bot_iter->GetPrioritizedBotSpellsBySpellType(bot_iter, BotSpellTypes::Teleport, tar);
 
 		for (std::vector<BotSpell_wPriority>::iterator itr = bot_spell_list_itr.begin(); itr != bot_spell_list_itr.end(); ++itr) {
 			if (!IsValidSpell(itr->SpellId)) {
+				failure_type = CastFailures::InvalidSpell;
 				continue;
 			}
 
@@ -157,36 +160,34 @@ void bot_command_depart(Client* c, const Seperator* sep)
 				(group && !IsGroupSpell(itr->SpellId)) ||
 				(ae && !IsAnyAESpell(itr->SpellId))
 			) {
+				failure_type = CastFailures::InvalidSpell;
 				continue;
 			}
 
 			if (list) {
-				auto it = list_zones.find(spells[itr->SpellId].teleport_zone);
+				auto zone = spells[itr->SpellId].teleport_zone;
+				auto target_type = spells[itr->SpellId].target_type;
+				auto bot_class = bot_iter->GetClass();
+
+				auto it = std::find_if(list_zones.begin(), list_zones.end(),
+					[&](const auto& entry) {
+						return std::get<0>(entry) == zone &&
+							   std::get<4>(entry) == target_type &&
+							   std::get<5>(entry) == bot_class;
+					});
 
 				if (it != list_zones.end()) {
-					const auto& [val1, val2] = it->second;
-
-					if (val1 == spells[itr->SpellId].target_type && val2 == bot_iter->GetClass()) {
-						continue;
-					}
+					continue;
 				}
 
-				bot_iter->RaidGroupSay(
-					fmt::format(
-						"I can port you to {}.",
-						Saylink::Silent(
-							fmt::format(
-								"{} {} {} byname {}",
-								sep->arg[0],
-								spells[itr->SpellId].teleport_zone,
-								(spells[itr->SpellId].target_type == ST_Target ? "single" : (IsGroupSpell(itr->SpellId) ? "group" : "ae")),
-								bot_iter->GetCleanName()
-							).c_str()
-							, ZoneLongName(ZoneID(spells[itr->SpellId].teleport_zone)))
-					).c_str()
-				);
-
-				list_zones.insert({ spells[itr->SpellId].teleport_zone, {spells[itr->SpellId].target_type, bot_iter->GetClass()} });
+				list_zones.push_back({
+					spells[itr->SpellId].teleport_zone,
+					bot_iter->GetBotID(),
+					bot_iter->GetCleanName(),
+					itr->SpellId,
+					spells[itr->SpellId].target_type,
+					bot_iter->GetClass()
+				});
 
 				continue;
 			}
@@ -195,13 +196,10 @@ void bot_command_depart(Client* c, const Seperator* sep)
 				continue;
 			}
 
-			bot_iter->SetCommandedSpell(true);
+			bot_iter->SetHasLoS(tar != bot_iter && BotSpellTypeRequiresLoS(BotSpellTypes::Teleport) ? bot_iter->DoLosChecks(tar) : true);
 
-			if (!IsValidSpell(itr->SpellId)) {
-				continue;
-			}
-
-			if (BotRequiresLoSToCast(BotSpellTypes::Teleport, itr->SpellId) && !bot_iter->HasLoS()) {
+			if (!bot_iter->HasLoS() && BotRequiresLoSToCast(BotSpellTypes::Teleport, itr->SpellId)) {
+				failure_type = CastFailures::LineOfSight;
 				continue;
 			}
 
@@ -209,7 +207,7 @@ void bot_command_depart(Client* c, const Seperator* sep)
 				tar = bot_iter; //target self for invul type spells
 			}
 
-			if (bot_iter->IsCommandedSpell() && bot_iter->IsCasting()) {
+			if (bot_iter->IsCasting()) {
 				bot_iter->RaidGroupSay(
 					fmt::format(
 						"Interrupting {}. I have been commanded to try to cast a [{}] spell, {} on {}.",
@@ -224,12 +222,7 @@ void bot_command_depart(Client* c, const Seperator* sep)
 			}
 
 			if (bot_iter->CastSpell(itr->SpellId, tar->GetID(), EQ::spells::CastingSlot::Gem2, -1, -1)) {
-				if (BotSpellTypeUsesTargetSettings(BotSpellTypes::Teleport)) {
-					bot_iter->SetCastedSpellType(UINT16_MAX);
-				}
-				else {
-					bot_iter->SetCastedSpellType(BotSpellTypes::Teleport);
-				}
+				bot_iter->SetCastedSpellType(BotSpellTypes::Teleport);
 
 				bot_iter->RaidGroupSay(
 					fmt::format(
@@ -242,14 +235,70 @@ void bot_command_depart(Client* c, const Seperator* sep)
 
 				is_success = true;
 			}
+			else {
+				failure_type = bot_iter->GetCastFailure();
+			}
 
 			bot_iter->SetCommandedSpell(false);
 
 			if (is_success) {
 				return;
 			}
-			else {
-				continue;
+		}
+
+		bot_iter->SetCommandedSpell(false);
+	}
+
+	if (list && !list_zones.empty()) {
+		std::sort(list_zones.begin(), list_zones.end(),
+			[](const auto& a, const auto& b) {
+				if (std::get<0>(a) != std::get<0>(b)) { // Sort by zone
+					return std::get<0>(a) < std::get<0>(b);
+				}
+
+				if (std::get<4>(a) != std::get<4>(b)) { // Sort by target type
+					return std::get<4>(a) < std::get<4>(b);
+				}
+
+				if (std::get<5>(a) != std::get<5>(b)) { // Sort by bot class
+					return std::get<5>(a) < std::get<5>(b);
+				}
+
+				return std::get<2>(a) < std::get<2>(b); // Sort by bot name
+			}
+		);
+
+		for (const auto& entry : list_zones) {
+			auto my_bot = entity_list.GetBotByBotID(std::get<1>(entry));
+
+			if (my_bot) {
+				std::string target_desc;
+				uint16_t spell_id = std::get<3>(entry);
+				uint8_t target_type = std::get<4>(entry);
+
+				if (target_type == ST_Target) {
+					target_desc = "Single";
+				} else if (IsGroupSpell(spell_id)) {
+					target_desc = "Group";
+				} else {
+					target_desc = "AE";
+				}
+
+				my_bot->RaidGroupSay(
+					fmt::format(
+						"I can port you to {} [{}].",
+						Saylink::Silent(
+							fmt::format(
+								"{} {} byname {}",
+								sep->arg[0],
+								std::get<0>(entry),
+								std::get<2>(entry)
+							).c_str(),
+							ZoneLongName(ZoneID(std::get<0>(entry).c_str()))
+						),
+						target_desc
+					).c_str()
+				);
 			}
 		}
 	}
@@ -261,8 +310,9 @@ void bot_command_depart(Client* c, const Seperator* sep)
 		c->Message(
 			Chat::Yellow,
 			fmt::format(
-				"No bots are capable of that on {}. Be sure they are in the same group, raid or raid group if necessary.",
-				tar ? tar->GetCleanName() : "you"
+				"No bots are capable of casting that on {}. Reason: {}.",
+				tar ? tar->GetCleanName() : "your target",
+				Bot::GetCastFailuresNames(failure_type)
 			).c_str()
 		);
 	}

@@ -11923,11 +11923,11 @@ bool Bot::IsValidBotSpellType(uint16 spell_type) {
 }
 
 bool Bot::IsValidSpellTypeBySpellID(uint16 spell_type, uint16 spell_id) {
-	if (IsAEBotSpellType(spell_type) && !IsAnyAESpell(spell_id)) {
+	if (spell_type != BotSpellTypes::Teleport && IsAEBotSpellType(spell_type) && !IsAnyAESpell(spell_id)) {
 		return false;
 	}
 
-	if (IsGroupBotSpellType(spell_type) && !IsGroupSpell(spell_id)) {
+	if (spell_type != BotSpellTypes::Teleport && IsGroupBotSpellType(spell_type) && !IsGroupSpell(spell_id)) {
 		return false;
 	}
 
