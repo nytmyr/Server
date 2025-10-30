@@ -3130,3 +3130,7 @@ bool IsTargetTypeOnlySpell(uint16 spell_id) {
 
 	return false;
 }
+
+bool IsIdentifySpell(uint16 spell_id) {
+	return IsEffectInSpell(spell_id, SpellEffect::Identify);
+}
