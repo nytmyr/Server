@@ -366,6 +366,10 @@ bool RequiresStackCheck(uint16 spell_type) {
 	return true;
 }
 
+bool IsDisciplinedBotSpellType(uint16 spell_type) {
+	return spell_type >= BotSpellTypes::DISCIPLINE_START && spell_type <= BotSpellTypes::DISCIPLINE_END;
+}
+
 bool IsCommandedBotSpellType(uint16 spell_type) {
 	switch (spell_type) {
 		case BotSpellTypes::Charm:
@@ -427,7 +431,7 @@ uint16 GetCorrectBotSpellType(uint16 spell_type, uint16 spell_id) {
 		auto end = std::max({ BotSpellTypes::END, BotSpellTypes::COMMANDED_END, BotSpellTypes::DISCIPLINE_END });
 
 		for (int i = end; i >= start; --i) {
-			if (!Bot::IsValidBotSpellType(i) || i == BotSpellTypes::InCombatBuff) {
+			if (!Bot::IsValidBotSpellType(i) || i == BotSpellTypes::InCombatBuff || IsDisciplinedBotSpellType(i)) {
 				continue;
 			}
 

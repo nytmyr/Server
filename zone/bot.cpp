@@ -13737,6 +13737,18 @@ bool Bot::HasControllablePet(uint8 ranks_required) {
 		GetAA(aaAnimationEmpathy) >= ranks_required;
 }
 
+bool Bot::HasDiscBuff() {
+	int buff_count = GetMaxBuffSlots();
+
+	for (int slot = 0; slot < buff_count; slot++) {
+		if (IsValidSpell(buffs[slot].spellid) && IsDiscipline(buffs[slot].spellid)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 // VegasEQ - START
 bool Bot::IsQuiver(const EQ::ItemData *item) {
 	if (!item) {

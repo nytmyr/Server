@@ -77,12 +77,25 @@ void bot_command_discipline(Client* c, const Seperator* sep)
 		defensive = true;
 	}
 	else if (sep->IsNumber(1)) {
-		if (!IsValidSpell(atoi(sep->arg[1]))) {
+		spell_id = atoi(sep->arg[1]);
+
+		if (!IsValidSpell(spell_id)) {
 			c->Message(Chat::Yellow, "You must enter a valid spell ID.");
 			return;
 		}
 
-		spell_id = atoi(sep->arg[1]);
+		if (!IsDiscipline(spell_id)) {
+			c->Message(
+				Chat::Yellow,
+					fmt::format(
+						"You cannot use {} to cast [{}] as it is not a discipline. Use ^cast instead.",
+						sep->arg[0],
+						spells[spell_id].name
+					).c_str()
+			);
+
+			return;
+		}
 	}
 	else {
 		c->Message(
@@ -123,22 +136,35 @@ void bot_command_discipline(Client* c, const Seperator* sep)
 	bool is_success = false;
 	uint16 success_count = 0;
 	Bot* first_found = nullptr;
+	uint8 failure_type = CastFailures::Undeclared;
 
 	for (auto bot_iter : sbl) {
 		if (!bot_iter->ValidStateCheck(c)) {
+			failure_type = CastFailures::InvalidState;
 			continue;
 		}
+
+		if (bot_iter->HasDiscBuff()) {
+			bot_iter->RaidGroupSay("I currently have an active discipline.");
+			failure_type = CastFailures::AlreadyHasDiscBuff;
+			continue;
+		}
+
+		bot_iter->SetCastFailure(CastFailures::Undeclared);
 
 		if (spell_id == UINT16_MAX) { // Aggressive/Defensive type
 			const std::vector<BotSpells_wIndex>& bot_spell_list = bot_iter->BotGetSpellsByType(aggressive ? BotSpellTypes::DiscAggressive : BotSpellTypes::DiscDefensive);
 
 			for (int i = bot_spell_list.size() - 1; i >= 0; i--) {
 				if (!IsValidSpell(bot_spell_list[i].spellid)) {
+					failure_type = CastFailures::InvalidSpell;
 					continue;
 				}
 
-				if (!bot_iter->CheckDisciplineReuseTimer(bot_spell_list[i].spellid)) {
-					uint32 remaining_time = (bot_iter->GetDisciplineReuseRemainingTime(bot_spell_list[i].spellid) / 1000);
+				auto spell = spells[bot_spell_list[i].spellid];
+
+				if (!bot_iter->CheckDisciplineReuseTimer(spell.id)) {
+					uint32 remaining_time = (bot_iter->GetDisciplineReuseRemainingTime(spell.id) / 1000);
 
 					bot_iter->OwnerMessage(
 						fmt::format(
@@ -150,41 +176,43 @@ void bot_command_discipline(Client* c, const Seperator* sep)
 					continue;
 				}
 
-				if (bot_iter->GetEndurance() < spells[bot_spell_list[i].spellid].endurance_cost) {
-					continue;
-				}
-
-				if (bot_iter->DivineAura() && !IsCastNotStandingSpell(bot_spell_list[i].spellid)) {
-					continue;
-				}
-
-				if (spells[bot_spell_list[i].spellid].buff_duration_formula != 0 && spells[bot_spell_list[i].spellid].target_type == ST_Self && bot_iter->HasDiscBuff()) {
-					continue;
-				}
-
-				if (!tar || (spells[bot_spell_list[i].spellid].target_type == ST_Self && tar != bot_iter)) {
-					tar = bot_iter;
-				}
-
-				if (bot_iter->AttemptForcedCastSpell(tar, bot_spell_list[i].spellid, true)) {
+				if (bot_iter->AttemptForcedCastSpell(tar, spell.id, true)) {
 					if (!first_found) {
 						first_found = bot_iter;
 					}
 
 					is_success = true;
 					++success_count;
-					spell_id = bot_spell_list[i].spellid;
+					spell_id = spell.id;
+				}
+				else {
+					failure_type = bot_iter->GetCastFailure();
 				}
 			}
 		}
 		else { // Direct spell ID
 			if (!IsValidSpell(spell_id)) {
+				failure_type = CastFailures::InvalidSpell;
 				continue;
 			}
 
-			SPDat_Spell_Struct spell = spells[spell_id];
+			auto spell = spells[spell_id];
+
+			if (!IsDiscipline(spell_id)) {
+				c->Message(
+					Chat::Yellow,
+						fmt::format(
+							"You cannot use {} to cast [{}] as it is not a discipline.",
+							sep->arg[0],
+							spells[spell_id].name
+						).c_str()
+				);
+
+				return;
+			}
 
 			if (!bot_iter->CanUseBotSpell(spell_id)) {
+				failure_type = CastFailures::DoesNotHaveSpell;
 				continue;
 			}
 
@@ -201,18 +229,6 @@ void bot_command_discipline(Client* c, const Seperator* sep)
 				continue;
 			}
 
-			if (bot_iter->GetEndurance() < spell.endurance_cost) {
-				continue;
-			}
-
-			if (bot_iter->DivineAura() && !IsCastNotStandingSpell(spell_id)) {
-				continue;
-			}
-
-			if (!tar || (spell.target_type == ST_Self && tar != bot_iter)) {
-				tar = bot_iter;
-			}
-
 			if (bot_iter->AttemptForcedCastSpell(tar, spell_id, true)) {
 				if (!first_found) {
 					first_found = bot_iter;
@@ -220,14 +236,24 @@ void bot_command_discipline(Client* c, const Seperator* sep)
 
 				is_success = true;
 				++success_count;
+
+				if (IsSingleBotCastedSpell(spell_id)) {
+					break;
+				}
+			}
+			else {
+				failure_type = bot_iter->GetCastFailure();
 			}
 		}
-
-		continue;
 	}
 
 	if (!is_success) {
-		c->Message(Chat::Yellow, "No bots were capable of doing that. This could be because they don't have the ability or things like Line of Sight, range, endurance, etc.");
+		c->Message(
+			Chat::Yellow,
+			fmt::format("No bots were capable of doing that. Reason: {}.",
+				Bot::GetCastFailuresNames(failure_type)
+			).c_str()
+		);
 	}
 	else {
 		if (aggressive || defensive) {

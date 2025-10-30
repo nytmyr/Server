@@ -817,7 +817,11 @@ static std::map<uint16, std::string> spell_type_names = {
 	{ BotSpellTypes::MovementSpeed,            "Movement Speed" },
 	{ BotSpellTypes::SendHome,                 "Send Home" },
 	{ BotSpellTypes::SummonCorpse,             "Summon Corpse" },
-	{ BotSpellTypes::AELull,                   "AE Lull" }
+	{ BotSpellTypes::AELull,                   "AE Lull" },
+	{ BotSpellTypes::Discipline,               "Discipline" },
+	{ BotSpellTypes::DiscAggressive,           "Discipline Aggressive" },
+	{ BotSpellTypes::DiscDefensive,            "Discipline Defensive" },
+	{ BotSpellTypes::DiscUtility,              "Discipline Utility" }
 };
 
 static std::map<uint16, std::string> spell_type_short_names = {
@@ -892,7 +896,11 @@ static std::map<uint16, std::string> spell_type_short_names = {
 	{ BotSpellTypes::MovementSpeed,            "movementspeed" },
 	{ BotSpellTypes::SendHome,                 "sendhome" },
 	{ BotSpellTypes::SummonCorpse,             "summoncorpse" },
-	{ BotSpellTypes::AELull,                   "aelull" }
+	{ BotSpellTypes::AELull,                   "aelull" },
+	{ BotSpellTypes::Discipline,               "discipline" },
+	{ BotSpellTypes::DiscAggressive,           "disciplineaggressive" },
+	{ BotSpellTypes::DiscDefensive,            "disciplinedefensive" },
+	{ BotSpellTypes::DiscUtility,              "disciplineutility" }
 };
 
 const uint32 SPELL_TYPES_DETRIMENTAL = (SpellType_Nuke | SpellType_Root | SpellType_Lifetap | SpellType_Snare | SpellType_DOT | SpellType_Dispel | SpellType_Mez | SpellType_Charm | SpellType_Debuff | SpellType_Slow);
@@ -913,6 +921,7 @@ bool IsHealBotSpellType(uint16 spell_type);
 bool BotSpellTypeRequiresLoS(uint16 spell_type);
 bool BotSpellTypeRequiresTarget(uint16 spell_type);
 bool BotSpellTypeRequiresAEChecks(uint16 spell_type);
+bool IsDisciplinedBotSpellType(uint16 spell_type);
 bool IsCommandedBotSpellType(uint16 spell_type);
 bool IsPullingBotSpellType(uint16 spell_type);
 uint16 GetCorrectBotSpellType(uint16 spell_type, uint16 spell_id);
