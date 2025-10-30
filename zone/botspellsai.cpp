@@ -23,6 +23,7 @@
 
 bool Bot::AICastSpell(Mob* tar, uint8 chance, uint16 spell_type, uint16 sub_target_type, uint16 sub_type) {
 	if (!tar) {
+		SetCastFailure(CastFailures::NoTarget);
 		return false;
 	}
 
@@ -38,6 +39,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 chance, uint16 spell_type, uint16 sub_targ
 		(tar->IsPet() && tar->IsCharmed() && spell_type == BotSpellTypes::PetCures && !RuleB(Bots, AllowCharmedPetCures)) ||
 		(tar->IsPet() && tar->IsCharmed() && IsHealBotSpellType(spell_type) && !RuleB(Bots, AllowCharmedPetHeals))
 	) {
+		SetCastFailure(CastFailures::InvalidSpellTypeForTarget);
 		return false;
 	}
 
@@ -50,6 +52,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 chance, uint16 spell_type, uint16 sub_targ
 
 	if ((spell_type != BotSpellTypes::Resurrect && spell_type != BotSpellTypes::SummonCorpse) && tar->GetAppearance() == eaDead) {
 		if (!((tar->IsClient() && tar->CastToClient()->GetFeigned()) || tar->IsBot())) {
+			SetCastFailure(CastFailures::TargetDead);
 			return false;
 		}
 	}
@@ -71,12 +74,14 @@ bool Bot::AICastSpell(Mob* tar, uint8 chance, uint16 spell_type, uint16 sub_targ
 	switch (spell_type) {
 		case BotSpellTypes::Slow:
 			if (tar->GetSpecialAbility(SpecialAbility::SlowImmunity)) {
+				SetCastFailure(CastFailures::SlowImmune);
 				return false;
 			}
 
 			break;
 		case BotSpellTypes::Snare:
 			if (tar->GetSpecialAbility(SpecialAbility::SnareImmunity)) {
+				SetCastFailure(CastFailures::SnareImmune);
 				return false;
 			}
 
@@ -84,12 +89,14 @@ bool Bot::AICastSpell(Mob* tar, uint8 chance, uint16 spell_type, uint16 sub_targ
 		case BotSpellTypes::AELull:
 		case BotSpellTypes::Lull:
 			if (tar->GetSpecialAbility(SpecialAbility::PacifyImmunity)) {
+				SetCastFailure(CastFailures::PacifyImmune);
 				return false;
 			}
 
 			break;
 		case BotSpellTypes::Fear:
 			if (tar->GetSpecialAbility(SpecialAbility::FearImmunity)) {
+				SetCastFailure(CastFailures::FearImmune);
 				return false;
 			}
 
@@ -100,6 +107,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 chance, uint16 spell_type, uint16 sub_targ
 			break;
 		case BotSpellTypes::Dispel:
 			if (tar->GetSpecialAbility(SpecialAbility::DispellImmunity)) {
+				SetCastFailure(CastFailures::DispellImmune);
 				return false;
 			}
 
@@ -122,6 +130,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 chance, uint16 spell_type, uint16 sub_targ
 			break;
 		case BotSpellTypes::HateLine:
 			if (!tar->IsNPC()) {
+				SetCastFailure(CastFailures::NotNPC);
 				return false;
 			}
 
@@ -146,6 +155,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 chance, uint16 spell_type, uint16 sub_targ
 		case BotSpellTypes::MovementSpeed:
 		case BotSpellTypes::SendHome:
 			if (!tar->IsOfClientBot() && !(tar->IsPet() && tar->GetOwner() && tar->GetOwner()->IsOfClientBot())) {
+				SetCastFailure(CastFailures::InvalidTarget);
 				return false;
 			}
 
@@ -153,6 +163,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 chance, uint16 spell_type, uint16 sub_targ
 		case BotSpellTypes::PreCombatBuffSong:
 		case BotSpellTypes::OutOfCombatBuffSong:
 			if (!IsCommandedSpell() && (IsEngaged() || tar->IsEngaged())) { // Out-of-Combat songs can not be cast in combat
+				SetCastFailure(CastFailures::CannotCastSpellTypeInCombat);
 				return false;
 			}
 
@@ -181,6 +192,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 chance, uint16 spell_type, uint16 sub_targ
 		case BotSpellTypes::PetVeryFastHeals:
 		case BotSpellTypes::PetHoTHeals:
 			if (!tar->IsOfClientBot() && !(tar->IsPet() && tar->GetOwner() && tar->GetOwner()->IsOfClientBot())) {
+				SetCastFailure(CastFailures::InvalidTarget);
 				return false;
 			}
 
@@ -189,24 +201,28 @@ bool Bot::AICastSpell(Mob* tar, uint8 chance, uint16 spell_type, uint16 sub_targ
 		case BotSpellTypes::Cure:
 		case BotSpellTypes::PetCures:
 			if (!tar->IsOfClientBot() && !(tar->IsPet() && tar->GetOwner() && tar->GetOwner()->IsOfClientBot())) {
+				SetCastFailure(CastFailures::InvalidTarget);
 				return false;
 			}
 
 			return BotCastCure(tar, bot_class, bot_spell, spell_type);
 		case BotSpellTypes::Pet:
 			if (HasPet() || IsBotCharmer()) {
+				SetCastFailure(CastFailures::AlreadyHasPet);
 				return false;
 			}
 
 			return BotCastPet(tar, bot_class, bot_spell, spell_type);
 		case BotSpellTypes::Resurrect:
 			if (!tar->IsCorpse() || !tar->CastToCorpse()->IsPlayerCorpse()) {
+				SetCastFailure(CastFailures::InvalidTarget);
 				return false;
 			}
 
 			break;
 		case BotSpellTypes::Charm:
 			if (HasPet() || tar->IsCharmed() || !tar->IsNPC() || tar->GetSpecialAbility(SpecialAbility::CharmImmunity)) {
+				SetCastFailure(CastFailures::CharmImmune);
 				return false;
 			}
 
@@ -219,10 +235,12 @@ bool Bot::AICastSpell(Mob* tar, uint8 chance, uint16 spell_type, uint16 sub_targ
 
 	for (const auto& s : bot_spell_list) {
 		if (!IsValidSpell(s.SpellId)) {
+			SetCastFailure(CastFailures::InvalidSpell);
 			continue;
 		}
 
 		if (BotRequiresLoSToCast(spell_type, s.SpellId) && !HasLoS()) {
+			SetCastFailure(CastFailures::LineOfSight);
 			continue;
 		}
 
@@ -277,10 +295,12 @@ bool Bot::BotCastMez(Mob* tar, uint8 bot_class, BotSpell& bot_spell, uint16 spel
 
 	for (const auto& s : bot_spell_list) {
 		if (!IsValidSpell(s.SpellId)) {
+			SetCastFailure(CastFailures::InvalidSpell);
 			continue;
 		}
 
 		if (BotRequiresLoSToCast(spell_type, s.SpellId) && !HasLoS()) {
+			SetCastFailure(CastFailures::LineOfSight);
 			continue;
 		}
 
@@ -434,6 +454,7 @@ bool Bot::BotCastPet(Mob* tar, uint8 bot_class, BotSpell& bot_spell, uint16 spel
 
 bool Bot::BotCastNuke(Mob* tar, uint8 bot_class, BotSpell& bot_spell, uint16 spell_type) {
 	if (BotRequiresLoSToCast(spell_type, bot_spell.SpellId) && !HasLoS()) {
+		SetCastFailure(CastFailures::LineOfSight);
 		return false;
 	}
 
@@ -455,6 +476,7 @@ bool Bot::BotCastNuke(Mob* tar, uint8 bot_class, BotSpell& bot_spell, uint16 spe
 		}
 
 		if (!IsValidSpell(bot_spell.SpellId)) {
+			SetCastFailure(CastFailures::InvalidSpell);
 			return false;
 		}
 	}
@@ -472,6 +494,7 @@ bool Bot::BotCastNuke(Mob* tar, uint8 bot_class, BotSpell& bot_spell, uint16 spe
 
 		for (const auto& s : bot_spell_list) {
 			if (!IsValidSpell(s.SpellId)) {
+				SetCastFailure(CastFailures::InvalidSpell);
 				continue;
 			}
 
@@ -513,12 +536,14 @@ bool Bot::BotCastNuke(Mob* tar, uint8 bot_class, BotSpell& bot_spell, uint16 spe
 
 bool Bot::BotCastHeal(Mob* tar, uint8 bot_class, BotSpell& bot_spell, uint16 spell_type) {
 	if (!TargetValidation(tar)) {
+		SetCastFailure(CastFailures::TargetValidation);
 		return false;
 	}
 
 	bot_spell = GetSpellByHealType(spell_type, tar);
 
 	if (!IsValidSpell(bot_spell.SpellId)) {
+		SetCastFailure(CastFailures::InvalidSpell);
 		return false;
 	}
 
@@ -1043,15 +1068,18 @@ std::vector<BotSpell_wPriority> Bot::GetPrioritizedBotSpellsBySpellType(Bot* cas
 
 		for (int i = bot_spell_list.size() - 1; i >= 0; i--) {
 			if (!IsValidSpell(bot_spell_list[i].spellid)) {
+				caster->SetCastFailure(CastFailures::InvalidSpell);
 				continue;
 			}
 
 			if (BotRequiresLoSToCast(spell_type, bot_spell_list[i].spellid) && !caster->HasLoS()) {
+				caster->SetCastFailure(CastFailures::LineOfSight);
 				continue;
 			}
 
 			if (spell_type == BotSpellTypes::HateRedux && caster->GetClass() == Class::Bard) {
 				if (spells[bot_spell_list[i].spellid].target_type != ST_Target) {
+					caster->SetCastFailure(CastFailures::InvalidTargetType);
 					continue;
 				}
 			}

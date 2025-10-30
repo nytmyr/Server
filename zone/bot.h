@@ -113,7 +113,7 @@ namespace BotSettingCategories {
 	constexpr uint16 START_CLIENT                     = BotSettingCategories::SpellDelay;
 	constexpr uint16 END_CLIENT                       = BotSettingCategories::SpellMaxThreshold;
 	constexpr uint16 END                              = BotSettingCategories::SpellTypeAnnounceCast;
-};
+}
 
 static std::map<uint8, std::string> bot_setting_category_names = {
 	{ BotSettingCategories::BaseSetting,                   "Base Setting" },
@@ -160,7 +160,7 @@ namespace BotPriorityCategories {
 
 	constexpr uint16 START                            = BotPriorityCategories::Idle;
 	constexpr uint16 END                              = BotPriorityCategories::Pursue; // Increment as needed
-};
+}
 
 namespace BotBaseSettings {
 	constexpr uint16 ExpansionBitmask                 = 0;
@@ -181,7 +181,7 @@ namespace BotBaseSettings {
 	constexpr uint16 START_ALL                        = ExpansionBitmask;
 	constexpr uint16 START                            = BotBaseSettings::ShowHelm; // Everything above this cannot be copied, changed or viewed by players
 	constexpr uint16 END                              = BotBaseSettings::SitManaPct; // Increment as needed
-};
+}
 
 static std::map<uint16, std::string> botBaseSettings_names = {
 	{ BotBaseSettings::ExpansionBitmask,             "ExpansionBitmask" },
@@ -214,7 +214,7 @@ namespace CommandedSubTypes {
 
 	constexpr uint16 START              = CommandedSubTypes::SingleTarget;
 	constexpr uint16 END                = CommandedSubTypes::Selo;
-};
+}
 
 static std::map<uint16, std::string> botSubType_names = {
 	{ CommandedSubTypes::SingleTarget,              "SingleTarget" },
@@ -233,6 +233,133 @@ namespace BotAnimEmpathy {
 	constexpr uint8 Guard       		= 1;
 	constexpr uint8 Attack           	= 2;
 	constexpr uint8 BackOff             = 3;
+}
+
+namespace CastFailures {
+	constexpr uint8 TargetValidation    	    = 1;
+	constexpr uint8 SpellHold           	    = 2;
+	constexpr uint8 ManaLimit           	    = 3;
+	constexpr uint8 HPLimit             	    = 4;
+	constexpr uint8 RecastTimer         	    = 5;
+	constexpr uint8 Threshold           	    = 6;
+	constexpr uint8 NoTarget            	    = 7;
+	constexpr uint8 InvalidSpell        	    = 8;
+	constexpr uint8 Incapacitated       	    = 9;
+	constexpr uint8 PartialIncapacitated	    = 10;
+	constexpr uint8 ZoneNoCombat                = 11;
+	constexpr uint8 NotEnoughMana               = 12;
+	constexpr uint8 ZoneSpellBlocked            = 13;
+	constexpr uint8 SpellCastRestriction        = 14;
+	constexpr uint8 CannotCastCombat            = 15;
+	constexpr uint8 CannotCastOOC               = 16;
+	constexpr uint8 FocusMute                   = 17;
+	constexpr uint8 ZoneNoLevitate              = 18;
+	constexpr uint8 ZoneNotDayTime              = 19;
+	constexpr uint8 ZoneNotNightTime            = 20;
+	constexpr uint8 ZoneNoOutdoor               = 21;
+	constexpr uint8 SelfOnly                    = 22;
+	constexpr uint8 SacrificeSpell              = 23;
+	constexpr uint8 MagicImmune                 = 24;
+	constexpr uint8 CastRangeImmune             = 25;
+	constexpr uint8 ImmuneToSpell               = 26;
+	constexpr uint8 SpellLevelRestriction       = 27;
+	constexpr uint8 BlockedBuff                 = 28;
+	constexpr uint8 BlockedPetBuff              = 29;
+	constexpr uint8 CannotCastSpellType         = 30;
+	constexpr uint8 InvalidTargetType           = 31;
+	constexpr uint8 StackConflict               = 32;
+	constexpr uint8 NoBuffSlots                 = 33;
+	constexpr uint8 InvalidSpellRange           = 34;
+	constexpr uint8 MayGetAggro                 = 35;
+	constexpr uint8 HighResist                  = 36;
+	constexpr uint8 AlreadyReceivingSpell       = 37;
+	constexpr uint8 LineOfSight                 = 38;
+	constexpr uint8 InvalidSpellTypeForTarget   = 39;
+	constexpr uint8 TargetDead                  = 40;
+	constexpr uint8 SlowImmune                  = 41;
+	constexpr uint8 SnareImmune                 = 42;
+	constexpr uint8 PacifyImmune                = 43;
+	constexpr uint8 FearImmune                  = 44;
+	constexpr uint8 CharmImmune                 = 45;
+	constexpr uint8 DispellImmune               = 46;
+	constexpr uint8 NotNPC                      = 47;
+	constexpr uint8 InvalidTarget               = 48;
+	constexpr uint8 CannotCastSpellTypeInCombat = 49;
+	constexpr uint8 AlreadyHasPet               = 50;
+	constexpr uint8 OutOfGroupRaid              = 51;
+	constexpr uint8 DoesNotHaveAA               = 52;
+	constexpr uint8 DoesNotHaveSpell            = 53;
+	constexpr uint8 TargetNotCorpse             = 54;
+	constexpr uint8 NotEnoughEndurance          = 55;
+	constexpr uint8 InvalidState                = 56;
+	constexpr uint8 AlreadyHasDiscBuff          = 57;
+	constexpr uint8 AttackNotAllowed            = 58;
+
+	constexpr uint8 Undeclared                  = UINT8_MAX;
+	constexpr uint8 START                       = CastFailures::TargetValidation;
+	constexpr uint8 END                         = CastFailures::AttackNotAllowed;
+}
+
+static std::map<uint16, std::string> CastFailuresNames {
+	{ CastFailures::TargetValidation,    	     "Target Validation: No target, I'm dead or target's dead" },
+	{ CastFailures::SpellHold,           	     "Spell type is currently held" },
+	{ CastFailures::ManaLimit,           	     "Spell type is outside of Mana limit settings" },
+	{ CastFailures::HPLimit,             	     "Spell type is outside of HP limit settings" },
+	{ CastFailures::RecastTimer,         	     "Spell type is on a recast timer" },
+	{ CastFailures::Threshold,           	     "Spell type is outside of threshold settings" },
+	{ CastFailures::NoTarget,            	     "No target" },
+	{ CastFailures::InvalidSpell,        	     "Spell is invalid" },
+	{ CastFailures::Incapacitated,       	     "Incapacitated (Feared, Silenced or Amnesia)" },
+	{ CastFailures::PartialIncapacitated,	     "Incapacitated (Stunned, Mezzed or Divine Aura)" },
+	{ CastFailures::ZoneNoCombat,                "Cannot combat in this zone" },
+	{ CastFailures::NotEnoughMana,               "Not enough mana" },
+	{ CastFailures::ZoneSpellBlocked,            "Spell is blocked in this zone" },
+	{ CastFailures::SpellCastRestriction,        "Spell does not pass cast restrictions" },
+	{ CastFailures::CannotCastCombat,            "Spell cannot be cast in combat" },
+	{ CastFailures::CannotCastOOC,               "Spell cannot be cast out of combat" },
+	{ CastFailures::FocusMute,                   "Focus Mute/Silence" },
+	{ CastFailures::ZoneNoLevitate,              "Cannot levitate in this zone" },
+	{ CastFailures::ZoneNotDayTime,              "Not currently day time" },
+	{ CastFailures::ZoneNotNightTime,            "Not currently night time" },
+	{ CastFailures::ZoneNoOutdoor,               "Outdoor spells cannot be cast in this zone" },
+	{ CastFailures::SelfOnly,                    "Spell is self only (or other spells won't stack and this is the last option)" },
+	{ CastFailures::SacrificeSpell,              "Cannot cast sacrifice spells" },
+	{ CastFailures::MagicImmune,                 "Target is Magic Immune" },
+	{ CastFailures::CastRangeImmune,             "Target is a belly caster" },
+	{ CastFailures::ImmuneToSpell,               "Target is immune to this spell" },
+	{ CastFailures::SpellLevelRestriction,       "Target is too low level for this spell" },
+	{ CastFailures::BlockedBuff,                 "Target has this buff blocked" },
+	{ CastFailures::BlockedPetBuff,              "Target has this pet buff blocked" },
+	{ CastFailures::CannotCastSpellType,         "Cannot cast this type of spell on that target" },
+	{ CastFailures::InvalidTargetType,           "Target type is invalid" },
+	{ CastFailures::StackConflict,               "Stacking conflict" },
+	{ CastFailures::NoBuffSlots,                 "No buff slots remain" },
+	{ CastFailures::InvalidSpellRange,           "Target too far away" },
+	{ CastFailures::MayGetAggro,                 "May get aggro" },
+	{ CastFailures::HighResist,                  "Resist chance too high" },
+	{ CastFailures::AlreadyReceivingSpell,       "Target already receiving this spell" },
+	{ CastFailures::LineOfSight,                 "No line of sight" },
+	{ CastFailures::InvalidSpellTypeForTarget,   "Invalid spell type for target" },
+	{ CastFailures::TargetDead,                  "Target is dead" },
+	{ CastFailures::SlowImmune,                  "Target is Slow Immune" },
+	{ CastFailures::SnareImmune,                 "Target is Snare Immune" },
+	{ CastFailures::PacifyImmune,                "Target is Pacify Immune" },
+	{ CastFailures::FearImmune,                  "Target is Fear Immune" },
+	{ CastFailures::CharmImmune,                 "Target is Charm Immune" },
+	{ CastFailures::DispellImmune,               "Target is Dispel Immune" },
+	{ CastFailures::NotNPC,                      "Target is not an NPC" },
+	{ CastFailures::InvalidTarget,               "Target is invalid" },
+	{ CastFailures::CannotCastSpellTypeInCombat, "Cannot cast this spell type in combat" },
+	{ CastFailures::AlreadyHasPet,               "Already has a pet" },
+	{ CastFailures::OutOfGroupRaid,              "Target is out of the group or raid (or raid group if applies)" },
+	{ CastFailures::DoesNotHaveAA,               "Does not have necessary AA" },
+	{ CastFailures::DoesNotHaveSpell,            "Does not have that spell" },
+	{ CastFailures::TargetNotCorpse,             "Target is not a corpse" },
+	{ CastFailures::NotEnoughEndurance,          "Not enough endurance" },
+	{ CastFailures::InvalidState,                "Bot is in an invalid state (passive, dead, incapacitated, etc.)" },
+	{ CastFailures::AlreadyHasDiscBuff,          "Already has discipline buff" },
+	{ CastFailures::AttackNotAllowed,            "Cannot attack that target" },
+	{ CastFailures::Undeclared,                  "Unknown" }
 };
 
 // VegasEQ - START
@@ -560,7 +687,7 @@ public:
 	bool IsValidMezTarget(Mob* owner, Mob* npc, uint16 spell_id);
 
 	// Cast checks
-	bool PrecastChecks(Mob* tar, uint16 spell_type);	
+	bool PrecastChecks(Mob* tar, uint16 spell_type);
 	bool CastChecks(uint16 spell_id, Mob* tar, uint16 spell_type, bool prechecks = false, bool ae_check = false);
 	bool IsImmuneToBotSpell(uint16 spell_id, Mob* caster);
 	bool CanCastSpellType(uint16 spell_type, uint16 spell_id, Mob* tar);
@@ -569,6 +696,8 @@ public:
 	bool DoResistCheck(Mob* target, uint16 spell_id, int32 resist_limit);
 	bool DoResistCheckBySpellType(Mob* tar, uint16 spell_id, uint16 spell_type);
 	bool IsValidTargetType(uint16 spell_id, int target_type, uint8 body_type);
+	static bool IsValidCastFailureType(uint8 failure_type);
+	static std::string GetCastFailuresNames(uint8 failure_type);
 
 	// Spell checks
 	static bool IsValidBotSpellType(uint16 spell_type);
@@ -663,6 +792,8 @@ public:
 	uint8 GetUltimateSpellTypeMaxThreshold(uint16 spell_type, Mob* tar);
 	void SetIllusionBlock(bool value) { _illusionBlock = value; }
 	bool GetIllusionBlock() const override { return _illusionBlock; }
+	uint8 GetCastFailure() const { return _CastFailure; }
+	void SetCastFailure(uint8 failure_type) { _CastFailure = failure_type; }
 	bool GetShowHelm() const { return _showHelm; }
 	void SetShowHelm(bool show_helm) { _showHelm = show_helm; }
 	bool GetBehindMob() const { return _behindMobStatus; }
@@ -698,7 +829,7 @@ public:
 	static uint16 GetSpellTypeIDByShortName(std::string spellType_string);
 	static std::string GetSpellTypeNameByID(uint16 spell_type);
 	static std::string GetSpellTypeShortNameByID(uint16 spell_type);
-	bool IsValidSubType(uint16 sub_type);
+	static bool IsValidSubType(uint16 sub_type);
 	static std::string GetSubTypeNameByID(uint16 sub_type);
 
 	[[nodiscard]] int GetMaxBuffSlots() const final { return EQ::spells::LONG_BUFFS; }
@@ -1017,8 +1148,7 @@ public:
 		uint32 attack
 	);
 	void BotRemoveEquipItem(uint16 slot_id);
-	void RemoveBotItemBySlot(uint16 slot_id
-);
+	void RemoveBotItemBySlot(uint16 slot_id);
 	void AddBotItem(
 		uint16 slot_id,
 		uint32 item_id,
@@ -1234,6 +1364,7 @@ private:
 	std::vector<BotSpellSettings> m_bot_spell_settings;
 	std::vector<Mob*> _spell_target_list;
 	std::vector<Mob*> _group_spell_target_list;
+	uint8 _CastFailure;
 	Raid* _storedRaid;
 	bool _verifiedRaid;
 	uint16 _tempSpellType; // this is used to check the spell type being cast against ^spellannouncecasts status
