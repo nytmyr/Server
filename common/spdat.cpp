@@ -3134,3 +3134,12 @@ bool IsTargetTypeOnlySpell(uint16 spell_id) {
 bool IsIdentifySpell(uint16 spell_id) {
 	return IsEffectInSpell(spell_id, SpellEffect::Identify);
 }
+
+bool IsSummonCorpseSpell(uint16 spell_id) {
+	return (
+		IsEffectInSpell(spell_id, SpellEffect::SummonCorpse) ||
+		IsEffectInSpell(spell_id, SpellEffect::SummonToCorpse) ||
+		IsEffectInSpell(spell_id, SpellEffect::SummonAndResAllCorpses) ||
+		IsEffectInSpell(spell_id, SpellEffect::SummonCorpseZone)
+	);
+}

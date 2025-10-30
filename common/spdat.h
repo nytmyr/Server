@@ -1925,5 +1925,6 @@ bool IsHateSpell(uint16 spell_id);
 bool IsDisciplineTome(const EQ::ItemData* item);
 bool IsTargetTypeOnlySpell(uint16 spell_id);
 bool IsIdentifySpell(uint16 spell_id);
+bool IsSummonCorpseSpell(uint16 spell_id);
 
 #endif
