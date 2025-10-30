@@ -9753,6 +9753,11 @@ bool Bot::CastChecks(uint16 spell_id, Mob* tar, uint16 spell_type, bool precheck
 	) {
 		LogBotSpellChecksDetail("{} says, 'Cancelling cast of {} on {} due to !IsCastNotStandingSpell.'", GetCleanName(), GetSpellName(spell_id), (tar ? tar->GetCleanName() : "nobody"));
 		SetCastFailure(CastFailures::PartialIncapacitated);
+		return false;
+	}
+
+	if (GetEndurance() < spell.endurance_cost) {
+		LogBotSpellChecksDetail("{} says, 'Cancelling cast of {} on {} due to !GetEndurance.'", GetCleanName(), GetSpellName(spell_id), (tar ? tar->GetCleanName() : "nobody"));
 		SetCastFailure(CastFailures::NotEnoughEndurance);
 		return false;
 	}
@@ -11628,7 +11633,11 @@ bool Bot::AttemptAACastSpell(Mob* tar, uint16 spell_id, AA::Rank* rank) {
 		tar = this;
 	}
 
-	if (!DoLosChecks(tar)) {
+	bool los_required = this != tar && !IsAnyHealSpell(spell_id);
+
+	SetHasLoS(los_required && BotSpellTypeRequiresLoS(BotSpellTypes::Discipline) ? DoLosChecks(tar) : true);
+
+	if (!HasLoS() && IsTargetRequiredForSpell(spell_id)) {
 		SetCastFailure(CastFailures::LineOfSight);
 		return false;
 	}
@@ -11648,6 +11657,7 @@ bool Bot::AttemptAACastSpell(Mob* tar, uint16 spell_id, AA::Rank* rank) {
 
 		if (IsDetrimentalSpell(spell_id) && !IsAttackAllowed(tar)) {
 			GetBotOwner()->Message(Chat::Yellow, "%s says, 'I cannot attack [%s]'.", GetCleanName(), tar->GetCleanName());
+			SetCastFailure(CastFailures::AttackNotAllowed);
 			return false;
 		}
 
@@ -11667,6 +11677,8 @@ bool Bot::AttemptAACastSpell(Mob* tar, uint16 spell_id, AA::Rank* rank) {
 
 			InterruptSpell();
 		}
+
+		SetTempSpellType(UINT16_MAX);
 
 		if (CastSpell(spell_id, tar->GetID())) {
 			RaidGroupSay(
@@ -11755,7 +11767,11 @@ bool Bot::AttemptForcedCastSpell(Mob* tar, uint16 spell_id, bool is_disc) {
 		return false;
 	}
 
-	if (!HasLoS() && !DoLosChecks(tar)) {
+	bool los_required = this != tar && !IsAnyHealSpell(spell_id);
+
+	SetHasLoS(los_required && BotSpellTypeRequiresLoS(BotSpellTypes::Discipline) ? DoLosChecks(tar) : true);
+
+	if (!HasLoS() && IsTargetRequiredForSpell(spell_id)) {
 		SetCastFailure(CastFailures::LineOfSight);
 		return false;
 	}
@@ -11775,6 +11791,8 @@ bool Bot::AttemptForcedCastSpell(Mob* tar, uint16 spell_id, bool is_disc) {
 		);
 		InterruptSpell();
 	}
+
+	SetTempSpellType(UINT16_MAX);
 
 	if (!CastSpell(spell_id, tar->GetID())) {
 		SetCastFailure(CastFailures::Undeclared);
@@ -11899,6 +11917,7 @@ uint16 Bot::GetParentSpellType(uint16 spell_type) {
 bool Bot::IsValidBotSpellType(uint16 spell_type) {
 	return (
 		EQ::ValueWithin(spell_type, BotSpellTypes::START, BotSpellTypes::END) ||
+		EQ::ValueWithin(spell_type, BotSpellTypes::DISCIPLINE_START, BotSpellTypes::DISCIPLINE_END) ||
 		EQ::ValueWithin(spell_type, BotSpellTypes::COMMANDED_START, BotSpellTypes::COMMANDED_END)
 	);
 }
@@ -11978,7 +11997,7 @@ bool Bot::IsValidSpellTypeBySpellID(uint16 spell_type, uint16 spell_id) {
 
 			return false;
 		case BotSpellTypes::Escape:
-			if (IsEscapeSpell(spell_id)) {
+			if (IsEscapeSpell(spell_id) || IsEffectInSpell(spell_id, SpellEffect::FadingMemories) ) {
 				return true;
 			}
 
@@ -12191,10 +12210,7 @@ bool Bot::IsValidSpellTypeBySpellID(uint16 spell_type, uint16 spell_id) {
 
 			return false;
 		case BotSpellTypes::Teleport:
-			if (
-				IsBeneficialSpell(spell_id) &&
-				(IsEffectInSpell(spell_id, SpellEffect::Teleport) || IsEffectInSpell(spell_id, SpellEffect::Translocate))
-			) {
+			if (IsTeleportSpell(spell_id) || IsTranslocateSpell(spell_id)) {
 				return true;
 			}
 
@@ -12207,10 +12223,7 @@ bool Bot::IsValidSpellTypeBySpellID(uint16 spell_type, uint16 spell_id) {
 
 			return false;
 		case BotSpellTypes::Succor:
-			if (
-				IsBeneficialSpell(spell_id) &&
-				IsEffectInSpell(spell_id, SpellEffect::Succor)
-			) {
+			if (IsSuccorSpell(spell_id)) {
 				return true;
 			}
 
@@ -12234,9 +12247,7 @@ bool Bot::IsValidSpellTypeBySpellID(uint16 spell_type, uint16 spell_id) {
 
 			return false;
 		case BotSpellTypes::Rune:
-			if (IsBeneficialSpell(spell_id) &&
-				(IsEffectInSpell(spell_id, SpellEffect::AbsorbMagicAtt) || IsEffectInSpell(spell_id, SpellEffect::Rune))
-			) {
+			if (IsRuneSpell(spell_id) || IsMagicRuneSpell(spell_id)) {
 				return true;
 			}
 
@@ -12271,16 +12282,7 @@ bool Bot::IsValidSpellTypeBySpellID(uint16 spell_type, uint16 spell_id) {
 
 			return false;
 		case BotSpellTypes::SendHome:
-			if (
-				IsBeneficialSpell(spell_id) &&
-					(
-						IsEffectInSpell(spell_id, SpellEffect::GateToHomeCity) ||
-							(
-								teleport_zone.compare("") &&
-								(IsEffectInSpell(spell_id, SpellEffect::Teleport) || IsEffectInSpell(spell_id, SpellEffect::Translocate))
-							)
-					)
-			) {
+			if (IsSendHomeSpell(spell_id)) {
 				return true;
 			}
 
@@ -12514,7 +12516,7 @@ bool Bot::HasRequiredLoSForPositioning(Mob* tar) {
 		return true;
 	}
 
-	if (RequiresLoSForPositioning() && !HasLoS()) {
+	if (!HasLoS() && RequiresLoSForPositioning()) {
 		return false;
 	}
 

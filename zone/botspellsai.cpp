@@ -27,6 +27,10 @@ bool Bot::AICastSpell(Mob* tar, uint8 chance, uint16 spell_type, uint16 sub_targ
 		return false;
 	}
 
+	if (!IsValidBotSpellType(spell_type)) {
+		return false;
+	}
+
 	LogBotSpellChecksDetail("{} says, 'Attempting {} AICastSpell on {}.'", GetCleanName(), GetSpellTypeNameByID(spell_type), tar->GetCleanName());
 
 	if (
@@ -239,7 +243,11 @@ bool Bot::AICastSpell(Mob* tar, uint8 chance, uint16 spell_type, uint16 sub_targ
 			continue;
 		}
 
-		if (BotRequiresLoSToCast(spell_type, s.SpellId) && !HasLoS()) {
+		if (spells[s.SpellId].target_type == ST_Self && tar != this) {
+			tar = this;
+		}
+
+		if (!HasLoS() && BotRequiresLoSToCast(spell_type, s.SpellId)) {
 			SetCastFailure(CastFailures::LineOfSight);
 			continue;
 		}
@@ -299,7 +307,7 @@ bool Bot::BotCastMez(Mob* tar, uint8 bot_class, BotSpell& bot_spell, uint16 spel
 			continue;
 		}
 
-		if (BotRequiresLoSToCast(spell_type, s.SpellId) && !HasLoS()) {
+		if (!HasLoS() && BotRequiresLoSToCast(spell_type, s.SpellId)) {
 			SetCastFailure(CastFailures::LineOfSight);
 			continue;
 		}
@@ -358,7 +366,7 @@ bool Bot::BotCastCure(Mob* tar, uint8 bot_class, BotSpell& bot_spell, uint16 spe
 		return false;
 	}
 
-	if (BotRequiresLoSToCast(spell_type, bot_spell.SpellId) && !HasLoS()) {
+	if (!HasLoS() && BotRequiresLoSToCast(spell_type, bot_spell.SpellId)) {
 		return false;
 	}
 
@@ -432,7 +440,7 @@ bool Bot::BotCastPet(Mob* tar, uint8 bot_class, BotSpell& bot_spell, uint16 spel
 		return false;
 	}
 
-	if (BotRequiresLoSToCast(spell_type, bot_spell.SpellId) && !HasLoS()) {
+	if (!HasLoS() && BotRequiresLoSToCast(spell_type, bot_spell.SpellId)) {
 		return false;
 	}
 
@@ -453,7 +461,7 @@ bool Bot::BotCastPet(Mob* tar, uint8 bot_class, BotSpell& bot_spell, uint16 spel
 }
 
 bool Bot::BotCastNuke(Mob* tar, uint8 bot_class, BotSpell& bot_spell, uint16 spell_type) {
-	if (BotRequiresLoSToCast(spell_type, bot_spell.SpellId) && !HasLoS()) {
+	if (!HasLoS() && BotRequiresLoSToCast(spell_type, bot_spell.SpellId)) {
 		SetCastFailure(CastFailures::LineOfSight);
 		return false;
 	}
@@ -951,7 +959,7 @@ std::list<BotSpell> Bot::GetBotSpellsForSpellEffect(Bot* caster, uint16 spell_ty
 				continue;
 			}
 
-			if (BotRequiresLoSToCast(spell_type, bot_spell_list[i].spellid) && !caster->HasLoS()) {
+			if (!caster->HasLoS() && BotRequiresLoSToCast(spell_type, bot_spell_list[i].spellid)) {
 				continue;
 			}
 
@@ -993,7 +1001,7 @@ std::list<BotSpell> Bot::GetBotSpellsForSpellEffectAndTargetType(Bot* caster, ui
 				continue;
 			}
 
-			if (BotRequiresLoSToCast(spell_type, bot_spell_list[i].spellid) && !caster->HasLoS()) {
+			if (!caster->HasLoS() && BotRequiresLoSToCast(spell_type, bot_spell_list[i].spellid)) {
 				continue;
 			}
 
@@ -1038,7 +1046,7 @@ std::list<BotSpell> Bot::GetBotSpellsBySpellType(Bot* caster, uint16 spell_type)
 				continue;
 			}
 
-			if (BotRequiresLoSToCast(spell_type, bot_spell_list[i].spellid) && !caster->HasLoS()) {
+			if (!caster->HasLoS() && BotRequiresLoSToCast(spell_type, bot_spell_list[i].spellid)) {
 				continue;
 			}
 
@@ -1073,6 +1081,12 @@ std::vector<BotSpell_wPriority> Bot::GetPrioritizedBotSpellsBySpellType(Bot* cas
 			}
 
 			auto spell = spells[bot_spell_list[i].spellid];
+
+			if (caster->IsCommandedSpell() && spell.target_type == ST_Self && tar != caster) {
+				tar = caster;
+			}
+
+			if (!caster->HasLoS() && BotRequiresLoSToCast(spell_type, bot_spell_list[i].spellid)) {
 				caster->SetCastFailure(CastFailures::LineOfSight);
 				continue;
 			}
@@ -1166,7 +1180,7 @@ BotSpell Bot::GetFirstBotSpellBySpellType(Bot* caster, uint16 spell_type) {
 				continue;
 			}
 
-			if (BotRequiresLoSToCast(spell_type, bot_spell_list[i].spellid) && !caster->HasLoS()) {
+			if (!caster->HasLoS() && BotRequiresLoSToCast(spell_type, bot_spell_list[i].spellid)) {
 				continue;
 			}
 
@@ -1963,7 +1977,7 @@ BotSpell Bot::GetDebuffBotSpell(Bot* caster, Mob *tar, uint16 spell_type) {
 				continue;
 			}
 
-			if (BotRequiresLoSToCast(spell_type, bot_spell_list[i].spellid) && !caster->HasLoS()) {
+			if (!caster->HasLoS() && BotRequiresLoSToCast(spell_type, bot_spell_list[i].spellid)) {
 				continue;
 			}
 
@@ -2013,7 +2027,7 @@ BotSpell Bot::GetBestBotSpellForResistDebuff(Bot* caster, Mob *tar, uint16 spell
 				continue;
 			}
 
-			if (BotRequiresLoSToCast(spell_type, bot_spell_list[i].spellid) && !caster->HasLoS()) {
+			if (!caster->HasLoS() && BotRequiresLoSToCast(spell_type, bot_spell_list[i].spellid)) {
 				continue;
 			}
 

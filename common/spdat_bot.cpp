@@ -327,7 +327,6 @@ bool BotSpellTypeRequiresLoS(uint16 spell_type) {
 bool BotSpellTypeRequiresTarget(uint16 spell_type) {
 	switch (spell_type) {
 		case BotSpellTypes::Pet:
-		case BotSpellTypes::Succor:
 			return false;
 		default:
 			return true;
