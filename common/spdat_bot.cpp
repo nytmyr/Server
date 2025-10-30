@@ -517,3 +517,34 @@ bool BotRequiresLoSToCast(uint16 spell_type, uint16 spell_id) {
 
 	return true;
 }
+
+bool IsSingleBotCastedSpellType(uint16 spell_type) {
+	switch (spell_type) {
+		case BotSpellTypes::Resurrect:
+		case BotSpellTypes::Teleport:
+		case BotSpellTypes::Succor:
+		case BotSpellTypes::Identify:
+		case BotSpellTypes::Size:
+		case BotSpellTypes::SummonCorpse:
+			return true;
+		default:
+			return false;
+	}
+
+	return false;
+}
+
+bool IsSingleBotCastedSpell(uint16 spell_id) {
+	if (!IsValidSpell(spell_id)) {
+		return false;
+	}
+
+	return (
+		IsResurrectSpell(spell_id) ||
+		IsSuccorSpell(spell_id) ||
+		IsTeleportSpell(spell_id) ||
+		IsTranslocateSpell(spell_id) ||
+		IsIdentifySpell(spell_id) ||
+		IsSummonCorpseSpell(spell_id)
+	);
+}

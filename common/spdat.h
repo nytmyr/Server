@@ -929,6 +929,8 @@ uint16 GetPetBotSpellType(uint16 spell_type);
 uint16 GetGroupBotSpellType(uint16 spell_type);
 bool IsBotBuffSpellType(uint16 spell_type);
 bool BotRequiresLoSToCast(uint16 spell_type, uint16 spell_id);
+bool IsSingleBotCastedSpellType(uint16 spell_type);
+bool IsSingleBotCastedSpell(uint16 spell_id);
 
 // These should not be used to determine spell category..
 // They are a graphical affects (effects?) index only

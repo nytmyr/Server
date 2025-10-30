@@ -21,7 +21,8 @@ void bot_command_cast(Client* c, const Seperator* sep)
 				, sep->arg[0]
 				, sep->arg[0]
 				, sep->arg[0]
-			)
+			),
+			"- When using actionables or none (uses spawned by default), if the cast fails it will provide the reason of the last spell attempted by a bot. Narrow this down to specific bots/classes/spells to see more descriptive reasons for the failure."
 		};
 		p.example_format =
 		{
@@ -196,6 +197,99 @@ void bot_command_cast(Client* c, const Seperator* sep)
 			++ab_arg;
 			chosen_spell_id = atoi(sep->arg[2]);
 			by_spell_id = true;
+
+			if (IsDiscipline(chosen_spell_id)) {
+				c->Message(
+					Chat::Yellow,
+						fmt::format(
+							"You cannot use {} to cast [{}] as it is a discipline. Use ^discipline instead.",
+							sep->arg[0],
+							spells[chosen_spell_id].name
+						).c_str()
+				);
+
+				return;
+			}
+
+			if (!RuleB(Bots, AllowCommandedCharm) && IsCharmSpell(chosen_spell_id)) {
+				c->Message(Chat::Yellow, "This commanded type is currently disabled.");
+				return;
+			}
+
+			if (!RuleB(Bots, AllowCommandedMez) && IsMesmerizeSpell(chosen_spell_id)) {
+				c->Message(Chat::Yellow, "This commanded type is currently disabled.");
+				return;
+			}
+
+			if (!RuleB(Bots, AllowCommandedResurrect) && IsResurrectSpell(chosen_spell_id)) {
+				c->Message(Chat::Yellow, "This commanded type is currently disabled.");
+				return;
+			}
+
+			if (!RuleB(Bots, AllowCommandedSummonCorpse) && IsEffectInSpell(chosen_spell_id, SpellEffect::SummonCorpse)) {
+				c->Message(Chat::Yellow, "This commanded type is currently disabled.");
+				return;
+			}
+
+			if (!RuleB(Bots, AllowCommandedRune) && (IsRuneSpell(chosen_spell_id) || IsMagicRuneSpell(chosen_spell_id))) {
+				c->Message(Chat::Yellow, "This commanded type is currently disabled.");
+				return;
+			}
+
+			if (!RuleB(Bots, AllowCommandedLull) && IsHarmonySpell(chosen_spell_id)) {
+				c->Message(Chat::Yellow, "This commanded type is currently disabled.");
+				return;
+			}
+
+			if (!RuleB(Bots, AllowCommandedTeleport) && (IsTeleportSpell(chosen_spell_id) || IsTranslocateSpell(chosen_spell_id))) {
+				c->Message(Chat::Yellow, "This commanded type is currently disabled.");
+				return;
+			}
+
+			if (!RuleB(Bots, AllowCommandedSuccor) && IsSuccorSpell(chosen_spell_id)) {
+				c->Message(Chat::Yellow, "This commanded type is currently disabled.");
+				return;
+			}
+
+			if (!RuleB(Bots, AllowCommandedBindAffinity) && IsEffectInSpell(chosen_spell_id, SpellEffect::BindAffinity)) {
+				c->Message(Chat::Yellow, "This commanded type is currently disabled.");
+				return;
+			}
+
+			if (!RuleB(Bots, AllowCommandedIdentify) && IsEffectInSpell(chosen_spell_id, SpellEffect::Identify)) {
+				c->Message(Chat::Yellow, "This commanded type is currently disabled.");
+				return;
+			}
+
+			if (!RuleB(Bots, AllowCommandedLevitate) && IsEffectInSpell(chosen_spell_id, SpellEffect::Levitate)) {
+				c->Message(Chat::Yellow, "This commanded type is currently disabled.");
+				return;
+			}
+
+			if (!RuleB(Bots, AllowCommandedWaterBreathing) && IsEffectInSpell(chosen_spell_id, SpellEffect::WaterBreathing)) {
+				c->Message(Chat::Yellow, "This commanded type is currently disabled.");
+				return;
+			}
+
+			if (!RuleB(Bots, AllowCommandedSize) && IsBeneficialSpell(chosen_spell_id) && (IsEffectInSpell(chosen_spell_id, SpellEffect::ModelSize) || IsEffectInSpell(chosen_spell_id, SpellEffect::ChangeHeight))) {
+				c->Message(Chat::Yellow, "This commanded type is currently disabled.");
+				return;
+			}
+
+			if (!RuleB(Bots, AllowCommandedInvis) && IsBeneficialSpell(chosen_spell_id) && (IsEffectInSpell(chosen_spell_id, SpellEffect::SeeInvis) || IsInvisibleSpell(chosen_spell_id))) {
+				c->Message(Chat::Yellow, "This commanded type is currently disabled.");
+				return;
+			}
+
+			if (!RuleB(Bots, AllowCommandedMovementSpeed) && IsBeneficialSpell(chosen_spell_id) && IsEffectInSpell(chosen_spell_id, SpellEffect::MovementSpeed)) {
+				c->Message(Chat::Yellow, "This commanded type is currently disabled.");
+				return;
+			}
+
+			if (!RuleB(Bots, AllowCommandedSendHome) && IsSendHomeSpell(chosen_spell_id)) {
+				c->Message(Chat::Yellow, "This commanded type is currently disabled.");
+				return;
+			}
 		}
 		else {
 			c->Message(Chat::Yellow, "You must enter a valid spell ID.");
@@ -207,6 +301,19 @@ void bot_command_cast(Client* c, const Seperator* sep)
 	if (!aa_type && !by_spell_id) {
 		if (sep->IsNumber(1)) {
 			spell_type = atoi(sep->arg[1]);
+
+			if (IsDisciplinedBotSpellType(spell_type)) {
+				c->Message(
+					Chat::Yellow,
+						fmt::format(
+							"You cannot use {} to cast Disciplines.",
+							sep->arg[0],
+							spells[chosen_spell_id].name
+						).c_str()
+				);
+
+				return;
+			}
 
 			if (!Bot::IsValidBotSpellType(spell_type)) {
 				c->Message(
@@ -272,8 +379,78 @@ void bot_command_cast(Client* c, const Seperator* sep)
 				}
 
 				break;
+			case BotSpellTypes::Teleport:
+				c->Message(
+					Chat::Yellow,
+					fmt::format("You cannot use {} for teleports, use ^depart instead",
+						sep->arg[0]).c_str()
+				);
+				return;
+			case BotSpellTypes::Succor:
+				if (!RuleB(Bots, AllowCommandedSuccor)) {
+					c->Message(Chat::Yellow, "This commanded type is currently disabled.");
+					return;
+				}
+
+				break;
+			case BotSpellTypes::BindAffinity:
+				if (!RuleB(Bots, AllowCommandedBindAffinity)) {
+					c->Message(Chat::Yellow, "This commanded type is currently disabled.");
+					return;
+				}
+
+				break;
+			case BotSpellTypes::Identify:
+				if (!RuleB(Bots, AllowCommandedIdentify)) {
+					c->Message(Chat::Yellow, "This commanded type is currently disabled.");
+					return;
+				}
+
+				break;
+			case BotSpellTypes::Levitate:
+				if (!RuleB(Bots, AllowCommandedLevitate)) {
+					c->Message(Chat::Yellow, "This commanded type is currently disabled.");
+					return;
+				}
+
+				break;
 			case BotSpellTypes::Rune:
-				if (!RuleB(Bots, AllowCommandedRunes)) {
+				if (!RuleB(Bots, AllowCommandedRune)) {
+					c->Message(Chat::Yellow, "This commanded type is currently disabled.");
+					return;
+				}
+
+				break;
+			case BotSpellTypes::WaterBreathing:
+				if (!RuleB(Bots, AllowCommandedWaterBreathing)) {
+					c->Message(Chat::Yellow, "This commanded type is currently disabled.");
+					return;
+				}
+
+				break;
+			case BotSpellTypes::Size:
+				if (!RuleB(Bots, AllowCommandedSize)) {
+					c->Message(Chat::Yellow, "This commanded type is currently disabled.");
+					return;
+				}
+
+				break;
+			case BotSpellTypes::Invisibility:
+				if (!RuleB(Bots, AllowCommandedInvis)) {
+					c->Message(Chat::Yellow, "This commanded type is currently disabled.");
+					return;
+				}
+
+				break;
+			case BotSpellTypes::MovementSpeed:
+				if (!RuleB(Bots, AllowCommandedMovementSpeed)) {
+					c->Message(Chat::Yellow, "This commanded type is currently disabled.");
+					return;
+				}
+
+				break;
+			case BotSpellTypes::SendHome:
+				if (!RuleB(Bots, AllowCommandedSendHome)) {
 					c->Message(Chat::Yellow, "This commanded type is currently disabled.");
 					return;
 				}
@@ -291,7 +468,6 @@ void bot_command_cast(Client* c, const Seperator* sep)
 		}
 
 		std::string arg_string = sep->arg[ab_arg];
-
 
 		if (!arg_string.compare("shrink")) {
 			sub_type = CommandedSubTypes::Shrink;
@@ -419,8 +595,8 @@ void bot_command_cast(Client* c, const Seperator* sep)
 				if (IsBotSpellTypeBeneficial(spell_type)) {
 					if (
 						(tar->IsNPC() && !tar->GetOwner()) ||
-						(tar->GetOwner() && tar->GetOwner()->IsOfClientBot() && !c->IsInGroupOrRaid(tar->GetOwner())) ||
-						(tar->IsOfClientBot() && !c->IsInGroupOrRaid(tar))
+						(!RuleB(Bots, EnableBotTGB) && tar->GetOwner() && tar->GetOwner()->IsOfClientBot() && !c->IsInGroupOrRaid(tar->GetOwner())) ||
+						(!RuleB(Bots, EnableBotTGB) && tar->IsOfClientBot() && !c->IsInGroupOrRaid(tar))
 					) {
 						c->Message(
 							Chat::Yellow,
@@ -473,13 +649,14 @@ void bot_command_cast(Client* c, const Seperator* sep)
 		return;
 	}
 
-	sbl.erase(std::remove(sbl.begin(), sbl.end(), nullptr), sbl.end());
+	std::erase(sbl, nullptr);
 
 	BotSpell bot_spell;
 	bot_spell.SpellId = 0;
 	bot_spell.SpellIndex = 0;
 	bot_spell.ManaCost = 0;
 	bool is_success = false;
+	uint8 failure_type = CastFailures::Undeclared;
 	uint16 success_count = 0;
 	Bot* first_found = nullptr;
 
@@ -488,30 +665,38 @@ void bot_command_cast(Client* c, const Seperator* sep)
 			continue;
 		}
 
-		Mob* new_tar = tar;
+		bot_iter->SetCastFailure(CastFailures::Undeclared);
+
+		if (!tar) {
+			tar = bot_iter;
+		}
 
 		if (!aa_type && !by_spell_id) {
-			if (!BotSpellTypeRequiresTarget(spell_type)) {
-				new_tar = bot_iter;
-			}
+			if (!bot_iter->TargetValidation(tar)) {
+				failure_type = CastFailures::TargetValidation;
 
-			if (!new_tar) {
 				continue;
 			}
 
 			if (
 				IsBotSpellTypeBeneficial(spell_type) &&
-				!RuleB(Bots, CrossRaidBuffingAndHealing) &&
-				!bot_iter->IsInGroupOrRaid(new_tar, true)
+				(
+					(tar->IsNPC() && !tar->GetOwner()) ||
+					(!RuleB(Bots, CrossRaidBuffingAndHealing) && !bot_iter->IsInGroupOrRaid(tar, true)) ||
+					(!RuleB(Bots, EnableBotTGB) && tar->GetOwner() && tar->GetOwner()->IsOfClientBot() && !c->IsInGroupOrRaid(tar->GetOwner())) ||
+					(!RuleB(Bots, EnableBotTGB) && tar->IsOfClientBot() && !c->IsInGroupOrRaid(tar))
+				)
 			) {
+				failure_type = CastFailures::OutOfGroupRaid;
+
 				continue;
 			}
 
-			if (IsBotSpellTypeDetrimental(spell_type) && !bot_iter->IsAttackAllowed(new_tar)) {
+			if (IsBotSpellTypeDetrimental(spell_type) && !bot_iter->IsAttackAllowed(tar)) {
 				bot_iter->RaidGroupSay(
 					fmt::format(
 						"I cannot attack [{}].",
-						new_tar->GetCleanName()
+						tar->GetCleanName()
 					).c_str()
 				);
 
@@ -520,7 +705,15 @@ void bot_command_cast(Client* c, const Seperator* sep)
 		}
 
 		if (aa_type) {
+			if (!bot_iter->TargetValidation(tar)) {
+				failure_type = CastFailures::TargetValidation;
+
+				continue;
+			}
+
 			if (!bot_iter->GetAA(zone->GetAlternateAdvancementAbility(aa_id)->first_rank_id)) {
+				failure_type = CastFailures::DoesNotHaveAA;
+
 				continue;
 			}
 
@@ -529,32 +722,40 @@ void bot_command_cast(Client* c, const Seperator* sep)
 			uint16 spell_id = bot_iter->GetSpellByAA(aa_id, rank);
 
 			if (!IsValidSpell(spell_id)) {
+				failure_type = CastFailures::InvalidSpell;
+
 				continue;
 			}
 
-			bool requires_los = !(IsAnyHealSpell(spell_id) && !IsPBAESpell(spell_id));
-			bot_iter->SetHasLoS(requires_los ? bot_iter->DoLosChecks(new_tar) : true);
+			if (spells[chosen_spell_id].target_type == ST_Self && tar != bot_iter) {
+				tar = bot_iter;
+			}
 
 			if (!bot_iter->AttemptAACastSpell(tar, spell_id, rank)) {
+				failure_type = bot_iter->GetCastFailure();
+
 				continue;
 			}
 
 			is_success = true;
 			++success_count;
 
-			continue;
+			if (is_success && IsSingleBotCastedSpell(chosen_spell_id)) {
+				break;
+			}
 		}
 		else if (by_spell_id) {
-			if (!bot_iter->CanUseBotSpell(chosen_spell_id)) {
+			if (!bot_iter->TargetValidation(tar)) {
+				failure_type = CastFailures::TargetValidation;
+
 				continue;
 			}
 
-			if (!tar || (spells[chosen_spell_id].target_type == ST_Self && tar != bot_iter)) {
-				tar = bot_iter;
-			}
+			if (!bot_iter->CanUseBotSpell(chosen_spell_id)) {
+				failure_type = CastFailures::DoesNotHaveSpell;
 
-			bool los_required = bot_iter != tar && !IsAnyHealSpell(chosen_spell_id) && !IsPBAESpell(chosen_spell_id);
-			bot_iter->SetHasLoS(los_required ? bot_iter->DoLosChecks(new_tar) : true);
+				continue;
+			}
 
 			if (bot_iter->AttemptForcedCastSpell(tar, chosen_spell_id)) {
 				if (!first_found) {
@@ -565,13 +766,22 @@ void bot_command_cast(Client* c, const Seperator* sep)
 				++success_count;
 			}
 
-			continue;
+			failure_type = bot_iter->GetCastFailure();
+
+			if (is_success && IsSingleBotCastedSpell(chosen_spell_id)) {
+				break;
+			}
 		}
 		else {
-			bot_iter->SetCommandedSpell(true);
-			bot_iter->SetHasLoS(BotSpellTypeRequiresLoS(spell_type) ? bot_iter->DoLosChecks(new_tar) : true);
+			if (!RuleB(Bots, CrossRaidBuffingAndHealing) && !bot_iter->IsInGroupOrRaid(tar, true)) {
+				failure_type = CastFailures::OutOfGroupRaid;
+				continue;
+			}
 
-			if (bot_iter->AICastSpell(new_tar, 100, spell_type, sub_target_type, sub_type)) {
+			bot_iter->SetCommandedSpell(true);
+			bot_iter->SetHasLoS(tar != bot_iter && BotSpellTypeRequiresLoS(spell_type) ? bot_iter->DoLosChecks(tar) : true);
+
+			if (bot_iter->AICastSpell(tar, 100, spell_type, sub_target_type, sub_type)) {
 				if (!first_found) {
 					first_found = bot_iter;
 				}
@@ -581,11 +791,12 @@ void bot_command_cast(Client* c, const Seperator* sep)
 			}
 
 			bot_iter->SetCommandedSpell(false);
+			failure_type = bot_iter->GetCastFailure();
 
-			continue;
+			if (is_success && IsSingleBotCastedSpellType(spell_type)) {
+				break;
+			}
 		}
-
-		continue;
 	}
 
 	std::string type = "";
@@ -609,9 +820,10 @@ void bot_command_cast(Client* c, const Seperator* sep)
 		c->Message(
 			Chat::Yellow,
 			fmt::format(
-				"No bots are capable of casting [{}] on {}. This could be due to this to any number of things: range, mana, immune, target type, etc.",
+				"No bots are capable of casting [{}] on {}. Reason: {}.",
 				(by_spell_id ? spells[chosen_spell_id].name : type),
-				tar ? tar->GetCleanName() : "your target"
+				tar ? tar->GetCleanName() : "your target",
+				Bot::GetCastFailuresNames(failure_type)
 			).c_str()
 		);
 
@@ -625,7 +837,7 @@ void bot_command_cast(Client* c, const Seperator* sep)
 			fmt::format(
 				"{} {} [{}]{}",
 				((success_count == 1 && first_found) ? first_found->GetCleanName() : (fmt::format("{}", success_count).c_str())),
-				((success_count == 1 && first_found) ? "casted" : "of your bots casted"),
+				((success_count == 1 && first_found) ? "is casting" : "of your bots are casting"),
 				(by_spell_id ? spells[chosen_spell_id].name : type),
 				tar ? (fmt::format(" on {}.", tar->GetCleanName()).c_str()) : "."
 			).c_str()
