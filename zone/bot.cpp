@@ -9648,12 +9648,16 @@ bool Bot::PrecastChecks(Mob* tar, uint16 spell_type) {
 		return false;
 	}
 
+	if (IsCommandedSpell()) {
+		LogBotSpellChecksDetail("{} says, 'Skipping [{}] PreChecks on [{}] due to IsCommandedSpell.'", GetCleanName(), GetSpellTypeNameByID(spell_type), tar->GetCleanName());
+		return true;
+	}
+
 	LogBotSpellChecksDetail("{} says, 'Running [{}] PreChecks on [{}].'", GetCleanName(), GetSpellTypeNameByID(spell_type), tar->GetCleanName());
 
 	if (GetUltimateSpellTypeHold(spell_type, tar)) {
-		if (!IsCommandedSpell()) {
-			SetSpellTypeAITimer(spell_type, RuleI(Bots, AICastSpellTypeHeldDelay));
-		}
+		SetSpellTypeAITimer(spell_type, RuleI(Bots, AICastSpellTypeHeldDelay));
+
 		LogBotSpellChecksDetail("{} says, 'Cancelling cast of [{}] on [{}] due to GetUltimateSpellTypeHold.'", GetCleanName(), GetSpellTypeNameByID(spell_type), tar->GetCleanName());
 		SetCastFailure(CastFailures::SpellHold);
 		return false;
