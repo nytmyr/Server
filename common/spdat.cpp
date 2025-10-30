@@ -1381,6 +1381,22 @@ bool IsGateSpell(uint16 spell_id)
 	return IsEffectInSpell(spell_id, SpellEffect::Gate);
 }
 
+bool IsSendHomeSpell(uint16 spell_id) {
+	std::string teleport_zone = spells[spell_id].teleport_zone;
+
+	if (IsBeneficialSpell(spell_id) &&
+		IsEffectInSpell(spell_id, SpellEffect::GateToHomeCity) ||
+			(
+				teleport_zone.compare("") &&
+				(IsEffectInSpell(spell_id, SpellEffect::Teleport) || IsEffectInSpell(spell_id, SpellEffect::Translocate))
+			)
+	) {
+		return true;
+	}
+
+	return false;
+}
+
 bool IsIllusionSpell(uint16 spell_id)
 {
 	return (
