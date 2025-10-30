@@ -8054,9 +8054,12 @@ void Bot::SetDefaultBotStance() {
 }
 
 void Bot::RaidGroupSay(const char* msg, ...) {
+	auto temp_spell_type = GetTempSpellType();
+
 	if (
-		GetTempSpellType() != UINT16_MAX &&
-		!GetSpellTypeAnnounceCast(GetTempSpellType())
+		IsValidBotSpellType(temp_spell_type) &&
+		temp_spell_type <= BotSpellTypes::END &&
+		!GetSpellTypeAnnounceCast(temp_spell_type)
 	) {
 		return;
 	}
