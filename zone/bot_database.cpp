@@ -2714,7 +2714,7 @@ void BotDatabase::MapCommandedSpellTypeMinLevels() {
 	auto end = std::max({ BotSpellTypes::END, BotSpellTypes::COMMANDED_END, BotSpellTypes::DISCIPLINE_END });
 
 	for (int i = start; i <= end; ++i) {
-		if (!Bot::IsValidBotSpellType(i)) {
+		if (!Bot::IsValidBotSpellType(i) || IsDisciplinedBotSpellType(i)) {
 			continue;
 		}
 
