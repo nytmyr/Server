@@ -1072,13 +1072,13 @@ std::vector<BotSpell_wPriority> Bot::GetPrioritizedBotSpellsBySpellType(Bot* cas
 				continue;
 			}
 
-			if (BotRequiresLoSToCast(spell_type, bot_spell_list[i].spellid) && !caster->HasLoS()) {
+			auto spell = spells[bot_spell_list[i].spellid];
 				caster->SetCastFailure(CastFailures::LineOfSight);
 				continue;
 			}
 
 			if (spell_type == BotSpellTypes::HateRedux && caster->GetClass() == Class::Bard) {
-				if (spells[bot_spell_list[i].spellid].target_type != ST_Target) {
+				if (spell.target_type != ST_Target) {
 					caster->SetCastFailure(CastFailures::InvalidTargetType);
 					continue;
 				}

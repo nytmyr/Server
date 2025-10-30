@@ -738,7 +738,7 @@ namespace BotSpellTypes
 
 	constexpr uint16	START                      = BotSpellTypes::Nuke;              // Do not remove or change this
 	constexpr uint16	END                        = BotSpellTypes::PetResistBuffs;    // Do not remove this, increment as needed
-	constexpr uint16	COMMANDED_START            = BotSpellTypes::Lull;              // Do not remove or change this
+	constexpr uint16	COMMANDED_START            = BotSpellTypes::Teleport;          // Do not remove or change this
 	constexpr uint16	COMMANDED_END              = BotSpellTypes::AELull;            // Do not remove this, increment as needed
 	constexpr uint16	DISCIPLINE_START           = BotSpellTypes::Discipline;        // Do not remove or change this
 	constexpr uint16	DISCIPLINE_END             = BotSpellTypes::DiscUtility;       // Do not remove this, increment as needed

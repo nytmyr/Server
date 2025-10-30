@@ -9705,11 +9705,6 @@ bool Bot::PrecastChecks(Mob* tar, uint16 spell_type) {
 
 bool Bot::CastChecks(uint16 spell_id, Mob* tar, uint16 spell_type, bool prechecks, bool ae_check) {
 	if (prechecks) {
-		if (!tar || tar->GetAppearance() == eaDead  || tar->GetHP() < 0) {
-			LogBotSpellChecksDetail("{} says, 'Cancelling cast due to CastChecks !tar.'", GetCleanName());
-			return false;
-		}
-
 		if (spells[spell_id].target_type == ST_Self && tar != this) {
 			if (
 				!IsEffectInSpell(spell_id, SpellEffect::SummonCorpse) ||
@@ -9735,6 +9730,8 @@ bool Bot::CastChecks(uint16 spell_id, Mob* tar, uint16 spell_type, bool precheck
 		SetCastFailure(CastFailures::InvalidSpell);
 		return false;
 	}
+
+	auto spell = spells[spell_id];
 
 	if (
 		IsFeared() ||
@@ -9790,8 +9787,8 @@ bool Bot::CastChecks(uint16 spell_id, Mob* tar, uint16 spell_type, bool precheck
 	}
 
 	if (
-		spells[spell_id].caster_requirement_id &&
-		!PassCastRestriction(spells[spell_id].caster_requirement_id)
+		spell.caster_requirement_id &&
+		!PassCastRestriction(spell.caster_requirement_id)
 	) {
 		LogBotSpellChecksDetail("{} says, 'Cancelling cast of {} due to !PassCastRestriction.'", GetCleanName(), GetSpellName(spell_id));
 		SetCastFailure(CastFailures::SpellCastRestriction);
@@ -9799,8 +9796,8 @@ bool Bot::CastChecks(uint16 spell_id, Mob* tar, uint16 spell_type, bool precheck
 	}
 
 	if (
-		!spells[spell_id].can_cast_in_combat &&
-		spells[spell_id].can_cast_out_of_combat
+		!spell.can_cast_in_combat &&
+		spell.can_cast_out_of_combat
 	) {
 		if (IsBeneficialSpell(spell_id)) {
 			if (IsEngaged()) {
@@ -9811,8 +9808,8 @@ bool Bot::CastChecks(uint16 spell_id, Mob* tar, uint16 spell_type, bool precheck
 		}
 	}
 	else if (
-		spells[spell_id].can_cast_in_combat &&
-		!spells[spell_id].can_cast_out_of_combat
+		spell.can_cast_in_combat &&
+		!spell.can_cast_out_of_combat
 	) {
 		if (IsBeneficialSpell(spell_id)) {
 			if (!IsEngaged()) {
@@ -9846,7 +9843,7 @@ bool Bot::CastChecks(uint16 spell_id, Mob* tar, uint16 spell_type, bool precheck
 	}
 
 	if (
-		spells[spell_id].time_of_day == SpellTimeRestrictions::Day &&
+		spell.time_of_day == SpellTimeRestrictions::Day &&
 		!zone->zone_time.IsDayTime()
 	) {
 		LogBotSpellChecksDetail("{} says, 'Cancelling cast of {} due to !IsDayTime.'", GetCleanName(), GetSpellName(spell_id));
@@ -9855,7 +9852,7 @@ bool Bot::CastChecks(uint16 spell_id, Mob* tar, uint16 spell_type, bool precheck
 	}
 
 	if (
-		spells[spell_id].time_of_day == SpellTimeRestrictions::Night &&
+		spell.time_of_day == SpellTimeRestrictions::Night &&
 		!zone->zone_time.IsNightTime()
 	) {
 		LogBotSpellChecksDetail("{} says, 'Cancelling cast of {} due to !IsNightTime.'", GetCleanName(), GetSpellName(spell_id));
@@ -9864,7 +9861,7 @@ bool Bot::CastChecks(uint16 spell_id, Mob* tar, uint16 spell_type, bool precheck
 	}
 
 	if (
-		spells[spell_id].zone_type == 1 &&
+		spell.zone_type == 1 &&
 		!zone->CanCastOutdoor()
 	) {
 		LogBotSpellChecksDetail("{} says, 'Cancelling cast of {} due to !CanCastOutdoor.'", GetCleanName(), GetSpellName(spell_id));
@@ -9881,7 +9878,7 @@ bool Bot::CastChecks(uint16 spell_id, Mob* tar, uint16 spell_type, bool precheck
 		return false;
 	}
 
-	if (spells[spell_id].target_type == ST_Self && tar != this) {
+	if (spell.target_type == ST_Self && tar != this) {
 		if (spell_type == BotSpellTypes::SummonCorpse && RuleB(Bots, AllowCommandedSummonCorpse)) {
 			// Don't cancel (Summon Corpse is allowed)
 		}
@@ -10040,7 +10037,7 @@ bool Bot::CastChecks(uint16 spell_id, Mob* tar, uint16 spell_type, bool precheck
 	}
 
 	if (
-		spells[spell_id].target_type != ST_Self &&
+		spell.target_type != ST_Self &&
 		IsBeneficialSpell(spell_id) &&
 		!IsAnyHealSpell(spell_id) &&
 		!IsCureSpell(spell_id) &&
@@ -11101,9 +11098,8 @@ bool Bot::GetDefaultSpellTypeHold(uint16 spell_type, uint8 stance) {
 			if (bot_class == Class::Bard) {
 				return false;
 			}
-			else {
-				return true;
-			}
+
+			return true;
 		case BotSpellTypes::Nuke:
 		case BotSpellTypes::DOT:
 		case BotSpellTypes::Stun:
@@ -11158,9 +11154,8 @@ bool Bot::GetDefaultSpellTypeHold(uint16 spell_type, uint8 stance) {
 						return true;
 				}
 			}
-			else {
-				return true;
-			}
+
+			return true;
 		case BotSpellTypes::Charm:
 		case BotSpellTypes::Resurrect:
 		case BotSpellTypes::AESnare:
@@ -11656,18 +11651,9 @@ bool Bot::AttemptAACastSpell(Mob* tar, uint16 spell_id, AA::Rank* rank) {
 			return false;
 		}
 
-		if (!CastChecks(spell_id, tar, UINT16_MAX)) {
-			GetBotOwner()->Message(
-				Chat::Red,
-				fmt::format(
-					"{} says, 'Ability failed to cast. This could be due to any number of things: range, mana, line of sight, immune, target type, etc.'",
-					GetCleanName()
-				).c_str()
-			);
-
+		if (!CastChecks(spell_id, tar, UINT16_MAX, false, false)) {
 			return false;
 		}
-
 
 		if (IsCasting()) {
 			RaidGroupSay(
@@ -11698,34 +11684,24 @@ bool Bot::AttemptAACastSpell(Mob* tar, uint16 spell_id, AA::Rank* rank) {
 			}
 
 			SetSpellRecastTimer(spell_id, timer_duration);
-		}
-		else {
-			GetBotOwner()->Message(
-				Chat::Red,
-				fmt::format(
-					"{} says, 'Ability failed to cast. This could be due to any number of things: range, mana, line of sight, immune, target type, etc.'",
-					GetCleanName()
-				).c_str()
-			);
 
-			return false;
+			return true;
 		}
+
 		SetCastFailure(CastFailures::Undeclared);
+		return false;
 	}
-	else {
-		GetBotOwner()->Message(
+
+	GetBotOwner()->Message(
 		Chat::Yellow,
 			fmt::format(
 				"{} says, 'Ability recovery time not yet met. {} remaining.'",
 				GetCleanName(),
 				Strings::SecondsToTime(GetSpellRecastRemainingTime(spell_id), true)
 			).c_str()
-		);
+	);
 
-		return false;
-	}
-
-	return true;
+	return false;
 }
 
 bool Bot::AttemptForcedCastSpell(Mob* tar, uint16 spell_id, bool is_disc) {
@@ -11757,20 +11733,12 @@ bool Bot::AttemptForcedCastSpell(Mob* tar, uint16 spell_id, bool is_disc) {
 			(tar->IsOfClientBot() && !GetBotOwner()->IsInGroupOrRaid(tar));
 
 		if (invalid_beneficial_target) {
-			GetBotOwner()->Message(
-				Chat::Yellow,
-				fmt::format("[{}] is an invalid target. Only players or their pet in your group or raid are eligible targets.", tar->GetCleanName()).c_str()
-			);
 			SetCastFailure(CastFailures::OutOfGroupRaid);
 			return false;
 		}
 	}
 
 	if (IsDetrimentalSpell(spell_id) && (!GetBotOwner()->IsAttackAllowed(tar) || !IsAttackAllowed(tar))) {
-		GetBotOwner()->Message(
-			Chat::Yellow,
-			fmt::format("{} says, 'I cannot attack [{}]'.", GetCleanName(), tar->GetCleanName()).c_str()
-		);
 		SetCastFailure(CastFailures::AttackNotAllowed);
 		return false;
 	}
@@ -11781,7 +11749,8 @@ bool Bot::AttemptForcedCastSpell(Mob* tar, uint16 spell_id, bool is_disc) {
 	}
 
 	if (!IsInGroupOrRaid(tar, true) &&
-		(!RuleB(Bots, EnableBotTGB) || (IsGroupSpell(spell_id) && !IsTGBCompatibleSpell(spell_id)))) {
+		(!RuleB(Bots, EnableBotTGB) || (IsGroupSpell(spell_id) && !IsTGBCompatibleSpell(spell_id)))
+	) {
 		SetCastFailure(CastFailures::OutOfGroupRaid);
 		return false;
 	}
@@ -11792,14 +11761,6 @@ bool Bot::AttemptForcedCastSpell(Mob* tar, uint16 spell_id, bool is_disc) {
 	}
 
 	if (!CastChecks(spell_id, tar, UINT16_MAX)) {
-		GetBotOwner()->Message(
-			Chat::Red,
-			fmt::format(
-				"{} says, 'Ability failed to cast. This could be due to any number of things: range, mana, line of sight, immune, target type, etc.'",
-				GetCleanName()
-			).c_str()
-		);
-
 		return false;
 	}
 
