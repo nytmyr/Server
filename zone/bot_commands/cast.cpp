@@ -757,6 +757,8 @@ void bot_command_cast(Client* c, const Seperator* sep)
 				continue;
 			}
 
+			bot_iter->SetCommandedSpell(true);
+			bot_iter->SetDirectCommandedSpell(true);
 			if (bot_iter->AttemptForcedCastSpell(tar, chosen_spell_id)) {
 				if (!first_found) {
 					first_found = bot_iter;
@@ -766,6 +768,8 @@ void bot_command_cast(Client* c, const Seperator* sep)
 				++success_count;
 			}
 
+			bot_iter->SetCommandedSpell(false);
+			bot_iter->SetDirectCommandedSpell(false);
 			failure_type = bot_iter->GetCastFailure();
 
 			if (is_success && IsSingleBotCastedSpell(chosen_spell_id)) {

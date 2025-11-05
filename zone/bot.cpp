@@ -108,6 +108,7 @@ Bot::Bot(NPCType *npcTypeData, Client* botOwner) : NPC(npcTypeData, nullptr, glm
 	SetCastedSpellType(UINT16_MAX);
 	SetTempSpellType(UINT16_MAX);
 	SetCommandedSpell(false);
+	SetDirectCommandedSpell(false);
 	SetPullingSpell(false);
 
 	// Do this once and only in this constructor
@@ -192,6 +193,7 @@ Bot::Bot(
 	SetCastedSpellType(UINT16_MAX);
 	SetTempSpellType(UINT16_MAX);
 	SetCommandedSpell(false);
+	SetDirectCommandedSpell(false);
 	SetPullingSpell(false);
 
 	bool stance_flag = false;
@@ -10031,14 +10033,9 @@ bool Bot::CastChecks(uint16 spell_id, Mob* tar, uint16 spell_type, bool precheck
 	}
 
 	if (
-		(
-			RequiresStackCheck(spell_type) ||
-			(
-				!RequiresStackCheck(spell_type) &&
-				CalcBuffDuration(this, tar, spell_id) != 0
-			)
-		)
-		&&
+		!IsDirectCommandedSpell() &&
+		RequiresStackCheck(spell_type) &&
+		CalcBuffDuration(this, tar, spell_id) != 0 &&
 		tar->CanBuffStack(spell_id, GetLevel(), true) < 0
 	) {
 		LogBotSpellChecksDetail("{} says, 'Cancelling cast of {} on {} due to !CanBuffStack.'", GetCleanName(), GetSpellName(spell_id), tar->GetCleanName());

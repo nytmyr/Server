@@ -28,6 +28,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 chance, uint16 spell_type, uint16 sub_targ
 	}
 
 	if (!IsValidBotSpellType(spell_type)) {
+		SetCastFailure(CastFailures::CannotCastSpellType);
 		return false;
 	}
 

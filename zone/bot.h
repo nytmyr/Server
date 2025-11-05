@@ -622,6 +622,8 @@ public:
 	void SetPauseAI(bool pause_flag) { _pauseAI = pause_flag; }
 	bool IsCommandedSpell() const { return _commandedSpell; }
 	void SetCommandedSpell(bool value) { _commandedSpell = value;  }
+	bool IsDirectCommandedSpell() const { return _directCommandedSpell; }
+	void SetDirectCommandedSpell(bool value) { _directCommandedSpell = value;  }
 	bool IsPullingSpell() const { return _pullingSpell; }
 	void SetPullingSpell(bool value) { _pullingSpell = value; }
 	
@@ -1359,6 +1361,7 @@ private:
 	uint16 _castedSpellType;
 	bool _hasLoS;
 	bool _commandedSpell;
+	bool _directCommandedSpell;
 	bool _pullingSpell;
 	
 	bool _illusionBlock;
