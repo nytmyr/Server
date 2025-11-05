@@ -7999,11 +7999,10 @@ bool Bot::GetNeedsHateRedux(Mob *tar) {
 	}
 
 	if (tar->IsBot()) {
-		if (tar->GetHPRatio() > GetUltimateSpellTypeMinThreshold(BotSpellTypes::HateRedux, tar) && tar->GetHPRatio() <
-																									   GetUltimateSpellTypeMaxThreshold(
-																										   BotSpellTypes::HateRedux,
-																										   tar
-																									   )) {
+		if (
+			tar->GetHPRatio() > GetUltimateSpellTypeMinThreshold(BotSpellTypes::HateRedux, tar) &&
+			tar->GetHPRatio() < GetUltimateSpellTypeMaxThreshold(BotSpellTypes::HateRedux, tar)
+		) {
 			return true;
 		}
 	}
