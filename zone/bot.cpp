@@ -11981,7 +11981,7 @@ bool Bot::IsValidSpellTypeBySpellID(uint16 spell_type, uint16 spell_id) {
 		return false;
 	}
 
-	if (IsPetBotSpellType(spell_type) && !IsPetSpell(spell_id)) {
+	if (spell_type == BotSpellTypes::Pet && !IsPetSpell(spell_id)) {
 		return false;
 	}
 

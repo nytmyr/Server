@@ -8734,7 +8734,7 @@ bool Mob::IsInGroupOrRaid(Mob* other, bool same_raid_group) {
 		return true;
 	}
 
-	if (other->GetOwner()) {
+	if (other->IsPet() && other->GetOwner()) {
 		other = other->GetOwner();
 	}
 
