@@ -2466,7 +2466,6 @@ void Bot::AI_Process()
 				}
 
 				if (!TargetValidation(tar)) { return; }
-
 			}
 		}
 
@@ -5240,71 +5239,113 @@ int Bot::GetBaseSkillDamage(EQ::skills::SkillType skill, Mob *target)
 	switch (skill) {
 		case EQ::skills::SkillDragonPunch:
 		case EQ::skills::SkillEagleStrike:
-		case EQ::skills::SkillTigerClaw:
-			if (skill_level >= 25)
+		case EQ::skills::SkillTigerClaw: {
+			if (skill_level >= 25) {
 				base++;
-			if (skill_level >= 75)
-				base++;
-			if (skill_level >= 125)
-				base++;
-			if (skill_level >= 175)
-				base++;
-			return base;
-		case EQ::skills::SkillFrenzy:
-			if (GetBotItem(EQ::invslot::slotPrimary)) {
-				if (GetLevel() > 15)
-					base += GetLevel() - 15;
-				if (base > 23)
-					base = 23;
-				if (GetLevel() > 50)
-					base += 2;
-				if (GetLevel() > 54)
-					base++;
-				if (GetLevel() > 59)
-					base++;
 			}
+
+			if (skill_level >= 75) {
+				base++;
+			}
+
+			if (skill_level >= 125) {
+				base++;
+			}
+
+			if (skill_level >= 175) {
+				base++;
+			}
+
 			return base;
+		}
+		case EQ::skills::SkillFrenzy: {
+			if (GetBotItem(EQ::invslot::slotPrimary)) {
+				if (GetLevel() > 15) {
+					base += GetLevel() - 15;
+				}
+
+				if (base > 23) {
+					base = 23;
+				}
+
+				if (GetLevel() > 50) {
+					base += 2;
+				}
+
+				if (GetLevel() > 54) {
+					base++;
+				}
+
+				if (GetLevel() > 59) {
+					base++;
+				}
+			}
+
+			return base;
+		}
 		case EQ::skills::SkillFlyingKick: {
 			float skill_bonus = skill_level / 9.0f;
 			float ac_bonus = 0.0f;
 			auto inst = GetBotItem(EQ::invslot::slotFeet);
-			if (inst)
+
+			if (inst) {
 				ac_bonus = inst->GetItemArmorClass(true) / 25.0f;
-			if (ac_bonus > skill_bonus)
+			}
+
+			if (ac_bonus > skill_bonus) {
 				ac_bonus = skill_bonus;
+			}
+
 			return static_cast<int>(ac_bonus + skill_bonus);
 		}
 		case EQ::skills::SkillKick: {
 			float skill_bonus = skill_level / 10.0f;
 			float ac_bonus = 0.0f;
 			auto inst = GetBotItem(EQ::invslot::slotFeet);
-			if (inst)
+
+			if (inst) {
 				ac_bonus = inst->GetItemArmorClass(true) / 25.0f;
-			if (ac_bonus > skill_bonus)
+			}
+
+			if (ac_bonus > skill_bonus) {
 				ac_bonus = skill_bonus;
+			}
+
 			return static_cast<int>(ac_bonus + skill_bonus);
 		}
 		case EQ::skills::SkillBash: {
 			float skill_bonus = skill_level / 10.0f;
 			float ac_bonus = 0.0f;
 			const EQ::ItemInstance *inst = nullptr;
-			if (HasShieldEquipped())
+
+			if (HasShieldEquipped()) {
 				inst = GetBotItem(EQ::invslot::slotSecondary);
-			else if (HasTwoHanderEquipped())
+			}
+			else if (HasTwoHanderEquipped()) {
 				inst = GetBotItem(EQ::invslot::slotPrimary);
-			if (inst)
+			}
+
+			if (inst) {
 				ac_bonus = inst->GetItemArmorClass(true) / 25.0f;
-			if (ac_bonus > skill_bonus)
+			}
+
+			if (ac_bonus > skill_bonus) {
 				ac_bonus = skill_bonus;
+			}
+
 			return static_cast<int>(ac_bonus + skill_bonus);
 		}
 		case EQ::skills::SkillBackstab: {
 			float skill_bonus = static_cast<float>(skill_level) * 0.02f;
 			auto inst = GetBotItem(EQ::invslot::slotPrimary);
+
 			if (inst && inst->GetItem() && inst->GetItem()->ItemType == EQ::item::ItemType1HPiercing) {
 				base = inst->GetItemBackstabDamage(true);
-				if (!inst->GetItemBackstabDamage())
+
+				if (!inst->GetItemBackstabDamage()) {
 					base += inst->GetItemWeaponDamage(true);
+				}
+
 				if (target) {
 					if (
 						inst->GetItemElementalFlag(true) &&
@@ -5321,6 +5362,7 @@ int Bot::GetBaseSkillDamage(EQ::skills::SkillType skill, Mob *target)
 					}
 				}
 			}
+
 			return static_cast<int>(static_cast<float>(base) * (skill_bonus + 2.0f));
 		}
 		default:
@@ -5394,13 +5436,12 @@ void Bot::DoClassAttacks(Mob *target, bool IsRiposte) {
 		return;
 	}
 
-	bool taunt_time = taunt_timer.Check();
+	bool taunt_time = taunt_timer.Check(false);
 	bool ca_time    = classattack_timer.Check(false);
 	bool ma_time    = monkattack_timer.Check(false);
-	bool ce_time    = classepic_timer.Check(); // VegasEQ
+	bool ce_time    = classepic_timer.Check(false); // VegasEQ
 
 	if (taunt_time) {
-
 		// Bots without this skill shouldn't be 'checking' on this timer..let's just disable it and avoid the extra IsAttackAllowed() checks
 		// Note: this is done here instead of NPC::ctor() because taunt skill can be acquired during level ups (the timer is re-enabled in CalcBotStats())
 		if (!GetSkill(EQ::skills::SkillTaunt)) {
@@ -5432,7 +5473,7 @@ void Bot::DoClassAttacks(Mob *target, bool IsRiposte) {
 		}
 	}
 
-	if ((ca_time || ma_time)) {
+	if ((ca_time || ma_time || taunt_time) && !IsAttackAllowed(target)) {
 		return;
 	}
 
@@ -5450,59 +5491,59 @@ void Bot::DoClassAttacks(Mob *target, bool IsRiposte) {
 	}
 
 	if (ma_time) {
-		switch (GetClass()) {
-			case Class::Monk: {
-				int reuse = (MonkSpecialAttack(target, EQ::skills::SkillTigerClaw) - 1);
+		if (GetClass() != Class::Monk) {
+			monkattack_timer.Disable();
+			return;
+		}
 
-				// Live AA - Technique of Master Wu
-				int wuchance = itembonuses.DoubleSpecialAttack + spellbonuses.DoubleSpecialAttack + aabonuses.DoubleSpecialAttack;
+		int reuse = (MonkSpecialAttack(target, EQ::skills::SkillTigerClaw) - 1);
 
-				if (wuchance) {
-					const int MonkSPA[5] = {
-						EQ::skills::SkillFlyingKick,
-						EQ::skills::SkillDragonPunch,
-						EQ::skills::SkillEagleStrike,
-						EQ::skills::SkillTigerClaw,
-						EQ::skills::SkillRoundKick
-					};
-					int extra = 0;
-					// always 1/4 of the double attack chance, 25% at rank 5 (100/4)
-					while (wuchance > 0) {
-						if (zone->random.Roll(wuchance)) {
-							++extra;
-						}
-						else {
-							break;
-						}
-						wuchance /= 4;
-					}
+		// Live AA - Technique of Master Wu
+		int wuchance = itembonuses.DoubleSpecialAttack + spellbonuses.DoubleSpecialAttack + aabonuses.DoubleSpecialAttack;
 
-					Mob* bo = GetBotOwner();
-					if (bo && bo->IsClient() && bo->CastToClient()->GetBotOption(Client::booMonkWuMessage)) {
+		if (wuchance) {
+			const int MonkSPA[5] = {
+				EQ::skills::SkillFlyingKick,
+				EQ::skills::SkillDragonPunch,
+				EQ::skills::SkillEagleStrike,
+				EQ::skills::SkillTigerClaw,
+				EQ::skills::SkillRoundKick
+			};
 
-						bo->Message(
-							GENERIC_EMOTE,
-							"The spirit of Master Wu fills %s!  %s gains %d additional attack(s).",
-							GetCleanName(),
-							GetCleanName(),
-							extra
-						);
-					}
+			int extra = 0;
+			// always 1/4 of the double attack chance, 25% at rank 5 (100/4)
 
-					auto classic = RuleB(Combat, ClassicMasterWu);
-					while (extra && TargetValidation(GetTarget())) {
-						MonkSpecialAttack(GetTarget(), (classic ? MonkSPA[zone->random.Int(0, 4)] : EQ::skills::SkillTigerClaw));
-						--extra;
-					}
+			while (wuchance > 0) {
+				if (zone->random.Roll(wuchance)) {
+					++extra;
+				}
+				else {
+					break;
+				}
+
+				wuchance /= 4;
+
+				Mob* bo = GetBotOwner();
+
+				if (bo && bo->IsClient() && bo->CastToClient()->GetBotOption(Client::booMonkWuMessage))
+					bo->Message(
+						GENERIC_EMOTE,
+						"The spirit of Master Wu fills %s!  %s gains %d additional attack(s).",
+						GetCleanName(),
+						GetCleanName(),
+						extra
+					);
+
+				auto classic = RuleB(Combat, ClassicMasterWu);
+
+				while (extra && TargetValidation(GetTarget())) {
+					MonkSpecialAttack(GetTarget(), (classic ? MonkSPA[zone->random.Int(0, 4)] : EQ::skills::SkillTigerClaw));
+					--extra;
 				}
 
 				float HasteModifier = (GetHaste() * 0.01f);
 				monkattack_timer.Start((reuse * 1000) / HasteModifier);
-
-				break;
 			}
-			default:
-				break;
 		}
 	}
 
@@ -5551,19 +5592,21 @@ void Bot::DoClassAttacks(Mob *target, bool IsRiposte) {
 				break;
 			}
 		case Class::Ranger:
-		case Class::Beastlord:
+		case Class::Beastlord: {
 			if (GetSkill(EQ::skills::SkillKick)) {
 				skill_to_use = EQ::skills::SkillKick;
 			}
 
 			break;
-		case Class::Berserker:
+		}
+		case Class::Berserker: {
 			if (GetSkill(EQ::skills::SkillFrenzy)) {
 				skill_to_use = EQ::skills::SkillFrenzy;
 			}
 
 			break;
-		case Class::Monk:
+		}
+		case Class::Monk: {
 			if (GetSkill(EQ::skills::SkillFlyingKick)) {
 				skill_to_use = EQ::skills::SkillFlyingKick;
 			}
@@ -5581,12 +5624,14 @@ void Bot::DoClassAttacks(Mob *target, bool IsRiposte) {
 			}
 
 			break;
-		case Class::Rogue:
+		}
+		case Class::Rogue: {
 			if (GetSkill(EQ::skills::SkillBackstab)) {
 				skill_to_use = EQ::skills::SkillBackstab;
 			}
 
 			break;
+		}
 	}
 
 	int64 dmg = GetBaseSkillDamage(static_cast<EQ::skills::SkillType>(skill_to_use), GetTarget());
@@ -7484,13 +7529,14 @@ void Bot::CalcBotStats(bool showtext) {
 	}
 
 	taunt_timer.Start(1000);
+	classattack_timer.Start(1000);
 
 	if (GetClass() == Class::Monk && GetLevel() >= 10) {
 		monkattack_timer.Start(1000);
 	}
 
 	if (HasEpicEquipped()) {
-		classattack_timer.Start(1000);
+		classepic_timer.Start(1000);
 	}
 
 	LoadAAs();
@@ -13810,7 +13856,7 @@ bool Bot::HasEpicEquipped() {
 			break;
 	}
 
-	classattack_timer.Disable();
+	classepic_timer.Disable();
 	return false;
 }
 // VegasEQ - END

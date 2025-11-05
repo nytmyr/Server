@@ -378,7 +378,7 @@ NPC::NPC(const NPCType *npc_type_data, Spawn2 *in_respawn, const glm::vec4 &posi
 	// the theory of needing to be able to set skills for each mob separately
 
 	if (!IsBot()) { // VegasEQ
-		classattack_timer.Disable();
+		classepic_timer.Disable();
 	}
 
 	if (IsBot()) {
