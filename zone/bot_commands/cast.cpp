@@ -98,20 +98,29 @@ void bot_command_cast(Client* c, const Seperator* sep)
 
 	//AA help
 	if (!arg1.compare("aa") && !arg2.compare("help")) {
-		c->Message(Chat::Yellow, "Enter the ID of an AA to attempt to cast.", sep->arg[0]);
+		c->Message(Chat::Yellow, "Enter the ID of an AA to attempt to cast.");
+
+		return;
 	}
 
 	//Commanded type help prompts
 	if (!arg2.compare("help")) {
-		c->Message(Chat::Yellow, "You can also use [single], [group], [ae]. Ex: ^cast movementspeed group.", sep->arg[0]);
+		c->Message(
+			Chat::Yellow,
+			fmt::format("You can also use [single], [group], [ae] as target types. Ex: {} {} group.",
+				sep->arg[0],
+				sep->arg[1]
+			).c_str()
+		);
 	}
 
 	if (!arg1.compare("invisibility") && !arg2.compare("help")) {
 		c->Message(
 			Chat::Yellow,
 			fmt::format(
-				"Available options for {} are: {}, {}, {}, {}.",
+				"Available options for {} {} are: {}, {}, {}, {}.",
 				sep->arg[0],
+				sep->arg[1],
 				Saylink::Silent("^cast invisibility see", "see"),
 				Saylink::Silent("^cast invisibility invis", "invis"),
 				Saylink::Silent("^cast invisibility undead", "undead"),
@@ -126,8 +135,9 @@ void bot_command_cast(Client* c, const Seperator* sep)
 		c->Message(
 			Chat::Yellow,
 			fmt::format(
-				"Available options for {} are: {}, {}.",
+				"Available options for {} {} are: {}, {}.",
 				sep->arg[0],
+				sep->arg[1],
 				Saylink::Silent("^cast size grow", "grow"),
 				Saylink::Silent("^cast size shrink", "shrink")
 			).c_str()
@@ -140,8 +150,9 @@ void bot_command_cast(Client* c, const Seperator* sep)
 		c->Message(
 			Chat::Yellow,
 			fmt::format(
-				"Available options for {} are: {}, {}.",
+				"Available options for {} {} are: {}, {}.",
 				sep->arg[0],
+				sep->arg[1],
 				Saylink::Silent("^cast movementspeed selo"), "selo"
 			).c_str()
 		);
@@ -150,7 +161,15 @@ void bot_command_cast(Client* c, const Seperator* sep)
 	}
 
 	if (!arg2.compare("help")) {
-		c->Message(Chat::Yellow, "There are no additional options for {}.", sep->arg[0]);
+		c->Message(
+			Chat::Yellow,
+			fmt::format(
+				"There are no additional options for {} {}.",
+				sep->arg[0],
+				sep->arg[1]
+			).c_str()
+		);
+
 		return;
 	}
 

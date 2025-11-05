@@ -217,13 +217,13 @@ namespace CommandedSubTypes {
 }
 
 static std::map<uint16, std::string> botSubType_names = {
-	{ CommandedSubTypes::SingleTarget,              "SingleTarget" },
-	{ CommandedSubTypes::GroupTarget,               "GroupTarget" },
-	{ CommandedSubTypes::AETarget,                  "AETarget" },
-	{ CommandedSubTypes::SeeInvis,                  "SeeInvis" },
-	{ CommandedSubTypes::Invis,                     "Invis" },
-	{ CommandedSubTypes::InvisUndead,               "InvisUndead" },
-	{ CommandedSubTypes::InvisAnimals,              "InvisAnimals" },
+	{ CommandedSubTypes::SingleTarget,              "Single Target" },
+	{ CommandedSubTypes::GroupTarget,               "Group Target" },
+	{ CommandedSubTypes::AETarget,                  "AE Target" },
+	{ CommandedSubTypes::SeeInvis,                  "See Invisibility" },
+	{ CommandedSubTypes::Invis,                     "Invisibility" },
+	{ CommandedSubTypes::InvisUndead,               "Invisibility vs Undead" },
+	{ CommandedSubTypes::InvisAnimals,              "Invisibility vs Animals" },
 	{ CommandedSubTypes::Shrink,                    "Shrink" },
 	{ CommandedSubTypes::Grow,                      "Grow" },
 	{ CommandedSubTypes::Selo,                      "Selo" }

@@ -13271,7 +13271,7 @@ bool Bot::IsValidCastFailureType(uint8 failure_type) {
 }
 
 std::string Bot::GetCastFailuresNames(uint8 failure_type) {
-	return IsValidCastFailureType(failure_type) ? CastFailuresNames[failure_type] : "Unknown failure reason";
+	return IsValidCastFailureType(failure_type) ? CastFailuresNames[failure_type] : "Undeclared. Most likely no spells of this type.";
 }
 
 uint16 Bot::GetDefaultSpellTypeDelay(uint16 spell_type, uint8 stance) {
