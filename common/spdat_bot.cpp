@@ -301,21 +301,13 @@ bool BotSpellTypeRequiresLoS(uint16 spell_type) {
 		return false;
 	}
 
+	if (spell_type != BotSpellTypes::Succor && spell_type != BotSpellTypes::BindAffinity && IsBotSpellTypeBeneficial(spell_type)) {
+		return false;
+	}
+
 	switch (spell_type) {
-		case BotSpellTypes::RegularHeal:
-		case BotSpellTypes::GroupCompleteHeals:
-		case BotSpellTypes::CompleteHeal:
-		case BotSpellTypes::FastHeals:
-		case BotSpellTypes::VeryFastHeals:
-		case BotSpellTypes::GroupHeals:
-		case BotSpellTypes::GroupHoTHeals:
-		case BotSpellTypes::HoTHeals:
-		case BotSpellTypes::PetRegularHeals:
-		case BotSpellTypes::PetCompleteHeals:
-		case BotSpellTypes::PetFastHeals:
-		case BotSpellTypes::PetVeryFastHeals:
-		case BotSpellTypes::PetHoTHeals:
-		case BotSpellTypes::InCombatBuff:
+		case BotSpellTypes::Lull:
+		case BotSpellTypes::AELull:
 			return false;
 		default:
 			return true;
