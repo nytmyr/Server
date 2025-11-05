@@ -850,7 +850,7 @@ RULE_BOOL(Bots, UseParentSpellTypeForChecks, true, "This will check only the par
 RULE_BOOL(Bots, AllowForcedCastsBySpellID, true, "If enabled, players can use ^cast spellid # to cast a specific spell by ID that is in their spell list")
 RULE_BOOL(Bots, AllowCastAAs, true, "If enabled, players can use ^cast aa to cast a clickable AA")
 RULE_BOOL(Bots, AllowMagicianEpicPet, false, "If enabled, magician bots can summon their epic pets following the rules AllowMagicianEpicPetLevel")
-RULE_INT(Bots, AllowMagicianEpicPetLevel, 50, "If AllowMagicianEpicPet is enabled, bots can start using their epic pets at this level")
+RULE_INT(Bots, AllowMagicianEpicPetLevel, 46, "If AllowMagicianEpicPet is enabled, bots can start using their epic pets at this level. Default 46.")
 RULE_INT(Bots, RequiredMagicianEpicPetItemID, 28034, "If AllowMagicianEpicPet is enabled and this is set, bots will be required to have this item ID equipped to cast their epic. Takes in to account AllowMagicianEpicPetLevel as well. Set to 0 to disable requirement")
 RULE_STRING(Bots, EpicPetSpellName, "", "'teleport_zone' in the spell to be cast for epic pets. This must be in their usable spell list to cast. Empty uses Manifest Elements - 'SumMageMultiElement'")
 RULE_INT(Bots, ReclaimEnergySpellID, 331, "Spell ID for reclaim energy when using ^petsettype. Default 331")
