@@ -168,7 +168,7 @@ void bot_command_blocked_buffs(Client* c, const Seperator* sep)
 								bot_iter->GetCleanName(),
 								spells[blocked_buff.spell_id].name,
 								blocked_buff.spell_id,
-								Saylink::Silent(fmt::format("^blockedbuffs remove {}", blocked_buff.spell_id),"Remove")
+								Saylink::Silent(fmt::format("^blockedbuffs remove {} byname {}", blocked_buff.spell_id, bot_iter->GetCleanName()),"Remove")
 							).c_str()
 						);
 					}
@@ -406,7 +406,7 @@ void bot_command_blocked_pet_buffs(Client* c, const Seperator* sep)
 								bot_iter->GetCleanName(),
 								spells[blocked_buff.spell_id].name,
 								blocked_buff.spell_id,
-								Saylink::Silent(fmt::format("^blockedpetbuffs remove {}", blocked_buff.spell_id), "Remove")
+								Saylink::Silent(fmt::format("^blockedpetbuffs remove {} byname {}", blocked_buff.spell_id, bot_iter->GetCleanName()), "Remove")
 							).c_str()
 						);
 					}
