@@ -1024,6 +1024,11 @@ void Lua_NPC::SetStuckCount(uint16 newCount) {
 }
 
 // VegasEQ - START
+float Lua_NPC::CalcDifficulty() {
+	Lua_Safe_Call_Real();
+	return self->CalcDifficulty();
+}
+
 float Lua_NPC::GetDifficulty() {
 	Lua_Safe_Call_Real();
 	return self->GetDifficulty();
@@ -1341,6 +1346,7 @@ luabind::scope lua_register_npc() {
 	.def("UpdateWaypoint", (void(Lua_NPC::*)(int))&Lua_NPC::UpdateWaypoint)
 
 	// VegasEQ - START
+	.def("CalcDifficulty", (float(Lua_NPC::*)(void))&Lua_NPC::CalcDifficulty)
 	.def("GetDifficulty", (float(Lua_NPC::*)(void))&Lua_NPC::GetDifficulty)
 	.def("SetDifficulty", (void(Lua_NPC::*)(float))&Lua_NPC::SetDifficulty)
 	.def("GetRaidPoints", (int(Lua_NPC::*)(void))&Lua_NPC::GetRaidPoints)

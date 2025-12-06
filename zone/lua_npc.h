@@ -216,6 +216,7 @@ public:
 	uint32 GetNPCTintIndex();
 
 	// VegasEQ - START
+	float CalcDifficulty();
 	float GetDifficulty();
 	void SetDifficulty(float difficulty_);
 	int32 GetRaidPoints();

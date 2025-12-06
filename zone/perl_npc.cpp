@@ -961,6 +961,10 @@ uint32 Perl_NPC_GetNPCTintIndex(NPC* self)
 }
 
 // VegasEQ - START
+float Perl_NPC_CalcDifficulty(NPC* self) {
+	return self->CalcDifficulty();
+}
+
 float Perl_NPC_GetDifficulty(NPC* self) {
 	return self->GetDifficulty();
 }
@@ -1259,6 +1263,7 @@ void perl_register_npc()
 	package.add("UpdateWaypoint", &Perl_NPC_UpdateWaypoint);
 
 	// VegasEQ - START
+	package.add("CalcDifficulty", &Perl_NPC_CalcDifficulty);
 	package.add("GetDifficulty", &Perl_NPC_GetDifficulty);
 	package.add("SetDifficulty", &Perl_NPC_SetDifficulty);
 	package.add("GetRaidPoints", &Perl_NPC_GetRaidPoints);
