@@ -1303,6 +1303,7 @@ luabind::scope lua_register_npc() {
 	.def("SaveGuardSpot", (void(Lua_NPC::*)(float,float,float,float))&Lua_NPC::SaveGuardSpot)
 	.def("ScaleNPC", (void(Lua_NPC::*)(uint8))&Lua_NPC::ScaleNPC)
 	.def("ScaleNPC", (void(Lua_NPC::*)(uint8,bool))&Lua_NPC::ScaleNPC)
+	.def("ScaleNPC", (void(Lua_NPC::*)(uint8,bool,float))&Lua_NPC::ScaleNPC)
 	.def("SendPayload", (void(Lua_NPC::*)(int))&Lua_NPC::SendPayload)
 	.def("SendPayload", (void(Lua_NPC::*)(int,std::string))&Lua_NPC::SendPayload)
 	.def("SetBucket", (void(Lua_NPC::*)(std::string,std::string))&Lua_NPC::SetBucket)
