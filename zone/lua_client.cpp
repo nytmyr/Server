@@ -4251,7 +4251,7 @@ luabind::scope lua_register_client() {
 	.def("WorldKick", (void(Lua_Client::*)(void))&Lua_Client::WorldKick)
 
 	// VegasEQ - START
-	.def("GetTotalGearScore", (uint32(Lua_Client::*)(void))&Lua_Client::GetTotalGearScore)
+	.def("GetTotalGearScore", (float(Lua_Client::*)(void))&Lua_Client::GetTotalGearScore)
 	.def("SetAntiCheatExempt", (void(Lua_Client::*)(void))&Lua_Client::SetAntiCheatExempt)
 	.def("SetAntiCheatExempt", (void(Lua_Client::*)(int))&Lua_Client::SetAntiCheatExempt)
 	.def("GetAntiCheatExempt", (bool(Lua_Client::*)(void))&Lua_Client::GetAntiCheatExempt)

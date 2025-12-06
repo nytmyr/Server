@@ -796,7 +796,7 @@ luabind::scope lua_register_bot() {
 	.def("Stand", (void(Lua_Bot::*)(void))&Lua_Bot::Stand)
 
 	// VegasEQ - START
-	.def("GetTotalGearScore", (uint32(Lua_Bot::*)(Lua_Mob))&Lua_Bot::GetTotalGearScore);
+	.def("GetTotalGearScore", (float(Lua_Bot::*)(void))&Lua_Bot::GetTotalGearScore);
 	// VegasEQ - END
 }
 
