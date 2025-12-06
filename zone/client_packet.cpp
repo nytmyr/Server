@@ -2866,13 +2866,13 @@ void Client::Handle_OP_AltCurrencySell(const EQApplicationPacket *app)
 				continue;
 
 			if (item->ID == inst->GetItem()->ID) {
-				if (alt_cur_id == 70) {
+				if (alt_cur_id == RuleI(Vegas, ShardAltCurrencyID)) {
 					cost = ml.alt_currency_cost * RuleR(Vegas, AltCurrencySellShardRate);
 				}
-				else if (alt_cur_id == 71) {
+				else if (alt_cur_id == RuleI(Vegas, OrnateCoinAltCurrencyID)) {
 					cost = ml.alt_currency_cost * RuleR(Vegas, AltCurrencySellOrnateRate);
 				}
-				else if (alt_cur_id == 72) {
+				else if (alt_cur_id == RuleI(Vegas, ElementalCoinAltCurrencyID)) {
 					cost = ml.alt_currency_cost * RuleR(Vegas, AltCurrencySellElementalRate);
 				}
 				else {
