@@ -72,7 +72,7 @@ void bot_command_attack(Client *c, const Seperator *sep)
 		std::string message;
 
 		if (attacker_count == 1) {
-			message = fmt::format("Attacking {}.", target_mob->GetCleanName());
+			message = fmt::format("{} says, 'Attacking {}.'", first_attacker->GetCleanName(), target_mob->GetCleanName());
 		} else {
 			message = fmt::format("{} of your bots are attacking {}.", sbl.size(), target_mob->GetCleanName());
 		}
