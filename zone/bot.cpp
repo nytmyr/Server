@@ -4999,6 +4999,10 @@ bool Bot::Death(Mob *killer_mob, int64 damage, uint16 spell_id, EQ::skills::Skil
 		return false;
 	}
 
+	if (killer_mob) {
+		parse->EventBotMercNPC(EVENT_SLAY, killer_mob, this);
+	}
+
 	Mob *my_owner = GetBotOwner();
 
 	if (my_owner && my_owner->IsClient() && my_owner->CastToClient()->GetBotOption(Client::booDeathMarquee)) {
@@ -5542,11 +5546,11 @@ void Bot::DoClassAttacks(Mob *target, bool IsRiposte) {
 					MonkSpecialAttack(GetTarget(), (classic ? MonkSPA[zone->random.Int(0, 4)] : EQ::skills::SkillTigerClaw));
 					--extra;
 				}
-
-				float HasteModifier = (GetHaste() * 0.01f);
-				monkattack_timer.Start((reuse * 1000) / HasteModifier);
 			}
 		}
+
+		float HasteModifier = (GetHaste() * 0.01f);
+		monkattack_timer.Start((reuse * 1000) / HasteModifier);
 	}
 
 	if (!ca_time) {
@@ -5805,7 +5809,7 @@ bool Bot::IsBotAttackAllowed(Mob* attacker, Mob* target, bool& hasRuleDefined) {
 		if (attacker == target) {
 			hasRuleDefined = true;
 			Result = false;
-		} else if (attacker->IsClient() && target->IsBot() && attacker->CastToClient()->GetPVP() && target->CastToBot()->GetBotOwner()->CastToClient()->GetPVP()) {
+		} else if (attacker->IsClient() && target->IsBot() && attacker->CastToClient()->GetPVP() && target->CastToBot()->GetBotOwner() && target->CastToBot()->GetBotOwner()->CastToClient()->GetPVP()) {
 			hasRuleDefined = true;
 			Result = true;
 		} else if (attacker->IsClient() && target->IsBot()) {
@@ -5842,6 +5846,7 @@ bool Bot::IsBotAttackAllowed(Mob* attacker, Mob* target, bool& hasRuleDefined) {
 			}
 		}
 	}
+
 	return Result;
 }
 
