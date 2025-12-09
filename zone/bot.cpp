@@ -8985,18 +8985,23 @@ bool Bot::CheckSpawnLimit(Client* c, uint8 bot_class) {
 	if (is_beyond_spawn_limit) {
 		std::string message;
 
+		std::string class_name =
+			bot_class
+				? (std::string(GetClassIDName(bot_class)) + " ")
+				: "";
+
 		if (bot_spawn_limit) {
 			message = fmt::format(
 				"You cannot have more than {} spawned {}bot{}.",
 				bot_spawn_limit,
-				bot_class ? GetClassIDName(bot_class) : "",
+				class_name,
 				bot_spawn_limit != 1 ? "s" : ""
 			);
 		}
 		else {
 			message = fmt::format(
 				"You are not currently allowed to spawn any {}bots.",
-				bot_class ? GetClassIDName(bot_class) : ""
+				class_name
 			);
 		}
 
