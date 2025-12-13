@@ -1230,10 +1230,11 @@ RULE_INT(VegasMerchants, MaxItemsListedRoF2, 255, "Maximum number of items a mer
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(VegasEXP)
-RULE_REAL(VegasEXP, FullRaidEXPModifier, 15.36, "Sets the raid experience modifier for a full raid. Default is 15.36 (2.16 is default full group (.36 vs .2). 1 + (70*.2) + .36 = 15.36")
+RULE_BOOL(VegasEXP, EnableFullRaidEXPModifier, false, "If enabled, there will be a bonus based off FullRaidEXPModifier for a full raid. Default False")
+RULE_REAL(VegasEXP, FullRaidEXPModifier, 15.36, "Sets the raid experience modifier for a full raid if EnableFullRaidEXPModifier is enabled. Default is 15.36 (2.16 is default full group (.36 vs .2). 1 + (70*.2) + .36 = 15.36")
 RULE_INT(VegasEXP, MaxNumberRaidMembersEXPModifier, 72, "If EnableRaidMemberEXPModifier is enabled, this is the maximum number of members that exp will be reduced by. Default 72.")
 RULE_BOOL(VegasEXP, EnableRaidMemberEXPMultiplier, false, "Enable or disable the raid member experience modifier. Default False.")
-RULE_REAL(VegasEXP, RaidMemberEXPMultiplier, 1.0, "Sets the raid experience modifier per members when not full group or raid. Default 0.2.")
+RULE_REAL(VegasEXP, RaidMemberEXPModifier, 0.2, "Sets the raid experience modifier per members when not full group or raid. Default 0.2.")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(VegasPathing)
