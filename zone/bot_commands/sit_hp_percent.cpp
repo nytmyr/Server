@@ -120,7 +120,7 @@ void bot_command_sit_hp_percent(Client* c, const Seperator* sep)
 			c->Message(
 				Chat::Green,
 				fmt::format(
-					"{} says, 'I sit in combat whem at or below [{}%%] HP.'",
+					"{} says, 'I sit in combat when at or below [{}%%] HP.'",
 					my_bot->GetCleanName(),
 					my_bot->GetSitHPPct()
 				).c_str()
@@ -136,7 +136,7 @@ void bot_command_sit_hp_percent(Client* c, const Seperator* sep)
 			c->Message(
 				Chat::Green,
 				fmt::format(
-					"{} says, 'I will now sit in combat whem at or below [{}%%] HP.'",
+					"{} says, 'I will now sit in combat when at or below [{}%%] HP.'",
 					first_found->GetCleanName(),
 					first_found->GetSitHPPct()
 				).c_str()
@@ -146,7 +146,7 @@ void bot_command_sit_hp_percent(Client* c, const Seperator* sep)
 			c->Message(
 				Chat::Green,
 				fmt::format(
-					"{} of your bots will now sit in combat whem at or below [{}%%] HP.'",
+					"{} of your bots will now sit in combat when at or below [{}%%] HP.'",
 					success_count,
 					type_value
 				).c_str()
