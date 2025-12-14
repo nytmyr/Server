@@ -265,7 +265,7 @@ void Raid::RemoveMember(const char *character_name)
 
 	if (RuleB(Bots, Enabled) && b) {
 		b = entity_list.GetBotByBotName(character_name);
-		b->SetFollowID(b->GetOwner()->CastToClient()->GetID());
+		b->SetFollowID(b->GetOwner() ? b->GetOwner()->CastToClient()->GetID() : 0);
 		b->SetTarget(nullptr);
 		b->SetRaidGrouped(false);
 		b->p_raid_instance = nullptr;
