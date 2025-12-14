@@ -11,6 +11,7 @@ void bot_command_spell_announce_cast(Client* c, const Seperator* sep) {
 		BotCommandHelpParams p;
 
 		p.description = { "Allows you to enable or disable cast announcements for bots by spell type." };
+		p.notes = { fmt::format("- You can use the 'all' argument to change all spell types at once. IE '{} all 0' or '{} all 0 spawned' to disable for the targeted bot or all bots.", sep->arg[0], sep->arg[0]) };
 		p.example_format =
 		{
 			fmt::format("{} [Type Shortname] [value] [actionable]", sep->arg[0]),
@@ -88,6 +89,7 @@ void bot_command_spell_announce_cast(Client* c, const Seperator* sep) {
 	bool current_check = false;
 	uint16 spell_type = 0;
 	uint32 type_value = 0;
+	bool all_types = false;
 
 	// String/Int type checks
 	if (sep->IsNumber(1)) {
@@ -98,6 +100,9 @@ void bot_command_spell_announce_cast(Client* c, const Seperator* sep) {
 
 			return;
 		}
+	}
+	else if (!arg1.compare("all")) {
+		all_types = true;
 	}
 	else {
 		if (Bot::GetSpellTypeIDByShortName(arg1) != UINT16_MAX) {
@@ -129,6 +134,11 @@ void bot_command_spell_announce_cast(Client* c, const Seperator* sep) {
 		}
 	}
 	else if (!arg2.compare("current")) {
+		if (all_types) {
+			c->Message(Chat::Yellow, "You must specify a single type to check the current state of.");
+
+			return;
+		}
 		++ab_arg;
 		current_check = true;
 	}
@@ -183,8 +193,17 @@ void bot_command_spell_announce_cast(Client* c, const Seperator* sep) {
 			);
 		}
 		else {
-			my_bot->SetSpellTypeAnnounceCast(spell_type, type_value);
-			++success_count;
+			if (all_types) {
+				for (uint16 i = BotSpellTypes::START; i <= BotSpellTypes::END; ++i) {
+					my_bot->SetSpellTypeAnnounceCast(i, type_value);
+				}
+
+				++success_count;
+			}
+			else {
+				my_bot->SetSpellTypeAnnounceCast(spell_type, type_value);
+				++success_count;
+			}
 		}
 	}
 	if (!current_check) {
@@ -194,8 +213,8 @@ void bot_command_spell_announce_cast(Client* c, const Seperator* sep) {
 				fmt::format(
 					"{} says, 'I will {} announce [{}] casts.'",
 					first_found->GetCleanName(),
-					(first_found->GetSpellTypeAnnounceCast(spell_type) ? "now" : "no longer"),
-					Bot::GetSpellTypeNameByID(spell_type)
+					(type_value ? "now" : "no longer"),
+					(all_types ? "all" : Bot::GetSpellTypeNameByID(spell_type))
 				).c_str()
 			);
 		}
