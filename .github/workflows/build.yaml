@@ -23,7 +23,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential ninja-build ccache libmariadb-dev libmariadb-dev-compat libboost-all-dev libperl-dev liblua5.1-0-dev libluajit-5.1-dev zlib1g-dev uuid-dev libssl-dev libsodium-dev libmbedtls-dev
+          sudo apt-get install -y build-essential ninja-build ccache uuid-dev
 
       - name: Configure
         run: |
