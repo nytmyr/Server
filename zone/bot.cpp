@@ -6349,13 +6349,12 @@ void Bot::GenerateSpecialAttacks() {
 }
 
 bool Bot::DoFinishedSpellSingleTarget(uint16 spell_id, Mob* spellTarget, EQ::spells::CastingSlot slot, bool& stopLogic) {
-
 	if (
 		spellTarget &&
+		(RuleB(Bots, GroupBuffing) || RuleB(Bots, RaidBuffing)) &&
 		GetClass() != Class::Bard &&
-		(IsGrouped() || (IsRaidGrouped() && GetStoredRaid()->GetGroup(GetCleanName()) != RAID_GROUPLESS)) &&
-		(spellTarget->IsBot() || spellTarget->IsClient()) &&
-		(RuleB(Bots, GroupBuffing) || RuleB(Bots, RaidBuffing))
+		spellTarget->IsOfClientBot() &&
+		((IsGrouped() && GetGroup()) || (IsRaidGrouped() && GetStoredRaid() && GetStoredRaid()->GetGroup(GetCleanName()) && GetStoredRaid()->GetGroup(GetCleanName()) != RAID_GROUPLESS))
 	) {
 		bool noGroupSpell = false;
 		uint16 thespell = spell_id;
