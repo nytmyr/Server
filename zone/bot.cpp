@@ -2601,6 +2601,8 @@ void Bot::DoOutOfCombatChecks(Client* bot_owner, Mob* follow_mob, float leash_di
 	if (GetClass() == Class::Bard && AI_HasSpells() && TryBardMovementCasts()) {
 		return;
 	}
+
+	TryMeditate();
 }
 
 // This is as close as I could get without modifying the aggro mechanics and making it an expensive process...
