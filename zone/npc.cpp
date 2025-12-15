@@ -3872,7 +3872,7 @@ void NPC::HandleRoambox()
 		uint16 moveDistance = zone->random.Int(10, 100);
 		//uint8 moveAngle = zone->random.Int(1, 359);
 		//LogTestDebug("[{}] [#{}] is stuck and TryMoveAlong {} units at an angle of {}", GetCleanName(), GetID(), moveDistance, moveAngle); //deleteme
-		LogTestDebug("Stuck NPC in [{} - {}] - [{}] [ID: {}] [EntID: {}] [SPID: {}] [#{}] | {}"
+		LogTestDebugDetail("Stuck NPC in [{} - {}] - [{}] [ID: {}] [EntID: {}] [SPID: {}] [#{}] | {}"
 			, zone->GetLongName()
 			, zone->GetShortName()
 			, GetCleanName()
@@ -4035,7 +4035,7 @@ void NPC::HandleRoambox()
 			}
 		}
 
-		LogTestDebug("[{}] [#{}] Failed to find next roambox node - {} [FixedZ:{}]"
+		LogTestDebugDetail("[{}] [#{}] Failed to find next roambox node - {} [FixedZ:{}]"
 			, GetCleanName()
 			, GetID()
 			, fmt::format(

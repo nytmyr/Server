@@ -6405,6 +6405,8 @@ bool Bot::DoFinishedSpellSingleTarget(uint16 spell_id, Mob* spellTarget, EQ::spe
 
 		if (!noGroupSpell) {
 			for (Mob* m : GetBuffTargets(spellTarget)) {
+				bool invalid_cast = false;
+
 				if (IsEffectInSpell(thespell, SpellEffect::AbsorbMagicAtt) || IsEffectInSpell(thespell, SpellEffect::Rune)) {
 					for (int i = 0; i < m->GetMaxTotalSlots(); i++) {
 						uint32 buff_count = m->GetMaxTotalSlots();
@@ -6412,11 +6414,40 @@ bool Bot::DoFinishedSpellSingleTarget(uint16 spell_id, Mob* spellTarget, EQ::spe
 						for (unsigned int j = 0; j < buff_count; j++) {
 							if (IsValidSpell(m->GetBuffs()[j].spellid)) {
 								if (IsLichSpell(m->GetBuffs()[j].spellid)) {
-									continue;
+									invalid_cast = true;
+									break;
 								}
 							}
 						}
+
+						if (invalid_cast) {
+							break;
+						}
 					}
+				}
+
+				if (invalid_cast) {
+					continue;
+				}
+
+				float spell_range = GetActSpellRange(spell_id, spells[spell_id].range);
+
+				if (IsIllusionSpell(spell_id) && HasProjectIllusion()){
+					spell_range = 100;
+				}
+
+				float dist2 = DistanceSquared(m_Position, m->GetPosition());
+				float range2 = spell_range * spell_range;
+				float min_range2 = spells[spell_id].min_range * spells[spell_id].min_range;
+
+				if (dist2 > range2) { // target is out of range.
+					LogSpells("Spell [{}]: Spell target is out of range (squared: [{}] > [{}])", spell_id, dist2, range2);
+					continue;
+				}
+
+				if (dist2 < min_range2) { // target is too close range.
+					LogSpells("Spell [{}]: Spell target is too close (squared: [{}] < [{}])", spell_id, dist2, min_range2);
+					continue;
 				}
 
 				SpellOnTarget(thespell, m);
@@ -6462,6 +6493,33 @@ bool Bot::DoFinishedSpellGroupTarget(uint16 spell_id, Mob* spellTarget, EQ::spel
 		if (spellTarget->IsOfClientBotMerc()) {
 			for (Mob* m : GetBuffTargets(spellTarget)) {
 				if (m == this && spellTarget != this) {
+					continue;
+				}
+
+				float spell_range = spells[spell_id].range;
+
+				if (IsGroupSpell(spell_id)) {
+					spell_range = GetAOERange(spell_id);
+				}
+				else {
+					spell_range = GetActSpellRange(spell_id, spell_range);
+				}
+
+				if (IsIllusionSpell(spell_id) && HasProjectIllusion()){
+					spell_range = 100;
+				}
+
+				float dist2 = DistanceSquared(m_Position, m->GetPosition());
+				float range2 = spell_range * spell_range;
+				float min_range2 = spells[spell_id].min_range * spells[spell_id].min_range;
+
+				if (dist2 > range2) { // target is out of range.
+					LogSpells("Spell [{}]: Spell target is out of range (squared: [{}] > [{}])", spell_id, dist2, range2);
+					continue;
+				}
+
+				if (dist2 < min_range2){ // target is too close range.
+					LogSpells("Spell [{}]: Spell target is too close (squared: [{}] < [{}])", spell_id, dist2, min_range2);
 					continue;
 				}
 
@@ -10846,13 +10904,14 @@ void Bot::LoadDefaultBotSettings() {
 	if (RuleB(Bots, OutputDefaultSettingInserts)) {
 		auto bot_class = GetClass();
 
-		LogTestDebugDetail("INSERT INTO `bot_default_settings` (`class_id`, `stance`, `setting_category`, `setting_id`, `value`, `category_name`, `setting_name`) VALUES");
+		//LogTestDebugDetail("INSERT INTO `bot_default_settings` (`class_id`, `stance`, `setting_category`, `setting_id`, `value`, `category_name`, `setting_name`) VALUES");
 
 		for (uint16 stance = Stance::Unknown; stance <= Stance::AEBurn; ++stance) {
 			if (IsValidBotStance(stance)) {
 				for (uint16 i = BotSettingCategories::START; i <= BotSettingCategories::END; ++i) {
 					if (i == BotSettingCategories::BaseSetting) {
 						for (uint16 x = BotBaseSettings::START_ALL; x <= BotBaseSettings::END; ++x) {
+							/*
 							LogTestDebugDetail("({}, {}, {}, {}, {}, '{}', '{}'),",
 								bot_class,
 								stance,
@@ -10862,6 +10921,7 @@ void Bot::LoadDefaultBotSettings() {
 								GetBotSpellCategoryName(i),
 								GetBotSettingCategoryName(x)
 							);
+							*/
 						}
 
 
@@ -10920,6 +10980,7 @@ void Bot::LoadDefaultBotSettings() {
 									break;
 							}
 
+							/*
 							LogTestDebugDetail("({}, {}, {}, {}, {}, '{}', '{}'){}",
 								bot_class,
 								stance,
@@ -10930,6 +10991,7 @@ void Bot::LoadDefaultBotSettings() {
 								GetSpellTypeNameByID(x),
 								((stance == Stance::AEBurn && i == BotSettingCategories::END && x == BotSpellTypes::END) ? ";" : ",")
 							);
+							*/
 						}
 					}
 				}
