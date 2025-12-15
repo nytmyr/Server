@@ -54,6 +54,10 @@ void command_logs(Client *c, const Seperator *sep)
 		uint32 start_category_id = 1;
 		if (sep->IsNumber(2)) {
 			start_category_id = Strings::ToUnsignedInt(sep->arg[2]);
+
+			if (start_category_id >= Logs::LogCategory::MaxCategoryID) {
+				start_category_id = (Logs::LogCategory::MaxCategoryID - 1);
+			}
 		}
 
 		uint32 max_category_id = (start_category_id + 49);
@@ -203,6 +207,12 @@ void command_logs(Client *c, const Seperator *sep)
 		logs_set = true;
 
 		auto category_id = Strings::ToUnsignedInt(sep->arg[3]);
+
+		if (category_id >= Logs::LogCategory::MaxCategoryID) {
+			c->Message(Chat::White, "Invalid Log ID. Refer to #logs list.");
+			return;
+		}
+
 		auto setting     = Strings::ToUnsignedInt(sep->arg[4]);
 
 		if (is_console) {
