@@ -1171,6 +1171,12 @@ void Group::SplitExp(ExpSource exp_source, const uint64 exp, Mob* other) {
 
 	for (const auto& m : members) {
 		if (m && m->IsClient()) {
+			if (RuleB(VegasEXP, EnableEXPRangeLimit)) {
+				if (Distance(m->GetPosition(), other->GetPosition()) > RuleR(VegasEXP, EXPRangeLimit)) {
+					continue;
+				}
+			}
+
 			const int32 diff     = m->GetLevel() - highest_level;
 			int32       max_diff = -(m->GetLevel() * 15 / 10 - m->GetLevel());
 
@@ -1258,6 +1264,12 @@ void Raid::SplitExp(ExpSource exp_source, const uint64 exp, Mob* other) {
 
 	for (const auto& m : members) {
 		if (m.member && !m.is_bot) {
+			if (RuleB(VegasEXP, EnableEXPRangeLimit)) {
+				if (Distance(m.member->GetPosition(), other->GetPosition()) > RuleR(VegasEXP, EXPRangeLimit)) {
+					continue;
+				}
+			}
+
 			const int32 diff = m.member->GetLevel() - highest_level;
 			int32 max_diff   = -(m.member->GetLevel() * 15 / 10 - m.member->GetLevel());
 

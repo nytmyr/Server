@@ -1235,6 +1235,8 @@ RULE_REAL(VegasEXP, FullRaidEXPModifier, 15.36, "Sets the raid experience modifi
 RULE_INT(VegasEXP, MaxNumberRaidMembersEXPModifier, 72, "If EnableRaidMemberEXPModifier is enabled, this is the maximum number of members that exp will be reduced by. Default 72.")
 RULE_BOOL(VegasEXP, EnableRaidMemberEXPMultiplier, false, "Enable or disable the raid member experience modifier. Default False.")
 RULE_REAL(VegasEXP, RaidMemberEXPModifier, 0.2, "Sets the raid experience modifier per members when not full group or raid. Default 0.2.")
+RULE_BOOL(VegasEXP, EnableEXPRangeLimit, true, "Limits the range at which experience will be granted around an NPC for members in a group or raid. Uses EXPRangeLimit. Default True.")
+RULE_REAL(VegasEXP, EXPRangeLimit, 750.0, "If EnableEXPRangeLimit is enabled, this is the maximum range a group or raid member can from the kill to receive EXP. Default 750.0.")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(VegasPathing)
