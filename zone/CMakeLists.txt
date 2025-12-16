@@ -378,6 +378,7 @@ set(gm_command_sources
     gm_commands/invsnapshot.cpp
     gm_commands/ipban.cpp
     gm_commands/kick.cpp
+    gm_commands/kicklinkdead.cpp
     gm_commands/kill.cpp
     gm_commands/killallnpcs.cpp
     gm_commands/list.cpp

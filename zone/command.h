@@ -111,6 +111,7 @@ void command_interrupt(Client *c, const Seperator *sep);
 void command_invsnapshot(Client *c, const Seperator *sep);
 void command_ipban(Client *c, const Seperator *sep);
 void command_kick(Client *c, const Seperator *sep);
+void command_kick_linkdead(Client* c, const Seperator* sep);
 void command_killallnpcs(Client *c, const Seperator *sep);
 void command_kill(Client *c, const Seperator *sep);
 void command_list(Client *c, const Seperator *sep);

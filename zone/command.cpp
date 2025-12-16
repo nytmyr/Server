@@ -153,6 +153,7 @@ int command_init(void)
 		command_add("invsnapshot", "Manipulates inventory snapshots for your current target", AccountStatus::QuestTroupe, command_invsnapshot) ||
 		command_add("ipban", "[IP] - Ban IP", AccountStatus::GMMgmt, command_ipban) ||
 		command_add("kick", "[Character Name] - Disconnect a player by name", AccountStatus::GMLeadAdmin, command_kick) ||
+		command_add("kicklinkdead", "[Character Name] - Disconnect a player by name and make them go Link Dead", AccountStatus::GMLeadAdmin, command_kick_linkdead) ||
 		command_add("kill", "Kill your target", AccountStatus::GMAdmin, command_kill) ||
 		command_add("killallnpcs", "[npc_name] - Kills all npcs by search name, leave blank for all attackable NPC's", AccountStatus::GMMgmt, command_killallnpcs) ||
 		command_add("list", "[npcs|players|corpses|doors|objects] [search] - Search entities", AccountStatus::ApprenticeGuide, command_list) ||

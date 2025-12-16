@@ -34,6 +34,11 @@ void Perl_Client_Kick(Client* self) // @categories Script Utility
 	self->Kick("Perl Quest");
 }
 
+void Perl_Client_KickLinkDead(Client* self) // @categories Script Utility
+{
+	self->KickLinkDead("Perl Quest");
+}
+
 void Perl_Client_Disconnect(Client* self) // @categories Script Utility
 {
 	self->Disconnect();
@@ -3719,6 +3724,7 @@ void perl_register_client()
 	package.add("KeyRingList", (void(*)(Client*, Client*))&Perl_Client_KeyRingList);
 	package.add("KeyRingRemove", &Perl_Client_KeyRingRemove);
 	package.add("Kick", &Perl_Client_Kick);
+	package.add("KickLinkDead", &Perl_Client_KickLinkDead);
 	package.add("LearnDisciplines", &Perl_Client_LearnDisciplines);
 	package.add("LearnRecipe", &Perl_Client_LearnRecipe);
 	package.add("LeaveGroup", &Perl_Client_LeaveGroup);

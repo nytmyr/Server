@@ -37,6 +37,7 @@ public:
 	bool Connected();
 	bool InZone();
 	void Kick();
+	void KickLinkDead();
 	void Disconnect();
 	bool IsLD();
 	void WorldKick();

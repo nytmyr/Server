@@ -50,6 +50,11 @@ void Lua_Client::Kick() {
 	self->Kick("Lua Quest");
 }
 
+void Lua_Client::KickLinkDead() {
+	Lua_Safe_Call_Void();
+	self->KickLinkDead("Lua Quest");
+}
+
 void Lua_Client::Disconnect() {
 	Lua_Safe_Call_Void();
 	self->Disconnect();
@@ -3980,6 +3985,7 @@ luabind::scope lua_register_client() {
 	.def("KeyRingList", (void(Lua_Client::*)(Lua_Client))&Lua_Client::KeyRingList)
 	.def("KeyRingRemove", (bool(Lua_Client::*)(uint32))&Lua_Client::KeyRingRemove)
 	.def("Kick", (void(Lua_Client::*)(void))&Lua_Client::Kick)
+	.def("KickLinkDead", (void(Lua_Client::*)(void))&Lua_Client::KickLinkDead)
 	.def("LearnDisciplines", (uint16(Lua_Client::*)(uint8,uint8))&Lua_Client::LearnDisciplines)
 	.def("LearnRecipe", (void(Lua_Client::*)(uint32))&Lua_Client::LearnRecipe)
 	.def("LeaveGroup", (void(Lua_Client::*)(void))&Lua_Client::LeaveGroup)
