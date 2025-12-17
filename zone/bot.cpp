@@ -12325,7 +12325,7 @@ bool Bot::IsValidSpellTypeBySpellID(uint16 spell_type, uint16 spell_id) {
 
 			return false;
 		case BotSpellTypes::Teleport:
-			if (IsTeleportSpell(spell_id) || IsTranslocateSpell(spell_id)) {
+			if (IsTeleportSpell(spell_id) || IsTranslocateSpell(spell_id) || IsSuccorSpell(spell_id)) {
 				return true;
 			}
 
