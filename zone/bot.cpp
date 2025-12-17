@@ -3879,71 +3879,84 @@ Bot* Bot::LoadBot(uint32 botID)
 }
 
 // Load and spawn all zoned bots by bot owner character
-void Bot::LoadAndSpawnAllZonedBots(Client* bot_owner) {
-	if (bot_owner && bot_owner->HasGroup()) {
-		std::vector<int> bot_class_spawn_limits;
-		std::vector<int> bot_class_spawned_count = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-		for (uint8 class_id = Class::Warrior; class_id <= Class::Berserker; class_id++) {
-			auto bot_class_limit = bot_owner->GetBotSpawnLimit(class_id);
-			bot_class_spawn_limits.push_back(bot_class_limit);
+void Bot::LoadAndSpawnAllZonedBots(Client* bot_owner, Group* g, Raid* r) {
+	if (bot_owner) {
+		if (!g && !r) {
+			return;
 		}
 
-		auto* g = bot_owner->GetGroup();
-		if (g) {
-			uint32 group_id = g->GetID();
-			std::list<uint32> active_bots;
+		const int bot_spawn_limit = bot_owner->GetBotSpawnLimit();
 
-			auto spawned_bots_count = 0;
-			auto bot_spawn_limit = bot_owner->GetBotSpawnLimit();
+		if (!bot_spawn_limit) {
+			return;
+		}
 
-			if (!database.botdb.LoadGroupedBotsByGroupID(bot_owner->CharacterID(), group_id, active_bots)) {
-				bot_owner->Message(Chat::White, "Failed to load grouped bots by group ID.");
-				return;
+		std::list<uint32> active_bots;
+
+		if (g && !database.botdb.LoadGroupedBotsByGroupID(bot_owner->CharacterID(), g->GetID(), active_bots)) {
+			bot_owner->Message(Chat::White, "Failed to load grouped bots by group ID.");
+
+			return;
+		}
+
+		if (r && !database.botdb.LoadRaidBotsByRaidID(bot_owner->CharacterID(), r->GetID(), active_bots)) {
+			bot_owner->Message(Chat::White, "Failed to load raid bots by raid ID.");
+
+			return;
+		}
+
+		if (!active_bots.empty()) {
+			int              spawned_bots_count = 0;
+			std::vector<int> bot_class_spawn_limits;
+			std::vector<int> bot_class_spawned_count = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+			for (uint8 class_id = Class::Warrior; class_id <= Class::Berserker; class_id++) {
+				bot_class_spawn_limits.push_back(bot_owner->GetBotSpawnLimit(class_id));
 			}
 
-			if (!active_bots.empty()) {
-				for (const auto& bot_id : active_bots) {
-					auto* b = Bot::LoadBot(bot_id);
-					if (!b) {
-						continue;
-					}
+			for (const auto& bot_id : active_bots) {
+				Bot* b = LoadBot(bot_id);
 
-					if (bot_spawn_limit >= 0 && spawned_bots_count >= bot_spawn_limit) {
-						Group::RemoveFromGroup(b);
-						g->UpdatePlayer(bot_owner);
-						continue;
-					}
+				if (!b) {
+					continue;
+				}
 
-					auto spawned_bot_count_class = bot_class_spawned_count[b->GetClass() - 1];
+				if (spawned_bots_count >= bot_spawn_limit) {
+					safe_delete(b);
+					continue;
+				}
 
-					if (
-						auto bot_spawn_limit_class = bot_class_spawn_limits[b->GetClass() - 1];
-						bot_spawn_limit_class >= 0 &&
-						spawned_bot_count_class >= bot_spawn_limit_class
-					) {
-						Group::RemoveFromGroup(b);
-						g->UpdatePlayer(bot_owner);
-						continue;
-					}
+				const uint8 bot_class               = b->GetClass();
+				const int   spawned_bot_count_class = bot_class_spawned_count[bot_class - 1];
+				const int   bot_spawn_limit_class   = bot_class_spawn_limits[bot_class - 1];
 
-					if (!b->Spawn(bot_owner)) {
-						safe_delete(b);
-						continue;
-					}
+				if (!bot_spawn_limit_class) {
+					safe_delete(b);
+					continue;
+				}
 
-					spawned_bots_count++;
-					bot_class_spawned_count[b->GetClass() - 1]++;
+				if (bot_spawn_limit_class > 0 && spawned_bot_count_class >= bot_spawn_limit_class) {
+					safe_delete(b);
+					continue;
+				}
 
+				if (!b->Spawn(bot_owner)) {
+					safe_delete(b);
+					continue;
+				}
+
+				spawned_bots_count++;
+				bot_class_spawned_count[bot_class - 1]++;
+
+				if (g) {
 					g->UpdatePlayer(b);
+				}
 
-					if (g->IsGroupMember(bot_owner) && g->IsGroupMember(b)) {
-						b->SetFollowID(bot_owner->GetID());
-					}
-
-					if (!bot_owner->HasGroup()) {
-						Group::RemoveFromGroup(b);
-					}
+				if (r) {
+					b->SetRaidGrouped(true);
+					b->SetStoredRaid(r);
+					b->p_raid_instance = r;
+					b->SetVerifiedRaid(false);
 				}
 			}
 		}
@@ -8694,7 +8707,6 @@ int32 Bot::CalcItemATKCap()
 }
 
 bool Bot::CheckCampSpawnConditions(Client* c) {
-
 	if (RuleB(Bots, PreventBotSpawnOnFD) && c->GetFeigned()) {
 		c->Message(Chat::White, "You cannot camp or spawn bots while feigned.");
 

@@ -135,7 +135,8 @@ public:
 	std::map<int32_t, std::map<int32_t, BotSpellTypesByClass>> GetCommandedSpellTypesMinLevels() { return commanded_spell_type_min_levels; }
 
 	/* Bot group functions   */
-	bool LoadGroupedBotsByGroupID(const uint32 owner_id, const uint32 group_id, std::list<uint32>& group_list);
+	bool LoadGroupedBotsByGroupID(const uint32 owner_id, const uint32 group_id, std::list<uint32>& bot_list);
+	bool LoadRaidBotsByRaidID(const uint32 owner_id, const uint32 raid_id, std::list<uint32>& bot_list);
 
 	/* Bot heal rotation functions   */
 	bool LoadHealRotationIDByBotID(const uint32 bot_id, uint32& hr_index);

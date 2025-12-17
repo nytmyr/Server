@@ -262,35 +262,3 @@ void Bot::ProcessBotGroupAdd(Group* group, Raid* raid, Client* client, bool new_
 
 	raid->GroupUpdate(raid_free_group_id);
 }
-
-void Client::SpawnRaidBotsOnConnect(Raid* raid) {
-	std::list<BotsAvailableList> bots_list;
-	if (!database.botdb.LoadBotsList(CharacterID(), bots_list) || bots_list.empty()) {
-		return;
-	}
-
-	std::vector<RaidMember> r_members = raid->GetMembers();
-	for (const auto& m: r_members) {
-		if (strlen(m.member_name) != 0) {
-
-			for (const auto& b : bots_list) {
-				if (strcmp(m.member_name, b.bot_name) == 0) {
-					std::string buffer = "^spawn ";
-					buffer.append(m.member_name);
-					std::string silent = " silent";
-					buffer.append(silent);
-					bot_command_real_dispatch(this, buffer.c_str());
-					auto bot = entity_list.GetBotByBotName(m.member_name);
-
-					if (bot) {
-						bot->SetRaidGrouped(true);
-						bot->SetStoredRaid(raid);
-						bot->p_raid_instance = raid;
-						bot->SetVerifiedRaid(false);
-					}
-				}
-			}
-		}
-	}
-}
-

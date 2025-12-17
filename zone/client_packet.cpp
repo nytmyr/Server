@@ -601,9 +601,11 @@ void Client::CompleteConnect()
 		if (raid) {
 			SetRaidGrouped(true);
 			raid->LearnMembers();
+
 			if (RuleB(Bots, Enabled)) {
-				SpawnRaidBotsOnConnect(raid);
+				Bot::LoadAndSpawnAllZonedBots(this, nullptr, raid);
 			}
+
 			raid->VerifyRaid();
 			raid->GetRaidDetails();
 			/*
@@ -1654,8 +1656,7 @@ void Client::Handle_Connect_OP_ZoneEntry(const EQApplicationPacket *app)
 
 	if (RuleB(Bots, Enabled)) {
 		database.botdb.LoadOwnerOptions(this);
-		// TODO: mod below function for loading spawned botgroups
-		Bot::LoadAndSpawnAllZonedBots(this);
+		Bot::LoadAndSpawnAllZonedBots(this, group);
 	}
 
 	// If we are the leader, force an update of our group AAs to other members in the zone, in case

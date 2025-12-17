@@ -2388,7 +2388,6 @@ public:
 	void SetBotSpawnLimit(int new_spawn_limit, uint8 class_id = Class::None);
 
 	void CampAllBots(uint8 class_id = Class::None);
-	void SpawnRaidBotsOnConnect(Raid* raid);
 
 	void LoadDefaultBotSettings();
 	int GetDefaultBotSettings(uint8 setting_type, uint16 bot_setting);

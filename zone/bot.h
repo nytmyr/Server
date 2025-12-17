@@ -721,7 +721,7 @@ public:
 	static void ProcessBotGroupDisband(Client* c, const std::string& botName);
 	static void BotOrderCampAll(Client* c, uint8 class_id = Class::None);
 	static void ProcessBotInspectionRequest(Bot* inspectedBot, Client* client);
-	static void LoadAndSpawnAllZonedBots(Client* bot_owner);
+	static void LoadAndSpawnAllZonedBots(Client* bot_owner, Group* g = nullptr, Raid* r = nullptr);
 	static bool GroupHasBot(Group* group);
 	static Bot* GetFirstBotInGroup(Group* group);
 	static void ProcessClientZoneChange(Client* botOwner);
