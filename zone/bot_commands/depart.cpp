@@ -143,7 +143,7 @@ void bot_command_depart(Client* c, const Seperator* sep)
 			continue;
 		}
 
-		bot_iter->SetCastFailure(CastFailures::Undeclared);
+		bot_iter->SetCastFailure(failure_type);
 
 		bot_iter->SetCommandedSpell(true);
 
@@ -236,7 +236,11 @@ void bot_command_depart(Client* c, const Seperator* sep)
 				is_success = true;
 			}
 			else {
-				failure_type = bot_iter->GetCastFailure();
+				uint8 bot_failure_type = bot_iter->GetCastFailure();
+
+				if (failure_type != CastFailures::Undeclared) {
+					failure_type = bot_failure_type;
+				}
 			}
 
 			bot_iter->SetCommandedSpell(false);

@@ -6097,6 +6097,7 @@ bool Bot::CastSpell(
 					AI_Bot_Event_SpellCastFinished(false, static_cast<uint16>(casting_spell_slot));
 				}
 
+				SetCastFailure(CastFailures::Incapacitated);
 				return false;
 			}
 		}
@@ -6107,12 +6108,14 @@ bool Bot::CastSpell(
 				AI_Bot_Event_SpellCastFinished(false, static_cast<uint16>(casting_spell_slot));
 			}
 
+			SetCastFailure(CastFailures::ZoneNoCombat);
 			return false;
 		}
 
 		if (DivineAura()) {
 			LogSpellsDetail("Spell casting canceled: cannot cast while Divine Aura is in effect");
 			InterruptSpell(SPELL_FIZZLE, 0x121, false);
+			SetCastFailure(CastFailures::Incapacitated);
 			return false;
 		}
 
@@ -6123,6 +6126,7 @@ bool Bot::CastSpell(
 			uint32 use_mana = ((spells[spell_id].mana) / 4);
 			LogSpellsDetail("Spell casting canceled: fizzled. [{}] mana has been consumed", use_mana);
 			SetMana(GetMana() - use_mana);
+			SetCastFailure(CastFailures::Fizzle);
 			return false;
 		}
 
@@ -6137,6 +6141,7 @@ bool Bot::CastSpell(
 		Result = Mob::CastSpell(spell_id, target_id, slot, cast_time, mana_cost, oSpellWillFinish, item_slot, 0xFFFFFFFF, 0, resist_adjust, aa_id);
 
 	}
+
 	return Result;
 }
 
@@ -11815,7 +11820,6 @@ bool Bot::AttemptAACastSpell(Mob* tar, uint16 spell_id, AA::Rank* rank) {
 			return true;
 		}
 
-		SetCastFailure(CastFailures::Undeclared);
 		return false;
 	}
 
@@ -11910,7 +11914,6 @@ bool Bot::AttemptForcedCastSpell(Mob* tar, uint16 spell_id, bool is_disc) {
 	SetTempSpellType(UINT16_MAX);
 
 	if (!CastSpell(spell_id, tar->GetID())) {
-		SetCastFailure(CastFailures::Undeclared);
 		return false;
 	}
 
@@ -13344,7 +13347,7 @@ bool Bot::IsValidCastFailureType(uint8 failure_type) {
 }
 
 std::string Bot::GetCastFailuresNames(uint8 failure_type) {
-	return IsValidCastFailureType(failure_type) ? CastFailuresNames[failure_type] : "Undeclared. Most likely no spells of this type.";
+	return IsValidCastFailureType(failure_type) ? CastFailuresNames[failure_type] : "Undeclared. May not have the appropriate spells or try limiting it to certain bots.";
 }
 
 uint16 Bot::GetDefaultSpellTypeDelay(uint16 spell_type, uint8 stance) {

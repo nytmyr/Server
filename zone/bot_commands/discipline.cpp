@@ -144,13 +144,13 @@ void bot_command_discipline(Client* c, const Seperator* sep)
 			continue;
 		}
 
+		bot_iter->SetCastFailure(failure_type);
+
 		if (bot_iter->HasDiscBuff()) {
 			bot_iter->RaidGroupSay("I currently have an active discipline.");
 			failure_type = CastFailures::AlreadyHasDiscBuff;
 			continue;
 		}
-
-		bot_iter->SetCastFailure(CastFailures::Undeclared);
 
 		if (spell_id == UINT16_MAX) { // Aggressive/Defensive type
 			const std::vector<BotSpells_wIndex>& bot_spell_list = bot_iter->BotGetSpellsByType(aggressive ? BotSpellTypes::DiscAggressive : BotSpellTypes::DiscDefensive);
@@ -186,7 +186,11 @@ void bot_command_discipline(Client* c, const Seperator* sep)
 					spell_id = spell.id;
 				}
 				else {
-					failure_type = bot_iter->GetCastFailure();
+					uint8 bot_failure_type = bot_iter->GetCastFailure();
+
+					if (failure_type != CastFailures::Undeclared && failure_type != CastFailures::AlreadyHasDiscBuff) {
+						failure_type = bot_failure_type;
+					}
 				}
 			}
 		}
@@ -212,7 +216,10 @@ void bot_command_discipline(Client* c, const Seperator* sep)
 			}
 
 			if (!bot_iter->CanUseBotSpell(spell_id)) {
-				failure_type = CastFailures::DoesNotHaveSpell;
+				if (failure_type == CastFailures::Undeclared) {
+					failure_type = CastFailures::DoesNotHaveSpell;
+				}
+
 				continue;
 			}
 
@@ -242,7 +249,11 @@ void bot_command_discipline(Client* c, const Seperator* sep)
 				}
 			}
 			else {
-				failure_type = bot_iter->GetCastFailure();
+				uint8 bot_failure_type = bot_iter->GetCastFailure();
+
+				if (failure_type != CastFailures::Undeclared && failure_type != CastFailures::DoesNotHaveSpell) {
+					failure_type = bot_failure_type;
+				}
 			}
 		}
 	}

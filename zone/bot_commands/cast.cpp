@@ -680,11 +680,12 @@ void bot_command_cast(Client* c, const Seperator* sep)
 	Bot* first_found = nullptr;
 
 	for (auto bot_iter : sbl) {
+		bot_iter->SetCastFailure(CastFailures::Undeclared);
+
 		if (!bot_iter->ValidStateCheck(c)) {
+			failure_type = CastFailures::InvalidState;
 			continue;
 		}
-
-		bot_iter->SetCastFailure(CastFailures::Undeclared);
 
 		if (!tar) {
 			tar = bot_iter;
@@ -692,7 +693,9 @@ void bot_command_cast(Client* c, const Seperator* sep)
 
 		if (!aa_type && !by_spell_id) {
 			if (!bot_iter->TargetValidation(tar)) {
-				failure_type = CastFailures::TargetValidation;
+				if (failure_type == CastFailures::Undeclared || failure_type == CastFailures::InvalidState) {
+					failure_type = CastFailures::TargetValidation;
+				}
 
 				continue;
 			}
@@ -706,7 +709,9 @@ void bot_command_cast(Client* c, const Seperator* sep)
 					(!RuleB(Bots, EnableBotTGB) && tar->IsOfClientBot() && !c->IsInGroupOrRaid(tar))
 				)
 			) {
-				failure_type = CastFailures::OutOfGroupRaid;
+				if (failure_type == failure_type == CastFailures::Undeclared || failure_type == CastFailures::TargetValidation) {
+					failure_type = CastFailures::OutOfGroupRaid;
+				}
 
 				continue;
 			}
@@ -725,13 +730,17 @@ void bot_command_cast(Client* c, const Seperator* sep)
 
 		if (aa_type) {
 			if (!bot_iter->TargetValidation(tar)) {
-				failure_type = CastFailures::TargetValidation;
+				if (failure_type == CastFailures::Undeclared) {
+					failure_type = CastFailures::TargetValidation;
+				}
 
 				continue;
 			}
 
 			if (!bot_iter->GetAA(zone->GetAlternateAdvancementAbility(aa_id)->first_rank_id)) {
-				failure_type = CastFailures::DoesNotHaveAA;
+				if (failure_type == CastFailures::Undeclared || failure_type == CastFailures::TargetValidation) {
+					failure_type = CastFailures::DoesNotHaveAA;
+				}
 
 				continue;
 			}
@@ -741,7 +750,9 @@ void bot_command_cast(Client* c, const Seperator* sep)
 			uint16 spell_id = bot_iter->GetSpellByAA(aa_id, rank);
 
 			if (!IsValidSpell(spell_id)) {
-				failure_type = CastFailures::InvalidSpell;
+				if (failure_type == CastFailures::Undeclared || failure_type == CastFailures::TargetValidation || failure_type == CastFailures::DoesNotHaveAA) {
+					failure_type = CastFailures::InvalidSpell;
+				}
 
 				continue;
 			}
@@ -751,7 +762,11 @@ void bot_command_cast(Client* c, const Seperator* sep)
 			}
 
 			if (!bot_iter->AttemptAACastSpell(tar, spell_id, rank)) {
-				failure_type = bot_iter->GetCastFailure();
+				uint8 bot_failure_type = bot_iter->GetCastFailure();
+
+				if (failure_type != CastFailures::Undeclared && failure_type != CastFailures::TargetValidation && failure_type != CastFailures::DoesNotHaveAA && failure_type != CastFailures::InvalidSpell) {
+					failure_type = bot_failure_type;
+				}
 
 				continue;
 			}
@@ -765,19 +780,24 @@ void bot_command_cast(Client* c, const Seperator* sep)
 		}
 		else if (by_spell_id) {
 			if (!bot_iter->TargetValidation(tar)) {
-				failure_type = CastFailures::TargetValidation;
+				if (failure_type == CastFailures::Undeclared) {
+					failure_type = CastFailures::TargetValidation;
+				}
 
 				continue;
 			}
 
 			if (!bot_iter->CanUseBotSpell(chosen_spell_id)) {
-				failure_type = CastFailures::DoesNotHaveSpell;
+				if (failure_type == CastFailures::Undeclared || failure_type == CastFailures::TargetValidation) {
+					failure_type = CastFailures::DoesNotHaveSpell;
+				}
 
 				continue;
 			}
 
 			bot_iter->SetCommandedSpell(true);
 			bot_iter->SetDirectCommandedSpell(true);
+
 			if (bot_iter->AttemptForcedCastSpell(tar, chosen_spell_id)) {
 				if (!first_found) {
 					first_found = bot_iter;
@@ -789,7 +809,12 @@ void bot_command_cast(Client* c, const Seperator* sep)
 
 			bot_iter->SetCommandedSpell(false);
 			bot_iter->SetDirectCommandedSpell(false);
-			failure_type = bot_iter->GetCastFailure();
+
+			uint8 bot_failure_type = bot_iter->GetCastFailure();
+
+			if (failure_type != CastFailures::Undeclared && failure_type != CastFailures::TargetValidation && failure_type != CastFailures::DoesNotHaveSpell) {
+				failure_type = bot_failure_type;
+			}
 
 			if (is_success && IsSingleBotCastedSpell(chosen_spell_id)) {
 				break;
@@ -797,7 +822,10 @@ void bot_command_cast(Client* c, const Seperator* sep)
 		}
 		else {
 			if (!RuleB(Bots, CrossRaidBuffingAndHealing) && !bot_iter->IsInGroupOrRaid(tar, true)) {
-				failure_type = CastFailures::OutOfGroupRaid;
+				if (failure_type == CastFailures::Undeclared) {
+					failure_type = CastFailures::OutOfGroupRaid;
+				}
+
 				continue;
 			}
 
@@ -814,7 +842,12 @@ void bot_command_cast(Client* c, const Seperator* sep)
 			}
 
 			bot_iter->SetCommandedSpell(false);
-			failure_type = bot_iter->GetCastFailure();
+
+			uint8 bot_failure_type = bot_iter->GetCastFailure();
+
+			if (bot_failure_type != CastFailures::Undeclared && bot_failure_type != CastFailures::OutOfGroupRaid) {
+				failure_type = bot_failure_type;
+			}
 
 			if (is_success && IsSingleBotCastedSpellType(spell_type)) {
 				break;

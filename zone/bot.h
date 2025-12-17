@@ -294,10 +294,11 @@ namespace CastFailures {
 	constexpr uint8 InvalidState                = 56;
 	constexpr uint8 AlreadyHasDiscBuff          = 57;
 	constexpr uint8 AttackNotAllowed            = 58;
+	constexpr uint8 Fizzle                      = 59;
 
 	constexpr uint8 Undeclared                  = UINT8_MAX;
 	constexpr uint8 START                       = CastFailures::TargetValidation;
-	constexpr uint8 END                         = CastFailures::AttackNotAllowed;
+	constexpr uint8 END                         = CastFailures::Fizzle;
 }
 
 static std::map<uint16, std::string> CastFailuresNames {
@@ -359,6 +360,7 @@ static std::map<uint16, std::string> CastFailuresNames {
 	{ CastFailures::InvalidState,                "Bot is in an invalid state (passive, dead, incapacitated, etc.)" },
 	{ CastFailures::AlreadyHasDiscBuff,          "Already has discipline buff" },
 	{ CastFailures::AttackNotAllowed,            "Cannot attack that target" },
+	{ CastFailures::Fizzle,                      "Spell fizzled." },
 	{ CastFailures::Undeclared,                  "Unknown" }
 };
 
