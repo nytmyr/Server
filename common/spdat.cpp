@@ -1531,6 +1531,7 @@ bool IsFastHealSpell(uint16 spell_id) {
 	if (IsValidSpell(spell_id)) {
 		if (
 			spell_id != SPELL_MINOR_HEALING &&
+			spell_id != SPELL_LIGHT_HEALING &&
 			(spells[spell_id].cast_time > MAX_VERY_FAST_HEAL_CASTING_TIME && spells[spell_id].cast_time <= MAX_FAST_HEAL_CASTING_TIME) &&
 			spells[spell_id].good_effect &&
 			!IsGroupSpell(spell_id)
@@ -1571,6 +1572,7 @@ bool IsVeryFastHealSpell(uint16 spell_id)
 	if (IsValidSpell(spell_id)) {
 		if (
 			spell_id != SPELL_MINOR_HEALING &&
+			spell_id != SPELL_LIGHT_HEALING &&
 			spells[spell_id].cast_time <= MAX_VERY_FAST_HEAL_CASTING_TIME &&
 			spells[spell_id].good_effect &&
 			!IsGroupSpell(spell_id)
@@ -1609,7 +1611,7 @@ bool IsRegularSingleTargetHealSpell(uint16 spell_id)
 	}
 
 	if (IsValidSpell(spell_id)) {
-		if (spell_id == SPELL_MINOR_HEALING) {
+		if (spell_id == SPELL_MINOR_HEALING || spell_id == SPELL_LIGHT_HEALING) {
 			return true;
 		}
 
@@ -1655,7 +1657,7 @@ bool IsRegularPetHealSpell(uint16 spell_id)
 	}
 
 	if (IsValidSpell(spell_id)) {
-		if (spell_id == SPELL_MINOR_HEALING) {
+		if (spell_id == SPELL_MINOR_HEALING || spell_id == SPELL_LIGHT_HEALING) {
 			return true;
 		}
 
