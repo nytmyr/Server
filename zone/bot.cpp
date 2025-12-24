@@ -2438,6 +2438,10 @@ void Bot::AI_Process()
 				ranged_timer.Start();
 			}
 			else if (!IsBotRanged() && !stop_melee_level) {
+				if (RuleB(Bots, HoldAttacksOnEnrage) && tar->IsEnraged() && !behind_mob) {
+					return;
+				}
+
 				if (
 					IsTaunting() ||
 					!GetMaxMeleeRange() ||
