@@ -205,6 +205,17 @@ int Client::GetBotSpawnLimit(uint8 class_id)
 			}
 		}
 	}
+	else {
+		const auto &zones_list = Strings::Split(RuleS(Bots, ZoneIgnoreClassSpawnLimits), ",");
+
+		if (!zones_list.empty()) {
+			auto it = std::find(zones_list.begin(), zones_list.end(), std::to_string(zone->GetZoneID()));
+
+			if (it != zones_list.end()) {
+				return NO_BOT_LIMIT;
+			}
+		}
+	}
 
 	return bot_spawn_limit;
 }
