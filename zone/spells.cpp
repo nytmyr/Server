@@ -4745,12 +4745,16 @@ bool Mob::SpellOnTarget(
 
 	LogSpells("Cast of [{}] by [{}] on [{}] complete successfully", spell_id, GetName(), spelltar->GetName());
 
-	if (IsBot() && (CastToBot()->GetCastedSpellType() != UINT16_MAX)) {
-		if (!CastToBot()->IsCommandedSpell()) {
-			CastToBot()->SetBotSpellRecastTimer(CastToBot()->GetCastedSpellType(), spelltar);
-		}
+	if (IsBot()) {
+		auto casted_spell_type = CastToBot()->GetCastedSpellType();
 
-		CastToBot()->SetCastedSpellType(UINT16_MAX);
+		if (casted_spell_type != UINT16_MAX) {
+			if (!CastToBot()->IsCommandedSpell() && !IsCommandedBotSpellType(casted_spell_type)) {
+				CastToBot()->SetBotSpellRecastTimer(casted_spell_type, spelltar);
+			}
+
+			CastToBot()->SetCastedSpellType(UINT16_MAX);
+		}
 	}
 
 	return true;
