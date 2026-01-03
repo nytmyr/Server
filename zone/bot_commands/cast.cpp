@@ -709,7 +709,7 @@ void bot_command_cast(Client* c, const Seperator* sep)
 					(!RuleB(Bots, EnableBotTGB) && tar->IsOfClientBot() && !c->IsInGroupOrRaid(tar))
 				)
 			) {
-				if (failure_type == failure_type == CastFailures::Undeclared || failure_type == CastFailures::TargetValidation) {
+				if (failure_type == CastFailures::Undeclared || failure_type == CastFailures::TargetValidation) {
 					failure_type = CastFailures::OutOfGroupRaid;
 				}
 
