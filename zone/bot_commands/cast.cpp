@@ -588,6 +588,35 @@ void bot_command_cast(Client* c, const Seperator* sep)
 				}
 
 				break;
+			case BotSpellTypes::Dispel:
+				if (RuleB(Bots, AllowBotsToDispelFriendly) && tar->IsOfClientBotMerc()) {
+					if (!c->IsInGroupOrRaid(tar)) {
+						c->Message(
+							Chat::Yellow,
+							fmt::format(
+								"[{}] is an invalid target. Only players in your group or raid are eligible targets.",
+								tar->GetCleanName()
+							).c_str()
+						);
+
+						return;
+					}
+				}
+				else {
+					if (!c->IsAttackAllowed(tar)) {
+						c->Message(
+							Chat::Yellow,
+							fmt::format(
+								"You cannot attack [{}].",
+								tar->GetCleanName()
+							).c_str()
+						);
+
+						return;
+					}
+				}
+
+				break;
 			default:
 				if (
 					(IsBotSpellTypeDetrimental(spell_type) && !c->IsAttackAllowed(tar)) ||
@@ -603,7 +632,7 @@ void bot_command_cast(Client* c, const Seperator* sep)
 					c->Message(
 						Chat::Yellow,
 						fmt::format(
-							"You cannot attack [{}].", 
+							"You cannot attack [{}].",
 							tar->GetCleanName()
 						).c_str()
 					);
@@ -717,14 +746,17 @@ void bot_command_cast(Client* c, const Seperator* sep)
 			}
 
 			if (IsBotSpellTypeDetrimental(spell_type) && !bot_iter->IsAttackAllowed(tar)) {
-				bot_iter->RaidGroupSay(
-					fmt::format(
-						"I cannot attack [{}].",
-						tar->GetCleanName()
-					).c_str()
-				);
+				if ((!RuleB(Bots, AllowBotsToDispelFriendly) && spell_type == BotSpellTypes::Dispel) || !tar->IsOfClientBotMerc()) {
+					bot_iter->SetCastFailure(CastFailures::AttackNotAllowed);
 
-				continue;
+					continue;
+				}
+
+				if (RuleB(Bots, AllowBotsToDispelFriendly) && spell_type == BotSpellTypes::Dispel && !c->IsInGroupOrRaid(tar)) {
+					bot_iter->SetCastFailure(CastFailures::OutOfGroupRaid);
+
+					continue;
+				}
 			}
 		}
 
@@ -764,7 +796,7 @@ void bot_command_cast(Client* c, const Seperator* sep)
 			if (!bot_iter->AttemptAACastSpell(tar, spell_id, rank)) {
 				uint8 bot_failure_type = bot_iter->GetCastFailure();
 
-				if (failure_type != CastFailures::Undeclared && failure_type != CastFailures::TargetValidation && failure_type != CastFailures::DoesNotHaveAA && failure_type != CastFailures::InvalidSpell) {
+				if (bot_failure_type != CastFailures::Undeclared && bot_failure_type != CastFailures::TargetValidation && bot_failure_type != CastFailures::DoesNotHaveAA && bot_failure_type != CastFailures::InvalidSpell) {
 					failure_type = bot_failure_type;
 				}
 
@@ -812,7 +844,7 @@ void bot_command_cast(Client* c, const Seperator* sep)
 
 			uint8 bot_failure_type = bot_iter->GetCastFailure();
 
-			if (failure_type != CastFailures::Undeclared && failure_type != CastFailures::TargetValidation && failure_type != CastFailures::DoesNotHaveSpell) {
+			if (bot_failure_type != CastFailures::Undeclared && bot_failure_type != CastFailures::TargetValidation && bot_failure_type != CastFailures::DoesNotHaveSpell) {
 				failure_type = bot_failure_type;
 			}
 

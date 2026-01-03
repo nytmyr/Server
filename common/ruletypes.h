@@ -919,6 +919,7 @@ RULE_INT(Bots, AICastSpellTypeDelay, 100, "Delay in milliseconds between AI cast
 RULE_INT(Bots, AICastSpellTypeHeldDelay, 2500, "Delay in milliseconds between AI cast attempts for each spell type that is held or disabled. Default 2500ms (2.5s)")
 RULE_BOOL(Bots, BotsRequireLoS, true, "Whether or not bots require line of sight to be told to attack their target")
 RULE_BOOL(Bots, HoldAttacksOnEnrage, true, "Controls whether or not front facing melee bots will automatically hold their attacks during their target's enrage to avoid ripostes. Default True.")
+RULE_BOOL(Bots, AllowBotsToDispelFriendly, true, "Determines if bots can dispel friendly targets. Default True.")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(Chat)

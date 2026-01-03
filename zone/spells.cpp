@@ -3941,7 +3941,8 @@ bool Mob::SpellOnTarget(
 		IsDetrimentalSpell(spell_id) &&
 		!IsAttackAllowed(spelltar, true) &&
 		!IsResurrectionEffects(spell_id) &&
-		!IsEffectInSpell(spell_id, SpellEffect::BindSight)
+		!IsEffectInSpell(spell_id, SpellEffect::BindSight) &&
+		(!IsBot() || (RuleB(Bots, AllowBotsToDispelFriendly) && IsBot() && !IsDispelSpell(spell_id)))
 	) {
 		if (!IsClient() || !CastToClient()->GetGM()) {
 			MessageString(Chat::SpellFailure, SPELL_NO_HOLD);
@@ -4288,7 +4289,8 @@ bool Mob::SpellOnTarget(
 		} else if (
 			!IsAttackAllowed(spelltar, true) &&
 			!IsResurrectionEffects(spell_id) &&
-			!IsEffectInSpell(spell_id, SpellEffect::BindSight)
+			!IsEffectInSpell(spell_id, SpellEffect::BindSight) &&
+			(!IsBot() || (RuleB(Bots, AllowBotsToDispelFriendly) && IsBot() && !IsDispelSpell(spell_id)))
 		) { // Detrimental spells - PVP check
 			LogSpells(
 				"Detrimental spell [{}] can't take hold [{}] -> [{}]",

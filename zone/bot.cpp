@@ -6184,7 +6184,8 @@ bool Bot::SpellOnTarget(
 		if (
 			IsDetrimentalSpell(spell_id) &&
 			(spelltar->IsBot() || spelltar->IsClient()) &&
-			!IsResurrectionEffects(spell_id)
+			!IsResurrectionEffects(spell_id) &&
+			(!RuleB(Bots, AllowBotsToDispelFriendly) || (RuleB(Bots, AllowBotsToDispelFriendly) && !IsDispelSpell(spell_id)))
 		) {
 			return false;
 		}
@@ -11899,7 +11900,24 @@ bool Bot::AttemptForcedCastSpell(Mob* tar, uint16 spell_id, bool is_disc) {
 		}
 	}
 
-	if (IsDetrimentalSpell(spell_id) && (!GetBotOwner()->IsAttackAllowed(tar) || !IsAttackAllowed(tar))) {
+	if (
+		IsDetrimentalSpell(spell_id) &&
+			(
+				(GetBotOwner() && !GetBotOwner()->IsAttackAllowed(tar)) ||
+				!IsAttackAllowed(tar)
+			)
+	) {
+		if (
+			RuleB(Bots, AllowBotsToDispelFriendly) &&
+			IsDispelSpell(spell_id) &&
+			tar->IsOfClientBotMerc() &&
+			GetBotOwner() &&
+			!GetBotOwner()->IsInGroupOrRaid(tar)
+		) {
+			SetCastFailure(CastFailures::OutOfGroupRaid);
+			return false;
+		}
+
 		SetCastFailure(CastFailures::AttackNotAllowed);
 		return false;
 	}
