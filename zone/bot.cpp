@@ -1828,13 +1828,16 @@ void Bot::SpellProcess() {
 }
 
 void Bot::BotMeditate(bool is_sitting) {
+	bool not_engaged = !IsEngaged() && (GetManaRatio() < 100 || GetHPRatio() < 100);
+	bool combat_med_allowed = GetMedInCombat() && !HasTargetReflection();
+	bool not_melee = GetLevel() >= GetStopMeleeLevel();
+	bool valid_ratio = GetManaRatio() < GetSitManaPct() || GetHPRatio() < GetSitHPPct();
 	bool needs_to_med =
-		(!IsEngaged() && (GetManaRatio() < 100 || GetHPRatio() < 100)) ||
-		(GetMedInCombat() && !HasTargetReflection() &&
-			(
-				GetManaRatio() < GetSitManaPct() ||
-				(GetHPRatio() < GetSitHPPct() && GetLevel() >= GetStopMeleeLevel())
-			)
+		not_engaged ||
+		(
+			combat_med_allowed &&
+			not_melee &&
+			valid_ratio
 		);
 
 	if (needs_to_med && !is_sitting) {
