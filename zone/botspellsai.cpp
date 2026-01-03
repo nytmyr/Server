@@ -128,7 +128,7 @@ bool Bot::AICastSpell(Mob* tar, uint8 chance, uint16 spell_type, uint16 sub_targ
 
 			break;
 		case BotSpellTypes::InCombatBuff:
-			if (!IsCommandedSpell() && GetClass() != Class::Shaman && spell_type == BotSpellTypes::InCombatBuff && IsCasterClass(GetClass()) && GetLevel() >= GetStopMeleeLevel()) {
+			if (GetClass() != Class::Shaman && GetLevel() >= GetStopMeleeLevel()) {
 				return false;
 			}
 
@@ -1081,10 +1081,12 @@ std::vector<BotSpell_wPriority> Bot::GetPrioritizedBotSpellsBySpellType(Bot* cas
 				continue;
 			}
 
+			Mob* new_tar = tar;
+
 			auto spell = spells[bot_spell_list[i].spellid];
 
-			if (caster->IsCommandedSpell() && spell.target_type == ST_Self && tar != caster) {
-				tar = caster;
+			if (spell.target_type == ST_Self && tar != caster) {
+				new_tar = caster;
 			}
 
 			if (!caster->HasLoS() && BotRequiresLoSToCast(spell_type, bot_spell_list[i].spellid)) {
@@ -1123,7 +1125,7 @@ std::vector<BotSpell_wPriority> Bot::GetPrioritizedBotSpellsBySpellType(Bot* cas
 				}
 
 				if (
-					!caster->IsInGroupOrRaid(tar, true) &&
+					!caster->IsInGroupOrRaid(new_tar, true) &&
 					(
 						!RuleB(Bots, EnableBotTGB) ||
 						(
@@ -1135,7 +1137,7 @@ std::vector<BotSpell_wPriority> Bot::GetPrioritizedBotSpellsBySpellType(Bot* cas
 					continue;
 				}
 
-				if (!IsPBAESpell(bot_spell_list[i].spellid) && !caster->CastChecks(bot_spell_list[i].spellid, tar, spell_type, false, IsAEBotSpellType(spell_type))) {
+				if (!IsPBAESpell(bot_spell_list[i].spellid) && !caster->CastChecks(bot_spell_list[i].spellid, new_tar, spell_type, false, IsAEBotSpellType(spell_type))) {
 					continue;
 				}
 
@@ -1143,7 +1145,7 @@ std::vector<BotSpell_wPriority> Bot::GetPrioritizedBotSpellsBySpellType(Bot* cas
 					caster->IsCommandedSpell() ||
 					!AE ||
 					!BotSpellTypeRequiresAEChecks(spell_type) ||
-					caster->HasValidAETarget(caster, bot_spell_list[i].spellid, spell_type, tar)
+					caster->HasValidAETarget(caster, bot_spell_list[i].spellid, spell_type, new_tar)
 				) {
 					BotSpell_wPriority bot_spell;
 					bot_spell.SpellId = bot_spell_list[i].spellid;
