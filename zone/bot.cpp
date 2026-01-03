@@ -11848,6 +11848,8 @@ bool Bot::AttemptAACastSpell(Mob* tar, uint16 spell_id, AA::Rank* rank) {
 			).c_str()
 	);
 
+	SetCastFailure(CastFailures::RecastTimer);
+
 	return false;
 }
 
