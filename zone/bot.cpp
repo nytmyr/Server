@@ -10122,15 +10122,24 @@ bool Bot::CastChecks(uint16 spell_id, Mob* tar, uint16 spell_type, bool precheck
 		return false;
 	}
 
-	if (
-		!IsDirectCommandedSpell() &&
-		RequiresStackCheck(spell_type) &&
-		CalcBuffDuration(this, tar, spell_id) != 0 &&
-		tar->CanBuffStack(spell_id, GetLevel(), true) < 0
-	) {
-		LogBotSpellChecksDetail("{} says, 'Cancelling cast of {} on {} due to !CanBuffStack.'", GetCleanName(), GetSpellName(spell_id), tar->GetCleanName());
-		SetCastFailure(CastFailures::StackConflict);
-		return false;
+	if (IsStackableDOT(spell_id)) {
+		if (tar->FindBuff(spell_id, GetID())) {
+			LogBotSpellChecksDetail("{} says, 'Cancelling cast of {} on {} due to !CanBuffStack.'", GetCleanName(), GetSpellName(spell_id), tar->GetCleanName());
+			SetCastFailure(CastFailures::StackConflict);
+			return false;
+		}
+	}
+	else {
+		if (
+			!IsDirectCommandedSpell() &&
+			RequiresStackCheck(spell_type) &&
+			CalcBuffDuration(this, tar, spell_id) != 0 &&
+			tar->CanBuffStack(spell_id, GetLevel(), true) < 0
+		) {
+			LogBotSpellChecksDetail("{} says, 'Cancelling cast of {} on {} due to !CanBuffStack.'", GetCleanName(), GetSpellName(spell_id), tar->GetCleanName());
+			SetCastFailure(CastFailures::StackConflict);
+			return false;
+		}
 	}
 
 	if (
