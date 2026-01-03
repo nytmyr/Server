@@ -737,7 +737,7 @@ void bot_command_cast(Client* c, const Seperator* sep)
 				continue;
 			}
 
-			if (!bot_iter->GetAA(zone->GetAlternateAdvancementAbility(aa_id)->first_rank_id)) {
+			if (!aa_id || !bot_iter->GetAA(zone->GetAlternateAdvancementAbility(aa_id)->first_rank_id)) {
 				if (failure_type == CastFailures::Undeclared || failure_type == CastFailures::TargetValidation) {
 					failure_type = CastFailures::DoesNotHaveAA;
 				}
@@ -757,7 +757,7 @@ void bot_command_cast(Client* c, const Seperator* sep)
 				continue;
 			}
 
-			if (spells[chosen_spell_id].target_type == ST_Self && tar != bot_iter) {
+			if (spells[spell_id].target_type == ST_Self && tar != bot_iter) {
 				tar = bot_iter;
 			}
 
@@ -774,7 +774,7 @@ void bot_command_cast(Client* c, const Seperator* sep)
 			is_success = true;
 			++success_count;
 
-			if (is_success && IsSingleBotCastedSpell(chosen_spell_id)) {
+			if (is_success && IsSingleBotCastedSpell(spell_id)) {
 				break;
 			}
 		}
