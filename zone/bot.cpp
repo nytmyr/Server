@@ -4496,7 +4496,7 @@ void Bot::PerformTradeWithClient(int16 begin_slot_id, int16 end_slot_id, Client*
 				client->Message(
 					Chat::Yellow,
 					fmt::format(
-						"{} is too small of a stack, you need exactly {}, the trade has been cancelled!",
+						"{} is the wrong sized stack, you need exactly {}, the trade has been cancelled!",
 						item_link,
 						RuleI(Bots, StackSizeMin)
 					).c_str()
