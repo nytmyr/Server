@@ -1911,40 +1911,7 @@ bool Bot::BotRangedAttack(Mob* other, bool can_double_attack) {
 		ammo = ammo_item->GetItem();
 	}
 
-	// Bow requires arrows
-	// Check if ammo is invalid
-	bool is_invalid_ammo = !ammo;
-
-	// Check if ranged weapon type is invalid
-	bool is_invalid_ranged_weapon_type = ranged_weapon &&
-		(ranged_weapon->ItemType != EQ::item::ItemTypeBow &&
-			ranged_weapon->ItemType != EQ::item::ItemTypeSmallThrowing &&
-			ranged_weapon->ItemType != EQ::item::ItemTypeLargeThrowing);
-
-	  // Check if bow has the wrong ammo
-	bool is_bow_with_invalid_ammo = ranged_weapon &&
-		(ranged_weapon->ItemType == EQ::item::ItemTypeBow &&
-			(!ammo || ammo->ItemType != EQ::item::ItemTypeArrow));
-
-	// Check if throwing weapon has insufficient charges
-	bool is_throwing_weapon_with_insufficient_ammo = ranged_weapon &&
-		(
-			ranged_weapon->ItemType == EQ::item::ItemTypeSmallThrowing ||
-			ranged_weapon->ItemType == EQ::item::ItemTypeLargeThrowing
-		) &&
-		(!ammo_item || ammo_item->GetCharges() < 1); // Not enough ammo
-
-	// Final ranged weapon validity check
-	bool is_invalid_ranged_weapon = is_invalid_ranged_weapon_type || is_bow_with_invalid_ammo || is_throwing_weapon_with_insufficient_ammo;
-
-	// Final condition
-	if (is_invalid_ammo || is_invalid_ranged_weapon) {
-		if (!ammo || ammo_item->GetCharges() < 1) {
-			if (!GetCombatRoundForAlerts()) {
-				SetCombatRoundForAlerts();
-				RaidGroupSay("I do not have any ammo!");
-			}
-		}
+	if (!HasValidRangeItemAndAmmo(ranged_item, ranged_weapon, ammo_item, ammo)) {
 		return false;
 	}
 
@@ -2326,11 +2293,22 @@ void Bot::AI_Process()
 				uint16 pull_spell_id = RuleI(Bots, PullSpellID);
 
 				if (IsValidSpell(pull_spell_id) && tar_distance <= spells[pull_spell_id].range) {
-					at_combat_range = true;
+					StopMoving(CalculateHeadingToTarget(tar->GetX(), tar->GetY()));
+					SetPullingSpell(true);
+					CastSpell(pull_spell_id, tar->GetID());
+					SetPullingSpell(false);
+
+					return;
 				}
 			}
 
-			if (at_combat_range && DoLosChecks(tar)) {
+			if (at_combat_range) {
+				if (!DoLosChecks(tar) && tar_distance > melee_distance_min) {
+					TryPursueTarget(leash_distance);
+
+					return;
+				}
+
 				bool ai_cast_successful = false;
 				bool can_range_attack = !tar->GetSpecialAbility(SpecialAbility::RangedAttackImmunity) &&
 					RuleB(Bots, AllowRangedPulling) &&
@@ -2340,13 +2318,18 @@ void Bot::AI_Process()
 				if (can_range_attack) {
 					StopMoving(CalculateHeadingToTarget(tar->GetX(), tar->GetY()));
 
-					if (BotRangedAttack(tar) && CheckDoubleRangedAttack()) {
+					if (!BotRangedAttack(tar)) {
+						SetPullFlag(false);
+						SetPullingFlag(false);
+						bot_owner->SetBotPulling(false);
+						return;
+					}
+
+					if (CheckDoubleRangedAttack()) {
 						BotRangedAttack(tar, true);
 					}
 
 					ranged_timer.Start();
-
-					return;
 				}
 
 				SetCastFailure(CastFailures::Undeclared);
@@ -2364,16 +2347,35 @@ void Bot::AI_Process()
 					if (ai_cast_successful) {
 						return;
 					}
+
+					SetPullFlag(false);
+					SetPullingFlag(false);
+					bot_owner->SetBotPulling(false);
 				}
 
-				if (RuleB(Bots, UseSpellPulling)) {
-					uint16 pull_spell_id = RuleI(Bots, PullSpellID);
+				if (!IsBotRanged() && !stop_melee_level) {
+					if (attack_timer.Check()) {
+						TryCombatProcs(p_item, tar, EQ::invslot::slotPrimary);
+						TriggerDefensiveProcs(tar, EQ::invslot::slotPrimary, false);
+						DoAttackRounds(tar, EQ::invslot::slotPrimary);
 
-					if (IsValidSpell(pull_spell_id) && tar_distance <= spells[pull_spell_id].range) {
-						StopMoving(CalculateHeadingToTarget(tar->GetX(), tar->GetY()));
-						SetPullingSpell(true);
-						CastSpell(pull_spell_id, tar->GetID());
-						SetPullingSpell(false);
+						if (TryDoubleMeleeRoundEffect()) {
+							DoAttackRounds(tar, EQ::invslot::slotPrimary);
+						}
+					}
+
+					if (!TargetValidation(tar)) {
+						SetPullFlag(false);
+						SetPullingFlag(false);
+						bot_owner->SetBotPulling(false);
+						return;
+					}
+
+					if (attack_dw_timer.Check()) {
+						if (CanThisClassDualWield() && CastToClient()->CheckDualWield()) {
+							TryCombatProcs(s_item, tar, EQ::invslot::slotSecondary);
+							DoAttackRounds(tar, EQ::invslot::slotSecondary);
+						}
 					}
 				}
 
@@ -3181,7 +3183,7 @@ bool Bot::IsValidTarget(
 		(!Charmed() && tar->GetUltimateOwner()->IsOfClientBotMerc()) ||
 		lo_distance > leash_distance ||
 		tar_distance > leash_distance ||
-		(!GetAttackingFlag() && !HasLoS()) ||
+		(!GetAttackingFlag() && !GetPullingFlag() && !HasLoS()) ||
 		!IsAttackAllowed(tar)
 	) {
 		invalid_target_state = true;
@@ -3330,7 +3332,10 @@ bool Bot::PullingFlagChecks(Client* bot_owner) {
 
 		return false;
 	}
-	else if (GetTarget()->GetHateList().size()) {
+
+	Mob* tar = GetTarget();
+
+	if (tar->GetHateList().size()) {
 		SetPullingFlag(false);
 		SetReturningFlag();
 
@@ -3341,8 +3346,8 @@ bool Bot::PullingFlagChecks(Client* bot_owner) {
 				my_pet->WipeHateList();
 				my_pet->SetTarget(nullptr);
 			} else {
-				my_pet->AddToHateList(GetTarget(), 1);
-				my_pet->SetTarget(GetTarget());
+				my_pet->AddToHateList(tar, 1);
+				my_pet->SetTarget(tar);
 			}
 		}
 
@@ -4071,8 +4076,6 @@ int16 Bot::PutItem(int16 slot_id, const EQ::ItemInstance& inst,EQ::InventoryProf
 	if (!inst) {
 		return slot_id;
 	}
-
-	auto item = inst.GetItem(); //deleteme
 
 	if (slot_id == BotInventorySlots::Quiver) {
 		inventory_inst.DeleteItem(slot_id);
@@ -5988,8 +5991,6 @@ void Bot::SetAttackTimer() {
 
 		speed = delay / haste_mod;
 
-		//LogTestDebug("Starting [{}] attack timer for {} is [{}]. Delay: [{}], HasteMod: [{}], Speed: [{}]", Bot::GetInvPossessionsSlotName(i), GetCleanName(), speed / 100, delay, haste_mod, speed); //deleteme
-
 		if (ItemToUse && ItemToUse->ItemType == EQ::item::ItemTypeBow) { // VegasEQ
 			speed = std::max(speed - GetQuiverHaste(speed), RuleI(Combat, QuiverHasteCap));
 		}
@@ -6003,7 +6004,6 @@ void Bot::SetAttackTimer() {
 		speed = std::max(RuleI(Combat, MinHastedDelay), speed);
 
 		TimerToUse->SetAtTrigger(speed, true, true);
-		//LogTestDebug("Capped [{}] attack timer for {} is [{}]. Delay: [{}], HasteMod: [{}], Speed: [{}]", Bot::GetInvPossessionsSlotName(i), GetCleanName(), speed / 100.0, delay, haste_mod, speed); //deleteme
 
 		if (i == EQ::invslot::slotPrimary)
 			PrimaryWeapon = ItemToUse;
@@ -13913,6 +13913,80 @@ bool Bot::HasDiscBuff() {
 	}
 
 	return false;
+}
+
+bool Bot::HasValidRangeItemAndAmmo(const EQ::ItemInstance* ranged_item, const EQ::ItemData* ranged_weapon, const EQ::ItemInstance* ammo_item, const EQ::ItemData* ammo) {
+	if (!ranged_item) {
+		ranged_item = GetBotItem(EQ::invslot::slotRange);
+
+		if (!ranged_item) {
+			return false;
+		}
+
+		if (!ranged_weapon) {
+			ranged_weapon = ranged_item->GetItem();
+		}
+
+		if (!ranged_weapon) {
+			return false;
+		}
+	}
+
+	if (!ammo_item) {
+		ammo_item = GetBotItem(EQ::invslot::slotAmmo);
+
+		if (!ammo_item) {
+			return false;
+		}
+
+		if (!ammo) {
+			ammo = ammo_item->GetItem();
+		}
+
+		if (!ammo) {
+			return false;
+		}
+	}
+
+	// Bow requires arrows
+	// Check if ammo is invalid
+	bool is_invalid_ammo = !ammo;
+
+	// Check if ranged weapon type is invalid
+	bool is_invalid_ranged_weapon_type = ranged_weapon &&
+		(ranged_weapon->ItemType != EQ::item::ItemTypeBow &&
+			ranged_weapon->ItemType != EQ::item::ItemTypeSmallThrowing &&
+			ranged_weapon->ItemType != EQ::item::ItemTypeLargeThrowing);
+
+	// Check if bow has the wrong ammo
+	bool is_bow_with_invalid_ammo = ranged_weapon &&
+		(ranged_weapon->ItemType == EQ::item::ItemTypeBow &&
+			(!ammo || ammo->ItemType != EQ::item::ItemTypeArrow));
+
+	// Check if throwing weapon has insufficient charges
+	bool is_throwing_weapon_with_insufficient_ammo = ranged_weapon &&
+		(
+			ranged_weapon->ItemType == EQ::item::ItemTypeSmallThrowing ||
+			ranged_weapon->ItemType == EQ::item::ItemTypeLargeThrowing
+		) &&
+		(!ammo_item || ammo_item->GetCharges() < 1); // Not enough ammo
+
+	// Final ranged weapon validity check
+	bool is_invalid_ranged_weapon = is_invalid_ranged_weapon_type || is_bow_with_invalid_ammo || is_throwing_weapon_with_insufficient_ammo;
+
+	// Final condition
+	if (is_invalid_ammo || is_invalid_ranged_weapon) {
+		if (!ammo || ammo_item->GetCharges() < 1) {
+			if (!GetCombatRoundForAlerts()) {
+				SetCombatRoundForAlerts();
+				RaidGroupSay("I do not have any ammo!");
+			}
+		}
+
+		return false;
+	}
+
+	return true;
 }
 
 // VegasEQ - START

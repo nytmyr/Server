@@ -934,6 +934,7 @@ public:
 	uint32 GetBotSpellID() const { return npc_spells_id; }
 	Mob* GetBotOwner() { return this->_botOwner; }
 	uint32 GetBotRangedValue();
+	bool HasValidRangeItemAndAmmo(const EQ::ItemInstance* ranged_item = nullptr, const EQ::ItemData* ranged_weapon = nullptr, const EQ::ItemInstance* ammo_item = nullptr, const EQ::ItemData* ammo = nullptr);
 	EQ::ItemInstance* GetBotItem(uint16 slot_id);
 	static int16 PutItem(int16 slot_id, const EQ::ItemInstance& inst, EQ::InventoryProfile &inventory_inst);
 	bool GetSpawnStatus() { return _spawnStatus; }
