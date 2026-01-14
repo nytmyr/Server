@@ -4582,7 +4582,7 @@ void Mob::ChangeSize(float in_size = 0, bool unrestricted)
 	size = std::clamp(in_size, 1.0f, 255.0f);
 
 	if (!unrestricted) {
-		if (IsClient() || petid != 0) {
+		if (IsOfClientBotMerc() || petid != 0) {
 			size = std::clamp(in_size, 3.0f, 15.0f);
 		}
 	}
