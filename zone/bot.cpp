@@ -3258,11 +3258,11 @@ Mob* Bot::GetBotTarget(Client* bot_owner)
 }
 
 bool Bot::TargetValidation(Mob* other) {
-	if (GetAppearance() == eaDead || GetHP() < 0) {
+	if (!other) {
 		return false;
 	}
 
-	if (!other || other->GetAppearance() == eaDead || other->GetHP() < 0) {
+	if (GetAppearance() == eaDead || GetHP() < 0) {
 		return false;
 	}
 

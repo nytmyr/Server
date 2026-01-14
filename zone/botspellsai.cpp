@@ -55,11 +55,9 @@ bool Bot::AICastSpell(Mob* tar, uint8 chance, uint16 spell_type, uint16 sub_targ
 		return false;
 	}
 
-	if ((spell_type != BotSpellTypes::Resurrect && spell_type != BotSpellTypes::SummonCorpse) && tar->GetAppearance() == eaDead) {
-		if (!((tar->IsClient() && tar->CastToClient()->GetFeigned()) || tar->IsBot())) {
-			SetCastFailure(CastFailures::TargetDead);
-			return false;
-		}
+	if ((spell_type != BotSpellTypes::Resurrect && spell_type != BotSpellTypes::SummonCorpse) && tar->IsClient() && tar->CastToClient()->IsDead()) {
+		SetCastFailure(CastFailures::TargetDead);
+		return false;
 	}
 
 	uint8 bot_class = GetClass();
@@ -862,15 +860,6 @@ bool Bot::AIHealRotation(Mob* tar, bool useFastHeals) {
 
 	if (!AI_HasSpells())
 		return false;
-
-	if (tar->GetAppearance() == eaDead) {
-		if ((tar->IsClient() && tar->CastToClient()->GetFeigned()) || tar->IsBot()) {
-			// do nothing
-		}
-		else {
-			return false;
-		}
-	}
 
 	uint8 botLevel = GetLevel();
 
