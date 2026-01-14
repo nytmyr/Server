@@ -1,8 +1,8 @@
-#ifndef EQEMU_LUA_CLIENT_H
-#define EQEMU_LUA_CLIENT_H
+#pragma once
+
 #ifdef LUA_EQEMU
 
-#include "lua_mob.h"
+#include "zone/lua_mob.h"
 
 class Client;
 class Lua_Expedition;
@@ -657,5 +657,4 @@ public:
 	// VegasEQ - END
 };
 
-#endif
-#endif
+#endif // LUA_EQEMU

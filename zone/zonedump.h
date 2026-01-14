@@ -24,12 +24,13 @@ npc_count int unsigned not null default 0, npcloot_count int unsigned not null d
 spawn2 mediumblob, npcs mediumblob, npc_loot mediumblob, gmspawntype mediumblob, time timestamp(14));
 */
 
-#ifndef ZONEDUMP_H
-#define ZONEDUMP_H
-#include "../common/faction.h"
-#include "../common/eq_packet_structs.h"
-#include "../common/inventory_profile.h"
+#pragma once
 
+#include "common/faction.h"
+#include "common/eq_packet_structs.h"
+#include "common/inventory_profile.h"
+
+#pragma pack(push)
 #pragma pack(1)
 
 struct NPCType
@@ -173,6 +174,4 @@ struct NPCType
 
 };
 
-#pragma pack()
-
-#endif
+#pragma pack(pop)

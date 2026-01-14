@@ -1,8 +1,8 @@
-#ifndef EQEMU_LUA_RAID_H
-#define EQEMU_LUA_RAID_H
+#pragma once
+
 #ifdef LUA_EQEMU
 
-#include "lua_ptr.h"
+#include "zone/lua_ptr.h"
 
 class Raid;
 class Lua_Client;
@@ -60,5 +60,4 @@ public:
 	// VegasEQ - END
 };
 
-#endif
-#endif
+#endif // LUA_EQEMU

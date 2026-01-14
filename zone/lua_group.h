@@ -1,8 +1,8 @@
-#ifndef EQEMU_LUA_GROUP_H
-#define EQEMU_LUA_GROUP_H
+#pragma once
+
 #ifdef LUA_EQEMU
 
-#include "lua_ptr.h"
+#include "zone/lua_ptr.h"
 
 class Group;
 class Lua_Mob;
@@ -59,5 +59,4 @@ public:
 	// VegasEQ - END
 };
 
-#endif
-#endif
+#endif // LUA_EQEMU

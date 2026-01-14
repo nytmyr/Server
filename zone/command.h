@@ -1,12 +1,11 @@
-#ifndef COMMAND_H
-#define COMMAND_H
+#pragma once
+
+#include "common/types.h"
+
+#include <string>
 
 class Client;
 class Seperator;
-
-#include "../common/types.h"
-#include "dialogue_window.h"
-#include <string>
 
 #define    COMMAND_CHAR '#'
 
@@ -205,14 +204,10 @@ void command_zonebootup(Client *c, const Seperator *sep);
 void command_zoneshutdown(Client *c, const Seperator *sep);
 void command_zonevariable(Client *c, const Seperator *sep);
 void command_zsave(Client *c, const Seperator *sep);
+void command_bot(Client*c, const Seperator *sep);
 
 // VegasEQ - START
 void command_charchange(Client* c, const Seperator* sep);
 void command_get_gearscore(Client* c, const Seperator* sep);
 void command_get_shardscore(Client* c, const Seperator* sep);
 // VegasEQ - END
-
-#include "bot.h"
-void command_bot(Client*c, const Seperator *sep);
-
-#endif

@@ -1,15 +1,16 @@
 #ifdef LUA_EQEMU
 
-#include "../common/data_verification.h"
-
-#include <luabind/luabind.hpp>
-#include <luabind/object.hpp>
-
-#include "masterentity.h"
 #include "lua_raid.h"
-#include "lua_mob.h"
-#include "lua_client.h"
-#include "lua_npc.h"
+
+#include "common/data_verification.h"
+#include "zone/lua_client.h"
+#include "zone/lua_mob.h"
+#include "zone/lua_npc.h"
+#include "zone/masterentity.h"
+
+#include "luabind/luabind.hpp"
+#include "luabind/object.hpp"
+
 
 bool Lua_Raid::IsRaidMember(const char *name) {
 	Lua_Safe_Call_Bool();
@@ -212,4 +213,4 @@ luabind::scope lua_register_raid() {
 	// VegasEQ - END
 }
 
-#endif
+#endif // LUA_EQEMU

@@ -1,9 +1,9 @@
-#ifndef CODE_LOOT_H
-#define CODE_LOOT_H
+#pragma once
+
+#include "common/types.h"
 
 #include <list>
 #include <string>
-#include "../common/types.h"
 
 struct LootItem {
 	uint32      item_id;
@@ -47,5 +47,3 @@ enum class VegasEra : int {
 	SpecialEvent = 100
 };
 // VegasEQ - END
-
-#endif //CODE_LOOT_H
