@@ -926,42 +926,42 @@
 } while (0)
 
 #define LogTestDebug(message, ...) do {\
-    if (logsys->IsLogEnabled(Logs::General, Logs::TestDebug))\
+    if (auto logsys = EQEmuLogSys::Instance(); logsys && logsys->IsLogEnabled(Logs::General, Logs::TestDebug))\
         OutF(logsys, Logs::General, Logs::TestDebug, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
 } while (0)
 
 #define LogTestDebugDetail(message, ...) do {\
-    if (logsys->IsLogEnabled(Logs::Detail, Logs::TestDebug))\
+    if (auto logsys = EQEmuLogSys::Instance(); logsys && logsys->IsLogEnabled(Logs::Detail, Logs::TestDebug))\
         OutF(logsys, Logs::Detail, Logs::TestDebug, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
 } while (0)
 
 #define LogGearScore(message, ...) do {\
-    if (logsys->IsLogEnabled(Logs::General, Logs::GearScore))\
+    if (auto logsys = EQEmuLogSys::Instance(); logsys && logsys->IsLogEnabled(Logs::General, Logs::GearScore))\
         OutF(logsys, Logs::General, Logs::GearScore, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
 } while (0)
 
 #define LogGearScoreDetail(message, ...) do {\
-    if (logsys->IsLogEnabled(Logs::Detail, Logs::GearScore))\
+    if (auto logsys = EQEmuLogSys::Instance(); logsys && logsys->IsLogEnabled(Logs::Detail, Logs::GearScore))\
         OutF(logsys, Logs::Detail, Logs::GearScore, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
 } while (0)
 
 #define LogSpellScore(message, ...) do {\
-    if (logsys->IsLogEnabled(Logs::General, Logs::SpellScore))\
+    if (auto logsys = EQEmuLogSys::Instance(); logsys && logsys->IsLogEnabled(Logs::General, Logs::SpellScore))\
         OutF(logsys, Logs::General, Logs::SpellScore, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
 } while (0)
 
 #define LogSpellScoreDetail(message, ...) do {\
-    if (logsys->IsLogEnabled(Logs::Detail, Logs::SpellScore))\
+    if (auto logsys = EQEmuLogSys::Instance(); logsys && logsys->IsLogEnabled(Logs::Detail, Logs::SpellScore))\
         OutF(logsys, Logs::Detail, Logs::SpellScore, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
 } while (0)
 
 #define LogVegasLoot(message, ...) do {\
-    if (logsys->IsLogEnabled(Logs::General, Logs::VegasLoot))\
+    if (auto logsys = EQEmuLogSys::Instance(); logsys && logsys->IsLogEnabled(Logs::General, Logs::VegasLoot))\
         OutF(logsys, Logs::General, Logs::VegasLoot, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
 } while (0)
 
 #define LogVegasLootDetail(message, ...) do {\
-    if (logsys->IsLogEnabled(Logs::Detail, Logs::VegasLoot))\
+    if (auto logsys = EQEmuLogSys::Instance(); logsys && logsys->IsLogEnabled(Logs::Detail, Logs::VegasLoot))\
         OutF(logsys, Logs::Detail, Logs::VegasLoot, __FILE__, __func__, __LINE__, message, ##__VA_ARGS__);\
 } while (0)
 
