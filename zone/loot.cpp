@@ -1,5 +1,6 @@
 #include "npc.h"
 
+#include "common/data_bucket.h"
 #include "common/data_verification.h"
 #include "common/loot.h"
 #include "common/repositories/criteria/content_filter_criteria.h"
@@ -1355,7 +1356,7 @@ bool NPC::IsOnVegasCoolDown(Mob* top_client) {
 	//if (GetLevel() <= RuleB(MaxLevelBeforeRespawnLockoutStopsForVegasLoot) && respawn_time <= RuleI(VegasLoot, QuickRespawnMaxToTriggerLockout)) {
 		key = std::to_string(top_hate_character_id) + "_" + std::to_string(s2) + "_" + std::to_string(nid) + "_" + std::to_string(npc_instance) + "_respawnrnghold";
 		LogVegasLootDetail("_respawnrnghold Respawn Key Check [{}]", key); //deleteme
-		bucket_value = DataBucket::GetData(key);
+		bucket_value = DataBucket::GetData(&database, key);
 
 		if (Strings::IsNumber(bucket_value) && Strings::ToUnsignedInt(bucket_value) == 2) {
 			LogVegasLoot("Failed respawnrnghold check for [{}]", GetCleanName()); //deleteme
@@ -1364,14 +1365,14 @@ bool NPC::IsOnVegasCoolDown(Mob* top_client) {
 			return true;
 		}
 		//else {
-		//	DataBucket::SetData(key, "1", std::to_string(RuleI(VegasLoot, QuickRespawnVegasLootLockoutPeriod)));
+		//	DataBucket::SetData(&database, key, "1", std::to_string(RuleI(VegasLoot, QuickRespawnVegasLootLockoutPeriod)));
 		//}
 	//}
 
 	std::string zone_name = zone->GetShortName();
 	key = std::to_string(top_hate_character_id) + "_" + (zone_name) + "_" + std::to_string(nid) + "_" + std::to_string(npc_instance);
 	LogVegasLootDetail("Lockout Respawn Key Check [{}]", key); //deleteme
-	bucket_value = DataBucket::GetData(key);
+	bucket_value = DataBucket::GetData(&database, key);
 
 	if (!bucket_value.empty()) {
 		LogVegasLoot("Failed lockout check for [{}]", GetCleanName()); //deleteme
@@ -1594,13 +1595,13 @@ void NPC::AttemptVegasShardLoot(Mob* top_client, float shard_multiplier, bool gu
 
 		if (top_client->CastToClient()->Admin() < RuleI(VegasLoot, MinStatusToBypassVegasLootLogging)) {
 			std::string key = "ShardsDropped";
-			std::string bucket_value = DataBucket::GetData(key);
+			std::string bucket_value = DataBucket::GetData(&database, key);
 
 			if (Strings::IsNumber(bucket_value) && Strings::ToUnsignedInt(bucket_value) > 0) {
-				DataBucket::SetData(key, std::to_string(Strings::ToUnsignedInt(bucket_value) + shard_amount));
+				DataBucket::SetData(&database, key, std::to_string(Strings::ToUnsignedInt(bucket_value) + shard_amount));
 			}
 			else {
-				DataBucket::SetData(key, std::to_string(1));
+				DataBucket::SetData(&database, key, std::to_string(1));
 			}
 		}
 
@@ -1700,12 +1701,12 @@ void NPC::AttemptVegasEpicTokenLoot(Mob* top_client) {
 
 			if (top_client->CastToClient()->Admin() < RuleI(VegasLoot, MinStatusToBypassVegasLootLogging)) {
 				std::string key = "EpicTokenCount";
-				std::string bucket_value = DataBucket::GetData(key);
+				std::string bucket_value = DataBucket::GetData(&database, key);
 				if (Strings::IsNumber(bucket_value) && Strings::ToUnsignedInt(bucket_value) > 0) {
-					DataBucket::SetData(key, std::to_string(Strings::ToUnsignedInt(bucket_value) + 1));
+					DataBucket::SetData(&database, key, std::to_string(Strings::ToUnsignedInt(bucket_value) + 1));
 				}
 				else {
-					DataBucket::SetData(key, std::to_string(1));
+					DataBucket::SetData(&database, key, std::to_string(1));
 				}
 			}
 
@@ -2081,13 +2082,13 @@ void NPC::AddVegasItem(Mob* top_client, const EQ::ItemData* chosen_item, std::st
 
 	if (top_client->CastToClient()->Admin() < RuleI(VegasLoot, MinStatusToBypassVegasLootLogging)) {
 		std::string key = "TotalRandomDrops";
-		std::string bucket_value = DataBucket::GetData(key);
+		std::string bucket_value = DataBucket::GetData(&database, key);
 
 		if (Strings::IsNumber(bucket_value) && Strings::ToUnsignedInt(bucket_value) > 0) {
-			DataBucket::SetData(key, std::to_string(Strings::ToUnsignedInt(bucket_value) + 1));
+			DataBucket::SetData(&database, key, std::to_string(Strings::ToUnsignedInt(bucket_value) + 1));
 		}
 		else {
-			DataBucket::SetData(key, std::to_string(1));
+			DataBucket::SetData(&database, key, std::to_string(1));
 		}
 	}
 

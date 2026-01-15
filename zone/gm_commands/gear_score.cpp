@@ -1,5 +1,5 @@
-#include "../command.h"
-#include "../../common/veq_item_data.h"
+#include "zone/command.h"
+#include "common/veq_item_data.h"
 
 void command_gear_score(Client* c, const Seperator* sep) {
 	return; // TODO - VegasEQ - Implement after

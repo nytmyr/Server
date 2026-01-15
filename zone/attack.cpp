@@ -16,6 +16,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
+#include "common/data_bucket.h"
 #include "common/data_verification.h"
 #include "common/eq_constants.h"
 #include "common/eq_packet_structs.h"
@@ -3016,13 +3017,13 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 		if (top_client && top_client->CastToClient()->Admin() < RuleI(VegasLoot, MinStatusToBypassVegasLootLogging)) {
 			auto cash = m_loot_copper + (m_loot_silver * 10) + (m_loot_gold * 100) + (m_loot_platinum * 1000);
 			std::string key = "TotalCashDropped";
-			std::string bucket_value = DataBucket::GetData(key);
+			std::string bucket_value = DataBucket::GetData(&database, key);
 
 			if (Strings::IsNumber(bucket_value) && Strings::ToUnsignedInt(bucket_value) > 0) {
-				DataBucket::SetData(key, std::to_string(Strings::ToUnsignedInt(bucket_value) + cash));
+				DataBucket::SetData(&database, key, std::to_string(Strings::ToUnsignedInt(bucket_value) + cash));
 			}
 			else {
-				DataBucket::SetData(key, std::to_string(1));
+				DataBucket::SetData(&database, key, std::to_string(1));
 			}
 		}
 	}

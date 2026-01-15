@@ -1,6 +1,8 @@
 #pragma once
 
+#include "common/data_bucket.h"
 #include "common/types.h"
+#include "dialogue_window.h"
 
 #include <string>
 

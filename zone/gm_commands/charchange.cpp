@@ -1,7 +1,9 @@
-#include "../command.h"
-#include "../../world/sof_char_create_data.h"
-#include "../../common/skill_caps.h"
-#include "../bot_command.h"
+#include "zone/command.h"
+#include "world/sof_char_create_data.h"
+#include "common/skill_caps.h"
+#include "zone/bot_command.h"
+#include "zone/zonedb.h"
+#include <common/data_bucket.h>
 
 void command_charchange(Client* c, const Seperator* sep) //TODO vegas - add starting stat checks.
 {
@@ -18,7 +20,7 @@ void command_charchange(Client* c, const Seperator* sep) //TODO vegas - add star
 	}
 
 	std::string reset_key = "CharChange-" + std::to_string(c->CharacterID());
-	std::string bucketValue = DataBucket::GetData(reset_key);
+	std::string bucketValue = DataBucket::GetData(&database, reset_key);
 
 	int lockoutDuration = RuleI(CharChange, LockoutDuration);
 	std::string lockoutDurationString = Strings::SecondsToTime(lockoutDuration);
@@ -35,7 +37,7 @@ void command_charchange(Client* c, const Seperator* sep) //TODO vegas - add star
 			Chat::Yellow,
 			fmt::format(
 				"You have {} remaining.",
-				Strings::SecondsToTime(Strings::ToInt(DataBucket::GetDataRemaining(reset_key)))
+				Strings::SecondsToTime(Strings::ToInt(DataBucket::GetDataRemaining(&database, reset_key)))
 			).c_str()
 		);
 
@@ -449,7 +451,7 @@ void command_charchange(Client* c, const Seperator* sep) //TODO vegas - add star
 		std::string key;
 		std::string bucketValue;
 		key = "MaxLvl-" + std::to_string(c->CharacterID());
-		bucketValue = DataBucket::GetData(key);
+		bucketValue = DataBucket::GetData(&database, key);
 
 		if (c->GetLevel() >= 10 && Strings::ToUnsignedInt(bucketValue) > RuleI(CharChange, LevelScaleStart)) {
 			int over_level = Strings::ToUnsignedInt(bucketValue) - RuleI(CharChange, LevelScaleStart);
@@ -834,10 +836,10 @@ void command_charchange(Client* c, const Seperator* sep) //TODO vegas - add star
 			}
 
 			std::string key = "OriginalClassRaceDeityGender-" + std::to_string(c->CharacterID());
-			std::string bucketValue = DataBucket::GetData(key);
+			std::string bucketValue = DataBucket::GetData(&database, key);
 
 			if (bucketValue.empty()) {
-				DataBucket::SetData(key, ("" + std::to_string(c->GetBaseClass()) + "," + std::to_string(c->GetBaseRace()) + "," + std::to_string(c->GetDeity()) + "," + std::to_string(c->GetGender())));
+				DataBucket::SetData(&database, key, ("" + std::to_string(c->GetBaseClass()) + "," + std::to_string(c->GetBaseRace()) + "," + std::to_string(c->GetDeity()) + "," + std::to_string(c->GetGender())));
 			}
 
 			c->SetBaseRace(chosenRace);
@@ -912,7 +914,7 @@ void command_charchange(Client* c, const Seperator* sep) //TODO vegas - add star
 			c->CampAllBots();
 
 			if (c->Admin() < 100) {
-				DataBucket::SetData(reset_key, std::to_string(lockoutDuration));
+				DataBucket::SetData(&database, reset_key, std::to_string(lockoutDuration));
 			}
 
 			c->SetAntiCheatExempt();

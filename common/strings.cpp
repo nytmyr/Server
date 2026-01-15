@@ -34,6 +34,7 @@
 */
 
 #include "strings.h"
+#include "common/eqemu_logsys_log_aliases.h"
 
 #include "cereal/external/rapidjson/document.h"
 #include "fmt/format.h"

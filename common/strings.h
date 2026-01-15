@@ -35,6 +35,7 @@
 
 #pragma once
 
+#include "common/emu_constants.h"
 #include "common/types.h"
 
 #include <cctype>

@@ -5044,7 +5044,7 @@ void NPC::DoFirstKillChecks(Mob* top_client) {
 		if (IsRaidTarget()) {
 			key = "FirstRaidKill-" + std::to_string(GetNPCTypeID());
 		}
-		bucket_value = DataBucket::GetData(key);
+		bucket_value = DataBucket::GetData(&database, key);
 		if (bucket_value.empty()) {
 			DoFirstKillAchievements(top_client, key);
 		}
@@ -5238,7 +5238,7 @@ void NPC::DoFirstKillAchievements(Mob* top_client, std::string key) {
 		//keydata_format << keydata << "|" << std::put_time(nullptr, "%a %b %d %H: %M : %S %Y");
 		keydata_format << keydata << "|" << ctime(&current_time);
 	std::string keydata_format_final = keydata_format.str();
-	DataBucket::SetData(key, keydata_format_final);
+	DataBucket::SetData(&database, key, keydata_format_final);
 
 	std::string npc_name = GetCleanName();
 	if (GetNPCTypeID() == 223201) {

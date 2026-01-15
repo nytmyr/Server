@@ -13362,13 +13362,13 @@ void Client::SetAntiCheatExempt(int duration) const {
 		.instance_id      = static_cast<uint16>(zone->GetInstanceID()),
 	};
 
-	DataBucket::SetData(k);
+	DataBucket::SetData(&database, k);
 }
 
 bool Client::GetAntiCheatExempt() {
 	std::string key = RuleS(VegasAnticheat, AntiCheatExemptKey);
 
-	return !DataBucket::GetData(key).empty();
+	return !DataBucket::GetData(&database, key).empty();
 }
 
 float Client::GetTotalGearScore() {
