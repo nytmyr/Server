@@ -4965,6 +4965,8 @@ bool Mob::HateSummon() {
 			new_pos = target->TryMoveAlong(new_pos, 5.0f, angle);
 
 			if (target->IsClient()) {
+				target->CastToClient()->cheat_manager.SetExemptStatus(Port, true);
+
 				target->CastToClient()->MovePC(
 					zone->GetZoneID(),
 					zone->GetInstanceID(),
@@ -4975,8 +4977,6 @@ bool Mob::HateSummon() {
 					0,
 					SummonPC
 				);
-
-				target->CastToClient()->cheat_manager.SetExemptStatus(Port, true);
 			} else {
 				bool target_is_client_pet = (
 					target->IsPet() &&
