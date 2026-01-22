@@ -646,6 +646,8 @@ public:
 	// VegasEQ - Allaclone
 	bool GetIsValeenSpawned() const { return is_valeen_spawned; }
 	void SetValeenSpawned(bool is_valeen_spawned_) { is_valeen_spawned = is_valeen_spawned_; }
+	uint8 GetValeenMerchantTier() const { return valeen_merchant_tier; }
+	void SetValeenMerchantTier(uint8 valeen_merchant_tier_) { valeen_merchant_tier = valeen_merchant_tier_; }
 	bool GetIsHideNPC() const { return hide_npc; }
 	void SetHideNPC(bool hide_npc_) { hide_npc = hide_npc_; }
 	int32 GetNPCInZoneID() const { return in_zone_id; }
@@ -874,6 +876,7 @@ protected:
 	float			difficulty;
 	int32     		raid_points;
 	bool     		is_valeen_spawned;
+	uint8			valeen_merchant_tier;
 	bool     		hide_npc;
 	int32     		in_zone_id;
 	bool     		skip_vegas_loot;

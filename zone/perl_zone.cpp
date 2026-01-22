@@ -686,6 +686,16 @@ perl::array Perl_Zone_GetTimers(Zone* self)
 	return a;
 }
 
+// VegasEQ - START
+void Perl_Zone_ClearValeenMerchantList(Zone* self, int merchant_id) {
+	self->DeleteMerchantListEntry(merchant_id);
+}
+
+void Perl_Zone_GenerateNewValeenMerchantList(Zone* self, int merchant_id) {
+	self->GenerateNewValeenMerchantList(merchant_id);
+}
+// VegasEQ - END
+
 void perl_register_zone()
 {
 	perl::interpreter perl(PERL_GET_THX);
@@ -830,6 +840,11 @@ void perl_register_zone()
 	package.add("StopAllTimers", &Perl_Zone_StopAllTimers);
 	package.add("ShowZoneGlobalLoot", &Perl_Zone_ShowZoneGlobalLoot);
 	package.add("VariableExists", &Perl_Zone_VariableExists);
+
+	// VegasEQ - START
+	package.add("ClearValeenMerchantList", &Perl_Zone_ClearValeenMerchantList);
+	package.add("GenerateNewValeenMerchantList", &Perl_Zone_GenerateNewValeenMerchantList);
+	// VegasEQ - END
 }
 
 #endif //EMBPERL_XS_CLASSES

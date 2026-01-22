@@ -854,6 +854,18 @@ luabind::object Lua_Zone::GetPausedTimers(lua_State* L) {
 	return t;
 }
 
+// VegasEQ - START
+void Lua_Zone::ClearValeenMerchantList(int merchant_id) {
+	Lua_Safe_Call_Void();
+	self->DeleteMerchantListEntry(merchant_id);
+}
+
+void Lua_Zone::GenerateNewValeenMerchantList(int merchant_id) {
+	Lua_Safe_Call_Void();
+	self->GenerateNewValeenMerchantList(merchant_id);
+}
+// VegasEQ - END
+
 luabind::object Lua_Zone::GetTimers(lua_State* L) {
 	auto t = luabind::newtable(L);
 	if (d_) {
@@ -1010,7 +1022,12 @@ luabind::scope lua_register_zone() {
 	.def("Signal", &Lua_Zone::Signal)
 	.def("StopTimer", &Lua_Zone::StopTimer)
 	.def("StopAllTimers", &Lua_Zone::StopAllTimers)
-	.def("VariableExists", &Lua_Zone::VariableExists);
+	.def("VariableExists", &Lua_Zone::VariableExists)
+
+	// VegasEQ - START
+	.def("ClearValeenMerchantList", &Lua_Zone::ClearValeenMerchantList)
+	.def("GenerateNewValeenMerchantList", &Lua_Zone::GenerateNewValeenMerchantList);
+	// VegasEQ - END
 }
 
 #endif // LUA_EQEMU

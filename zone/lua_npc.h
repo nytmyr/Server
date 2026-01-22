@@ -223,6 +223,8 @@ public:
 	void SetRaidPoints(int32 raid_points_);
 	bool GetIsValeenSpawned();
 	void SetValeenSpawned(bool is_valeen_spawned_);
+	uint8 GetValeenMerchantTier();
+	void SetValeenMerchantTier(uint8 valeen_merchant_tier_);
 	bool GetIsHideNPC();
 	void SetHideNPC(bool hide_npc_);
 	int32 GetNPCInZoneID();

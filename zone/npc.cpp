@@ -451,6 +451,7 @@ NPC::NPC(const NPCType *npc_type_data, Spawn2 *in_respawn, const glm::vec4 &posi
 	difficulty                 = npc_type_data->difficulty;
 	raid_points                = npc_type_data->raid_points;
 	is_valeen_spawned          = npc_type_data->is_valeen_spawned;
+	valeen_merchant_tier       = npc_type_data->valeen_merchant_tier;
 	hide_npc                   = npc_type_data->hide_npc;
 	in_zone_id                 = npc_type_data->in_zone_id;
 	skip_vegas_loot            = npc_type_data->skip_vegas_loot;
@@ -2460,6 +2461,10 @@ void NPC::ModifyNPCStat(const std::string& stat, const std::string& value)
 		is_valeen_spawned = Strings::ToBool(value);
 		return;
 	}
+	else if (stat_lower == "valeen_merchant_tier") { // VegasEQ
+		valeen_merchant_tier = Strings::ToUnsignedInt(value);
+		return;
+	}
 	else if (stat_lower == "hide_npc") { // VegasEQ
 		is_valeen_spawned = Strings::ToBool(value);
 		return;
@@ -2617,6 +2622,9 @@ float NPC::GetNPCStat(const std::string& stat)
 	}
 	else if (stat_lower == "is_valeen_spawned") { // VegasEQ
 		return is_valeen_spawned;
+	}
+	else if (stat_lower == "valeen_merchant_tier") { // VegasEQ
+		return valeen_merchant_tier;
 	}
 	else if (stat_lower == "hide_npc") { // VegasEQ
 		return hide_npc;

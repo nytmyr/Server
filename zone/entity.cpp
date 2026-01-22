@@ -5717,8 +5717,14 @@ void EntityList::SendAlternateAdvancementStats() {
 void EntityList::ReloadMerchants() {
 	for (auto it = npc_list.begin();it != npc_list.end(); ++it) {
 		NPC *cur = it->second;
-		if (cur->MerchantType != 0) {
-			zone->LoadNewMerchantData(cur->MerchantType);
+
+		if (cur->GetValeenMerchantTier() > 0) {
+			zone->LoadValeenMerchantList(cur->GetNPCTypeID(), cur->GetValeenMerchantTier());
+		}
+		else {
+			if (cur->MerchantType != 0) {
+				zone->LoadNewMerchantData(cur->MerchantType);
+			}
 		}
 	}
 }

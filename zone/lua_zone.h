@@ -169,6 +169,11 @@ public:
 	std::string GetBucketExpires(const std::string& bucket_name);
 	std::string GetBucketRemaining(const std::string& bucket_name);
 
+	// VegasEQ - START
+	void ClearValeenMerchantList(int merchant_id);
+	void GenerateNewValeenMerchantList(int merchant_id);
+	// VegasEQ - END
+
 };
 
 #endif // LUA_EQEMU

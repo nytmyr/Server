@@ -36,6 +36,7 @@
 #include "common/repositories/respawn_times_repository.h"
 #include "common/repositories/rule_sets_repository.h"
 #include "common/repositories/trader_repository.h"
+#include "common/repositories/valeen_items_repository.h"
 #include "common/repositories/zone_state_spawns_repository.h"
 #include "common/rulesys.h"
 #include "common/seperator.h"
@@ -732,6 +733,8 @@ void Zone::LoadMerchants()
 			}
 		);
 	}
+
+	LoadBulkValeenMerchantLists();
 }
 
 void Zone::LoadMercenaryTemplates()
@@ -3571,4 +3574,134 @@ std::vector<std::string> Zone::GetTimers()
 	}
 
 	return v;
+}
+
+void Zone::LoadBulkValeenMerchantLists(bool force_update) {
+	const auto& valeen_ids = Strings::Split(RuleS(VegasMerchants, ValeenNPCIDsByTier), ",");
+	uint32 merchant_count = 0;
+
+	if (!valeen_ids.empty()) {
+		for (uint16 i = 0; i < valeen_ids.size(); ++i) {
+			auto valeen_id = std::stoul(valeen_ids[i]);
+
+			if (auto npc = entity_list.GetMobByNpcTypeID(valeen_id)) {
+				auto valeen_tier = npc->CastToNPC()->GetValeenMerchantTier();
+
+				if (valeen_tier > 0) {
+					LoadValeenMerchantList(npc->GetNPCTypeID(), valeen_tier, force_update);
+					++merchant_count;
+				}
+			}
+		}
+	}
+
+	LogInfo("Loaded [{}] Valeen merchant lists", merchant_count);
+
+	if (!merchant_count) {
+		LogDebug("No Valeen Merchant Data found for [{}]", GetShortName());
+	}
+}
+
+void Zone::LoadValeenMerchantList(int merchant_id, int tier, bool force_update) {
+	if (tier == -1) {
+		auto npc = entity_list.GetMobByNpcTypeID(merchant_id);
+
+		if (npc) {
+			if (auto valeen_tier = npc->CastToNPC()->GetValeenMerchantTier()) {
+				tier = valeen_tier;
+			}
+		}
+	}
+
+	std::string bucket_key = fmt::format("ValeenSpawnT{}", tier);
+
+	if (force_update) {
+		merchanttable.erase(merchant_id);
+		DataBucket::DeleteData(&database, bucket_key);
+	}
+
+	std::list<MerchantList> merchant_list;
+	std::string bucket_value = DataBucket::GetData(&database, bucket_key);
+	std::string new_valeen_bucket_data = "";
+	bool has_bucket = false;
+	std::string query;
+
+	if (!bucket_value.empty()) {
+		has_bucket = true;
+	}
+
+	if (has_bucket) {
+		const auto& item_ids = Strings::Split(bucket_value, "|");
+		std::string id_list = Strings::Join(item_ids, ", ");
+
+		query = fmt::format("item_id IN ({})", id_list);
+	}
+	else {
+		query = fmt::format(
+			"merchant_tier = {} ORDER BY RAND() LIMIT {}",
+			tier,
+			RuleI(VegasMerchants, ValeenRandomizedMaxPerTier)
+		);
+	}
+
+	const auto& l = ValeenItemsRepository::GetWhere(content_db, query);
+
+	if (l.empty()) {
+		return;
+	}
+
+	uint32 slot_id = 1;
+
+	for (const auto& e : l) {
+		MerchantList ml;
+		ml.id                = merchant_id;
+		ml.item              = e.item_id;
+		ml.slot              = slot_id;
+		ml.faction_required  = e.faction_required;
+		ml.level_required    = e.level_required;
+		ml.min_status        = e.min_status;
+		ml.max_status        = e.max_status;
+		ml.alt_currency_cost = e.alt_currency_cost;
+		ml.classes_required  = e.classes_required;
+		ml.probability       = e.probability;
+		ml.bucket_name       = e.bucket_name;
+		ml.bucket_value      = e.bucket_value;
+		ml.bucket_comparison = e.bucket_comparison;
+		merchant_list.push_back(ml);
+		++slot_id;
+
+		if (!has_bucket) {
+			new_valeen_bucket_data += (new_valeen_bucket_data.empty() ? "" : "|") + std::to_string(e.item_id);
+		}
+	}
+
+	if (!has_bucket) {
+		time_t now                    = time(nullptr);
+		tm *   lt                     = localtime(&now);
+		uint32 seconds_today          = (lt->tm_hour * 3600) + (lt->tm_min * 60) + lt->tm_sec;
+		uint32 seconds_until_midnight = 86400 - seconds_today;
+
+		DataBucketKey k = {};
+
+		k.key			= bucket_key;
+		k.value			= new_valeen_bucket_data;
+		k.expires		= std::to_string(seconds_until_midnight);
+
+
+		DataBucket::SetData(&database, k);
+	}
+
+	merchanttable[merchant_id] = merchant_list;
+}
+
+void Zone::DeleteMerchantListEntry(int merchant_id) {
+	auto it = merchanttable.find(merchant_id);
+
+	if (it != merchanttable.end()) {
+		merchanttable.erase(it);
+	}
+}
+
+void Zone::GenerateNewValeenMerchantList(int merchant_id) {
+	LoadValeenMerchantList(merchant_id, -1, true);
 }

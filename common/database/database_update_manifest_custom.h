@@ -1114,6 +1114,18 @@ UPDATE logsys_categories SET log_to_console = 0, log_to_file = 1, log_to_gmsay =
 )",
 		.content_schema_update = false,
 	},
+	ManifestEntry{
+		.version = 15,
+		.description = "2026_1_21_add_valeen_merchant_tier",
+		.check = "SHOW COLUMNS FROM `npc_types` LIKE 'valeen_merchant_tier'",
+		.condition = "empty",
+		.match = "",
+		.sql = R"(
+ALTER TABLE `npc_types`
+	ADD COLUMN `valeen_merchant_tier` TINYINT(3) UNSIGNED NOT NULL DEFAULT '0' AFTER `is_valeen_spawned`;
+)",
+		.content_schema_update = false,
+	},
 // Used for testing
 //	ManifestEntry{
 //		.version = 9229,

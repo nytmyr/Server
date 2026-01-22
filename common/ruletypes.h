@@ -1230,6 +1230,8 @@ RULE_CATEGORY_END()
 RULE_CATEGORY(VegasMerchants)
 RULE_INT(VegasMerchants, MaxItemsListedDefault, 80, "Maximum number of items a merchant will list before client checks. Default 80.")
 RULE_INT(VegasMerchants, MaxItemsListedRoF2, 255, "Maximum number of items a merchant will list for RoF2 clients. Default 255, stock 200.")
+RULE_STRING(VegasMerchants, ValeenNPCIDsByTier, "515001,515002,515003,515004,515005,515006,515007,515008,515009,515010", "T1-T10 NPC IDs. Default 515001,515002,515003,515004,515005,515006,515007,515008,515009,515010")
+RULE_INT(VegasMerchants, ValeenRandomizedMaxPerTier, 10, "Maximum Number of entries per tier ValeenRandomizedNPCID can have.")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(VegasEXP)

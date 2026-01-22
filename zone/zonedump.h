@@ -164,6 +164,7 @@ struct NPCType
 	float       	difficulty;
 	int32_t     	raid_points;
 	bool            is_valeen_spawned;
+	uint8           valeen_merchant_tier;
 	bool            hide_npc;
 	int32_t     	in_zone_id;
 	bool            skip_vegas_loot;

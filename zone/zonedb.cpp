@@ -1912,6 +1912,7 @@ const NPCType *ZoneDatabase::LoadNPCTypesData(uint32 npc_type_id, bool bulk_load
 		t->difficulty             = n.difficulty;
 		t->raid_points            = n.raid_points;
 		t->is_valeen_spawned      = n.is_valeen_spawned != 0;
+		t->valeen_merchant_tier   = n.valeen_merchant_tier;
 		t->hide_npc               = n.hide_npc != 0;
 		t->in_zone_id             = n.in_zone_id;
 		t->skip_vegas_loot        = n.skip_vegas_loot != 0;

@@ -152,8 +152,9 @@ public:
 		uint16_t    npc_tint_id;
 		float       difficulty;
 		int32_t     raid_points;
-		uint8_t     is_valeen_spawned;
-		uint8_t     hide_npc;
+		int32_t     is_valeen_spawned;
+		uint8_t     valeen_merchant_tier;
+		int32_t     hide_npc;
 		int32_t     in_zone_id;
 		uint8_t     skip_vegas_loot;
 		uint8_t     pass_vegas_loot;
@@ -303,6 +304,7 @@ public:
 			"difficulty",
 			"raid_points",
 			"is_valeen_spawned",
+			"valeen_merchant_tier",
 			"hide_npc",
 			"in_zone_id",
 			"skip_vegas_loot",
@@ -449,6 +451,7 @@ public:
 			"difficulty",
 			"raid_points",
 			"is_valeen_spawned",
+			"valeen_merchant_tier",
 			"hide_npc",
 			"in_zone_id",
 			"skip_vegas_loot",
@@ -629,6 +632,7 @@ public:
 		e.difficulty             = 0;
 		e.raid_points            = 0;
 		e.is_valeen_spawned      = 0;
+		e.valeen_merchant_tier   = 0;
 		e.hide_npc               = 0;
 		e.in_zone_id             = 0;
 		e.skip_vegas_loot        = 0;
@@ -804,13 +808,14 @@ public:
 			e.npc_tint_id            = row[130] ? static_cast<uint16_t>(strtoul(row[130], nullptr, 10)) : 0;
 			e.difficulty             = row[131] ? strtof(row[131], nullptr) : 0;
 			e.raid_points            = row[132] ? static_cast<int32_t>(atoi(row[132])) : 0;
-			e.is_valeen_spawned      = row[133] ? static_cast<uint8_t>(strtoul(row[133], nullptr, 10)) : 0;
-			e.hide_npc               = row[134] ? static_cast<uint8_t>(strtoul(row[134], nullptr, 10)) : 0;
-			e.in_zone_id             = row[135] ? static_cast<int32_t>(atoi(row[135])) : 0;
-			e.skip_vegas_loot        = row[136] ? static_cast<uint8_t>(strtoul(row[136], nullptr, 10)) : 0;
-			e.pass_vegas_loot        = row[137] ? static_cast<uint8_t>(strtoul(row[137], nullptr, 10)) : 0;
-			e.raid_not_count_as_raid = row[138] ? static_cast<uint8_t>(strtoul(row[138], nullptr, 10)) : 0;
-			e.non_raid_can_raid_roll = row[139] ? static_cast<uint8_t>(strtoul(row[139], nullptr, 10)) : 0;
+			e.is_valeen_spawned      = row[133] ? static_cast<int32_t>(atoi(row[133])) : 0;
+			e.valeen_merchant_tier   = row[134] ? static_cast<uint8_t>(strtoul(row[134], nullptr, 10)) : 0;
+			e.hide_npc               = row[135] ? static_cast<int32_t>(atoi(row[135])) : 0;
+			e.in_zone_id             = row[136] ? static_cast<int32_t>(atoi(row[136])) : 0;
+			e.skip_vegas_loot        = row[137] ? static_cast<uint8_t>(strtoul(row[137], nullptr, 10)) : 0;
+			e.pass_vegas_loot        = row[138] ? static_cast<uint8_t>(strtoul(row[138], nullptr, 10)) : 0;
+			e.raid_not_count_as_raid = row[139] ? static_cast<uint8_t>(strtoul(row[139], nullptr, 10)) : 0;
+			e.non_raid_can_raid_roll = row[140] ? static_cast<uint8_t>(strtoul(row[140], nullptr, 10)) : 0;
 
 			return e;
 		}
@@ -977,12 +982,13 @@ public:
 		v.push_back(columns[131] + " = " + std::to_string(e.difficulty));
 		v.push_back(columns[132] + " = " + std::to_string(e.raid_points));
 		v.push_back(columns[133] + " = " + std::to_string(e.is_valeen_spawned));
-		v.push_back(columns[134] + " = " + std::to_string(e.hide_npc));
-		v.push_back(columns[135] + " = " + std::to_string(e.in_zone_id));
-		v.push_back(columns[136] + " = " + std::to_string(e.skip_vegas_loot));
-		v.push_back(columns[137] + " = " + std::to_string(e.pass_vegas_loot));
-		v.push_back(columns[138] + " = " + std::to_string(e.raid_not_count_as_raid));
-		v.push_back(columns[139] + " = " + std::to_string(e.non_raid_can_raid_roll));
+		v.push_back(columns[134] + " = " + std::to_string(e.valeen_merchant_tier));
+		v.push_back(columns[135] + " = " + std::to_string(e.hide_npc));
+		v.push_back(columns[136] + " = " + std::to_string(e.in_zone_id));
+		v.push_back(columns[137] + " = " + std::to_string(e.skip_vegas_loot));
+		v.push_back(columns[138] + " = " + std::to_string(e.pass_vegas_loot));
+		v.push_back(columns[139] + " = " + std::to_string(e.raid_not_count_as_raid));
+		v.push_back(columns[140] + " = " + std::to_string(e.non_raid_can_raid_roll));
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -1138,6 +1144,7 @@ public:
 		v.push_back(std::to_string(e.difficulty));
 		v.push_back(std::to_string(e.raid_points));
 		v.push_back(std::to_string(e.is_valeen_spawned));
+		v.push_back(std::to_string(e.valeen_merchant_tier));
 		v.push_back(std::to_string(e.hide_npc));
 		v.push_back(std::to_string(e.in_zone_id));
 		v.push_back(std::to_string(e.skip_vegas_loot));
@@ -1307,6 +1314,7 @@ public:
 			v.push_back(std::to_string(e.difficulty));
 			v.push_back(std::to_string(e.raid_points));
 			v.push_back(std::to_string(e.is_valeen_spawned));
+			v.push_back(std::to_string(e.valeen_merchant_tier));
 			v.push_back(std::to_string(e.hide_npc));
 			v.push_back(std::to_string(e.in_zone_id));
 			v.push_back(std::to_string(e.skip_vegas_loot));
@@ -1479,13 +1487,14 @@ public:
 			e.npc_tint_id            = row[130] ? static_cast<uint16_t>(strtoul(row[130], nullptr, 10)) : 0;
 			e.difficulty             = row[131] ? strtof(row[131], nullptr) : 0;
 			e.raid_points            = row[132] ? static_cast<int32_t>(atoi(row[132])) : 0;
-			e.is_valeen_spawned      = row[133] ? static_cast<uint8_t>(strtoul(row[133], nullptr, 10)) : 0;
-			e.hide_npc               = row[134] ? static_cast<uint8_t>(strtoul(row[134], nullptr, 10)) : 0;
-			e.in_zone_id             = row[135] ? static_cast<int32_t>(atoi(row[135])) : 0;
-			e.skip_vegas_loot        = row[136] ? static_cast<uint8_t>(strtoul(row[136], nullptr, 10)) : 0;
-			e.pass_vegas_loot        = row[137] ? static_cast<uint8_t>(strtoul(row[137], nullptr, 10)) : 0;
-			e.raid_not_count_as_raid = row[138] ? static_cast<uint8_t>(strtoul(row[138], nullptr, 10)) : 0;
-			e.non_raid_can_raid_roll = row[139] ? static_cast<uint8_t>(strtoul(row[139], nullptr, 10)) : 0;
+			e.is_valeen_spawned      = row[133] ? static_cast<int32_t>(atoi(row[133])) : 0;
+			e.valeen_merchant_tier   = row[134] ? static_cast<uint8_t>(strtoul(row[134], nullptr, 10)) : 0;
+			e.hide_npc               = row[135] ? static_cast<int32_t>(atoi(row[135])) : 0;
+			e.in_zone_id             = row[136] ? static_cast<int32_t>(atoi(row[136])) : 0;
+			e.skip_vegas_loot        = row[137] ? static_cast<uint8_t>(strtoul(row[137], nullptr, 10)) : 0;
+			e.pass_vegas_loot        = row[138] ? static_cast<uint8_t>(strtoul(row[138], nullptr, 10)) : 0;
+			e.raid_not_count_as_raid = row[139] ? static_cast<uint8_t>(strtoul(row[139], nullptr, 10)) : 0;
+			e.non_raid_can_raid_roll = row[140] ? static_cast<uint8_t>(strtoul(row[140], nullptr, 10)) : 0;
 
 			all_entries.push_back(e);
 		}
@@ -1643,13 +1652,14 @@ public:
 			e.npc_tint_id            = row[130] ? static_cast<uint16_t>(strtoul(row[130], nullptr, 10)) : 0;
 			e.difficulty             = row[131] ? strtof(row[131], nullptr) : 0;
 			e.raid_points            = row[132] ? static_cast<int32_t>(atoi(row[132])) : 0;
-			e.is_valeen_spawned      = row[133] ? static_cast<uint8_t>(strtoul(row[133], nullptr, 10)) : 0;
-			e.hide_npc               = row[134] ? static_cast<uint8_t>(strtoul(row[134], nullptr, 10)) : 0;
-			e.in_zone_id             = row[135] ? static_cast<int32_t>(atoi(row[135])) : 0;
-			e.skip_vegas_loot        = row[136] ? static_cast<uint8_t>(strtoul(row[136], nullptr, 10)) : 0;
-			e.pass_vegas_loot        = row[137] ? static_cast<uint8_t>(strtoul(row[137], nullptr, 10)) : 0;
-			e.raid_not_count_as_raid = row[138] ? static_cast<uint8_t>(strtoul(row[138], nullptr, 10)) : 0;
-			e.non_raid_can_raid_roll = row[139] ? static_cast<uint8_t>(strtoul(row[139], nullptr, 10)) : 0;
+			e.is_valeen_spawned      = row[133] ? static_cast<int32_t>(atoi(row[133])) : 0;
+			e.valeen_merchant_tier   = row[134] ? static_cast<uint8_t>(strtoul(row[134], nullptr, 10)) : 0;
+			e.hide_npc               = row[135] ? static_cast<int32_t>(atoi(row[135])) : 0;
+			e.in_zone_id             = row[136] ? static_cast<int32_t>(atoi(row[136])) : 0;
+			e.skip_vegas_loot        = row[137] ? static_cast<uint8_t>(strtoul(row[137], nullptr, 10)) : 0;
+			e.pass_vegas_loot        = row[138] ? static_cast<uint8_t>(strtoul(row[138], nullptr, 10)) : 0;
+			e.raid_not_count_as_raid = row[139] ? static_cast<uint8_t>(strtoul(row[139], nullptr, 10)) : 0;
+			e.non_raid_can_raid_roll = row[140] ? static_cast<uint8_t>(strtoul(row[140], nullptr, 10)) : 0;
 
 			all_entries.push_back(e);
 		}
@@ -1858,6 +1868,7 @@ public:
 		v.push_back(std::to_string(e.difficulty));
 		v.push_back(std::to_string(e.raid_points));
 		v.push_back(std::to_string(e.is_valeen_spawned));
+		v.push_back(std::to_string(e.valeen_merchant_tier));
 		v.push_back(std::to_string(e.hide_npc));
 		v.push_back(std::to_string(e.in_zone_id));
 		v.push_back(std::to_string(e.skip_vegas_loot));
@@ -2020,6 +2031,7 @@ public:
 			v.push_back(std::to_string(e.difficulty));
 			v.push_back(std::to_string(e.raid_points));
 			v.push_back(std::to_string(e.is_valeen_spawned));
+			v.push_back(std::to_string(e.valeen_merchant_tier));
 			v.push_back(std::to_string(e.hide_npc));
 			v.push_back(std::to_string(e.in_zone_id));
 			v.push_back(std::to_string(e.skip_vegas_loot));

@@ -875,9 +875,19 @@ void Client::BulkSendMerchantInventory(int merchant_id, int npcid) {
 	const EQ::ItemData *item = nullptr;
 	auto merchant_list = zone->merchanttable[merchant_id];
 	auto npc = entity_list.GetMobByNpcTypeID(npcid);
+
 	if (merchant_list.empty()) {
-		zone->LoadNewMerchantData(merchant_id);
+		auto valeen_tier = npc ? npc->CastToNPC()->GetValeenMerchantTier() : 0;
+
+		if (valeen_tier > 0) {
+			zone->LoadValeenMerchantList(merchant_id, valeen_tier);
+		}
+		else {
+			zone->LoadNewMerchantData(merchant_id);
+		}
+
 		merchant_list = zone->merchanttable[merchant_id];
+
 		if (merchant_list.empty()) {
 			return;
 		}

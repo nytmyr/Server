@@ -1060,6 +1060,16 @@ void Lua_NPC::SetValeenSpawned(bool is_valeen_spawned) {
 	self->SetValeenSpawned(is_valeen_spawned);
 }
 
+uint8 Lua_NPC::GetValeenMerchantTier() {
+	Lua_Safe_Call_Int();
+	return self->GetValeenMerchantTier();
+}
+
+void Lua_NPC::SetValeenMerchantTier(uint8 valeen_merchant_tier) {
+	Lua_Safe_Call_Void();
+	self->SetValeenMerchantTier(valeen_merchant_tier);
+}
+
 bool Lua_NPC::GetIsHideNPC() {
 	Lua_Safe_Call_Bool();
 	return self->GetIsHideNPC();
@@ -1355,6 +1365,8 @@ luabind::scope lua_register_npc() {
 	.def("SetRaidPoints", (void(Lua_NPC::*)(int))&Lua_NPC::SetRaidPoints)
 	.def("GetIsValeenSpawned", (bool(Lua_NPC::*)(void))&Lua_NPC::GetIsValeenSpawned)
 	.def("SetValeenSpawned", (void(Lua_NPC::*)(bool))&Lua_NPC::SetValeenSpawned)
+	.def("GetValeenMerchantTier", (int(Lua_NPC::*)(void))&Lua_NPC::GetValeenMerchantTier)
+	.def("SetValeenMerchantTier", (void(Lua_NPC::*)(uint8))&Lua_NPC::SetValeenMerchantTier)
 	.def("GetIsHideNPC", (bool(Lua_NPC::*)(void))&Lua_NPC::GetIsHideNPC)
 	.def("SetHideNPC", (void(Lua_NPC::*)(bool))&Lua_NPC::SetHideNPC)
 	.def("GetNPCInZoneID", (int(Lua_NPC::*)(void))&Lua_NPC::GetNPCInZoneID)

@@ -988,6 +988,14 @@ void Perl_NPC_SetValeenSpawned(NPC* self, bool is_valeen_spawned) {
 	self->SetValeenSpawned(is_valeen_spawned);
 }
 
+uint8 Perl_NPC_GetValeenMerchantTier(NPC* self) {
+	return self->GetValeenMerchantTier();
+}
+
+void Perl_NPC_SetValeenMerchantTier(NPC* self, uint8 valeen_merchant_tier) {
+	self->SetValeenMerchantTier(valeen_merchant_tier);
+}
+
 bool Perl_NPC_GetIsHideNPC(NPC* self) {
 	return self->GetIsHideNPC();
 }
@@ -1269,6 +1277,8 @@ void perl_register_npc()
 	package.add("SetRaidPoints", &Perl_NPC_SetRaidPoints);
 	package.add("GetIsValeenSpawned", &Perl_NPC_GetIsValeenSpawned);
 	package.add("SetValeenSpawned", &Perl_NPC_SetValeenSpawned);
+	package.add("GetValeenMerchantTier", &Perl_NPC_GetValeenMerchantTier);
+	package.add("SetValeenMerchantTier", &Perl_NPC_SetValeenMerchantTier);
 	package.add("GetIsHideNPC", &Perl_NPC_GetIsHideNPC);
 	package.add("SetHideNPC", &Perl_NPC_SetHideNPC);
 	package.add("GetNPCInZoneID", &Perl_NPC_GetNPCInZoneID);

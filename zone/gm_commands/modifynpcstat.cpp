@@ -52,6 +52,7 @@ std::map<std::string, std::string> GetModifyNPCStatMap()
 		{ "difficulty", "NPC Difficulty" }, // VegasEQ - START
 		{ "raid_points", "Raid Points" },
 		{ "is_valeen_spawned", "IsValeenSpawned" },
+		{ "valeen_merchant_tier", "Valeen Merchant Tier" },
 		{ "hide_npc", "Hide NPC" },
 		{ "in_zone_id", "In Zone ID" },
 		{ "skip_vegas_loot", "Skip Vegas Loot" },

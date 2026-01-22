@@ -448,6 +448,10 @@ inline std::string GetMobAttributeByString(Mob *mob, const std::string &attribut
 			return std::to_string(npc->GetIsValeenSpawned());
 		}
 
+		if (attribute == "valeen_merchant_tier") {
+			return std::to_string(npc->GetValeenMerchantTier());
+		}
+
 		if (attribute == "hide_npc") {
 			return std::to_string(npc->GetIsHideNPC());
 		}
@@ -846,6 +850,7 @@ void Mob::DisplayInfo(Mob *mob)
 				"difficulty",
 				"raid_points",
 				"is_valeen_spawned",
+				"valeen_merchant_tier",
 				"hide_npc",
 				"in_zone_id",
 				"skip_vegas_loot",
