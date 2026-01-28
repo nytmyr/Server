@@ -690,6 +690,10 @@ bool BotDatabase::SaveBuffs(Bot* b)
 			continue;
 		}
 
+		if (IsShortDurationBuff(buffs[buff_index].spellid)) {
+			continue;
+		}
+
 		e.spell_id            = buffs[buff_index].spellid;
 		e.caster_level        = buffs[buff_index].casterlevel;
 		e.duration_formula    = spells[buffs[buff_index].spellid].buff_duration_formula;
