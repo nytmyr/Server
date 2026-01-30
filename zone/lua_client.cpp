@@ -3609,9 +3609,19 @@ bool Lua_Client::UncompleteTask(int task_id)
 	return self->UncompleteTask(task_id);
 }
 
+void Lua_Client::CheckTitleSet(uint32 title_set) {
+	Lua_Safe_Call_Void();
+	self->CheckTitle(title_set);
+}
+
 void Lua_Client::EnableTitleSet(uint32 title_set) {
 	Lua_Safe_Call_Void();
 	self->EnableTitle(title_set);
+}
+
+void Lua_Client::RemoveTitleSet(uint32 title_set) {
+	Lua_Safe_Call_Void();
+	self->RemoveTitle(title_set);
 }
 
 luabind::object Lua_Client::GetKeyRing(lua_State* L)
@@ -3726,6 +3736,7 @@ luabind::scope lua_register_client() {
 	.def("CheckIncreaseSkill", (void(Lua_Client::*)(int,Lua_Mob))&Lua_Client::CheckIncreaseSkill)
 	.def("CheckIncreaseSkill", (void(Lua_Client::*)(int,Lua_Mob,int))&Lua_Client::CheckIncreaseSkill)
 	.def("CheckSpecializeIncrease", (void(Lua_Client::*)(int))&Lua_Client::CheckSpecializeIncrease)
+	.def("CheckTitleSet", &Lua_Client::CheckTitleSet)
 	.def("ClearCompassMark",(void(Lua_Client::*)(void))&Lua_Client::ClearCompassMark)
 	.def("ClearAccountFlag", (void(Lua_Client::*)(const std::string&))&Lua_Client::ClearAccountFlag)
 	.def("ClearPEQZoneFlag", (void(Lua_Client::*)(uint32))&Lua_Client::ClearPEQZoneFlag)
@@ -4071,6 +4082,7 @@ luabind::scope lua_register_client() {
 	.def("RemoveLDoNLoss", (void(Lua_Client::*)(uint32))&Lua_Client::RemoveLDoNLoss)
 	.def("RemoveLDoNWin", (void(Lua_Client::*)(uint32))&Lua_Client::RemoveLDoNWin)
 	.def("RemoveRadiantCrystals", (void(Lua_Client::*)(uint32))&Lua_Client::RemoveRadiantCrystals)
+	.def("RemoveTitleSet", &Lua_Client::RemoveTitleSet)
 	.def("ResetAA", (void(Lua_Client::*)(void))&Lua_Client::ResetAA)
 	.def("ResetAllDisciplineTimers", (void(Lua_Client::*)(void))&Lua_Client::ResetAllDisciplineTimers)
 	.def("ResetAllCastbarCooldowns", (void(Lua_Client::*)(void))&Lua_Client::ResetAllCastbarCooldowns)

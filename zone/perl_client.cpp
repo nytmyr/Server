@@ -3367,6 +3367,18 @@ perl::array Perl_Client_GetKeyRing(Client* self)
 	return result;
 }
 
+void Perl_Client_CheckTitleSet(Client* self, int titleset) {
+	self->CheckTitle(titleset);
+}
+
+void Perl_Client_EnableTitleSet(Client* self, int titleset) {
+	self->EnableTitle(titleset);
+}
+
+void Perl_Client_RemoveTitleSet(Client* self, int titleset) {
+	self->RemoveTitle(titleset);
+}
+
 // VegasEQ - START
 float Perl_Client_GetTotalGearScore(Client* self) // @categories Client
 {
@@ -3466,6 +3478,7 @@ void perl_register_client()
 	package.add("CheckIncreaseSkill", (bool(*)(Client*, int))&Perl_Client_CheckIncreaseSkill);
 	package.add("CheckIncreaseSkill", (bool(*)(Client*, int, int))&Perl_Client_CheckIncreaseSkill);
 	package.add("CheckSpecializeIncrease", &Perl_Client_CheckSpecializeIncrease);
+	package.add("CheckTitleSet", (void(*)(Client*, int))&Perl_Client_CheckTitleSet);
 	package.add("ClearCompassMark", &Perl_Client_ClearCompassMark);
 	package.add("ClearAccountFlag", &Perl_Client_ClearAccountFlag);
 	package.add("ClearPEQZoneFlag", &Perl_Client_ClearPEQZoneFlag);
@@ -3494,6 +3507,7 @@ void perl_register_client()
 	package.add("Duck", &Perl_Client_Duck);
 	package.add("DyeArmorBySlot", (void(*)(Client*, uint8, uint8, uint8, uint8))&Perl_Client_DyeArmorBySlot);
 	package.add("DyeArmorBySlot", (void(*)(Client*, uint8, uint8, uint8, uint8, uint8))&Perl_Client_DyeArmorBySlot);
+	package.add("EnableTitleSet", (void(*)(Client*, int))&Perl_Client_EnableTitleSet);
 	package.add("EndSharedTask", (void(*)(Client*))&Perl_Client_EndSharedTask);
 	package.add("EndSharedTask", (void(*)(Client*, bool))&Perl_Client_EndSharedTask);
 	package.add("Escape", &Perl_Client_Escape);
@@ -3804,6 +3818,7 @@ void perl_register_client()
 	package.add("RemoveLDoNWin", &Perl_Client_RemoveLDoNWin);
 	package.add("RemoveNoRent", &Perl_Client_RemoveNoRent);
 	package.add("RemoveRadiantCrystals", &Perl_Client_RemoveRadiantCrystals);
+	package.add("RemoveTitleSet", (void(*)(Client*, int))&Perl_Client_RemoveTitleSet);
 	package.add("ResetAA", &Perl_Client_ResetAA);
 	package.add("ResetAllDisciplineTimers", &Perl_Client_ResetAllDisciplineTimers);
 	package.add("ResetAllCastbarCooldowns", &Perl_Client_ResetAllCastbarCooldowns);
