@@ -2,6 +2,18 @@
 
 void bot_command_class_race_list(Client* c, const Seperator* sep)
 {
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		c->Message(
+			Chat::White,
+			fmt::format(
+				"Usage: {} deities to display a list of deities as well",
+				sep->arg[0]
+			).c_str()
+		);
+
+		return;
+	}
+
 	const std::string class_substrs[17] = {
 		"",
 		"WAR", "CLR", "PAL", "RNG",
@@ -24,6 +36,35 @@ void bot_command_class_race_list(Client* c, const Seperator* sep)
 		Race::HighElf, Race::DarkElf, Race::HalfElf, Race::Dwarf,
 		Race::Troll, Race::Ogre, Race::Halfling, Race::Gnome,
 		Race::Iksar, Race::VahShir, Race::Froglok2, Race::Drakkin
+	};
+
+	const std::string deity_substrs[18] = {
+		"",
+		"Bertoxxulous", "Brell Serilis", "Cazic-Thule", "Erollisi Marr",
+		"Bristlebane", "Innoruuk", "Karana", "Mithaniel Marr",
+		"Prexus", "Quellious", "Rallos Zek", "Rodcet Nife",
+		"Solusek Ro", "The Tribunal", "Tunare", "Veeshan", "Agnostic"
+	};
+
+	const uint16 deity_values[18] = {
+		Deity::Agnostic1,
+		Deity::Bertoxxulous,
+		Deity::BrellSirilis,
+		Deity::CazicThule,
+		Deity::ErollisiMarr,
+		Deity::Bristlebane,
+		Deity::Innoruuk,
+		Deity::Karana,
+		Deity::MithanielMarr,
+		Deity::Prexus,
+		Deity::Quellious,
+		Deity::RallosZek,
+		Deity::RodcetNife,
+		Deity::SolusekRo,
+		Deity::TheTribunal,
+		Deity::Tunare,
+		Deity::Veeshan,
+		Deity::Agnostic2
 	};
 
 	std::string window_text;
@@ -49,6 +90,7 @@ void bot_command_class_race_list(Client* c, const Seperator* sep)
 
 	message_separator = " ";
 	object_count = 0;
+
 	for (int i = 0; i <= 15; ++i) {
 		window_text.append(message_separator);
 
@@ -88,6 +130,7 @@ void bot_command_class_race_list(Client* c, const Seperator* sep)
 
 	message_separator = " ";
 	object_count = 0;
+
 	for (int i = 0; i <= 15; ++i) {
 		window_text.append(message_separator);
 
@@ -105,6 +148,47 @@ void bot_command_class_race_list(Client* c, const Seperator* sep)
 
 		++object_count;
 		message_separator = ", ";
+	}
+
+	std::string arg1 = sep->arg[1];
+
+	if (!arg1.compare("deities")) {
+		window_text.append(DialogueWindow::Break(2));
+
+		window_text.append(
+			fmt::format(
+				"<c \"#EDDA74\">Deities{}<c \"#357EC7\">",
+				DialogueWindow::Break()
+			)
+		);
+
+		window_text.append(
+			fmt::format(
+				"<c \"#D4A017\">--------------------------------------------------------------------<c \"#357EC7\">",
+				DialogueWindow::Break()
+			)
+		);
+
+		window_text.append(DialogueWindow::Break());
+
+		message_separator = " ";
+		object_count = 0;
+
+		for (int i = 0; i <= 16; ++i) {
+			if (object_count == 1) {
+				window_text.append(DialogueWindow::Break());
+				object_count = 0;
+			}
+
+			window_text.append(
+				fmt::format("{} ({})",
+					deity_substrs[i + 1],
+					deity_values[i + 1]
+				)
+			);
+
+			++object_count;
+		}
 	}
 
 	c->SendPopupToClient("Bot Creation Options", window_text.c_str());

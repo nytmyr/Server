@@ -13,6 +13,61 @@ void command_charchange(Client* c, const Seperator* sep) //TODO vegas - add star
 		return;
 	}
 
+	int lockoutDuration = RuleI(CharChange, LockoutDuration);
+	std::string lockoutDurationString = Strings::SecondsToTime(lockoutDuration);
+
+	if (helper_is_help_or_usage(sep->arg[1])) {
+		BotCommandHelpParams p;
+
+		p.description = { "Changes your character's race, class, gender and/or deity" };
+		p.notes =
+		{
+			fmt::format(
+				"This can only be done once every {} and changes will not be refunded or reverted.",
+				lockoutDurationString
+			),
+			"- Set each option to what you want, they must be compatible and available combinations.",
+			"- If you choose to keep a setting, you will not be charged for it.",
+			"- All incompatible items must be unequipped.",
+			"- Base stats adjusted as needed.",
+			"- All disciplines will be unscribed if class is changed.",
+			"- All unusable spells will be unscribed.",
+			"*If usable at a higher level it will only be unmemmed.*",
+			"- Adjusts all skills, tradeskills and languages as needed.",
+			"- Specialization Skills are reset to 0 if class is changed.",
+		};
+		p.example_format = { fmt::format("{} [Class] [Race] [Deity] [Gender]", sep->arg[0]) };
+		p.examples_one =
+		{
+			"To change to a Barbarian Warrior worshipping The Tribunal that is a Female:",
+			fmt::format(
+				"{} {} {} {} {}",
+				sep->arg[0],
+				Class::Warrior,
+				Race::Barbarian,
+				Deity::TheTribunal,
+				Gender::Female
+			)
+		};
+
+		std::string popup_text = c->SendBotCommandHelpWindow(p);
+		popup_text = DialogueWindow::Table(popup_text);
+
+		c->SendPopupToClient(sep->arg[0], popup_text.c_str());
+
+		if (RuleB(Bots, SendClassRaceOnHelp)) {
+			c->Message(
+				Chat::Yellow,
+				fmt::format(
+					"Use {} for information about race/class/deity IDs.",
+					Saylink::Silent("^classracelist deities")
+				).c_str()
+			);
+		}
+
+		return;
+	}
+
 	if (RuleB(CharChange, RequireSpecificZone) && RuleI(CharChange, RequiredZone) != zone->GetZoneID()) {
 		c->Message(Chat::Yellow, "This command can only be done in %s.", ZoneLongName(RuleI(CharChange, RequiredZone), true));
 
@@ -20,12 +75,9 @@ void command_charchange(Client* c, const Seperator* sep) //TODO vegas - add star
 	}
 
 	std::string reset_key = "CharChange-" + std::to_string(c->CharacterID());
-	std::string bucketValue = DataBucket::GetData(&database, reset_key);
+	std::string reset_key_value = DataBucket::GetData(&database, reset_key);
 
-	int lockoutDuration = RuleI(CharChange, LockoutDuration);
-	std::string lockoutDurationString = Strings::SecondsToTime(lockoutDuration);
-
-	if (Strings::IsNumber(bucketValue) && Strings::ToUnsignedInt(bucketValue) > 0) {		
+	if (!reset_key_value.empty()) {
 		c->Message(
 			Chat::Yellow,
 			fmt::format(
@@ -33,6 +85,7 @@ void command_charchange(Client* c, const Seperator* sep) //TODO vegas - add star
 				lockoutDurationString
 			).c_str()
 		);
+
 		c->Message(
 			Chat::Yellow,
 			fmt::format(
@@ -89,62 +142,10 @@ void command_charchange(Client* c, const Seperator* sep) //TODO vegas - add star
 		Deity::Agnostic2
 	};
 
-	if (helper_is_help_or_usage(sep->arg[1])) {
-		BotCommandHelpParams p;
-
-		p.description = { "Changes your character's race, class, gender and/or deity" };
-	    p.notes =
-		{
-			fmt::format(
-				"This can only be done once every {} and changes will not be refunded or reverted.",
-				lockoutDurationString
-			),
-			"- Set each option to what you want, they must be compatible and available combinations.",
-			"- If you choose to keep a setting, you will not be charged for it.",
-			"- All incompatible items must be unequipped.",
-			"- Base stats adjusted as needed.",
-			"- All disciplines will be unscribed if class is changed.",
-			"- All unusable spells will be unscribed.",
-			"*If usable at a higher level it will only be unmemmed.*",
-			"- Adjusts all skills, tradeskills and languages as needed.",
-			"- Specialization Skills are reset to 0 if class is changed.",
-		};
-		p.example_format = { fmt::format("{} [Class] [Race] [Deity] [Gender]", sep->arg[0]) };
-		p.examples_one =
-		{
-			"To change to a Barbarian Warrior worshipping The Tribunal that is a Female:",
-			fmt::format(
-				"{} {} {} {} {}",
-				sep->arg[0],
-				Class::Warrior,
-				Race::Barbarian,
-				Deity::TheTribunal,
-				Gender::Female
-			)
-		};
-
-		std::string popup_text = c->SendBotCommandHelpWindow(p);
-		popup_text = DialogueWindow::Table(popup_text);
-
-		c->SendPopupToClient(sep->arg[0], popup_text.c_str());
-
-		if (RuleB(Bots, SendClassRaceOnHelp)) {
-			c->Message(
-				Chat::Yellow,
-				fmt::format(
-					"Use {} for information about race/class IDs.",
-					Saylink::Silent("^classracelist")
-				).c_str()
-			);
-		}
-
-		return;
-	}
-
-	bool classFound = false;
+	//bool classFound = false;
 	bool raceFound = false;
 	bool deityFound = false;
-	bool genderFound = false;
+	//bool genderFound = false;
 	uint16 chosenClass;
 	uint16 chosenRace;
 	uint16 chosenDeity;
@@ -167,7 +168,7 @@ void command_charchange(Client* c, const Seperator* sep) //TODO vegas - add star
 			return;
 		}
 
-		classFound = true;
+		//classFound = true;
 	}
 	else {
 		c->Message(
@@ -273,7 +274,8 @@ void command_charchange(Client* c, const Seperator* sep) //TODO vegas - add star
 
 			return;
 		}
-		genderFound = true;
+
+		//genderFound = true;
 	}
 	else {
 		c->Message(
@@ -291,15 +293,15 @@ void command_charchange(Client* c, const Seperator* sep) //TODO vegas - add star
 
 	std::vector<RaceClassCombos> create_combos;
 
-	std::string query = "SELECT * FROM char_create_combinations ORDER BY race, class, deity, start_zone";
-	auto results = database.QueryDatabase(query);
+	std::string create_combo_query = "SELECT * FROM char_create_combinations ORDER BY race, class, deity, start_zone";
+	auto create_combo_query_results = database.QueryDatabase(create_combo_query);
 
-	if (!results.Success()) {
+	if (!create_combo_query_results.Success()) {
 		c->Message(Chat::Red, "Error getting character create combinations.");
 		return;
 	}
 
-	for (auto row = results.begin(); row != results.end(); ++row) {
+	for (auto row = create_combo_query_results.begin(); row != create_combo_query_results.end(); ++row) {
 		RaceClassCombos combo;
 		combo.AllocationIndex = Strings::ToInt(row[0]);
 		combo.Race = Strings::ToInt(row[1]);
@@ -315,9 +317,9 @@ void command_charchange(Client* c, const Seperator* sep) //TODO vegas - add star
 	std::vector<int> races_found;
 	std::vector<int> deities_found;
 
-	RaceClassCombos class_combo;
+	//RaceClassCombos class_combo;
 	bool combo_found = false;
-	bool combo_classFound = false;
+	//bool combo_classFound = false;
 	bool combo_raceFound = false;
 	bool combo_deityFound = false;
 	int combos = create_combos.size();
@@ -325,7 +327,7 @@ void command_charchange(Client* c, const Seperator* sep) //TODO vegas - add star
 	for (int i = 0; i < combos; ++i) {
 		if (create_combos[i].ExpansionRequired <= RuleI(CharChange, ExpansionLimitForCharChange)) {
 			if (create_combos[i].Class == chosenClass) {
-				combo_classFound = true;
+				//combo_classFound = true;
 
 				if (create_combos[i].Race == chosenRace) {
 					combo_raceFound = true;
@@ -352,8 +354,6 @@ void command_charchange(Client* c, const Seperator* sep) //TODO vegas - add star
 		);
 
 		std::string window_text;
-		const int object_max = 1;
-		auto object_count = 0;
 
 		window_text.append("<c \"#FFFF\">");
 
@@ -448,13 +448,14 @@ void command_charchange(Client* c, const Seperator* sep) //TODO vegas - add star
 
 	if (resetCost != 0) {
 		resetCost += RuleI(CharChange, BaseCost);
-		std::string key;
-		std::string bucketValue;
-		key = "MaxLvl-" + std::to_string(c->CharacterID());
-		bucketValue = DataBucket::GetData(&database, key);
+		std::string max_level_key;
+		std::string max_level_key_value;
 
-		if (c->GetLevel() >= 10 && Strings::ToUnsignedInt(bucketValue) > RuleI(CharChange, LevelScaleStart)) {
-			int over_level = Strings::ToUnsignedInt(bucketValue) - RuleI(CharChange, LevelScaleStart);
+		max_level_key = "MaxLvl-" + std::to_string(c->CharacterID());
+		max_level_key_value = DataBucket::GetData(&database, max_level_key);
+
+		if (c->GetLevel() >= 10 && Strings::ToUnsignedInt(max_level_key_value) > RuleI(CharChange, LevelScaleStart)) {
+			int over_level = Strings::ToUnsignedInt(max_level_key_value) - RuleI(CharChange, LevelScaleStart);
 
 			while (over_level > 0) {
 				resetCost *= RuleR(CharChange, ScaleRate);
@@ -496,7 +497,7 @@ void command_charchange(Client* c, const Seperator* sep) //TODO vegas - add star
 			);
 		}
 		else if (!strcasecmp(sep->arg[5], "confirm")) {
-			bool isMaxLevel = (c->GetLevel() >= std::max(int(RuleI(Character, MaxLevel)), int(c->GetClientMaxLevel())));
+			//bool isMaxLevel = (c->GetLevel() >= std::max(int(RuleI(Character, MaxLevel)), int(c->GetClientMaxLevel())));
 			uint16 maxLevel = std::max(int(RuleI(Character, MaxLevel)), int(c->GetClientMaxLevel()));
 
 			if (RuleB(CharChange, RequiresAltCurrency) && c->GetAlternateCurrencyValue(RuleI(CharChange, RequiredAltCurrency)) < resetCost) {
@@ -675,6 +676,8 @@ void command_charchange(Client* c, const Seperator* sep) //TODO vegas - add star
 						c->SetLanguageSkill(Language::ElderDragon, 0);
 						c->SetLanguageSkill(Language::Dragon, 0);
 						break;
+					default:
+						break;
 				}
 
 				switch (chosenRace) {
@@ -754,6 +757,8 @@ void command_charchange(Client* c, const Seperator* sep) //TODO vegas - add star
 						c->SetLanguageSkill(Language::CommonTongue, 100);
 						c->SetLanguageSkill(Language::ElderDragon, 100);
 						c->SetLanguageSkill(Language::Dragon, 100);
+						break;
+					default:
 						break;
 				}
 			}
@@ -835,11 +840,11 @@ void command_charchange(Client* c, const Seperator* sep) //TODO vegas - add star
 				zone->SendDiscordMessage(RuleS(CharChange, CharChangeDiscordWebhook), outFinal);
 			}
 
-			std::string key = "OriginalClassRaceDeityGender-" + std::to_string(c->CharacterID());
-			std::string bucketValue = DataBucket::GetData(&database, key);
+			std::string original_combo_key = "OriginalClassRaceDeityGender-" + std::to_string(c->CharacterID());
+			std::string original_combo_key_value = DataBucket::GetData(&database, original_combo_key);
 
-			if (bucketValue.empty()) {
-				DataBucket::SetData(&database, key, ("" + std::to_string(c->GetBaseClass()) + "," + std::to_string(c->GetBaseRace()) + "," + std::to_string(c->GetDeity()) + "," + std::to_string(c->GetGender())));
+			if (original_combo_key_value.empty()) {
+				DataBucket::SetData(&database, original_combo_key, ("" + std::to_string(c->GetBaseClass()) + "," + std::to_string(c->GetBaseRace()) + "," + std::to_string(c->GetDeity()) + "," + std::to_string(c->GetGender())));
 			}
 
 			c->SetBaseRace(chosenRace);
@@ -849,15 +854,15 @@ void command_charchange(Client* c, const Seperator* sep) //TODO vegas - add star
 
 			std::vector<RaceClassAllocation> create_allocations;
 
-			std::string query = "SELECT * FROM char_create_point_allocations ORDER BY id";
-			auto results = database.QueryDatabase(query);
+			std::string point_allocations_query = "SELECT * FROM char_create_point_allocations ORDER BY id";
+			auto point_allocations_query_results = database.QueryDatabase(point_allocations_query);
 
-			if (!results.Success()) {
+			if (!point_allocations_query_results.Success()) {
 				c->Message(Chat::Red, "Error getting character create allocations.");
 				return;
 			}
 
-			for (auto row = results.begin(); row != results.end(); ++row) {
+			for (auto row = point_allocations_query_results.begin(); row != point_allocations_query_results.end(); ++row) {
 				RaceClassAllocation allocate;
 				allocate.Index = Strings::ToInt(row[0]);
 				allocate.BaseStats[0] = Strings::ToInt(row[1]);
@@ -914,7 +919,7 @@ void command_charchange(Client* c, const Seperator* sep) //TODO vegas - add star
 			c->CampAllBots();
 
 			if (c->Admin() < 100) {
-				DataBucket::SetData(&database, reset_key, std::to_string(lockoutDuration));
+				DataBucket::SetData(&database, reset_key, std::to_string(resetCost), std::to_string(lockoutDuration));
 			}
 
 			c->SetAntiCheatExempt();
@@ -1148,7 +1153,6 @@ void bot_command_type_ids(Client* c, const Seperator* sep)
 		++object_count;
 		message_separator = ", ";
 	}
-	c->SendPopupToClient("Type IDs", window_text.c_str());
 
-	return;
+	c->SendPopupToClient("Type IDs", window_text.c_str());
 }
