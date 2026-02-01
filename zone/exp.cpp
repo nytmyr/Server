@@ -83,6 +83,8 @@ static uint64 ScaleAAXPBasedOnCurrentAATotal(int earnedAA, uint64 add_aaxp)
 
 static uint32 MaxBankedGroupLeadershipPoints(int Level)
 {
+	return 8; // VegasEQ
+
 	if(Level < 35)
 		return 4;
 
@@ -94,6 +96,8 @@ static uint32 MaxBankedGroupLeadershipPoints(int Level)
 
 static uint32 MaxBankedRaidLeadershipPoints(int Level)
 {
+	return 10; // VegasEQ
+
 	if(Level < 45)
 		return 6;
 

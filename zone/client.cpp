@@ -5403,7 +5403,7 @@ bool Client::IsLeadershipEXPOn() {
 
 	Group *g = GetGroup();
 
-	if (g && g->IsLeader(this) && g->GroupCount() > 2)
+	if (g && g->IsLeader(this) && g->GroupCount() >= RuleI(VegasEXP, NumGroupMembersReqForLeadership))
 		return true;
 
 	Raid *r = GetRaid();
@@ -5413,7 +5413,7 @@ bool Client::IsLeadershipEXPOn() {
 
 	// raid leaders can only gain raid AA XP
 	if (r->IsLeader(this)) {
-		if (r->RaidCount() > 17)
+		if (r->RaidCount() >= RuleI(VegasEXP, NumRaidMembersReqForLeadership))
 			return true;
 		else
 			return false;
