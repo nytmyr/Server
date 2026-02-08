@@ -660,14 +660,7 @@ bool Client::SummonItem(uint32 item_id, int16 charges, uint32 aug1, uint32 aug2,
 
 	safe_delete(inst);
 
-	// discover item and any augments
-	if (
-		RuleB(Character, EnableDiscoveredItems) &&
-		!GetGM() &&
-		!IsDiscovered(item_id)
-	) {
-		DiscoverItem(item_id);
-	}
+	CheckItemDiscoverability(item_id);
 
 	return true;
 }
@@ -4690,14 +4683,30 @@ bool Client::HasItemOnCorpse(uint32 item_id)
 
 bool Client::PutItemInInventoryWithStacking(EQ::ItemInstance *inst)
 {
+	if(CheckLoreConflict(inst->GetItem())) {
+		// DuplicateLoreMessage(item_id);
+		Message(
+			Chat::Red,
+			fmt::format(
+				"You already have a lore {} ({}) in your inventory.",
+				database.CreateItemLink(inst->GetID()),
+				inst->GetID()
+			).c_str()
+		);
+
+		return false;
+	}
+
 	auto free_id = GetInv().FindFirstFreeSlotThatFitsItem(inst->GetItem());
 	if (inst->IsStackable()) {
 		if (TryStacking(inst, ItemPacketTrade, true, false)) {
+			CheckItemDiscoverability(inst->GetID());
 			return true;
 		}
 	}
 	if (free_id != INVALID_INDEX) {
 		if (PutItemInInventory(free_id, *inst, true)) {
+			CheckItemDiscoverability(inst->GetID());
 			return true;
 		}
 	}
