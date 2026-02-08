@@ -5719,7 +5719,7 @@ void EntityList::ReloadMerchants() {
 		NPC *cur = it->second;
 
 		if (cur->GetValeenMerchantTier() > 0) {
-			zone->LoadValeenMerchantList(cur->GetNPCTypeID(), cur->GetValeenMerchantTier());
+			zone->LoadValeenMerchantList(cur->MerchantType, cur->GetValeenMerchantTier());
 		}
 		else {
 			if (cur->MerchantType != 0) {

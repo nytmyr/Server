@@ -510,8 +510,8 @@ public:
 	void LoadVegasLootDrops();
 	void LoadValeenMerchantList(int merchant_id, int tier = 0, bool force_update = false);
 	void LoadBulkValeenMerchantLists(bool force_update = false);
-	void DeleteMerchantListEntry(int merchant_id);
-	void GenerateNewValeenMerchantList(int merchant_id);
+	void DeleteMerchantListEntry(int npc_id);
+	void GenerateNewValeenMerchantList(int npc_id);
 	// VegasEQ - END
 
 private:

@@ -855,14 +855,14 @@ luabind::object Lua_Zone::GetPausedTimers(lua_State* L) {
 }
 
 // VegasEQ - START
-void Lua_Zone::ClearValeenMerchantList(int merchant_id) {
+void Lua_Zone::ClearValeenMerchantList(int npc_id) {
 	Lua_Safe_Call_Void();
-	self->DeleteMerchantListEntry(merchant_id);
+	self->DeleteMerchantListEntry(npc_id);
 }
 
-void Lua_Zone::GenerateNewValeenMerchantList(int merchant_id) {
+void Lua_Zone::GenerateNewValeenMerchantList(int npc_id) {
 	Lua_Safe_Call_Void();
-	self->GenerateNewValeenMerchantList(merchant_id);
+	self->GenerateNewValeenMerchantList(npc_id);
 }
 // VegasEQ - END
 

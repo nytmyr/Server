@@ -687,12 +687,12 @@ perl::array Perl_Zone_GetTimers(Zone* self)
 }
 
 // VegasEQ - START
-void Perl_Zone_ClearValeenMerchantList(Zone* self, int merchant_id) {
-	self->DeleteMerchantListEntry(merchant_id);
+void Perl_Zone_ClearValeenMerchantList(Zone* self, int npc_id) {
+	self->DeleteMerchantListEntry(npc_id);
 }
 
-void Perl_Zone_GenerateNewValeenMerchantList(Zone* self, int merchant_id) {
-	self->GenerateNewValeenMerchantList(merchant_id);
+void Perl_Zone_GenerateNewValeenMerchantList(Zone* self, int npc_id) {
+	self->GenerateNewValeenMerchantList(npc_id);
 }
 // VegasEQ - END
 

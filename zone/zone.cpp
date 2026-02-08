@@ -3584,11 +3584,11 @@ void Zone::LoadBulkValeenMerchantLists(bool force_update) {
 		for (uint16 i = 0; i < valeen_ids.size(); ++i) {
 			auto valeen_id = std::stoul(valeen_ids[i]);
 
-			if (auto npc = entity_list.GetMobByNpcTypeID(valeen_id)) {
-				auto valeen_tier = npc->CastToNPC()->GetValeenMerchantTier();
+			if (auto npc = entity_list.GetNPCByNPCTypeID(valeen_id)) {
+				auto valeen_tier = npc->GetValeenMerchantTier();
 
 				if (valeen_tier > 0) {
-					LoadValeenMerchantList(npc->GetNPCTypeID(), valeen_tier, force_update);
+					LoadValeenMerchantList(npc->MerchantType, valeen_tier, force_update);
 					++merchant_count;
 				}
 			}
@@ -3603,16 +3603,6 @@ void Zone::LoadBulkValeenMerchantLists(bool force_update) {
 }
 
 void Zone::LoadValeenMerchantList(int merchant_id, int tier, bool force_update) {
-	if (tier == -1) {
-		auto npc = entity_list.GetMobByNpcTypeID(merchant_id);
-
-		if (npc) {
-			if (auto valeen_tier = npc->CastToNPC()->GetValeenMerchantTier()) {
-				tier = valeen_tier;
-			}
-		}
-	}
-
 	std::string bucket_key = fmt::format("ValeenSpawnT{}", tier);
 
 	if (force_update) {
@@ -3694,14 +3684,22 @@ void Zone::LoadValeenMerchantList(int merchant_id, int tier, bool force_update) 
 	merchanttable[merchant_id] = merchant_list;
 }
 
-void Zone::DeleteMerchantListEntry(int merchant_id) {
-	auto it = merchanttable.find(merchant_id);
+void Zone::DeleteMerchantListEntry(int npc_id) {
+	auto npc = entity_list.GetNPCByNPCTypeID(npc_id);
 
-	if (it != merchanttable.end()) {
-		merchanttable.erase(it);
+	if (npc) {
+		auto it = merchanttable.find(npc->MerchantType);
+
+		if (it != merchanttable.end()) {
+			merchanttable.erase(it);
+		}
 	}
 }
 
-void Zone::GenerateNewValeenMerchantList(int merchant_id) {
-	LoadValeenMerchantList(merchant_id, -1, true);
+void Zone::GenerateNewValeenMerchantList(int npc_id) {
+	auto npc = entity_list.GetNPCByNPCTypeID(npc_id);
+
+	if (npc) {
+		LoadValeenMerchantList(npc->MerchantType, npc->GetValeenMerchantTier(), true);
+	}
 }

@@ -170,8 +170,8 @@ public:
 	std::string GetBucketRemaining(const std::string& bucket_name);
 
 	// VegasEQ - START
-	void ClearValeenMerchantList(int merchant_id);
-	void GenerateNewValeenMerchantList(int merchant_id);
+	void ClearValeenMerchantList(int npc_id);
+	void GenerateNewValeenMerchantList(int npc_id);
 	// VegasEQ - END
 
 };
