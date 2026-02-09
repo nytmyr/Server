@@ -460,6 +460,7 @@ bool BotDatabase::LoadBot(const uint32 bot_id, Bot*& loaded_bot)
 		loaded_bot->SetSurname(e.last_name);
 		loaded_bot->SetTitle(e.title);
 		loaded_bot->SetSuffix(e.suffix);
+		loaded_bot->SetExpansionBitmask(e.expansion_bitmask);
 	}
 
 	return true;
@@ -514,6 +515,7 @@ bool BotDatabase::SaveNewBot(Bot* b, uint32& bot_id)
 	e.poison                 = b->GetBasePR();
 	e.disease                = b->GetBaseDR();
 	e.corruption             = b->GetBaseCorrup();
+	e.expansion_bitmask      = b->GetExpansionBitmask();
 
 	e = BotDataRepository::InsertOne(database, e);
 
@@ -578,6 +580,7 @@ bool BotDatabase::SaveBot(Bot* b)
 	e.poison                 = b->GetBasePR();
 	e.disease                = b->GetBaseDR();
 	e.corruption             = b->GetBaseCorrup();
+	e.expansion_bitmask      = b->GetExpansionBitmask();
 
 	return BotDataRepository::UpdateOne(database, e);
 }
@@ -2351,7 +2354,7 @@ bool BotDatabase::SaveBotSettings(Mob* m)
 	if (m->IsBot()) {
 		uint8 bot_stance = m->CastToBot()->GetBotStance();
 
-		for (uint16 i = BotBaseSettings::START_ALL; i <= BotBaseSettings::END; ++i) {
+		for (uint16 i = BotBaseSettings::START; i <= BotBaseSettings::END; ++i) {
 			if (m->CastToBot()->GetBotBaseSetting(i) != m->CastToBot()->GetDefaultBotBaseSetting(i, bot_stance)) {
 				auto e = BotSettingsRepository::BotSettings{
 					.character_id				= character_id,

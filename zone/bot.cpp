@@ -10395,9 +10395,6 @@ void Bot::SetBotSetting(uint8 setting_type, uint16 bot_setting, int setting_valu
 
 void Bot::SetBotBaseSetting(uint16 bot_setting, int setting_value) {
 	switch (bot_setting) {
-		case BotBaseSettings::ExpansionBitmask:
-			SetExpansionBitmask(setting_value);
-			break;
 		case BotBaseSettings::ShowHelm:
 			SetShowHelm(setting_value);
 			break;
@@ -10444,8 +10441,6 @@ void Bot::SetBotBaseSetting(uint16 bot_setting, int setting_value) {
 
 int Bot::GetBotBaseSetting(uint16 bot_setting) {
 	switch (bot_setting) {
-		case BotBaseSettings::ExpansionBitmask:
-			return GetExpansionBitmask();
 		case BotBaseSettings::ShowHelm:
 			return GetShowHelm();
 		case BotBaseSettings::FollowDistance:
@@ -10481,8 +10476,6 @@ int Bot::GetBotBaseSetting(uint16 bot_setting) {
 
 int Bot::GetDefaultBotBaseSetting(uint16 bot_setting, uint8 stance) {
 	switch (bot_setting) {
-		case BotBaseSettings::ExpansionBitmask:
-			return RuleI(Bots, BotExpansionSettings);
 		case BotBaseSettings::ShowHelm:
 			return true;
 		case BotBaseSettings::FollowDistance:
@@ -10541,7 +10534,7 @@ void Bot::LoadDefaultBotSettings() {
 
 	uint8 bot_stance = GetBotStance();
 
-	for (uint16 i = BotBaseSettings::START_ALL; i <= BotBaseSettings::END; ++i) {
+	for (uint16 i = BotBaseSettings::START; i <= BotBaseSettings::END; ++i) {
 		SetBotBaseSetting(i, GetDefaultSetting(BotSettingCategories::BaseSetting, i, bot_stance));
 		LogBotSettingsDetail("{} says, 'Setting default {} [{}] to [{}]'", GetCleanName(), GetBotSettingCategoryName(i), i, GetDefaultBotBaseSetting(i, bot_stance));
 	}
@@ -12925,7 +12918,7 @@ uint16 Bot::GetBotSpellCategoryIDByShortName(std::string setting_string) {
 }
 
 bool Bot::IsValidBotBaseSetting(uint16 setting_type) {
-	return EQ::ValueWithin(setting_type, BotBaseSettings::START_ALL, BotBaseSettings::END);
+	return EQ::ValueWithin(setting_type, BotBaseSettings::START, BotBaseSettings::END);
 }
 
 std::string Bot::GetBotSettingCategoryName(uint16 setting_type) {
