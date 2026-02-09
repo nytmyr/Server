@@ -159,7 +159,6 @@ namespace BotPriorityCategories {
 };
 
 namespace BotBaseSettings {
-	constexpr uint16 ExpansionBitmask                 = 0;
 	constexpr uint16 ShowHelm                         = 1;
 	constexpr uint16 FollowDistance                   = 2;
 	constexpr uint16 StopMeleeLevel                   = 3;	
@@ -174,13 +173,11 @@ namespace BotBaseSettings {
 	constexpr uint16 SitHPPct                         = 12;
 	constexpr uint16 SitManaPct                       = 13;
 
-	constexpr uint16 START_ALL                        = ExpansionBitmask;
-	constexpr uint16 START                            = BotBaseSettings::ShowHelm; // Everything above this cannot be copied, changed or viewed by players
+	constexpr uint16 START                            = BotBaseSettings::ShowHelm;
 	constexpr uint16 END                              = BotBaseSettings::SitManaPct; // Increment as needed
 };
 
 static std::map<uint16, std::string> botBaseSettings_names = {
-	{ BotBaseSettings::ExpansionBitmask,             "ExpansionBitmask" },
 	{ BotBaseSettings::ShowHelm,                     "ShowHelm" },
 	{ BotBaseSettings::FollowDistance,               "FollowDistance" },
 	{ BotBaseSettings::StopMeleeLevel,               "StopMeleeLevel" },

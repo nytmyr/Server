@@ -2126,7 +2126,38 @@ WHERE NOT EXISTS
 FROM spells_new
 WHERE bot_spells_entries.spell_id = spells_new.id);
 )",
-	}
+	},
+	ManifestEntry{
+		.version = 9055,
+		.description = "2026_02_8_move_expansion_bitmask.sql",
+		.check = "SHOW COLUMNS FROM `bot_data` LIKE 'expansion_bitmask'",
+		.condition = "empty",
+		.match = "",
+		.sql = R"(
+ALTER TABLE `bot_data`
+	ADD COLUMN `expansion_bitmask` INT(11) NOT NULL DEFAULT '0' AFTER `corruption`;
+
+UPDATE bot_data bd
+SET bd.expansion_bitmask = COALESCE(
+    (SELECT bs.`value`
+     FROM bot_settings bs
+     WHERE bs.`setting_id` = 0
+     AND bs.`setting_type` = 0
+     AND bs.bot_id = bd.bot_id
+     ORDER BY bs.`value` DESC
+     LIMIT 1),
+
+    (SELECT rv.rule_value
+     FROM rule_values rv
+     WHERE rv.rule_name = 'Bots:BotExpansionSettings')
+);
+
+DELETE
+FROM bot_settings
+WHERE `setting_id` = 0
+AND `setting_type` = 0;
+)"
+		}
 // -- template; copy/paste this when you need to create a new entry
 //	ManifestEntry{
 //		.version = 9228,
