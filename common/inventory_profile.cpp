@@ -1719,7 +1719,7 @@ int16 EQ::InventoryProfile::_HasItemByLoreGroup(std::map<int16, ItemInstance*>& 
 				continue;
 			}
 
-			if (bag_inst->IsClassCommon() && bag_inst->GetItem()->LoreGroup == loregroup) {
+			if (bag_inst->GetItem()->LoreGroup == loregroup) {
 				return InventoryProfile::CalcSlotId(iter->first, bag_iter->first);
 			}
 
