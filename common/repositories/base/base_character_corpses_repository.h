@@ -71,6 +71,7 @@ public:
 		uint32_t    killed_by;
 		uint8_t     rezzable;
 		std::string entity_variables;
+		uint8_t     ssf_flag;
 	};
 
 	static std::string PrimaryKey()
@@ -133,6 +134,7 @@ public:
 			"killed_by",
 			"rezzable",
 			"entity_variables",
+			"ssf_flag",
 		};
 	}
 
@@ -191,6 +193,7 @@ public:
 			"killed_by",
 			"rezzable",
 			"entity_variables",
+			"ssf_flag",
 		};
 	}
 
@@ -283,6 +286,7 @@ public:
 		e.killed_by        = 0;
 		e.rezzable         = 0;
 		e.entity_variables = "";
+		e.ssf_flag         = 0;
 
 		return e;
 	}
@@ -371,6 +375,7 @@ public:
 			e.killed_by        = row[49] ? static_cast<uint32_t>(strtoul(row[49], nullptr, 10)) : 0;
 			e.rezzable         = row[50] ? static_cast<uint8_t>(strtoul(row[50], nullptr, 10)) : 0;
 			e.entity_variables = row[51] ? row[51] : "";
+			e.ssf_flag         = row[52] ? static_cast<uint8_t>(strtoul(row[52], nullptr, 10)) : 0;
 
 			return e;
 		}
@@ -455,6 +460,7 @@ public:
 		v.push_back(columns[49] + " = " + std::to_string(e.killed_by));
 		v.push_back(columns[50] + " = " + std::to_string(e.rezzable));
 		v.push_back(columns[51] + " = '" + Strings::Escape(e.entity_variables) + "'");
+		v.push_back(columns[52] + " = " + std::to_string(e.ssf_flag));
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -528,6 +534,7 @@ public:
 		v.push_back(std::to_string(e.killed_by));
 		v.push_back(std::to_string(e.rezzable));
 		v.push_back("'" + Strings::Escape(e.entity_variables) + "'");
+		v.push_back(std::to_string(e.ssf_flag));
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -609,6 +616,7 @@ public:
 			v.push_back(std::to_string(e.killed_by));
 			v.push_back(std::to_string(e.rezzable));
 			v.push_back("'" + Strings::Escape(e.entity_variables) + "'");
+			v.push_back(std::to_string(e.ssf_flag));
 
 			insert_chunks.push_back("(" + Strings::Implode(",", v) + ")");
 		}
@@ -694,6 +702,7 @@ public:
 			e.killed_by        = row[49] ? static_cast<uint32_t>(strtoul(row[49], nullptr, 10)) : 0;
 			e.rezzable         = row[50] ? static_cast<uint8_t>(strtoul(row[50], nullptr, 10)) : 0;
 			e.entity_variables = row[51] ? row[51] : "";
+			e.ssf_flag         = row[52] ? static_cast<uint8_t>(strtoul(row[52], nullptr, 10)) : 0;
 
 			all_entries.push_back(e);
 		}
@@ -770,6 +779,7 @@ public:
 			e.killed_by        = row[49] ? static_cast<uint32_t>(strtoul(row[49], nullptr, 10)) : 0;
 			e.rezzable         = row[50] ? static_cast<uint8_t>(strtoul(row[50], nullptr, 10)) : 0;
 			e.entity_variables = row[51] ? row[51] : "";
+			e.ssf_flag         = row[52] ? static_cast<uint8_t>(strtoul(row[52], nullptr, 10)) : 0;
 
 			all_entries.push_back(e);
 		}
@@ -896,6 +906,7 @@ public:
 		v.push_back(std::to_string(e.killed_by));
 		v.push_back(std::to_string(e.rezzable));
 		v.push_back("'" + Strings::Escape(e.entity_variables) + "'");
+		v.push_back(std::to_string(e.ssf_flag));
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -970,6 +981,7 @@ public:
 			v.push_back(std::to_string(e.killed_by));
 			v.push_back(std::to_string(e.rezzable));
 			v.push_back("'" + Strings::Escape(e.entity_variables) + "'");
+			v.push_back(std::to_string(e.ssf_flag));
 
 			insert_chunks.push_back("(" + Strings::Implode(",", v) + ")");
 		}

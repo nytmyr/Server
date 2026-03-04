@@ -656,6 +656,12 @@ public:
 	void            SetAntiCheatExempt();
 	void            SetAntiCheatExempt(int duration);
 	bool            GetAntiCheatExempt();
+
+	// SSF
+	uint8           GetSSFFlag();
+	void            SetSSFFlag(uint8 value);
+	void            ResetForChallengeRuleset();
+	bool            HardcoreHasDied();
 	// VegasEQ - END
 };
 

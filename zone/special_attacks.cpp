@@ -221,6 +221,10 @@ void Mob::DoSpecialAttackDamage(Mob *who, EQ::skills::SkillType skill, int32 bas
 	     (!IsAttackAllowed(who))))
 		return;
 
+	if (!IsValidSSFTarget(this, who, SSFFlagCheckTypes::Attack)) { // VegasEQ
+		return;
+	}
+
 	DamageHitInfo my_hit;
 	my_hit.damage_done = 1; // min 1 dmg
 	my_hit.base_damage = base_damage;
@@ -1023,6 +1027,10 @@ void Mob::DoArcheryAttackDmg(Mob *other, const EQ::ItemInstance *RangeWeapon, co
 		return;
 	}
 
+	if (!IsValidSSFTarget(this, other, SSFFlagCheckTypes::Attack)) { // VegasEQ
+		return;
+	}
+
 	const EQ::ItemInstance *_RangeWeapon = nullptr;
 	const EQ::ItemInstance *_Ammo = nullptr;
 	const EQ::ItemData *last_ammo_used = nullptr;
@@ -1624,6 +1632,10 @@ void Mob::DoThrowingAttackDmg(Mob *other, const EQ::ItemInstance *RangeWeapon, c
 	if ((other == nullptr ||
 		((IsClient() && CastToClient()->dead) || (other->IsClient() && other->CastToClient()->dead)) ||
 		HasDied() || (!IsAttackAllowed(other)) || (other->GetInvul() || other->GetSpecialAbility(SpecialAbility::MeleeImmunity)))) {
+		return;
+	}
+
+	if (!IsValidSSFTarget(this, other, SSFFlagCheckTypes::Attack)) { // VegasEQ
 		return;
 	}
 
@@ -2648,6 +2660,10 @@ bool Mob::CanDoSpecialAttack(Mob *other) {
 
 	if(other->GetInvul() || other->GetSpecialAbility(SpecialAbility::MeleeImmunity))
 		return false;
+
+	if (!IsValidSSFTarget(this, other, SSFFlagCheckTypes::Attack)) { // VegasEQ
+		return false;
+	}
 
 	return true;
 }

@@ -211,6 +211,10 @@ void ClientListEntry::Update(ZoneServer *iZS, ServerClientList_Struct *scl, CLE_
 		memcpy(m_lfg_comments, scl->LFGComments, sizeof(m_lfg_comments));
 	}
 
+	// VegasEQ - START
+	m_ssl_flags            = scl->ssl_flags;
+	// VegasEQ - END
+
 	SetOnline(iOnline);
 }
 

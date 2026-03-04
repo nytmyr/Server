@@ -67,6 +67,8 @@
 #include <cstdio>
 #include <cstdarg>
 
+#include "common/repositories/ssf_discovered_items_repository.h" // VegasEQ
+
 extern QueryServ* QServ;
 extern EntityList entity_list;
 extern Zone* zone;
@@ -2183,6 +2185,10 @@ void Client::UpdateWho(uint8 remove)
 		s->LFGMatchFilter = LFGMatchFilter;
 		memcpy(s->LFGComments, LFGComments, sizeof(s->LFGComments));
 	}
+
+	// VegasEQ - START
+	s->ssl_flags     = GetSSFFlag();
+	// VegasEQ - END
 
 	worldserver.SendPacket(pack);
 	safe_delete(pack);
@@ -4984,42 +4990,82 @@ bool Client::ChangePetName(std::string new_name)
 
 bool Client::IsDiscovered(uint32 item_id)
 {
-	if (
+	if (RuleB(SSF, SelfFoundDiscoveredItemsEnabled) && SSFLogic::IsAnySelfFound(GetSSFFlag())) { // VegasEQ
+		if (
 		std::find(
-			zone->discovered_items.begin(),
-			zone->discovered_items.end(),
+			zone->ssf_discovered_items.begin(),
+			zone->ssf_discovered_items.end(),
 			item_id
-		) != zone->discovered_items.end()
+		) != zone->ssf_discovered_items.end()
 	) {
-		return true;
+			return true;
 	}
 
-	if (
-		DiscoveredItemsRepository::GetWhere(
-			database,
-			fmt::format(
-				"`item_id` = {} LIMIT 1",
+		if (
+			SsfDiscoveredItemsRepository::GetWhere(
+				database,
+				fmt::format(
+					"`item_id` = {} LIMIT 1",
+					item_id
+				)
+			).empty()
+		) {
+			return false;
+		}
+
+		zone->ssf_discovered_items.emplace_back(item_id);
+	}
+	else {
+		if (
+			std::find(
+				zone->discovered_items.begin(),
+				zone->discovered_items.end(),
 				item_id
-			)
-		).empty()
-	) {
-		return false;
-	}
+			) != zone->discovered_items.end()
+		) {
+			return true;
+		}
 
-	zone->discovered_items.emplace_back(item_id);
+		if (
+			DiscoveredItemsRepository::GetWhere(
+				database,
+				fmt::format(
+					"`item_id` = {} LIMIT 1",
+					item_id
+				)
+			).empty()
+		) {
+			return false;
+		}
+
+		zone->discovered_items.emplace_back(item_id);
+	}
 
 	return true;
 }
 
 void Client::DiscoverItem(uint32 item_id) {
-	auto e = DiscoveredItemsRepository::NewEntity();
+	if (RuleB(SSF, SelfFoundDiscoveredItemsEnabled) && SSFLogic::IsAnySelfFound(GetSSFFlag())) { // VegasEQ
+		auto e = SsfDiscoveredItemsRepository::NewEntity();
 
-	e.account_status = Admin();
-	e.char_name = GetCleanName();
-	e.discovered_date = std::time(nullptr);
-	e.item_id = item_id;
+		e.account_status = Admin();
+		e.char_name = GetCleanName();
+		e.discovered_date = std::time(nullptr);
+		e.item_id = item_id;
+		e.ssf_flag = GetSSFFlag();
 
-	auto d = DiscoveredItemsRepository::InsertOne(database, e);
+		auto d = SsfDiscoveredItemsRepository::InsertOne(database, e);
+	}
+	else {
+		auto e = DiscoveredItemsRepository::NewEntity();
+
+		e.account_status = Admin();
+		e.char_name = GetCleanName();
+		e.discovered_date = std::time(nullptr);
+		e.item_id = item_id;
+
+		auto d = DiscoveredItemsRepository::InsertOne(database, e);
+	}
 
 	if (PlayerEventLogs::Instance()->IsEventEnabled(PlayerEvent::DISCOVER_ITEM)) {
 		const auto* item = database.GetItem(item_id);
@@ -12896,6 +12942,10 @@ void Client::ClientToNpcAggroProcess()
 			}
 
 			if (mob->CheckWillAggro(this) && !mob->CheckAggro(this)) {
+				if (!mob->IsAssignedToSSFFlags(this)) { // VegasEQ
+					mob->ResetSSFFlags();
+				}
+
 				mob->AddToHateList(this, 25);
 			}
 
@@ -13383,5 +13433,478 @@ float Client::GetTotalGearScore() {
 	}
 
 	return total_score;
+}
+
+//SSF
+void Client::ResetForChallengeRuleset() {
+	SetLevel(1);
+	SetEXP(ExpSource::Quest, 0, 0);
+	SetAAEXPPercentage(0);
+	SetPVP(false);
+	BuffFadeAll();
+	ResetAA();
+	ResetLeadershipAA();
+	SetAAPoints(0);
+	m_pp.aapoints_spent = 0;
+	SetLeadershipEXP(0, 0);
+	UnmemSpellAll();
+	UnscribeSpellAll();
+	UntrainDiscAll();
+
+	database.QueryDatabase(fmt::format("DELETE FROM faction_values WHERE char_id = {}", CharacterID()));
+	factionvalues.clear();
+	SetSkillPoints(5);
+
+	// Reset Languages
+	for (int i = Language::CommonTongue; i <= Language::Unknown27; ++i) {
+		SetLanguageSkill(i, 0);
+	}
+
+	// Reset Skills
+	for (int i = EQ::skills::Skill1HBlunt; i <= EQ::skills::HIGHEST_SKILL; ++i) {
+		SetSkill((EQ::skills::SkillType)i, 50);
+	}
+
+	database.QueryDatabase(fmt::format("DELETE FROM character_skills WHERE id = {}", CharacterID()));
+
+	// Race Languages
+	switch (GetBaseRace()) {
+		case Race::Human: {
+			SetLanguageSkill(Language::CommonTongue, Language::MaxValue);
+			break;
+		}
+		case Race::Barbarian: {
+			SetLanguageSkill(Language::CommonTongue, Language::MaxValue);
+			SetLanguageSkill(Language::Barbarian, Language::MaxValue);
+			break;
+		}
+		case Race::Erudite: {
+			SetLanguageSkill(Language::CommonTongue, Language::MaxValue);
+			SetLanguageSkill(Language::Erudian, Language::MaxValue);
+			break;
+		}
+		case Race::WoodElf: {
+			SetLanguageSkill(Language::CommonTongue, Language::MaxValue);
+			SetLanguageSkill(Language::Elvish, Language::MaxValue);
+			break;
+		}
+		case Race::HighElf: {
+			SetLanguageSkill(Language::CommonTongue, Language::MaxValue);
+			SetLanguageSkill(Language::DarkElvish, 25);
+			SetLanguageSkill(Language::ElderElvish, 25);
+			SetLanguageSkill(Language::Elvish, Language::MaxValue);
+			break;
+		}
+		case Race::DarkElf: {
+			SetLanguageSkill(Language::CommonTongue, Language::MaxValue);
+			SetLanguageSkill(Language::DarkElvish, Language::MaxValue);
+			SetLanguageSkill(Language::DarkSpeech, Language::MaxValue);
+			SetLanguageSkill(Language::ElderElvish, Language::MaxValue);
+			SetLanguageSkill(Language::Elvish, 25);
+			break;
+		}
+		case Race::HalfElf: {
+			SetLanguageSkill(Language::CommonTongue, Language::MaxValue);
+			SetLanguageSkill(Language::Elvish, Language::MaxValue);
+			break;
+		}
+		case Race::Dwarf: {
+			SetLanguageSkill(Language::CommonTongue, Language::MaxValue);
+			SetLanguageSkill(Language::Dwarvish, Language::MaxValue);
+			SetLanguageSkill(Language::Gnomish, 25);
+			break;
+		}
+		case Race::Troll: {
+			SetLanguageSkill(Language::CommonTongue, RuleI(Character, TrollCommonTongue));
+			SetLanguageSkill(Language::DarkSpeech, Language::MaxValue);
+			SetLanguageSkill(Language::Troll, Language::MaxValue);
+			break;
+		}
+		case Race::Ogre: {
+			SetLanguageSkill(Language::CommonTongue, RuleI(Character, OgreCommonTongue));
+			SetLanguageSkill(Language::DarkSpeech, Language::MaxValue);
+			SetLanguageSkill(Language::Ogre, Language::MaxValue);
+			break;
+		}
+		case Race::Halfling: {
+			SetLanguageSkill(Language::CommonTongue, Language::MaxValue);
+			SetLanguageSkill(Language::Halfling, Language::MaxValue);
+			break;
+		}
+		case Race::Gnome: {
+			SetLanguageSkill(Language::CommonTongue, Language::MaxValue);
+			SetLanguageSkill(Language::Dwarvish, 25);
+			SetLanguageSkill(Language::Gnomish, Language::MaxValue);
+			break;
+		}
+		case Race::Iksar: {
+			SetLanguageSkill(Language::CommonTongue, RuleI(Character, IksarCommonTongue));
+			SetLanguageSkill(Language::DarkSpeech, Language::MaxValue);
+			SetLanguageSkill(Language::Lizardman, Language::MaxValue);
+			break;
+		}
+		case Race::VahShir: {
+			SetLanguageSkill(Language::CommonTongue, Language::MaxValue);
+			SetLanguageSkill(Language::CombineTongue, Language::MaxValue);
+			SetLanguageSkill(Language::Erudian, 25);
+			SetLanguageSkill(Language::VahShir, Language::MaxValue);
+			break;
+		}
+		case Race::Froglok2: {
+			SetLanguageSkill(Language::CommonTongue, Language::MaxValue);
+			SetLanguageSkill(Language::Froglok, Language::MaxValue);
+			SetLanguageSkill(Language::Troll, 25);
+			break;
+		}
+		case Race::Drakkin: {
+			SetLanguageSkill(Language::CommonTongue, Language::MaxValue);
+			SetLanguageSkill(Language::ElderDragon, Language::MaxValue);
+			SetLanguageSkill(Language::Dragon, Language::MaxValue);
+			break;
+		}
+		default: {
+			break;
+		}
+	}
+
+	// Class Languages
+	switch (GetBaseClass()) {
+		case Class::Rogue:
+			SetLanguageSkill(Language::ThievesCant, Language::MaxValue);
+			break;
+		default:
+			break;
+	}
+
+	// Default Skills
+	SetSkill(EQ::skills::SkillSwimming, RuleI(Skills, SwimmingStartValue));
+	SetSkill(EQ::skills::SkillSenseHeading, RuleI(Skills, SenseHeadingStartValue));
+
+	// Race Skills
+	switch(GetBaseRace()) {
+		case Race::Barbarian:
+		case Race::Dwarf:
+		case Race::Erudite:
+		case Race::HalfElf:
+		case Race::HighElf:
+		case Race::Human:
+		case Race::Ogre:
+		case Race::Troll:
+		case Race::Drakkin:	{ //Drakkin are supposed to get a starting AA Skill
+			// No Race Specific Skills
+			break;
+		}
+		case Race::DarkElf: {
+			SetSkill(EQ::skills::SkillHide, 50);
+			break;
+		}
+		case Race::Froglok2: {
+			if (RuleI(Skills, SwimmingStartValue) < 125) {
+				SetSkill(EQ::skills::SkillSwimming, 125);
+			}
+			break;
+		}
+		case Race::Gnome: {
+			SetSkill(EQ::skills::SkillTinkering, 50);
+			break;
+		}
+		case Race::Halfling: {
+			SetSkill(EQ::skills::SkillHide, 50);
+			SetSkill(EQ::skills::SkillSneak, 50);
+			break;
+		}
+		case Race::Iksar: {
+			SetSkill(EQ::skills::SkillForage, 50);
+
+			if (RuleI(Skills, SwimmingStartValue) < 100) {
+				SetSkill(EQ::skills::SkillSwimming, 100);
+			}
+
+			break;
+		}
+		case Race::WoodElf: {
+			SetSkill(EQ::skills::SkillForage, 50);
+			SetSkill(EQ::skills::SkillHide, 50);
+			break;
+		}
+		case Race::VahShir: {
+			SetSkill(EQ::skills::SkillSafeFall, 50);
+			SetSkill(EQ::skills::SkillSneak, 50);
+			break;
+		}
+	}
+
+	// Class Skills
+	for (uint32 i = 0; i <= EQ::skills::HIGHEST_SKILL; ++i) {
+		if (GetSkill((EQ::skills::SkillType)i) == 0) {
+			// Skip specialized, tradeskills (fishing excluded), Alcohol Tolerance, and Bind Wound
+			if (EQ::skills::IsSpecializedSkill((EQ::skills::SkillType)i) ||
+				(EQ::skills::IsTradeskill((EQ::skills::SkillType)i) && i != EQ::skills::SkillFishing) ||
+				i == EQ::skills::SkillAlcoholTolerance || i == EQ::skills::SkillBindWound)
+				continue;
+
+			SetSkill((EQ::skills::SkillType)i, SkillCaps::Instance()->GetSkillCap(GetBaseClass(), (EQ::skills::SkillType)i, 1).cap);
+		}
+	}
+
+	if (ClientVersion() < EQ::versions::ClientVersion::RoF2 && GetBaseClass() == Class::Berserker) {
+		SetSkill(EQ::skills::Skill1HPiercing, GetSkill(EQ::skills::Skill2HPiercing));
+		SetSkill(EQ::skills::Skill2HPiercing, 0);
+	}
+
+	// Wipe Money
+	m_pp.copper = 0;
+	m_pp.copper_bank = 0;
+	m_pp.copper_cursor = 0;
+	m_pp.silver = 0;
+	m_pp.silver_bank = 0;
+	m_pp.silver_cursor = 0;
+	m_pp.gold = 0;
+	m_pp.gold_bank = 0;
+	m_pp.gold_cursor = 0;
+	m_pp.platinum = 0;
+	m_pp.platinum_bank = 0;
+	m_pp.platinum_cursor = 0;
+	SaveCurrency();
+	SetLDoNPoints(LDoNTheme::GUK, 0);
+	SetLDoNPoints(LDoNTheme::MIR, 0);
+	SetLDoNPoints(LDoNTheme::MMC, 0);
+	SetLDoNPoints(LDoNTheme::RUJ, 0);
+	SetLDoNPoints(LDoNTheme::TAK, 0);
+	SetPVPPoints(0);
+	SetRadiantCrystals(0);
+	SetEbonCrystals(0);
+	SetAlternateCurrencyValue(70, 0);
+	SetAlternateCurrencyValue(71, 0);
+	SetAlternateCurrencyValue(72, 0);
+
+	Mob *other = trade->With();
+
+	if (other) {
+		FinishTrade(this);
+
+		if (other->IsClient()) {
+			other->CastToClient()->FinishTrade(other);
+		}
+
+		trade->Reset();
+		other->trade->Reset();
+	}
+
+	for (int16 i = EQ::invslot::SLOT_BEGIN; i <= EQ::invbag::TRADE_BAGS_END;) {
+		if (i > EQ::invslot::slotCursor && i < EQ::invslot::BANK_BEGIN) {
+			i = EQ::invslot::BANK_BEGIN;
+			continue;
+		}
+		else if (i > EQ::invslot::BANK_END && i < EQ::invbag::CURSOR_BAG_BEGIN) {
+			i = EQ::invbag::CURSOR_BAG_BEGIN;
+			continue;
+		}
+		else if (i > EQ::invbag::CURSOR_BAG_END && i < EQ::invbag::TRADE_BAGS_BEGIN) {
+			i = EQ::invbag::TRADE_BAGS_BEGIN;
+			continue;
+		}
+
+		const EQ::ItemInstance* item = m_inv.GetItem(i);
+
+		if (item) {
+			DeleteItemInInventory(i, 0);
+		}
+
+		i++;
+	}
+
+	KeyRingClear();
+
+	database.QueryDatabase(fmt::format("DELETE FROM character_potionbelt WHERE id = {}", CharacterID()));
+	database.QueryDatabase(fmt::format("DELETE FROM character_evolving_items WHERE character_id = {}", CharacterID()));
+
+	if (GetPet()) {
+		GetPet()->SetOwnerID(0);
+		SetPet(0);
+	}
+
+	SetBindPoint(0, m_pp.binds[4].zone_id, 0, glm::vec3(m_pp.binds[4].x, m_pp.binds[4].y, m_pp.binds[4].z));
+
+	PlayerBlockedBuffs.clear();
+	PetBlockedBuffs.clear();
+	p_timers.Clear(&database);
+	tribute_timer.Disable();
+
+	SetGuildTributeOptIn(false);
+	SetHorseId(0);
+	SetConsumption(6000, 6000);
+
+	zone_flags.clear();
+	database.QueryDatabase(fmt::format("DELETE FROM zone_flags WHERE charID = {}", CharacterID()));
+	peqzone_flags.clear();
+
+	for (auto &p: m_parcels) {
+		database.QueryDatabase(fmt::format("DELETE FROM character_parcels WHERE id = {}", p.second.id));
+		database.QueryDatabase(fmt::format("DELETE FROM character_parcels_containers WHERE id = {}", p.second.id));
+	}
+
+	for (const auto& t : GetTitles()) {
+		RemoveTitle(t.title_set);
+	}
+
+	m_player_title_sets.clear();
+	database.QueryDatabase(fmt::format("UPDATE titles t SET t.status = 255 WHERE t.char_id = {}", CharacterID()));
+	database.QueryDatabase(fmt::format("DELETE FROM player_titlesets WHERE char_id = {}", CharacterID()));
+	SetAATitle("");
+	SetTitleSuffix("");
+
+	database.QueryDatabase(fmt::format("DELETE FROM cust_playerawards WHERE charid = {}", CharacterID()));
+
+	ToggleTribute(false);
+
+	m_pp.tribute_points = 0;
+	m_pp.career_tribute_points = 0;
+
+	for (auto& t : GetPP().tributes) {
+		t.tier    = 0;
+		t.tribute = TRIBUTE_NONE;
+	}
+
+	RemoveClientTaskState();
+	RemoveDzLockouts({}, true);
+
+	for (auto& t : GetDynamicZones()) {
+		RemoveDynamicZoneID(t->GetID());
+	}
+
+	CharRecipeListRepository::DeleteWhere(database, fmt::format("char_id = {}", CharacterID()));
+
+	auto l = CharacterCorpsesRepository::GetWhere(database, fmt::format("charid = {}", CharacterID()));
+
+	for (const auto& e : l) {
+		database.QueryDatabase(fmt::format("DELETE FROM character_corpse_items WHERE corpse_id = {}", e.id));
+	}
+
+	CharacterCorpsesRepository::DeleteWhere(database, fmt::format("charid = {}", CharacterID()));
+
+	LeaveGroup();
+
+	if (GetRaid()) {
+		GetRaid()->DisbandRaid();
+	}
+
+	CampAllBots();
+	database.QueryDatabase(fmt::format("UPDATE bot_data SET name = SUBSTRING(CONCAT(name, '-deleted-', UNIX_TIMESTAMP()), 1, 64) WHERE owner_id = {}", CharacterID()));
+	LoadDefaultBotSettings();
+
+	std::string query = StringFormat("SELECT *  FROM starting_items");
+
+	auto results = database.QueryDatabase(query);
+
+	if (results.Success()) {
+		const EQ::ItemData *item_data;
+
+		for (auto row = results.begin(); row != results.end(); ++row) {
+			uint32 si_id = Strings::ToUnsignedInt(row[0]);
+			std::string si_class_list = std::string(row[1]);
+			std::string si_race_list = std::string(row[2]);
+			std::string si_deity_list = std::string(row[3]);
+			std::string si_zone_id_list = std::string(row[4]);
+			uint32 si_item_id = Strings::ToUnsignedInt(row[5]);
+			uint16 si_item_charges = Strings::ToUnsignedInt(row[6]);
+			uint32 si_augment_one = Strings::ToUnsignedInt(row[7]);
+			uint32 si_augment_two = Strings::ToUnsignedInt(row[8]);
+			uint32 si_augment_three = Strings::ToUnsignedInt(row[9]);
+			uint32 si_augment_four = Strings::ToUnsignedInt(row[10]);
+			uint32 si_augment_five = Strings::ToUnsignedInt(row[11]);
+			uint32 si_augment_six = Strings::ToUnsignedInt(row[12]);
+			int32 si_status = Strings::ToInt(row[13]);
+			int32 si_inventory_slot = Strings::ToInt(row[14]);
+			int8 si_min_expansion = Strings::ToInt(row[15]);
+			int8 si_max_expansion = Strings::ToInt(row[16]);
+			std::string si_content_flags = row[17] ? Strings::Escape(row[17]) : "";
+			std::string si_content_flags_disabled = row[18] ? Strings::Escape(row[18]) : "";;
+
+			if (Admin() < si_status) {
+				continue;
+			}
+
+			if (si_min_expansion > Expansion::EXPANSION_ALL && m_pp.expansions < si_min_expansion && m_pp.expansions != -1) {
+				continue;
+			}
+
+			if (si_max_expansion > Expansion::EXPANSION_ALL && m_pp.expansions  > si_max_expansion && m_pp.expansions != -1) {
+				continue;
+			}
+
+			if (!Strings::Contains(ZoneStore::Instance()->GetZoneContentFlags(GetStartZone(), 0), si_content_flags)) {
+				continue;
+			}
+
+			if (!Strings::Contains(ZoneStore::Instance()->GetZoneContentFlagsDisabled(GetStartZone(), 0), si_content_flags_disabled)) {
+				continue;
+			}
+
+			const auto &classes = Strings::Split(si_class_list, "|");
+			const auto &deities = Strings::Split(si_deity_list, "|");
+			const auto &races   = Strings::Split(si_race_list, "|");
+			const auto &zones   = Strings::Split(si_zone_id_list, "|");
+
+			const std::string &all = std::to_string(0);
+
+			if (classes[0] != all) {
+				if (!Strings::Contains(classes, std::to_string(GetBaseClass()))) {
+					continue;
+				}
+			}
+
+			if (deities[0] != all) {
+				if (!Strings::Contains(deities, std::to_string(GetDeity()))) {
+					continue;
+				}
+			}
+
+			if (races[0] != all) {
+				if (!Strings::Contains(races, std::to_string(GetBaseRace()))) {
+					continue;
+				}
+			}
+
+			if (zones[0] != all) {
+				if (!Strings::Contains(zones, std::to_string(GetStartZone()))) {
+					continue;
+				}
+			}
+
+			item_data = database.GetItem(si_item_id);
+
+			if (!item_data) {
+				continue;
+			}
+
+			const auto* inst = database.CreateItem(
+				item_data,
+				si_item_charges,
+				si_augment_one,
+				si_augment_two,
+				si_augment_three,
+				si_augment_four,
+				si_augment_five,
+				si_augment_six
+			);
+
+			if (si_inventory_slot < EQ::invslot::slotCharm) {
+				si_inventory_slot = GetInv().FindFreeSlot(false, false);
+			}
+
+			//GetInv().PutItem(si_inventory_slot, *inst);
+			SummonItemIntoInventory(si_item_id, inst->GetCharges(), si_augment_one, si_augment_two, si_augment_three, si_augment_four, si_augment_five, si_augment_six);
+			safe_delete(inst);
+		}
+	}
+
+	m_pp.expansions = RuleI(World, ExpansionSettings);
+
+	Save(true);
+	DataBucketsRepository::DeleteWhere(database, fmt::format("character_id = {}", CharacterID()));
+	database.QueryDatabase(fmt::format("DELETE FROM char_leaderboard_data WHERE id = {}", CharacterID()));
+	database.QueryDatabase(fmt::format("DELETE FROM character_stats_record WHERE character_id = {}", CharacterID()));
+	Kick("Challenge Ruleset Change");
 }
 // VegasEQ - END

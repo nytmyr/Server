@@ -731,6 +731,8 @@ set(common_headers
     veq_item_data.h
     veq_spell_data.h
     zone_store.h
+        ssf_logic.h
+        ssf_logic.cpp
 )
 
 # Source Groups (Regex based for automatic subdirectory handling)

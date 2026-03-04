@@ -951,7 +951,13 @@ void Client::BulkSendMerchantInventory(int merchant_id, int npcid) {
 			continue;
 		}
 
-		handy_chance = zone->random.Int(0, merchant_list.size() + temporary_merchant_list.size() - 1);
+		if (SSFLogic::IsAnySelfFound(GetSSFFlag())) {// VegasEQ
+			handy_chance = zone->random.Int(0, merchant_list.size() + temporary_merchant_list.size() - 1);
+		}
+		else {
+			handy_chance = zone->random.Int(0, merchant_list.size() - 1);
+		}
+
 
 		item = database.GetItem(ml.item);
 		if (item) {
@@ -1007,10 +1013,12 @@ void Client::BulkSendMerchantInventory(int merchant_id, int npcid) {
 		item = database.GetItem(ml.item);
 		ml.slot = slot_id;
 		if (item) {
-			if (!handy_chance) {
-				handy_item = item;
-			} else {
-				handy_chance--;
+			if (!SSFLogic::IsAnySelfFound(GetSSFFlag())) { // VegasEQ
+				if (!handy_chance) {
+					handy_item = item;
+				} else {
+					handy_chance--;
+				}
 			}
 
 			auto charges = item->MaxCharges;
@@ -1033,7 +1041,10 @@ void Client::BulkSendMerchantInventory(int merchant_id, int npcid) {
 				inst->SetMerchantSlot(ml.slot);
 				inst->SetPrice(item_price);
 
-				SendItemPacket(ml.slot - 1, inst, ItemPacketMerchant);
+				if (!SSFLogic::IsAnySelfFound(GetSSFFlag())) { // VegasEQ
+					SendItemPacket(ml.slot - 1, inst, ItemPacketMerchant);
+				}
+
 				safe_delete(inst);
 			}
 		}
@@ -1688,7 +1699,7 @@ void Client::OPMoveCoin(const EQApplicationPacket* app)
 			*to_bucket += amount_to_add;
 
 		//shared bank plat
-		if (RuleB(Character, SharedBankPlat))
+		if (!SSFLogic::IsAnySelfFound(GetSSFFlag()) && RuleB(Character, SharedBankPlat))
 		{
 			if (to_bucket == &m_pp.platinum_shared || from_bucket == &m_pp.platinum_shared)
 			{

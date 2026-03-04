@@ -64,6 +64,11 @@ void bot_command_click_item(Client* c, const Seperator* sep)
 			continue;
 		}
 
+		if (!Mob::IsValidSSFTarget(c, tar, SSFFlagCheckTypes::BotForceCast)) {
+			c->Message(Chat::Red, "Cannot cast on target due to a Self Found challenge mismatch.");
+			return;
+		}
+
 		if (RuleI(Bots, BotsClickItemsMinLvl) > my_bot->GetLevel()) {
 			c->Message(Chat::White, "%s must be level %i to use clickable items.", my_bot->GetCleanName(), RuleI(Bots, BotsClickItemsMinLvl));
 			continue;

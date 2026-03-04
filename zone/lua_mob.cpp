@@ -3617,6 +3617,140 @@ void Lua_Mob::SetPetType(uint8 pet_type)
 	self->SetPetType(pet_type);
 }
 
+// VegasEQ - START
+// SSF
+void Lua_Mob::SetSSFFlag(uint8 value) {
+	Lua_Safe_Call_Void();
+	self->SetSSFFlag(value);
+}
+
+uint8 Lua_Mob::GetSSFFlag() {
+	Lua_Safe_Call_Int();
+	return self->GetSSFFlag();
+}
+
+bool Lua_Mob::IsValidSSFTarget(Lua_Mob initiator, Lua_Mob target) {
+	Lua_Safe_Call_Bool();
+	return self->IsValidSSFTarget(initiator, target);
+}
+
+bool Lua_Mob::IsValidSSFTarget(Lua_Mob initiator, Lua_Mob target, uint8 flag_type) {
+	Lua_Safe_Call_Bool();
+	return self->IsValidSSFTarget(initiator, target, flag_type);
+}
+
+void Lua_Mob::AssignSSFFlags(Lua_Client c) {
+	Lua_Safe_Call_Void();
+	self->AssignSSFFlags(c);
+}
+
+void Lua_Mob::ResetSSFFlags() {
+	Lua_Safe_Call_Void();
+	self->ResetSSFFlags();
+}
+
+bool Lua_Mob::IsAssignedToSSFFlags(Lua_Client c) {
+	Lua_Safe_Call_Bool();
+	return self->IsAssignedToSSFFlags(c);
+}
+
+bool Lua_Mob::MatchingSSFClient(uint32 id) {
+	Lua_Safe_Call_Bool();
+	return self->MatchingSSFClient(id);
+}
+
+luabind::object Lua_Mob::GetEligibleSSFClients(lua_State* L) {
+	auto t = luabind::newtable(L);
+
+	if (d_) {
+		auto self = reinterpret_cast<NativeType*>(d_);
+		auto l = self->GetEligibleSSFClients();
+		int i = 1;
+
+		for (const auto& v : l) {
+			t[i] = v;
+			i++;
+		}
+	}
+
+	return t;
+}
+
+void Lua_Mob::AddEligibleSSFClient(uint32 value) {
+	Lua_Safe_Call_Void();
+	self->AddEligibleSSFClient(value);
+}
+
+void Lua_Mob::ClearEligibleSSFClients() {
+	Lua_Safe_Call_Void();
+	self->ClearEligibleSSFClients();
+}
+
+bool Lua_Mob::MatchingSSFRaid(uint32 id) {
+	Lua_Safe_Call_Bool();
+	return self->MatchingSSFRaid(id);
+}
+
+luabind::object Lua_Mob::GetEligibleSSFRaids(lua_State* L) {
+	auto t = luabind::newtable(L);
+
+	if (d_) {
+		auto self = reinterpret_cast<NativeType*>(d_);
+		auto l = self->GetEligibleSSFRaids();
+		int i = 1;
+
+		for (const auto& v : l) {
+			t[i] = v;
+			i++;
+		}
+	}
+
+	return t;
+}
+
+void Lua_Mob::AddEligibleSSFRaid(uint32 value) {
+	Lua_Safe_Call_Void();
+	self->AddEligibleSSFRaid(value);
+}
+
+void Lua_Mob::ClearEligibleSSFRaids() {
+	Lua_Safe_Call_Void();
+	self->ClearEligibleSSFRaids();
+}
+
+bool Lua_Mob::MatchingSSFGroup(uint32 id) {
+	Lua_Safe_Call_Bool();
+	return self->MatchingSSFGroup(id);
+}
+
+luabind::object Lua_Mob::GetEligibleSSFGroups(lua_State* L) {
+	auto t = luabind::newtable(L);
+
+	if (d_) {
+		auto self = reinterpret_cast<NativeType*>(d_);
+		auto l = self->GetEligibleSSFGroups();
+		int i = 1;
+
+		for (const auto& v : l) {
+			t[i] = v;
+			i++;
+		}
+	}
+
+	return t;
+}
+
+void Lua_Mob::AddEligibleSSFGroup(uint32 value) {
+	Lua_Safe_Call_Void();
+	self->AddEligibleSSFGroup(value);
+}
+
+void Lua_Mob::ClearEligibleSSFGroups() {
+	Lua_Safe_Call_Void();
+	self->ClearEligibleSSFGroups();
+}
+// VegasEQ - END
+
 luabind::scope lua_register_mob() {
 	return luabind::class_<Lua_Mob, Lua_Entity>("Mob")
 	.def(luabind::constructor<>())
@@ -4213,7 +4347,30 @@ luabind::scope lua_register_mob() {
 	.def("WearChange", (void(Lua_Mob::*)(uint8,uint32))&Lua_Mob::WearChange)
 	.def("WearChange", (void(Lua_Mob::*)(uint8,uint32,uint32))&Lua_Mob::WearChange)
 	.def("WearChange", (void(Lua_Mob::*)(uint8,uint32,uint32,uint32))&Lua_Mob::WearChange)
-	.def("WipeHateList", (void(Lua_Mob::*)(void))&Lua_Mob::WipeHateList);
+	.def("WipeHateList", (void(Lua_Mob::*)(void))&Lua_Mob::WipeHateList)
+
+	// VegasEQ - START
+	// SSF
+	.def("SetSSFFlag", &Lua_Mob::SetSSFFlag)
+	.def("GetSSFFlag", &Lua_Mob::GetSSFFlag)
+	.def("IsValidSSFTarget", (bool(Lua_Mob::*)(Lua_Mob, Lua_Mob))&Lua_Mob::IsValidSSFTarget)
+	.def("IsValidSSFTarget", (bool(Lua_Mob::*)(Lua_Mob, Lua_Mob, uint8))&Lua_Mob::IsValidSSFTarget)
+	.def("AssignSSFFlags", &Lua_Mob::AssignSSFFlags)
+	.def("ResetSSFFlags", &Lua_Mob::ResetSSFFlags)
+	.def("IsAssignedToSSFFlags", &Lua_Mob::IsAssignedToSSFFlags)
+	.def("MatchingSSFClient", &Lua_Mob::MatchingSSFClient)
+	.def("GetEligibleSSFClients", &Lua_Mob::GetEligibleSSFClients)
+	.def("AddEligibleSSFClient", &Lua_Mob::AddEligibleSSFClient)
+	.def("ClearEligibleSSFClients", &Lua_Mob::ClearEligibleSSFClients)
+	.def("MatchingSSFRaid", &Lua_Mob::MatchingSSFRaid)
+	.def("GetEligibleSSFRaids", &Lua_Mob::GetEligibleSSFRaids)
+	.def("AddEligibleSSFRaid", &Lua_Mob::AddEligibleSSFRaid)
+	.def("ClearEligibleSSFRaids", &Lua_Mob::ClearEligibleSSFRaids)
+	.def("MatchingSSFGroup", &Lua_Mob::MatchingSSFGroup)
+	.def("GetEligibleSSFGroups", &Lua_Mob::GetEligibleSSFGroups)
+	.def("AddEligibleSSFGroup", &Lua_Mob::AddEligibleSSFGroup)
+	.def("ClearEligibleSSFGroups", &Lua_Mob::ClearEligibleSSFGroups);
+	// VegasEQ - END
 }
 
 luabind::scope lua_register_special_abilities() {

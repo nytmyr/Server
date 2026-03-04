@@ -32,6 +32,8 @@
 #include "common/zone_store.h"
 #include "world/sof_char_create_data.h"
 
+#include "common/ssf_logic.h" // VegasEQ
+
 #include <cstdlib>
 #include <vector>
 
@@ -126,10 +128,11 @@ void WorldDatabase::GetCharSelectInfo(uint32 account_id, EQApplicationPacket **o
 		uint32 character_id = e.id;
 		uint8  has_home     = 0;
 		uint8  has_bind     = 0;
+		std::string name = SSFLogic::AddSelfFoundToName(e.ssf_flag, e.name);
 
 		memset(&pp, 0, sizeof(PlayerProfile_Struct));
 		memset(cse->Name, 0, sizeof(cse->Name));
-		strcpy(cse->Name, e.name.c_str());
+		strcpy(cse->Name, name.c_str());
 		cse->Class       = e.class_;
 		cse->Race        = e.race;
 		cse->Level       = e.level;
@@ -172,7 +175,7 @@ void WorldDatabase::GetCharSelectInfo(uint32 account_id, EQApplicationPacket **o
 
 		if (RuleB(World, EnableReturnHomeButton)) {
 			int now = time(nullptr);
-			if (now - e.last_login >= RuleI(World, MinOfflineTimeToReturnHome)) {
+			if (e.hardcore_death_time <= 0 && now - e.last_login >= RuleI(World, MinOfflineTimeToReturnHome)) {
 				cse->GoHome = 1;
 			}
 		}
@@ -377,7 +380,7 @@ void WorldDatabase::GetCharSelectInfo(uint32 account_id, EQApplicationPacket **o
 			}
 		}
 		else {
-			printf("Error loading inventory for %s\n", cse->Name);
+			printf("Error loading inventory for %s\n", e.name);
 		}
 		buff_ptr += sizeof(CharacterSelectEntry_Struct);
 	}

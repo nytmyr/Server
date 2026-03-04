@@ -26,6 +26,7 @@ struct LootItem {
 	uint16      npc_min_level;
 	uint16      npc_max_level;
 	uint32      lootdrop_id; // required for zone state referencing
+	uint32      given_by_char_id; // VegasEQ SSF
 };
 
 typedef std::list<LootItem*> LootItems;

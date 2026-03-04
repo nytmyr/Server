@@ -6030,6 +6030,35 @@ bool lua_IsItemRaidOnly(uint32 item_id) {
 
 	return 0.0f;
 }
+
+// SSF
+bool lua_IsAnyChallengeRuleset(uint8 flag) {
+	return flag != SSFFlagTypes::Normal && flag != SSFFlagTypes::Undeclared;
+}
+
+bool lua_IsAnySelfFound(uint8 flag) {
+	return EQ::ValueWithin(flag, SSFFlagTypes::SelfFound, SSFFlagTypes::SFSoloHardcore);
+}
+
+bool lua_IsAnySoloRuleset(uint8 flag) {
+	return flag == SSFFlagTypes::Solo || flag == SSFFlagTypes::SFSolo || flag == SSFFlagTypes::SFSoloHardcore;
+}
+
+bool lua_IsHardcore(uint8 flag) {
+	return flag == SSFFlagTypes::Hardcore || flag == SSFFlagTypes::SoloHardcore || flag == SSFFlagTypes::SFHardcore || flag == SSFFlagTypes::SFSoloHardcore;
+}
+
+bool lua_SelfFoundMismatch(uint8 my_flag, uint8 other_flag) {
+	return SSFLogic::IsAnySelfFound(my_flag) && !SSFLogic::IsAnySelfFound(other_flag) || !SSFLogic::IsAnySelfFound(my_flag) && SSFLogic::IsAnySelfFound(other_flag);
+}
+
+std::string lua_AddSelfFoundToName(uint8 flag, std::string name) {
+	return SSFLogic::AddSelfFoundToName(flag, name);
+}
+
+std::string lua_StripSelfFoundFromName(std::string name) {
+	return SSFLogic::StripSelfFoundFromName(name);
+}
 // VegasEQ - END
 
 luabind::scope lua_register_general() {
@@ -6995,7 +7024,16 @@ luabind::scope lua_register_general() {
 		luabind::def("IsVegasLootEligible", &lua_IsVegasLootEligible),
 		luabind::def("GetVegasItem", &lua_GetVegasItem),
 		luabind::def("IsItemLore", &lua_IsItemLore),
-		luabind::def("IsItemRaidOnly", &lua_IsItemRaidOnly)
+		luabind::def("IsItemRaidOnly", &lua_IsItemRaidOnly),
+
+		//SSF
+		luabind::def("IsAnyChallengeRuleset", &lua_IsAnyChallengeRuleset),
+		luabind::def("IsAnySelfFound", &lua_IsAnySelfFound),
+		luabind::def("IsAnySoloRuleset", &lua_IsAnySoloRuleset),
+		luabind::def("IsHardcore", &lua_IsHardcore),
+		luabind::def("SelfFoundMismatch", &lua_SelfFoundMismatch),
+		luabind::def("AddSelfFoundToName", &lua_AddSelfFoundToName),
+		luabind::def("StripSelfFoundFromName", &lua_StripSelfFoundFromName)
 		// VegasEQ - END
 	)];
 }

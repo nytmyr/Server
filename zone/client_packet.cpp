@@ -828,7 +828,7 @@ void Client::CompleteConnect()
 			TraderRepository::DeleteWhere(database, fmt::format("`char_id` = '{}'", CharacterID()));
 			BuyerRepository::DeleteBuyer(database, CharacterID());
 			LogTradingDetail(
-				"Removed trader abd buyer entries for Character ID {} on first logon to ensure table consistency.",
+				"Removed trader and buyer entries for Character ID {} on first logon to ensure table consistency.",
 				CharacterID()
 			);
 		}
@@ -1271,6 +1271,10 @@ void Client::Handle_Connect_OP_ZoneEntry(const EQApplicationPacket *app)
 	/* Antighost code
 	tmp var is so the search doesnt find this object
 	*/
+	std::string stripped_name = SSFLogic::StripSelfFoundFromName(cze->char_name);
+
+	strn0cpy(cze->char_name, stripped_name.c_str(), sizeof(cze->char_name));
+
 	Client* client = entity_list.GetClientByName(cze->char_name);
 	if (!zone->GetAuth(ip, cze->char_name, &WID, &account_id, &character_id, &admin, lskey, &tellsoff)) {
 		LogClientLogin("[{}] failed zone auth check", cze->char_name);
@@ -1355,7 +1359,7 @@ void Client::Handle_Connect_OP_ZoneEntry(const EQApplicationPacket *app)
 		}
 	}
 
-	if (RuleB(Character, SharedBankPlat))
+	if (!SSFLogic::IsAnySelfFound(GetSSFFlag()) && RuleB(Character, SharedBankPlat))
 		m_pp.platinum_shared = database.GetSharedPlatinum(AccountID());
 
 	database.ClearOldRecastTimestamps(cid); /* Clear out our old recast timestamps to keep the DB clean */
@@ -2577,6 +2581,36 @@ void Client::Handle_OP_AltCurrencyMerchantRequest(const EQApplicationPacket *app
 			return;
 		}
 
+		if (SSFLogic::IsAnySelfFound(GetSSFFlag())) {
+			bool cancel_req = false;
+
+			switch (currency_id) {
+				case 70: // Shard
+					cancel_req = !RuleB(SSF, SelfFoundValeenAllowed);
+					break;
+				case 71: // Ornate Gear Coin
+					cancel_req = !RuleB(SSF, SelfFoundOrnateVendorAllowed);
+					break;
+				case 72: // Elemental Gear Coin
+					cancel_req = !RuleB(SSF, SelfFoundElementalVendorAllowed);
+					break;
+				default:
+					break;
+			}
+
+			if (cancel_req) {
+				Message(Chat::Red, "Self Found players cannot use this type of merchant.");
+				std::stringstream ss(std::stringstream::in | std::stringstream::out);
+				ss << currency_id << "|1|" << currency_id << "|0";
+
+				EQApplicationPacket* outapp = new EQApplicationPacket(OP_AltCurrencyMerchantReply, ss.str().length() + 1);
+				memcpy(outapp->pBuffer, ss.str().c_str(), ss.str().length());
+				FastQueuePacket(&outapp);
+
+				return;
+			}
+		}
+
 		auto currency_item_id = zone->GetCurrencyItemID(currency_id);
 		if (!currency_item_id) {
 			return;
@@ -3571,6 +3605,12 @@ void Client::Handle_OP_AutoAttack(const EQApplicationPacket *app)
 		return;
 	}
 
+	if (!IsValidSSFTarget(this, GetTarget(), SSFFlagCheckTypes::Attack)) { // VegasEQ
+		auto_attack = false;
+		Message(Chat::Red, "Cannot attack due to a Self Found challenge mismatch.");
+		return;
+	}
+
 	if (app->pBuffer[0] == 0) {
 		auto_attack = false;
 		if (IsAIControlled()) {
@@ -3625,6 +3665,12 @@ void Client::Handle_OP_AutoFire(const EQApplicationPacket *app)
 	if (GetTarget() == this) {
 		MessageString(Chat::TooFarAway, TRY_ATTACKING_SOMEONE);
 		auto_fire = false;
+		return;
+	}
+
+	if (!IsValidSSFTarget(this, GetTarget(), SSFFlagCheckTypes::Attack)) { // VegasEQ
+		auto_fire = false;
+		Message(Chat::Red, "Cannot attack due to a Self Found challenge mismatch.");
 		return;
 	}
 
@@ -4439,6 +4485,7 @@ void Client::Handle_OP_CastSpell(const EQApplicationPacket *app)
 
 	CastSpell_Struct* castspell = (CastSpell_Struct*)app->pBuffer;
 
+
 	m_TargetRing = glm::vec3(castspell->x_pos, castspell->y_pos, castspell->z_pos);
 
 	if (castspell->spell_id && IsValidSpell(castspell->spell_id)) {
@@ -4458,6 +4505,12 @@ void Client::Handle_OP_CastSpell(const EQApplicationPacket *app)
 			Message(Chat::Red, "You do not have the required AA to use this spell slot.");
 			return;
 		}
+	}
+
+	if (GetSpellTargetType(castspell->spell_id) != ST_Self && !IsValidSSFTarget(this, entity_list.GetMobID(castspell->target_id), IsBeneficialSpell(castspell->spell_id) ? SSFFlagCheckTypes::BeneficialSpell : SSFFlagCheckTypes::DetrimentalSpell)) { // VegasEQ
+		Message(Chat::Red, "Spell cannot land due to a Self Found challenge mismatch.");
+		InterruptSpell(castspell->spell_id);
+		return;
 	}
 
 	/* Memorized Spell */
@@ -4832,6 +4885,16 @@ void Client::Handle_OP_ClickObject(const EQApplicationPacket *app)
 	auto* entity = entity_list.GetID(click_object->drop_id);
 	if (entity && entity->IsObject()) {
 		auto* object = entity->CastToObject();
+
+		if (!RuleB(SSF, SelfFoundPickupDroppedAllowed) && !object->IsGroundSpawn() && SSFLogic::IsAnySelfFound(GetSSFFlag()) && object->DroppedByCharacterID() != CharacterID()) { // VegasEQ
+			Message(Chat::Red, "Self Found players cannot pick up dropped items that are not their own.");
+			auto outapp = new EQApplicationPacket(OP_ClickObject, sizeof(ClickObject_Struct));
+			memcpy(outapp->pBuffer, click_object, sizeof(ClickObject_Struct));
+			QueuePacket(outapp, false, Client::CLIENT_CONNECTED);
+			safe_delete(outapp);
+
+			return;
+		}
 
 		object->HandleClick(this, click_object);
 
@@ -5338,6 +5401,45 @@ void Client::Handle_OP_Consider(const EQApplicationPacket *app)
 	} else if ((invisible || invisible_undead || hidden || invisible_animals) && !IsInvisible(t)) {
 		MessageString(Chat::NPCQuestSay, SUSPECT_SEES_YOU);
 	}
+
+	// VegasEQ - START
+	if (RuleB(SSF, ShowSSFTagsOnCon) && t->IsClient() && SSFLogic::IsAnyChallengeRuleset(t->CastToClient()->GetSSFFlag())) {
+		Client* c = t->CastToClient();
+		std::string msg = c->GetName();
+
+		msg += " is following the ";
+
+		switch (c->GetSSFFlag()) {
+			case SSFFlagTypes::Hardcore:
+				msg += "Hardcore";
+				break;
+			case SSFFlagTypes::Solo:
+				msg += "Solo";
+				break;
+			case SSFFlagTypes::SoloHardcore:
+				msg += "Solo Hardcore";
+				break;
+			case SSFFlagTypes::SelfFound:
+				msg += "Self Found";
+				break;
+			case SSFFlagTypes::SFSolo:
+				msg += "Solo Self Found";
+				break;
+			case SSFFlagTypes::SFHardcore:
+				msg += "Hardcore Self Found";
+				break;
+			case SSFFlagTypes::SFSoloHardcore:
+				msg += "Solo Hardcore Self Found";
+				break;
+			default:
+				break;
+		}
+
+		msg += " ruleset.";
+
+		Message(Chat::Lime, msg.c_str());
+	}
+	// VegasEQ - END
 
 	safe_delete(outapp);
 
@@ -5938,6 +6040,12 @@ void Client::Handle_OP_Disarm(const EQApplicationPacket *app) {
 		return;
 	if (GetTarget() == tmob && pmob == CastToMob() &&
 		disarm->skill == GetSkill(EQ::skills::SkillDisarm) && IsAttackAllowed(tmob)) {
+
+		if (!IsValidSSFTarget(this, tmob, SSFFlagCheckTypes::Attack)) { // VegasEQ
+			Message(Chat::Red, "Cannot disarm due to a Self Found challenge mismatch.");
+			return;
+		}
+
 		int p_level = pmob->GetLevel() ? pmob->GetLevel() : 1;
 		int t_level = tmob->GetLevel() ? tmob->GetLevel() : 1;
 		// We have a disarmable target - sucess or fail, we always aggro the mob
@@ -7810,6 +7918,23 @@ void Client::Handle_OP_GroupInvite2(const EQApplicationPacket *app)
 
 	if (invitee) {
 		if (invitee->IsClient()) {
+			if (!RuleB(SSF, SelfFoundGroupOthersAllowed)) {
+				if (SSFLogic::IsAnySoloRuleset(CastToClient()->GetSSFFlag())) { // VegasEQ
+					Message(Chat::Red, "You are following a Solo ruleset and cannot group or raid with other players");
+					return;
+				}
+
+				if (SSFLogic::IsAnySoloRuleset(invitee->CastToClient()->GetSSFFlag())) { // VegasEQ
+					Message(Chat::Red, "%s is following a Solo ruleset and cannot group or raid with other players", invitee->GetName());
+					return;
+				}
+
+				if (SSFLogic::SelfFoundMismatch(CastToClient()->GetSSFFlag(), invitee->CastToClient()->GetSSFFlag())) { // VegasEQ
+					Message(Chat::Red, "Normal and Self Found players cannot group or raid together.");
+					return;
+				}
+			}
+
 			if (invitee->CastToClient()->MercOnlyOrNoGroup() && !invitee->IsRaidGrouped()) {
 				if (app->GetOpcode() == OP_GroupInvite2) {
 					//Make a new packet using all the same information but make sure it's a fixed GroupInvite opcode so we
@@ -11218,6 +11343,21 @@ void Client::Handle_OP_MoveItem(const EQApplicationPacket *app)
 		}
 	}
 
+	// VegasEQ - START
+	// SSF
+	bool shared_bank_slot =
+		EQ::ValueWithin(mi->to_slot, EQ::invslot::SHARED_BANK_BEGIN, EQ::invslot::SHARED_BANK_END) ||
+		EQ::ValueWithin(mi->to_slot, EQ::invbag::SHARED_BANK_BAGS_BEGIN, EQ::invbag::SHARED_BANK_BAGS_END) ||
+		EQ::ValueWithin(mi->from_slot, EQ::invslot::SHARED_BANK_BEGIN, EQ::invslot::SHARED_BANK_END) ||
+		EQ::ValueWithin(mi->from_slot, EQ::invbag::SHARED_BANK_BAGS_BEGIN, EQ::invbag::SHARED_BANK_BAGS_END);
+
+	if (shared_bank_slot && SSFLogic::IsAnySelfFound(GetSSFFlag())) {
+		Message(Chat::Red, "Self Found players cannot use the Shared Bank.");
+		SwapItemResync(mi);
+		return;
+	}
+	// VegasEQ - END
+
 	database.TransactionBegin();
 
 	if (!SwapItem(mi) && IsValidSlot(mi->from_slot) && IsValidSlot(mi->to_slot)) {
@@ -11521,6 +11661,11 @@ void Client::Handle_OP_PetCommands(const EQApplicationPacket *app)
 			break;
 		}
 
+		if (!IsValidSSFTarget(this, target, SSFFlagCheckTypes::Attack)) { // VegasEQ
+			Message(Chat::Red, "Cannot attack due to a Self Found challenge mismatch.");
+			break;
+		}
+
 		// default range is 200, takes Z into account
 		// really they do something weird where they're added to the aggro list then remove them
 		// and will attack if they come in range -- too lazy, lets remove exploits for now
@@ -11583,6 +11728,11 @@ void Client::Handle_OP_PetCommands(const EQApplicationPacket *app)
 
 		if (!mypet->IsAttackAllowed(GetTarget())) {
 			mypet->SayString(this, NOT_LEGAL_TARGET);
+			break;
+		}
+
+		if (!IsValidSSFTarget(this, target, SSFFlagCheckTypes::Attack)) { // VegasEQ
+			Message(Chat::Red, "Cannot attack due to a Self Found challenge mismatch.");
 			break;
 		}
 
@@ -12336,6 +12486,7 @@ void Client::Handle_OP_PickPocket(const EQApplicationPacket *app)
 
 		return;
 	}
+
 	PickPocket_Struct* pick_in = (PickPocket_Struct*)app->pBuffer;
 
 	Mob* victim = entity_list.GetMob(pick_in->to);
@@ -12377,6 +12528,12 @@ void Client::Handle_OP_PickPocket(const EQApplicationPacket *app)
 		auto body = victim->GetBodyType();
 		if (body == BodyType::Humanoid || body == BodyType::Monster || body == BodyType::Giant ||
 			body == BodyType::Lycanthrope) {
+
+			if (!IsValidSSFTarget(this, victim, SSFFlagCheckTypes::Attack)) { // VegasEQ
+				Message(Chat::Red, "Cannot pickpocket due to a Self Found challenge mismatch.");
+				return;
+			}
+
 			victim->CastToNPC()->PickPocket(this);
 			return;
 		}
@@ -12758,6 +12915,18 @@ void Client::Handle_OP_RaidCommand(const EQApplicationPacket* app)
 				break;
 			}
 
+			if (!RuleB(SSF, SelfFoundRaidOthersAllowed)) {
+				if (SSFLogic::IsAnySoloRuleset(GetSSFFlag())) { // VegasEQ
+					Message(Chat::Red, "You are following a Solo ruleset and cannot group or raid with other players");
+					break;
+				}
+
+				if (SSFLogic::IsAnySoloRuleset(player_to_invite->GetSSFFlag())) { // VegasEQ
+					Message(Chat::Red, "%s is following a Solo ruleset and cannot group or raid with other players", player_to_invite->GetName());
+					break;
+				}
+			}
+
 			Group* player_to_invite_group = player_to_invite->GetGroup();
 
 			if (player_to_invite->HasRaid()) {
@@ -12773,6 +12942,13 @@ void Client::Handle_OP_RaidCommand(const EQApplicationPacket* app)
 			if (player_to_invite_group && !player_to_invite_group->IsLeader(player_to_invite)) {
 				Message(Chat::Red, "You can only invite an ungrouped player or group leader to join your raid.");
 				break;
+			}
+
+			if (!RuleB(SSF, SelfFoundRaidOthersAllowed)) {
+				if (SSFLogic::SelfFoundMismatch(GetSSFFlag(), player_to_invite->GetSSFFlag())) { // VegasEQ
+					Message(Chat::Red, "Normal and Self Found players cannot group or raid together.");
+					return;
+				}
 			}
 
 			/* Send out invite to the client */
@@ -13953,6 +14129,12 @@ void Client::Handle_OP_RequestDuel(const EQApplicationPacket *app)
 		return;
 	}
 
+	if (SSFLogic::IsHardcore(GetSSFFlag()) || entity->IsClient() && SSFLogic::IsHardcore(entity->CastToClient()->GetSSFFlag())) { // VegasEQ
+		Message(Chat::Red, "Hardcore players cannot be challenged to a duel.");
+		safe_delete(outapp);
+		return;
+	}
+
 	if (
 		GetID() != ds->duel_target &&
 		entity->IsClient() &&
@@ -14494,16 +14676,18 @@ void Client::Handle_OP_ShopPlayerBuy(const EQApplicationPacket *app)
 	const EQ::ItemData* item = nullptr;
 	uint32 prevcharges = 0;
 	if (item_id == 0) { //check to see if its on the temporary table
-		std::list<TempMerchantList> tmp_merlist = zone->tmpmerchanttable[tmp->GetNPCTypeID()];
-		std::list<TempMerchantList>::const_iterator tmp_itr;
-		TempMerchantList ml;
-		for (tmp_itr = tmp_merlist.begin(); tmp_itr != tmp_merlist.end(); ++tmp_itr) {
-			ml = *tmp_itr;
-			if (mp->itemslot == ml.slot) {
-				item_id = ml.item;
-				tmpmer_used = true;
-				prevcharges = ml.charges;
-				break;
+		if (!SSFLogic::IsAnySelfFound(GetSSFFlag())) { // VegasEQ
+			std::list<TempMerchantList> tmp_merlist = zone->tmpmerchanttable[tmp->GetNPCTypeID()];
+			std::list<TempMerchantList>::const_iterator tmp_itr;
+			TempMerchantList ml;
+			for (tmp_itr = tmp_merlist.begin(); tmp_itr != tmp_merlist.end(); ++tmp_itr) {
+				ml = *tmp_itr;
+				if (mp->itemslot == ml.slot) {
+					item_id = ml.item;
+					tmpmer_used = true;
+					prevcharges = ml.charges;
+					break;
+				}
 			}
 		}
 	}
@@ -14838,7 +15022,10 @@ void Client::Handle_OP_ShopPlayerSell(const EQApplicationPacket *app)
 
 				inst2->SetMerchantCount(merchant_quantity);
 
-				SendItemPacket(freeslot - 1, inst2, ItemPacketMerchant);
+				if (!SSFLogic::IsAnySelfFound(GetSSFFlag())) { // VegasEQ
+					SendItemPacket(freeslot - 1, inst2, ItemPacketMerchant);
+				}
+
 				safe_delete(inst2);
 
 				break;
@@ -15779,6 +15966,11 @@ void Client::Handle_OP_Taunt(const EQApplicationPacket *app)
 		return;
 	}
 
+	if (!IsValidSSFTarget(this, GetTarget(), SSFFlagCheckTypes::Attack)) { // VegasEQ
+		Message(Chat::Red, "Cannot taunt due to a Self Found challenge mismatch.");
+		return;
+	}
+
 	Taunt(GetTarget()->CastToNPC(), false);
 	return;
 }
@@ -15939,6 +16131,12 @@ void Client::Handle_OP_Trader(const EQApplicationPacket *app)
 	//
 	// SoF sends 1 or more unhandled OP_Trader packets of size 96 when a trade has completed.
 	// I don't know what they are for (yet), but it doesn't seem to matter that we ignore them.
+	if (!RuleB(SSF, SelfFoundTradeOthersAllowed) && SSFLogic::IsAnySelfFound(GetSSFFlag())) { // VegasEQ
+		Message(Chat::Red, "Self Found players cannot become traders.");
+		TraderEndTrader();
+		return;
+	}
+
 	auto action = *(uint32 *)app->pBuffer;
 
 	switch (action) {
@@ -15990,7 +16188,15 @@ void Client::Handle_OP_TraderBuy(const EQApplicationPacket *app)
 	//
 	// Client has elected to buy an item from a Trader
 	//
+
 	auto in     = (TraderBuy_Struct *) app->pBuffer;
+
+	if (!RuleB(SSF, SelfFoundTradeOthersAllowed) && SSFLogic::IsAnySelfFound(GetSSFFlag())) { // VegasEQ
+		Message(Chat::Red, "Self Found players cannot buy from traders.");
+		in->sub_action = Failed;
+		TradeRequestFailed(app);
+		return;
+	}
 
 	if (RuleB(Bazaar, UseAlternateBazaarSearch) && in->trader_id >= TraderRepository::TRADER_CONVERT_ID) {
 		auto trader = TraderRepository::GetTraderByInstanceAndSerialnumber(
@@ -16106,6 +16312,27 @@ void Client::Handle_OP_TradeRequest(const EQApplicationPacket *app)
 	}
 
 	CommonBreakInvisible();
+
+	if (tradee) {
+		if (!RuleB(SSF, SelfFoundTradeOthersAllowed)) {
+			bool can_trade = false;
+
+			bool is_ultimate_client = tradee->GetUltimateOwner() && tradee->GetUltimateOwner()->IsClient();
+			Client* ultimate_client = is_ultimate_client ? tradee->GetUltimateOwner()->CastToClient() : nullptr;
+
+			if (ultimate_client) {
+				can_trade = ultimate_client == this || (!SSFLogic::IsAnySelfFound(GetSSFFlag()) && !SSFLogic::IsAnySelfFound(ultimate_client->GetSSFFlag()));
+			}
+			else if (tradee->IsNPC()) {
+				can_trade = tradee->GetSSFFlag() == Undeclared;
+			}
+
+			if (!can_trade) { // VegasEQ
+				Message(Chat::Red, "Self Found players cannot trade with other players.");
+				return;
+			}
+		}
+	}
 
 	// Pass trade request on to recipient
 	if (tradee && tradee->IsClient()) {

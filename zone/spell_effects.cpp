@@ -812,6 +812,10 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 
 				SetPetType(PetType::Charmed);
 
+				if (IsNPC()) { // VegasEQ
+					SetSSFFlag(SSFFlagTypes::Undeclared);
+				}
+
 				// This was done in AddBuff, but we were not a pet yet, so
 				// the target windows didn't get updated.
 				EQApplicationPacket *outapp = MakeBuffsPacket();
@@ -1730,6 +1734,11 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 					if(caster)
 						LogSpells("corpse being rezzed using spell [{}] by [{}]",
 							spell_id, caster->GetName());
+
+					if (!IsValidSSFTarget(caster, this, SSFFlagCheckTypes::Rez)) { // VegasEQ
+						Message(Chat::Red, "You cannot rez this corpse due to a Self Found challenge mismatch.");
+						break;
+					}
 
 					CastToCorpse()->CastRezz(spell_id, caster);
 				}
@@ -4507,6 +4516,12 @@ void Mob::BuffFadeBySlot(int slot, bool iRecalcBonuses)
 					WipeHateList();
 					if (owner) {
 						AddToHateList(owner, 1, 0);
+
+						Mob* other_ultimate_owner = GetUltimateOwner(); // VegasEQ
+
+						if (other_ultimate_owner && other_ultimate_owner->IsClient()) {
+							AssignSSFFlags(other_ultimate_owner->CastToClient());
+						}
 					}
 					//If owner dead, briefly setting Immmune Aggro while hatelists wipe for both pet and targets is needed to ensure no reaggroing.
 					else if (IsNPC()){

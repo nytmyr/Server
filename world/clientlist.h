@@ -12,6 +12,8 @@
 #include <string>
 #include <vector>
 
+#include "common/ssf_logic.h" // VegasEQ
+
 class Client;
 class ZoneServer;
 class WorldTCPConnection;
@@ -90,6 +92,10 @@ public:
 		static ClientList instance;
 		return &instance;
 	}
+
+	// VegasEQ - START
+	bool IsValidClientEntry(Who_All_Struct* whom, int16 admin, ClientListEntry* cle, int whomlen = 0);
+	// VegasEQ - END
 
 private:
 	void OnTick(EQ::Timer *t);

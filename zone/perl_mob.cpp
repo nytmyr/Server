@@ -3692,6 +3692,128 @@ void Perl_Mob_SetPetType(Mob* self, uint8 pet_type)
 	self->SetPetType(pet_type);
 }
 
+// VegasEQ - START
+// SSF
+void Perl_Mob_SetSSFFlag(Mob* self, uint8 value)
+{
+	self->SetSSFFlag(value);
+}
+
+uint8 Perl_Mob_GetSSFFlag(Mob* self)
+{
+	return self->GetSSFFlag();
+}
+
+bool Perl_Mob_IsValidSSFTarget(Mob* self, Mob* initiator, Mob* target)
+{
+	return self->IsValidSSFTarget(initiator, target);
+}
+
+bool Perl_Mob_IsValidSSFTarget(Mob* self, Mob* initiator, Mob* target, uint8 flag_type)
+{
+	return self->IsValidSSFTarget(initiator, target, flag_type);
+}
+
+void Perl_Mob_AssignSSFFlags(Mob* self, Client* c)
+{
+	self->AssignSSFFlags(c);
+}
+
+void Perl_Mob_ResetSSFFlags(Mob* self)
+{
+	self->ResetSSFFlags();
+}
+
+bool Perl_Mob_IsAssignedToSSFFlags(Mob* self, Client* c)
+{
+	return self->IsAssignedToSSFFlags(c);
+}
+
+bool Perl_Mob_MatchingSSFClient(Mob* self, uint32 id)
+{
+	return self->MatchingSSFClient(id);
+}
+
+perl::array Perl_Mob_GetEligibleSSFClients(Mob* self)
+{
+	perl::array a;
+
+	auto l = self->GetEligibleSSFClients();
+
+	for (const auto& f : l) {
+		a.push_back(f);
+	}
+
+	return a;
+}
+
+void Perl_Mob_AddEligibleSSFClient(Mob* self, uint32 value)
+{
+	self->AddEligibleSSFClient(value);
+}
+
+void Perl_Mob_ClearEligibleSSFClients(Mob* self)
+{
+	self->ClearEligibleSSFClients();
+}
+
+bool Perl_Mob_MatchingSSFRaid(Mob* self, uint32 id)
+{
+	return self->MatchingSSFRaid(id);
+}
+
+perl::array Perl_Mob_GetEligibleSSFRaids(Mob* self)
+{
+	perl::array a;
+
+	auto l = self->GetEligibleSSFRaids();
+
+	for (const auto& f : l) {
+		a.push_back(f);
+	}
+
+	return a;
+}
+
+void Perl_Mob_AddEligibleSSFRaid(Mob* self, uint32 value)
+{
+	self->AddEligibleSSFRaid(value);
+}
+
+void Perl_Mob_ClearEligibleSSFRaids(Mob* self)
+{
+	self->ClearEligibleSSFRaids();
+}
+
+bool Perl_Mob_MatchingSSFGroup(Mob* self, uint32 id)
+{
+	return self->MatchingSSFGroup(id);
+}
+
+perl::array Perl_Mob_GetEligibleSSFGroups(Mob* self)
+{
+	perl::array a;
+
+	auto l = self->GetEligibleSSFGroups();
+
+	for (const auto& f : l) {
+		a.push_back(f);
+	}
+
+	return a;
+}
+
+void Perl_Mob_AddEligibleSSFGroup(Mob* self, uint32 value)
+{
+	self->AddEligibleSSFGroup(value);
+}
+
+void Perl_Mob_ClearEligibleSSFGroups(Mob* self)
+{
+	self->ClearEligibleSSFGroups();
+}
+// VegasEQ - END
+
 void perl_register_mob()
 {
 	perl::interpreter perl(PERL_GET_THX);
@@ -4359,6 +4481,29 @@ void perl_register_mob()
 	package.add("WearChange", (void(*)(Mob*, uint8, uint32, uint32))&Perl_Mob_WearChange);
 	package.add("WearChange", (void(*)(Mob*, uint8, uint32, uint32, uint32))&Perl_Mob_WearChange);
 	package.add("WipeHateList", &Perl_Mob_WipeHateList);
+
+	// VegasEQ - START
+	// SSF
+	package.add("SetSSFFlag", &Perl_Mob_SetSSFFlag);
+	package.add("GetSSFFlag", &Perl_Mob_GetSSFFlag);
+	package.add("IsValidSSFTarget", (bool(*)(Mob*, Mob*, Mob*))&Perl_Mob_IsValidSSFTarget);
+	package.add("IsValidSSFTarget", (bool(*)(Mob*, Mob*, Mob*, uint8))&Perl_Mob_IsValidSSFTarget);
+	package.add("AssignSSFFlags", &Perl_Mob_AssignSSFFlags);
+	package.add("ResetSSFFlags", &Perl_Mob_ResetSSFFlags);
+	package.add("IsAssignedToSSFFlags", &Perl_Mob_IsAssignedToSSFFlags);
+	package.add("MatchingSSFClient", &Perl_Mob_MatchingSSFClient);
+	package.add("GetEligibleSSFClients", &Perl_Mob_GetEligibleSSFClients);
+	package.add("AddEligibleSSFClient", &Perl_Mob_AddEligibleSSFClient);
+	package.add("ClearEligibleSSFClients", &Perl_Mob_ClearEligibleSSFClients);
+	package.add("MatchingSSFRaid", &Perl_Mob_MatchingSSFRaid);
+	package.add("GetEligibleSSFRaids", &Perl_Mob_GetEligibleSSFRaids);
+	package.add("AddEligibleSSFRaid", &Perl_Mob_AddEligibleSSFRaid);
+	package.add("ClearEligibleSSFRaids", &Perl_Mob_ClearEligibleSSFRaids);
+	package.add("MatchingSSFGroup", &Perl_Mob_MatchingSSFGroup);
+	package.add("GetEligibleSSFGroups", &Perl_Mob_GetEligibleSSFGroups);
+	package.add("AddEligibleSSFGroup", &Perl_Mob_AddEligibleSSFGroup);
+	package.add("ClearEligibleSSFGroups", &Perl_Mob_ClearEligibleSSFGroups);
+	// VegasEQ - END
 }
 
 #endif //EMBPERL_XS_CLASSES

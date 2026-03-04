@@ -519,7 +519,7 @@ bool Client::HandleSendLoginInfoPacket(const EQApplicationPacket *app)
 
 		SendLogServer();
 		SendApproveWorld();
-		SendEnterWorld(cle->name());
+		SendEnterWorld(SSFLogic::StripSelfFoundFromName(cle->name()));
 		SendPostEnterWorld();
 		if (!is_player_zoning) {
 			const auto supported_clients = RuleS(World, SupportedClients);
@@ -797,7 +797,9 @@ bool Client::HandleEnterWorldPacket(const EQApplicationPacket *app) {
 	}
 
 	auto ew = (EnterWorld_Struct *) app->pBuffer;
-	strn0cpy(char_name, ew->name, sizeof(char_name));
+	std::string stripped_name = SSFLogic::StripSelfFoundFromName(ew->name);
+
+	strn0cpy(char_name, stripped_name.c_str(), sizeof(char_name));
 
 	const auto& l = CharacterDataRepository::GetWhere(
 		database,
@@ -856,7 +858,7 @@ bool Client::HandleEnterWorldPacket(const EQApplicationPacket *app) {
 		}
 
 		auto query = fmt::format(
-			"SELECT `id`, `name`, `level`, `last_login` FROM character_data WHERE `account_id` = {} ORDER BY `name` LIMIT {}",
+			"SELECT `id`, `name`, `level`, `last_login`, `hardcore_death_time` FROM character_data WHERE `account_id` = {} ORDER BY `name` LIMIT {}",
 			account_id,
 			character_limit
 		);
@@ -867,7 +869,7 @@ bool Client::HandleEnterWorldPacket(const EQApplicationPacket *app) {
 			bool home_enabled = false;
 			for (auto row : results) {
 				if (!strcasecmp(row[1], char_name)) {
-					if (RuleB(World, EnableReturnHomeButton)) {
+					if (RuleB(World, EnableReturnHomeButton) && row[4] == nullptr) {
 						int now = time(nullptr);
 						if ((now - Strings::ToInt(row[3])) >= RuleI(World, MinOfflineTimeToReturnHome)) {
 							home_enabled = true;

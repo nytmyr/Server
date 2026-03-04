@@ -57,6 +57,11 @@ struct ExtendedProfile_Struct {
 	int32				mercState; /* Not Used */
 	uint32				last_invsnapshot_time; /* Used */
 	uint32				next_invsnapshot_time; /* Used */
+
+	// VegasEQ - START
+	uint8               ssf_flag;
+	time_t              hardcore_death_time;
+	// VegasEQ - END
 };
 
 #pragma pack(pop)

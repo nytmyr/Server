@@ -3399,6 +3399,26 @@ bool Perl_Client_GetAntiCheatExempt(Client* self) // @categories Client
 {
 	return self->GetAntiCheatExempt();
 }
+
+// SSF
+uint8 Perl_Client_GetSSFFlag(Client* self) // @categories Client
+{
+	return self->GetSSFFlag();
+}
+
+void Perl_Client_SetSSFFlag(Client* self, uint8 value) // @categories Client
+{
+	self->SetSSFFlag(value);
+}
+
+void Perl_Client_ResetForChallengeRuleset(Client* self) // @categories Client
+{
+	self->ResetForChallengeRuleset();
+}
+
+bool Perl_Client_HardcoreHasDied(Client* self) { // @categories Client
+	return self->HardcoreHasDied();
+}
 // VegasEQ - END
 
 void perl_register_client()
@@ -4017,6 +4037,12 @@ void perl_register_client()
 	package.add("SetAntiCheatExempt", (void(*)(Client*))&Perl_Client_SetAntiCheatExempt);
 	package.add("SetAntiCheatExempt", (void(*)(Client*, int))&Perl_Client_SetAntiCheatExempt);
 	package.add("GetAntiCheatExempt", &Perl_Client_GetAntiCheatExempt);
+
+	// SSF
+	package.add("GetSSFFlag", &Perl_Client_GetSSFFlag);
+	package.add("SetSSFFlag", &Perl_Client_SetSSFFlag);
+	package.add("ResetForChallengeRuleset", &Perl_Client_ResetForChallengeRuleset);
+	package.add("HardcoreHasDied", &Perl_Client_HardcoreHasDied);
 	// VegasEQ - END
 }
 

@@ -329,7 +329,8 @@ public:
 		uint32 augment_three = 0,
 		uint32 augment_four = 0,
 		uint32 augment_five = 0,
-		uint32 augment_six = 0
+		uint32 augment_six = 0,
+		uint32 given_by_char_id = 0
 	);
 
 	bool MeetsLootDropLevelRequirements(LootdropEntriesRepository::LootdropEntries loot_drop, bool verbose=false);
@@ -691,7 +692,7 @@ public:
 	void AttemptVegasLoot(Mob* top_client, float difficulty_min = 0.0f, float difficulty_max = 0.0f, bool raid_only = false, float bonus_chance = 0);
 	void AttemptVegasShardLoot(Mob* top_client, float shard_multiplier, bool guaranteed_shard_drop);
 	void AttemptVegasSpellLoot(Mob* top_client);
-	void DoFirstKillAchievements(Mob* top_client, std::string key);
+	void DoFirstKillAchievements(Client* c, std::string key);
 	void DoFirstKillChecks(Mob* top_client);
 	void GetVegasDifficultyRange(uint16 zone_id, float* difficulty_min, float* difficulty_max, float* difficulty_bonus_min, float* difficulty_bonus_max);
 	void GetVegasZoneRange(uint16 zoneid, uint8* zone_era, uint32* zone_range_min, uint32* zone_range_max);

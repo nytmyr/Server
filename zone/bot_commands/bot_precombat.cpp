@@ -24,6 +24,11 @@ void bot_command_precombat(Client* c, const Seperator* sep)
 		return;
 	}
 
+	if (!Mob::IsValidSSFTarget(c, c->GetTarget(), SSFFlagCheckTypes::Attack)) {
+		c->Message(Chat::Red, "Cannot attack due to a Self Found challenge mismatch.");
+		return;
+	}
+
 	std::string argument(sep->arg[1]);
 
 	if (!argument.compare("set")) {

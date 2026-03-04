@@ -559,6 +559,10 @@ struct ServerClientList_Struct {
 	uint8	LFGToLevel;
 	bool	LFGMatchFilter;
 	char	LFGComments[64];
+
+	// VegasEQ - START
+	uint8   ssl_flags;
+	// VegasEQ - END
 };
 
 struct ServerClientListKeepAlive_Struct {

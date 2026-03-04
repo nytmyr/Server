@@ -1533,6 +1533,28 @@ public:
 	bool IsGuildmaster() const;
 	bool IsDestroying() const { return m_destroying; }
 
+	// VegasEQ - START
+	// SSF
+	virtual void SetSSFFlag(uint8 value) { ssf_flag = value; }
+	virtual uint8 GetSSFFlag() const { return ssf_flag; }
+	static bool IsValidSSFTarget(Mob* initiator, Mob* target, uint8 flag_type = SSFFlagCheckTypes::Unused);
+	void AssignSSFFlags(Client* c);
+	void ResetSSFFlags();
+	bool IsAssignedToSSFFlags(Client* c);
+	bool MatchingSSFClient(uint32 id);
+	std::vector<uint32> GetEligibleSSFClients() { return eligible_ssf_clients; }
+	void AddEligibleSSFClient(uint32 value) { eligible_ssf_clients.push_back(value); }
+	void ClearEligibleSSFClients() { eligible_ssf_clients.clear(); }
+	bool MatchingSSFRaid(uint32 id);
+	std::vector<uint32> GetEligibleSSFRaids() { return eligible_raid_ids; }
+	void AddEligibleSSFRaid(uint32 value) { eligible_raid_ids.push_back(value); }
+	void ClearEligibleSSFRaids() { eligible_raid_ids.clear(); }
+	bool MatchingSSFGroup(uint32 id);
+	std::vector<uint32> GetEligibleSSFGroups() { return eligible_group_ids; }
+	void AddEligibleSSFGroup(uint32 value) { eligible_group_ids.push_back(value); }
+	void ClearEligibleSSFGroups() { eligible_group_ids.clear(); }
+	// VegasEQ - END
+
 protected:
 	void CommonDamage(Mob* other, int64 &damage, const uint16 spell_id, const EQ::skills::SkillType attack_skill, bool &avoidable, const int8 buffslot, const bool iBuffTic, eSpecialAttacks specal = eSpecialAttacks::None);
 	static uint16 GetProcID(uint16 spell_id, uint8 effect_index);
@@ -1949,6 +1971,15 @@ protected:
 	MobMovementManager *mMovementManager;
 
 	uint16 m_merchant_session_entity_id;
+
+	// VegasEQ - START
+	// SSF
+	uint8 ssf_flag;
+	std::vector<uint32> eligible_ssf_clients;
+	std::vector<uint32> eligible_raid_ids;
+	std::vector<uint32> eligible_group_ids;
+	Timer ssf_flag_timer;
+	// VegasEQ - END
 
 private:
 	Mob* target;

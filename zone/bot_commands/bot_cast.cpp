@@ -541,6 +541,12 @@ void bot_command_cast(Client* c, const Seperator* sep)
 			return;
 		}
 	}
+	else {
+		if (!Mob::IsValidSSFTarget(c, tar, SSFFlagCheckTypes::BotForceCast)) {
+			c->Message(Chat::Red, "Cannot cast on target due to a Self Found challenge mismatch.");
+			return;
+		}
+	}
 
 	if (!aa_type && !by_spell_id) {
 		if (IsPetBotSpellType(spell_type) && !tar->IsPet()) {

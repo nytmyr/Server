@@ -314,6 +314,34 @@ void Client::DoParcelSend(const Parcel_Struct *parcel_in)
 		return;
 	}
 
+	if (SSFLogic::IsAnySelfFound(GetSSFFlag())) { // VegasEQ
+		Message(Chat::Red, "Self Found players cannot send Parcels.");
+		DoParcelCancel();
+		SendParcelAck();
+		return;
+	}
+
+	if (SSFLogic::IsAnySelfFound(send_to_client.at(0).ssf_flag)) { // VegasEQ
+		Message(Chat::Red, "Self Found players cannot receive Parcels.");
+		DoParcelCancel();
+		SendParcelAck();
+		return;
+	}
+
+	if (HardcoreHasDied()) { // VegasEQ
+		Message(Chat::Red, "Your journey here has ended.");
+		DoParcelCancel();
+		SendParcelAck();
+		return;
+	}
+
+	if (send_to_client.at(0).hardcore_death) { // VegasEQ
+		Message(Chat::Red, "Why waste an item on someone who wasted their life. Their journey has ended.");
+		DoParcelCancel();
+		SendParcelAck();
+		return;
+	}
+
 	if (send_to_client.at(0).parcel_count >= RuleI(Parcel, ParcelMaxItems)) {
 		Message(
 			Chat::Yellow,
@@ -643,6 +671,18 @@ void Client::DoParcelRetrieve(const ParcelRetrieve_Struct &parcel_in)
 {
 	auto merchant = entity_list.GetNPCByID(parcel_in.merchant_entity_id);
 	if (!merchant) {
+		SendParcelRetrieveAck();
+		return;
+	}
+
+	if (SSFLogic::IsAnySelfFound(GetSSFFlag())) {
+		Message(Chat::Red, "Self Found players cannot receive Parcels.");
+		SendParcelRetrieveAck();
+		return;
+	}
+
+	if (HardcoreHasDied()) { // VegasEQ
+		Message(Chat::Red, "Your journey here has ended.");
 		SendParcelRetrieveAck();
 		return;
 	}

@@ -635,6 +635,29 @@ public:
 	uint8 GetPetType();
 	std::string GetPetTypeName();
 	void SetPetType(uint8 pet_type);
+
+	// VegasEQ - START
+	// SSF
+	void SetSSFFlag(uint8 value);
+	uint8 GetSSFFlag();
+	bool IsValidSSFTarget(Lua_Mob initiator, Lua_Mob target);
+	bool IsValidSSFTarget(Lua_Mob initiator, Lua_Mob target, uint8 flag_type);
+	void AssignSSFFlags(Lua_Client c);
+	void ResetSSFFlags();
+	bool IsAssignedToSSFFlags(Lua_Client c);
+	bool MatchingSSFClient(uint32 id);
+	luabind::object GetEligibleSSFClients(lua_State* L);
+	void AddEligibleSSFClient(uint32 value);
+	void ClearEligibleSSFClients();
+	bool MatchingSSFRaid(uint32 id);
+	luabind::object GetEligibleSSFRaids(lua_State* L);
+	void AddEligibleSSFRaid(uint32 value);
+	void ClearEligibleSSFRaids();
+	bool MatchingSSFGroup(uint32 id);
+	luabind::object GetEligibleSSFGroups(lua_State* L);
+	void AddEligibleSSFGroup(uint32 value);
+	void ClearEligibleSSFGroups();
+	// VegasEQ - END
 };
 
 #endif // LUA_EQEMU

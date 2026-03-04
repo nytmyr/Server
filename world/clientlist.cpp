@@ -17,6 +17,7 @@
 */
 
 #include "common/classes.h"
+#include "common/data_verification.h"
 #include "common/event_sub.h"
 #include "common/guilds.h"
 #include "common/json/json.h"
@@ -603,317 +604,251 @@ void ClientList::SendWhoAll(uint32 fromid,const char* to, int16 admin, Who_All_S
 	try {
 		LinkedListIterator<ClientListEntry*> iterator(clientlist);
 		LinkedListIterator<ClientListEntry*> countclients(clientlist);
-		ClientListEntry* cle = 0;
+		ClientListEntry* cle      = 0;
 		ClientListEntry* countcle = 0;
-		//char tmpgm[25] = "";
-		//char accinfo[150] = "";
-		char line[300] = "";
-		//char tmpguild[50] = "";
-		//char LFG[10] = "";
-		//uint32 x = 0;
-		int whomlen = 0;
+		char line[300]            = "";
+		int whomlen               = 0;
 
 		if (whom) {
 			// fixes for client converting some queries into a race query instead of zone
-			if (whom->wrace == 221) {
-				whom->wrace = 0xFFFF;
-				strcpy(whom->whom, "scarlet");
+			bool is_race_query = false;
+
+			switch (whom->wrace) {
+				case 0x001A: // 0x001A is the old Froglok race number and is sent by the client for /who all froglok
+					whom->wrace = Race::Froglok2; // This is what EQEmu uses for the Froglok Race number.
+					break;
+				case 221:
+					strcpy(whom->whom, "scarlet");
+					is_race_query = true;
+					break;
+				case 327:
+					strcpy(whom->whom, "crystal");
+					is_race_query = true;
+					break;
+				case 103:
+					strcpy(whom->whom, "kedge");
+					is_race_query = true;
+					break;
+				case 230:
+					strcpy(whom->whom, "akheva");
+					is_race_query = true;
+					break;
+				case 229:
+					strcpy(whom->whom, "netherbian");
+					is_race_query = true;
+					break;
+				default:
+					break;
 			}
 
-			if (whom->wrace == 327) {
+			if (is_race_query) {
 				whom->wrace = 0xFFFF;
-				strcpy(whom->whom, "crystal");
-			}
-
-			if (whom->wrace == 103) {
-				whom->wrace = 0xFFFF;
-				strcpy(whom->whom, "kedge");
-			}
-
-			if (whom->wrace == 230) {
-				whom->wrace = 0xFFFF;
-				strcpy(whom->whom, "akheva");
-			}
-
-			if (whom->wrace == 229) {
-				whom->wrace = 0xFFFF;
-				strcpy(whom->whom, "netherbian");
 			}
 
 			whomlen = strlen(whom->whom);
-
-			if (whom->wrace == 0x001A) { // 0x001A is the old Froglok race number and is sent by the client for /who all froglok
-				whom->wrace = Race::Froglok2; // This is what EQEmu uses for the Froglok Race number.
-			}
 		}
 
-		uint32 totalusers=0;
-		uint32 totallength=0;
+		uint32 totalusers  = 0;
+		uint32 totallength = 0;
+
 		countclients.Reset();
+
 		while (countclients.MoreElements()) {
 			countcle = countclients.GetData();
-			const char* tmpZone = ZoneName(countcle->zone());
-			if (
-				(countcle->Online() >= CLE_Status::Zoning) &&
-				(!countcle->GetGM() || countcle->Anon() != 1 || admin >= countcle->Admin()) &&
-				(whom == 0 || (
-					((countcle->Admin() >= AccountStatus::QuestTroupe && countcle->GetGM()) || whom->gmlookup == 0xFFFF) &&
-					(whom->lvllow == 0xFFFF ||
-									(countcle->level() >= whom->lvllow && countcle->level() <= whom->lvlhigh &&
-									(countcle->Anon() == 0 || admin > countcle->Admin()))) &&
-									(whom->wclass == 0xFFFF || (countcle->class_() == whom->wclass &&
-																(countcle->Anon() == 0 || admin > countcle->Admin()))) &&
-									(whom->wrace == 0xFFFF ||
-									(countcle->race() == whom->wrace && (countcle->Anon() == 0 || admin > countcle->Admin()))) &&
-					(whomlen == 0 || (
-						(tmpZone != 0 && strncasecmp(tmpZone, whom->whom, whomlen) == 0) ||
-						strncasecmp(countcle->name(),whom->whom, whomlen) == 0 ||
-						(strncasecmp(guild_mgr.GetGuildName(countcle->GuildID()), whom->whom, whomlen) == 0) ||
-						(admin >= AccountStatus::GMAdmin && strncasecmp(countcle->AccountName(), whom->whom, whomlen) == 0)
-					))
-				))
-			) {
-				// these blocks can all be condensed but it's simpler to conceptualize this way
-				if ((countcle->Anon()>0 && admin >= countcle->Admin() && admin > AccountStatus::Player) || countcle->Anon()==0 ) {
-					totalusers++;
-					if (totalusers<=20 || admin >= AccountStatus::GMAdmin) {
-						totallength = totallength + strlen(countcle->name()) + strlen(countcle->AccountName()) +
-									strlen(guild_mgr.GetGuildName(countcle->GuildID())) + 5;
-					}
-				} else if (((countcle->Anon() == 1 && admin <= countcle->Admin()) && whomlen != 0 &&
-							strncasecmp(countcle->name(), whom->whom, whomlen) == 0)) {
-					totalusers++;
-					if (totalusers <= 20 || admin >= AccountStatus::GMAdmin) {
-						totallength = totallength + strlen(countcle->name()) + strlen(countcle->AccountName()) +
-									strlen(guild_mgr.GetGuildName(countcle->GuildID())) + 5;
-					}
-				} else if (((countcle->Anon() == 2 && admin <= countcle->Admin()) && whomlen != 0 &&
-							(strncasecmp(countcle->name(), whom->whom, whomlen) == 0 ||
-							strncasecmp(guild_mgr.GetGuildName(countcle->GuildID()), whom->whom, whomlen) == 0))) {
-					totalusers++;
-					if (totalusers <= 20 || admin >= AccountStatus::GMAdmin) {
-						totallength = totallength + strlen(countcle->name()) + strlen(countcle->AccountName()) +
-									strlen(guild_mgr.GetGuildName(countcle->GuildID())) + 5;
-					}
+
+			if (IsValidClientEntry(whom, admin, countcle, whomlen)) {
+				totalusers++;
+
+				if (totalusers <= 20 || admin >= AccountStatus::GMAdmin) {
+					std::string name = SSFLogic::AddSelfFoundToName(countcle->GetSSFFlag(), countcle->name());
+					totallength += name.length() + strlen(countcle->name()) + strlen(countcle->AccountName()) + strlen(guild_mgr.GetGuildName(countcle->GuildID())) + 5;
 				}
 			}
+
 			countclients.Advance();
 		}
 
-		uint32 plid=fromid;
-		uint32 playerineqstring=5001;
-		const char line2[]="---------------------------";
-		uint8 unknown35=0x0A;
-		uint32 unknown36=0;
-		uint32 playersinzonestring=5028;
+		uint32 plid                = fromid;
+		uint32 playerineqstring    = 5001;
+		const char line2[]         = "---------------------------";
+		uint8 unknown35            = 0x0A;
+		uint32 unknown36           = 0;
+		uint32 playersinzonestring = 5028;
 
-		if (totalusers>20 && admin<AccountStatus::GMAdmin) {
-			totalusers=20;
-			playersinzonestring=5033;
-		} else if(totalusers>1) {
-			playersinzonestring=5036;
+		if (totalusers > 20 && admin < AccountStatus::GMAdmin) {
+			totalusers = 20;
+			playersinzonestring = 5033;
+		} else if (totalusers > 1) {
+			playersinzonestring = 5036;
 		}
 
 		uint32 unknown44[2];
-		unknown44[0]=0;
-		unknown44[1]=0;
-		uint32 unknown52=totalusers;
-		uint32 unknown56=1;
+		unknown44[0] = 0;
+		unknown44[1] = 0;
+		uint32 unknown52 = totalusers;
+		uint32 unknown56 = 1;
 		auto pack2 = new ServerPacket(ServerOP_WhoAllReply, 64 + totallength + (49 * totalusers));
-		memset(pack2->pBuffer,0,pack2->size);
-		uchar *buffer=pack2->pBuffer;
-		uchar *bufptr=buffer;
+		memset(pack2->pBuffer, 0, pack2->size);
+		uchar *buffer = pack2->pBuffer;
+		uchar *bufptr = buffer;
 		//memset(buffer,0,pack2->size);
-		memcpy(bufptr,&plid, sizeof(uint32));
-		bufptr+=sizeof(uint32);
-		memcpy(bufptr,&playerineqstring, sizeof(uint32));
-		bufptr+=sizeof(uint32);
-		memcpy(bufptr,&line2, strlen(line2));
+		memcpy(bufptr, &plid, sizeof(uint32));
+		bufptr += sizeof(uint32);
+		memcpy(bufptr, &playerineqstring, sizeof(uint32));
+		bufptr += sizeof(uint32);
+		memcpy(bufptr, &line2, strlen(line2));
 		bufptr+=strlen(line2);
-		memcpy(bufptr,&unknown35, sizeof(uint8));
-		bufptr+=sizeof(uint8);
-		memcpy(bufptr,&unknown36, sizeof(uint32));
-		bufptr+=sizeof(uint32);
-		memcpy(bufptr,&playersinzonestring, sizeof(uint32));
-		bufptr+=sizeof(uint32);
-		memcpy(bufptr,&unknown44[0], sizeof(uint32));
-		bufptr+=sizeof(uint32);
-		memcpy(bufptr,&unknown44[1], sizeof(uint32));
-		bufptr+=sizeof(uint32);
-		memcpy(bufptr,&unknown52, sizeof(uint32));
-		bufptr+=sizeof(uint32);
-		memcpy(bufptr,&unknown56, sizeof(uint32));
-		bufptr+=sizeof(uint32);
-		memcpy(bufptr,&totalusers, sizeof(uint32));
-		bufptr+=sizeof(uint32);
+		memcpy(bufptr, &unknown35, sizeof(uint8));
+		bufptr += sizeof(uint8);
+		memcpy(bufptr, &unknown36, sizeof(uint32));
+		bufptr += sizeof(uint32);
+		memcpy(bufptr, &playersinzonestring, sizeof(uint32));
+		bufptr += sizeof(uint32);
+		memcpy(bufptr, &unknown44[0], sizeof(uint32));
+		bufptr += sizeof(uint32);
+		memcpy(bufptr, &unknown44[1], sizeof(uint32));
+		bufptr += sizeof(uint32);
+		memcpy(bufptr, &unknown52, sizeof(uint32));
+		bufptr += sizeof(uint32);
+		memcpy(bufptr, &unknown56, sizeof(uint32));
+		bufptr += sizeof(uint32);
+		memcpy(bufptr, &totalusers, sizeof(uint32));
+		bufptr += sizeof(uint32);
 
 		iterator.Reset();
-		int idx=-1;
+		int idx = -1;
+
 		while(iterator.MoreElements()) {
 			cle = iterator.GetData();
-			const char* tmpZone = ZoneName(cle->zone());
 
-			if (
-				(cle->Online() >= CLE_Status::Zoning) &&
-				(!cle->GetGM() || cle->Anon() != 1 || admin >= cle->Admin()) &&
-				(whom == 0 || (
-					((cle->Admin() >= AccountStatus::QuestTroupe && cle->GetGM()) || whom->gmlookup == 0xFFFF) &&
-					(whom->lvllow == 0xFFFF || (cle->level() >= whom->lvllow && cle->level() <= whom->lvlhigh && (cle->Anon()==0 || admin>cle->Admin()))) &&
-					(whom->wclass == 0xFFFF || (cle->class_() == whom->wclass && (cle->Anon()==0 || admin>cle->Admin()))) &&
-					(whom->wrace == 0xFFFF || (cle->race() == whom->wrace && (cle->Anon()==0 || admin>cle->Admin()))) &&
-					(whomlen == 0 || (
-						(tmpZone != 0 && strncasecmp(tmpZone, whom->whom, whomlen) == 0) ||
-						strncasecmp(cle->name(),whom->whom, whomlen) == 0 ||
-						(strncasecmp(guild_mgr.GetGuildName(cle->GuildID()), whom->whom, whomlen) == 0) ||
-						(admin >= AccountStatus::GMAdmin && strncasecmp(cle->AccountName(), whom->whom, whomlen) == 0)
-					))
-				))
-			) {
+			if (IsValidClientEntry(whom, admin, cle, whomlen)) {
 				line[0] = 0;
 				uint32 rankstring = 0xFFFFFFFF;
-				// These lines can be simplified but easier to conceptualize this way
-				if ((cle->Anon()==1 && cle->GetGM() && cle->Admin()>admin) || (idx>=20 && admin < AccountStatus::GMAdmin)) { //hide gms that are anon from lesser gms and normal players, cut off at 20
-					rankstring = 0;
+
+				if ((cle->Anon() == 1 && cle->GetGM() && cle->Admin() > admin) || (idx >= 20 && admin < AccountStatus::GMAdmin)) {
 					iterator.Advance();
 					continue;
-				} else if (cle->Anon() == 1 && cle->Admin()>=admin && (whomlen == 0 || (whomlen !=0 && strncasecmp(cle->name(), whom->whom, whomlen) != 0))) {
-					rankstring = 0;
-					iterator.Advance();
-					continue;
-				} else if (cle->Anon() == 2 && cle->Admin()>=admin && (whomlen == 0 || (whomlen !=0 && strncasecmp(cle->name(), whom->whom, whomlen) != 0 && strncasecmp(guild_mgr.GetGuildName(cle->GuildID()), whom->whom, whomlen) != 0))) {
-					rankstring = 0;
-					iterator.Advance();
-					continue;
-				} else if (cle->GetGM()) {
-					if (cle->Admin() >= AccountStatus::GMImpossible) {
-						rankstring = 5021;
-					} else if (cle->Admin() >= AccountStatus::GMMgmt) {
-						rankstring = 5020;
-					} else if (cle->Admin() >= AccountStatus::GMCoder) {
-						rankstring = 5019;
-					} else if (cle->Admin() >= AccountStatus::GMAreas) {
-						rankstring = 5018;
-					} else if (cle->Admin() >= AccountStatus::QuestMaster) {
-						rankstring = 5017;
-					} else if (cle->Admin() >= AccountStatus::GMLeadAdmin) {
-						rankstring = 5016;
-					} else if (cle->Admin() >= AccountStatus::GMAdmin) {
-						rankstring = 5015;
-					} else if (cle->Admin() >= AccountStatus::GMStaff) {
-						rankstring = 5014;
-					} else if (cle->Admin() >= AccountStatus::EQSupport) {
-						rankstring = 5013;
-					} else if (cle->Admin() >= AccountStatus::GMTester) {
-						rankstring = 5012;
-					} else if (cle->Admin() >= AccountStatus::SeniorGuide) {
-						rankstring = 5011;
-					} else if (cle->Admin() >= AccountStatus::QuestTroupe) {
-						rankstring = 5010;
-					} else if (cle->Admin() >= AccountStatus::Guide) {
-						rankstring = 5009;
-					} else if (cle->Admin() >= AccountStatus::ApprenticeGuide) {
-						rankstring = 5008;
-					} else if (cle->Admin() >= AccountStatus::Steward) {
-						rankstring = 5007;
-					}
+				}
+
+				if (cle->GetGM()) {
+					if      (cle->Admin() >= AccountStatus::GMImpossible)    rankstring = 5021;
+					else if (cle->Admin() >= AccountStatus::GMMgmt)          rankstring = 5020;
+					else if (cle->Admin() >= AccountStatus::GMCoder)         rankstring = 5019;
+					else if (cle->Admin() >= AccountStatus::GMAreas)         rankstring = 5018;
+					else if (cle->Admin() >= AccountStatus::QuestMaster)     rankstring = 5017;
+					else if (cle->Admin() >= AccountStatus::GMLeadAdmin)     rankstring = 5016;
+					else if (cle->Admin() >= AccountStatus::GMAdmin)         rankstring = 5015;
+					else if (cle->Admin() >= AccountStatus::GMStaff)         rankstring = 5014;
+					else if (cle->Admin() >= AccountStatus::EQSupport)       rankstring = 5013;
+					else if (cle->Admin() >= AccountStatus::GMTester)        rankstring = 5012;
+					else if (cle->Admin() >= AccountStatus::SeniorGuide)     rankstring = 5011;
+					else if (cle->Admin() >= AccountStatus::QuestTroupe)     rankstring = 5010;
+					else if (cle->Admin() >= AccountStatus::Guide)           rankstring = 5009;
+					else if (cle->Admin() >= AccountStatus::ApprenticeGuide) rankstring = 5008;
+					else if (cle->Admin() >= AccountStatus::Steward)         rankstring = 5007;
 				}
 
 				idx++;
-				char guildbuffer[67]={0};
+				char guildbuffer[67] = {0};
 
 				if (cle->GuildID() != GUILD_NONE && cle->GuildID()>0) {
 					sprintf(guildbuffer,"<%s>", guild_mgr.GetGuildName(cle->GuildID()));
 				}
 
-				uint32 formatstring=5025;
+				uint32 formatstring = 5025;
 
-				if (cle->Anon()==1 && (admin<cle->Admin() || admin == AccountStatus::Player)) {
-					formatstring=5024;
-				} else if(cle->Anon()==1 && admin>=cle->Admin() && admin > AccountStatus::Player) {
-					formatstring=5022;
-				} else if(cle->Anon()==2 && (admin<cle->Admin() || admin == AccountStatus::Player)) {
-					formatstring=5023;//display guild
-				} else if(cle->Anon()==2 && admin>=cle->Admin() && admin > AccountStatus::Player) {
-					formatstring=5022;//display everything
+				if (cle->Anon() == 1 && admin <= cle->Admin()) {
+					formatstring = 5024; // [Anonymous] name only
+				} else if (cle->Anon() == 1 && admin > cle->Admin() && admin > AccountStatus::Player) {
+					formatstring = 5022; // show everything
+				} else if (cle->Anon() == 2 && admin <= cle->Admin()) {
+					formatstring = 5023; // [Anonymous] name + guild
+				} else if (cle->Anon() == 2 && admin > cle->Admin() && admin > AccountStatus::Player) {
+					formatstring = 5022; // show everything
 				}
 
 				//war* wars2 = (war*)pack2->pBuffer;
 
-				uint32 plclass_=0;
-				uint32 pllevel=0;
-				uint32 pidstring=0xFFFFFFFF;//5003;
-				uint32 plrace=0;
-				uint32 zonestring=0xFFFFFFFF;
-				uint32 plzone=0;
+				uint32 plclass_ = 0;
+				uint32 pllevel = 0;
+				uint32 pidstring = 0xFFFFFFFF; //5003
+				uint32 plrace = 0;
+				uint32 zonestring = 0xFFFFFFFF;
+				uint32 plzone = 0;
 				uint32 unknown80[2];
 
-				if (cle->Anon()==0 || (admin>=cle->Admin() && admin> AccountStatus::Player)) {
-					plclass_=cle->class_();
-					pllevel=cle->level();
+				if (cle->Anon() == 0 || (admin >= cle->Admin() && admin > AccountStatus::Player)) {
+					plclass_ = cle->class_();
+					pllevel = cle->level();
 
-					if(admin>=AccountStatus::GMAdmin) {
-						pidstring=5003;
+					if (admin >= AccountStatus::GMAdmin) {
+						pidstring = 5003;
 					}
-					plrace=cle->race();
-					zonestring=5006;
-					plzone=cle->zone();
+
+					plrace = cle->race();
+					zonestring = 5006;
+					plzone = cle->zone();
 				}
 
-				if (admin>=cle->Admin() && admin > AccountStatus::Player) {
-					unknown80[0]=cle->Admin();
+				if (admin >= cle->Admin() && admin > AccountStatus::Player) {
+					unknown80[0] = cle->Admin();
 				} else {
-					unknown80[0]=0xFFFFFFFF;
+					unknown80[0] = 0xFFFFFFFF;
 				}
 
-				unknown80[1]=0xFFFFFFFF;//1035
+				unknown80[1] = 0xFFFFFFFF;//1035
 
 				//char plstatus[20]={0};
 				//sprintf(plstatus, "Status %i",cle->Admin());
-				char plname[64]={0};
-				strcpy(plname,cle->name());
+				char plname[64] = {0};
+				std::string name = SSFLogic::AddSelfFoundToName(cle->GetSSFFlag(), cle->name());
 
-				char placcount[30]={0};
-				if (admin>=cle->Admin() && admin > AccountStatus::Player) {
-					strcpy(placcount,cle->AccountName());
+				strcpy(plname, name.c_str());
+
+				char placcount[30] = {0};
+
+				if (admin >= cle->Admin() && admin > AccountStatus::Player) {
+					strcpy(placcount, cle->AccountName());
 				}
 
-				memcpy(bufptr,&formatstring, sizeof(uint32));
-				bufptr+=sizeof(uint32);
-				memcpy(bufptr,&pidstring, sizeof(uint32));
-				bufptr+=sizeof(uint32);
-				memcpy(bufptr,&plname, strlen(plname)+1);
+				memcpy(bufptr, &formatstring, sizeof(uint32));
+				bufptr += sizeof(uint32);
+				memcpy(bufptr, &pidstring, sizeof(uint32));
+				bufptr += sizeof(uint32);
+				memcpy(bufptr, &plname, strlen(plname)+1);
 				bufptr+=strlen(plname)+1;
-				memcpy(bufptr,&rankstring, sizeof(uint32));
-				bufptr+=sizeof(uint32);
-				memcpy(bufptr,&guildbuffer, strlen(guildbuffer)+1);
+				memcpy(bufptr, &rankstring, sizeof(uint32));
+				bufptr += sizeof(uint32);
+				memcpy(bufptr, &guildbuffer, strlen(guildbuffer)+1);
 				bufptr+=strlen(guildbuffer)+1;
-				memcpy(bufptr,&unknown80[0], sizeof(uint32));
-				bufptr+=sizeof(uint32);
-				memcpy(bufptr,&unknown80[1], sizeof(uint32));
-				bufptr+=sizeof(uint32);
-				memcpy(bufptr,&zonestring, sizeof(uint32));
-				bufptr+=sizeof(uint32);
-				memcpy(bufptr,&plzone, sizeof(uint32));
-				bufptr+=sizeof(uint32);
-				memcpy(bufptr,&plclass_, sizeof(uint32));
-				bufptr+=sizeof(uint32);
-				memcpy(bufptr,&pllevel, sizeof(uint32));
-				bufptr+=sizeof(uint32);
-				memcpy(bufptr,&plrace, sizeof(uint32));
-				bufptr+=sizeof(uint32);
-				uint32 ending=0;
-				memcpy(bufptr,&placcount, strlen(placcount)+1);
-				bufptr+=strlen(placcount)+1;
-				ending=207;
-				memcpy(bufptr,&ending, sizeof(uint32));
-				bufptr+=sizeof(uint32);
+				memcpy(bufptr, &unknown80[0], sizeof(uint32));
+				bufptr += sizeof(uint32);
+				memcpy(bufptr, &unknown80[1], sizeof(uint32));
+				bufptr += sizeof(uint32);
+				memcpy(bufptr, &zonestring, sizeof(uint32));
+				bufptr += sizeof(uint32);
+				memcpy(bufptr, &plzone, sizeof(uint32));
+				bufptr += sizeof(uint32);
+				memcpy(bufptr, &plclass_, sizeof(uint32));
+				bufptr += sizeof(uint32);
+				memcpy(bufptr, &pllevel, sizeof(uint32));
+				bufptr += sizeof(uint32);
+				memcpy(bufptr, &plrace, sizeof(uint32));
+				bufptr += sizeof(uint32);
+				uint32 ending = 0;
+				memcpy(bufptr, &placcount, strlen(placcount)+1);
+				bufptr += strlen(placcount)+1;
+				ending = 207;
+				memcpy(bufptr, &ending, sizeof(uint32));
+				bufptr += sizeof(uint32);
 			}
+
 			iterator.Advance();
 		}
 
-		SendPacket(to,pack2);
+		SendPacket(to, pack2);
 		safe_delete(pack2);
-	} catch(...) {
+	} catch (...) {
 		LogInfo("Unknown error in world's SendWhoAll (probably mem error), ignoring");
 		return;
 	}
@@ -947,7 +882,8 @@ void ClientList::SendFriendsWho(ServerFriendsWho_Struct *FriendsWho, WorldTCPCon
 		ClientListEntry* CLE = FindCharacter(Friend_);
 		if(CLE && CLE->name() && (CLE->Online() >= CLE_Status::Zoning) && !(CLE->GetGM() && CLE->Anon())) {
 			FriendsCLEs.push_back(CLE);
-			TotalLength += strlen(CLE->name());
+			std::string name = SSFLogic::AddSelfFoundToName(CLE->GetSSFFlag(), CLE->name());
+			TotalLength += strlen(name.c_str());
 			int GuildNameLength = strlen(guild_mgr.GetGuildName(CLE->GuildID()));
 			if(GuildNameLength>0)
 				TotalLength += (GuildNameLength + 2);
@@ -1019,7 +955,8 @@ void ClientList::SendFriendsWho(ServerFriendsWho_Struct *FriendsWho, WorldTCPCon
 			}
 
 			char PlayerName[64]={0};
-			strcpy(PlayerName,cle->name());
+			std::string name = SSFLogic::AddSelfFoundToName(cle->GetSSFFlag(), cle->name());
+			strcpy(PlayerName, name.c_str());
 
 			WhoAllPlayerPart1* WAPP1 = (WhoAllPlayerPart1*)bufptr;
 
@@ -2004,3 +1941,57 @@ void ClientList::AddToZoneServerCaches(ClientListEntry* cle)
 		m_guild_zone_server_ids[cle->GuildID()].insert(server_id);
 	}
 }
+
+// VegasEQ - START
+bool ClientList::IsValidClientEntry(Who_All_Struct* whom, int16 admin, ClientListEntry* cle, int whomlen) {
+	bool is_online = cle->Online() >= CLE_Status::Zoning;
+	bool is_not_hidden_gm = !cle->GetGM() || cle->Anon() != 1 || admin >= cle->Admin();
+
+	if (!is_online || !is_not_hidden_gm) {
+		return false;
+	}
+
+	const char* tmpZone = ZoneName(cle->zone());
+
+	bool is_anon     = cle->Anon() == 1;
+	bool is_roleplay = cle->Anon() == 2;
+	bool is_public   = cle->Anon() == 0;
+	bool admin_sees  = cle->Anon() > 0 && admin > AccountStatus::Player && admin >= cle->Admin();
+	bool outranked   = admin <= cle->Admin();
+	bool not_anon    = is_public || admin > cle->Admin();
+	bool can_view_gm   = whom == nullptr || whom->gmlookup == 0xFFFF || (cle->Admin() >= AccountStatus::QuestTroupe && cle->GetGM());
+	bool within_level  = whom == nullptr || whom->lvllow == 0xFFFF || (not_anon && EQ::ValueWithin(cle->level(), whom->lvllow, whom->lvlhigh));
+	bool correct_class = whom == nullptr || whom->wclass == 0xFFFF || (not_anon && cle->class_() == whom->wclass);
+	bool correct_race  = whom == nullptr || whom->wrace == 0xFFFF  || (not_anon && cle->race() == whom->wrace);
+	bool valid_entry   = whom == nullptr || (can_view_gm && within_level && correct_class && correct_race);
+
+	bool hidden_by_rule = RuleB(Zone, HideAnonFromWhoAll) && is_anon && admin <= AccountStatus::Player;
+
+	if (!valid_entry || hidden_by_rule) {
+		return false;
+	}
+
+	if (whomlen == 0) {
+		return true;
+	}
+
+	bool zone_match    = is_public && tmpZone != nullptr && strncasecmp(tmpZone, whom->whom, whomlen) == 0;
+	bool name_match    = strncasecmp(cle->name(), whom->whom, whomlen) == 0;
+	bool guild_match   = (admin_sees || !is_anon) && strncasecmp(guild_mgr.GetGuildName(cle->GuildID()), whom->whom, whomlen) == 0;
+	bool account_match = admin >= AccountStatus::GMAdmin && strncasecmp(cle->AccountName(), whom->whom, whomlen) == 0;
+
+	if (is_public || admin_sees) {
+		return zone_match || name_match || guild_match || account_match;
+	}
+
+	if (is_anon && outranked) {
+		return name_match;
+	}
+
+	if (is_roleplay && outranked) {
+		return name_match || guild_match;
+	}
+
+	return false;
+}
+// VegasEQ - END

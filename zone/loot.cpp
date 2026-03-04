@@ -302,7 +302,8 @@ void NPC::AddLootDrop(
 	uint32 augment_three,
 	uint32 augment_four,
 	uint32 augment_five,
-	uint32 augment_six
+	uint32 augment_six,
+	uint32 given_by_char_id
 )
 {
 	if (m_resumed_from_zone_suspend) {
@@ -356,6 +357,7 @@ void NPC::AddLootDrop(
 	item->trivial_min_level = loot_drop.trivial_min_level;
 	item->trivial_max_level = loot_drop.trivial_max_level;
 	item->equip_slot        = EQ::invslot::SLOT_INVALID;
+	item->given_by_char_id  = given_by_char_id;
 
 	// unsure if required to equip, YOLO for now
 	if (item2->ItemType == EQ::item::ItemTypeBow) {
@@ -973,6 +975,10 @@ void NPC::RemoveLootCash()
 
 void NPC::AttemptVegasLoot(Mob* top_client, float diff_min, float diff_max, bool raid_item, float bonus_chance) {
 	if (!top_client) {
+		return;
+	}
+
+	if (!RuleB(SSF, SelfFoundVegasLootAllowed) && top_client->IsClient() && SSFLogic::IsAnySelfFound(top_client->CastToClient()->GetSSFFlag())) {
 		return;
 	}
 

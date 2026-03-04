@@ -7,6 +7,8 @@
 
 #include <vector>
 
+#include "common/data_verification.h"
+
 typedef enum {
 	Never,
 	Offline,
@@ -111,6 +113,11 @@ public:
 	void SetPendingDzInvite(ServerPacket *pack) { m_dz_invite.reset(pack->Copy()); };
 	std::unique_ptr<ServerPacket> GetPendingDzInvite() { return std::move(m_dz_invite); }
 
+	// VegasEQ - START
+	uint8 GetSSFFlag() { return m_ssl_flags; }
+	void SetSSFFlag(uint8 value) { m_ssl_flags = value; }
+	// VegasEQ - END
+
 private:
 	void ClearVars(bool iAll = false);
 
@@ -158,4 +165,8 @@ private:
 	std::vector<ServerChannelMessage_Struct *> m_tell_queue;
 
 	std::unique_ptr<ServerPacket> m_dz_invite;
+
+	// VegasEQ - START
+	uint8 m_ssl_flags;
+	// VegasEQ - END
 };

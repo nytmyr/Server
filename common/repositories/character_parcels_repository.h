@@ -49,6 +49,8 @@ public:
 		std::string character_name;
 		uint32      char_id;
 		uint32      parcel_count;
+		uint8       ssf_flag;
+		bool        hardcore_death;
 	};
 
 	static std::vector<ParcelCountAndCharacterName> GetParcelCountAndCharacterName(Database &db, const std::string &character_name)
@@ -57,7 +59,7 @@ public:
 
 		auto results = db.QueryDatabase(
 			fmt::format(
-				"SELECT c.name, COUNT(p.id), c.id FROM character_data c "
+				"SELECT c.name, COUNT(p.id), c.id, c.ssf_flag, c.hardcore_death_time FROM character_data c "
 				"LEFT JOIN character_parcels p ON p.char_id = c.id "
 				"WHERE c.name = '{}' "
 				"LIMIT 1",
@@ -72,6 +74,8 @@ public:
 			e.character_name = row[0] ? row[0] : "";
 			e.parcel_count   = row[1] ? Strings::ToUnsignedInt(row[1]) : 0;
 			e.char_id        = row[2] ? Strings::ToUnsignedInt(row[2]) : 0;
+			e.ssf_flag       = row[3] ? Strings::ToUnsignedInt(row[3]) : 0;
+			e.hardcore_death = row[4] != nullptr;
 
 			all_entries.push_back(e);
 		}

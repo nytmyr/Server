@@ -4903,7 +4903,8 @@ void EntityList::ZoneWho(Client *c, Who_All_Struct *Who)
 			Entries++;
 			client_sub_list.push_back(ClientEntry);
 
-			PacketLength = PacketLength + strlen(ClientEntry->GetName());
+			std::string name = SSFLogic::AddSelfFoundToName(ClientEntry->GetSSFFlag(), ClientEntry->GetName()); // VegasEQ
+			PacketLength = PacketLength + name.length(); // VegasEQ
 
 			if (strlen(guild_mgr.GetGuildName(ClientEntry->GuildID())) > 0)
 				PacketLength = PacketLength + strlen(guild_mgr.GetGuildName(ClientEntry->GuildID())) + 2;
@@ -4987,11 +4988,18 @@ void EntityList::ZoneWho(Client *c, Who_All_Struct *Who)
 				PlayerRace = ClientEntry->GetRace();
 			}
 
+			// VegasEQ - START
+			char PlayerName[64] = {0};
+			std::string name = SSFLogic::AddSelfFoundToName(ClientEntry->GetSSFFlag(), ClientEntry->GetName());
+			strncpy(PlayerName, name.c_str(), 63);
+
 			WhoAllPlayerPart1* WAPP1 = (WhoAllPlayerPart1*)Buffer;
 			WAPP1->FormatMSGID = FormatMSGID;
 			WAPP1->PIDMSGID = 0xFFFFFFFF;
-			strcpy(WAPP1->Name, ClientEntry->GetName());
+			strcpy(WAPP1->Name, PlayerName);
 			Buffer += sizeof(WhoAllPlayerPart1) + strlen(WAPP1->Name);
+			// VegasEQ - END
+
 			WhoAllPlayerPart2* WAPP2 = (WhoAllPlayerPart2*)Buffer;
 
 			if (ClientEntry->IsTrader())

@@ -81,6 +81,8 @@ namespace EQ
 #include <memory>
 #include <deque>
 
+#include "common/ssf_logic.h" // VegasEQ
+
 #define CLIENT_LD_TIMEOUT 30000 // length of time client stays in zone after LDing
 #define TARGETING_RANGE 200 // range for /assist and /target
 #define XTARGET_HARDCAP 20
@@ -1958,6 +1960,14 @@ public:
 	void SetAntiCheatExempt(int duration = RuleI(VegasAnticheat, AntiCheatExemptDuration)) const;
 	bool GetAntiCheatExempt();
 	float GetTotalGearScore();
+
+	// SSF
+	uint8 GetSSFFlag() const override { return m_epp.ssf_flag; }
+	void SetSSFFlag(uint8 value) override { m_epp.ssf_flag = value; }
+	void ResetForChallengeRuleset();
+	time_t GetHardCoreDeathTimeStamp() { return m_epp.hardcore_death_time; }
+	void SetHardCoreDeathTimeStamp() { m_epp.hardcore_death_time = time(nullptr); }
+	bool HardcoreHasDied() { return GetHardCoreDeathTimeStamp() > 0; }
 	// VegasEQ - END
 
 private:

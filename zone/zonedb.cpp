@@ -561,6 +561,11 @@ bool ZoneDatabase::LoadCharacterData(uint32 character_id, PlayerProfile_Struct* 
 	m_epp->last_invsnapshot_time = e.e_last_invsnapshot;
 	m_epp->next_invsnapshot_time = m_epp->last_invsnapshot_time + (RuleI(Character, InvSnapshotMinIntervalM) * 60);
 
+	// VegasEQ - START
+	m_epp->ssf_flag              = e.ssf_flag;
+	m_epp->hardcore_death_time   = e.hardcore_death_time;
+	// VegasEQ - END
+
 	return true;
 }
 
@@ -1158,6 +1163,11 @@ bool ZoneDatabase::SaveCharacterData(
 	e.e_last_invsnapshot      = m_epp->last_invsnapshot_time;
 	e.mailkey                 = c->GetMailKeyFull();
 	e.illusion_block          = c->GetIllusionBlock();
+
+	// VegasEQ - START
+	e.ssf_flag                = c->GetSSFFlag();
+	e.hardcore_death_time     = c->GetHardCoreDeathTimeStamp();
+	// VegasEQ - END
 
 	const int replaced = CharacterDataRepository::ReplaceOne(database, e);
 

@@ -133,6 +133,7 @@ Mob::Mob(
 	m_mob_check_moving_timer(1000),
 	bot_attack_flag_timer(10000),
 	m_clear_wearchange_cache_timer(60 * 10 * 1000), // 10 minutes
+	ssf_flag_timer(RuleI(SSF, MobFlagResetTimer)),
 	m_destroying(false)
 {
 	mMovementManager = &MobMovementManager::Get();
@@ -530,6 +531,15 @@ Mob::Mob(
 	is_boat = IsBoat();
 
 	current_alliance_faction = -1;
+
+	// VegasEQ - START
+	// SSF
+	eligible_ssf_clients.clear();
+	eligible_raid_ids.clear();
+	eligible_group_ids.clear();
+	ssf_flag = SSFFlagTypes::Undeclared;
+	ssf_flag_timer.Disable();
+	// VegasEQ - END
 }
 
 Mob::~Mob()
@@ -8092,6 +8102,11 @@ bool Mob::ShieldAbility(uint32 target_id, int shielder_max_distance, int shield_
 		return false;
 	}
 
+	if (!IsValidSSFTarget(this, shield_target, SSFFlagCheckTypes::Attack)) { // VegasEQ
+		Message(Chat::Red, "Cannot shield due to a Self Found challenge mismatch.");
+		return false;
+	}
+
 	entity_list.MessageCloseString(this, false, 100, 0, START_SHIELDING, GetCleanName(), shield_target->GetCleanName());
 
 	SetShieldTargetID(shield_target->GetID());
@@ -8725,7 +8740,7 @@ void Mob::ClearDataBucketCache()
 }
 
 bool Mob::IsInGroupOrRaid(Mob* other, bool same_raid_group) {
-	if (!other || !IsOfClientBotMerc() || !other->IsOfClientBotMerc()) {
+	if (!other || !IsOfClientBotMerc() || (!other->IsOfClientBotMerc() && !other->IsCorpse())) {
 		return false;
 	}
 
@@ -8733,18 +8748,14 @@ bool Mob::IsInGroupOrRaid(Mob* other, bool same_raid_group) {
 		return true;
 	}
 
-	if (other->IsPet() && other->GetOwner()) {
+	if (!other->IsCorpse() && other->IsPet() && other->GetOwner()) {
 		other = other->GetOwner();
 	}
 
-	Raid* raid = IsBot() ? CastToBot()->GetStoredRaid() : (IsRaidGrouped() ? GetRaid() : nullptr);
+	Raid* raid = IsBot() ? CastToBot()->GetStoredRaid() : IsRaidGrouped() ? GetRaid() : nullptr;
 
 	if (raid) {
-		if (!other->IsRaidGrouped()) {
-			return false;
-		}
-
-		Raid* other_raid = other->IsBot() ? other->CastToBot()->GetStoredRaid() : other->GetRaid();
+		Raid* other_raid = other->IsBot() ? other->CastToBot()->GetStoredRaid() : other->IsCorpse() ? other->CastToCorpse()->GetRaid() : other->GetRaid();
 
 		if (!other_raid) {
 			return false;
@@ -8765,7 +8776,7 @@ bool Mob::IsInGroupOrRaid(Mob* other, bool same_raid_group) {
 	}
 
 	Group* group = GetGroup();
-	Group* other_group = other->GetGroup();
+	Group* other_group = other->IsCorpse() ? other->CastToCorpse()->GetGroup() : other->GetGroup();
 
 	return group && group == other_group;
 }
@@ -8888,3 +8899,213 @@ bool Mob::LoadDataBucketsCache()
 
 	return true;
 }
+
+// VegasEQ - START
+// SSF
+bool Mob::IsValidSSFTarget(Mob* initiator, Mob* target, uint8 flag_type) {
+	if (!initiator || !target) {
+		return true;
+	}
+
+	if (initiator == target) {
+		return true;
+	}
+
+	switch (flag_type) { // check rules
+		case SSFFlagCheckTypes::Attack:
+			if (RuleB(SSF, SelfFoundAttackMismatchAllowed)) {
+				return true;
+			}
+
+			break;
+		case SSFFlagCheckTypes::BotForceCast:
+			if (RuleB(SSF, SelfFoundBotForceCastMismatchAllowed)) {
+				return true;
+			}
+
+			break;
+		case SSFFlagCheckTypes::DetrimentalSpell:
+			if (RuleB(SSF, SelfFoundDetrimentalSpellMismatchAllowed)) {
+				return true;
+			}
+
+			break;
+		case SSFFlagCheckTypes::BeneficialSpell:
+			if (RuleB(SSF, SelfFoundBeneficialSpellMismatchAllowed)) {
+				return true;
+			}
+
+			break;
+		case SSFFlagCheckTypes::Rez:
+			if (RuleB(SSF, SelfFoundRezAllowed)) {
+				return true;
+			}
+
+			break;
+		default:
+			break;
+	}
+
+	Mob* ultimate_owner = initiator->GetUltimateOwner();
+	Client* c = (ultimate_owner && ultimate_owner->IsClient()) ? ultimate_owner->CastToClient() : nullptr;
+
+	if (c) {
+		if (c->GetGM()) {
+			return true;
+		}
+
+		uint8 c_ssf_flag = c->GetSSFFlag();
+
+		if (target->IsCorpse()) {
+			if (SSFLogic::IsAnySelfFound(c_ssf_flag) || SSFLogic::IsAnySelfFound(target->CastToCorpse()->GetSSFFlag())) {
+				if (target->CastToCorpse()->GetCharID() != c->character_id && !c->IsInGroupOrRaid(target)) {
+					return false;
+				}
+
+				return true;
+			}
+		}
+
+		if (target->IsNPC()) {
+			if (target->GetSSFFlag() == SSFFlagTypes::Undeclared) {
+				return true;
+			}
+
+			if (SSFLogic::SelfFoundMismatch(c_ssf_flag, target->GetSSFFlag())) {
+				return false;
+			}
+
+			return target->IsAssignedToSSFFlags(c);
+		}
+
+		Mob* ultimate_target_owner = target->GetUltimateOwner();
+		Client* t = (ultimate_target_owner && ultimate_target_owner->IsClient()) ? ultimate_target_owner->CastToClient() : nullptr;
+
+		if (t) {
+			if (SSFLogic::IsAnySelfFound(c_ssf_flag) || SSFLogic::IsAnySelfFound(t->GetSSFFlag())) {
+				if (!c->IsInGroupOrRaid(t)) {
+					return false;
+				}
+			}
+		}
+	}
+
+	return true;
+}
+
+void Mob::AssignSSFFlags(Client* c) {
+	if (!c || !IsNPC()) {
+		return;
+	}
+
+	Group* group = entity_list.GetGroupByClient(c);
+	Raid*  raid  = entity_list.GetRaidByClient(c);
+
+	if (GetSSFFlag() == SSFFlagTypes::Undeclared) {
+		SetSSFFlag(c->GetSSFFlag());
+		AddEligibleSSFClient(c->CharacterID());
+
+		if (raid) {
+			AddEligibleSSFRaid(raid->GetID());
+		}
+		else if (group) {
+			AddEligibleSSFGroup(group->GetID());
+		}
+	}
+	else {
+		if (raid && MatchingSSFRaid(raid->GetID())) {
+			AddEligibleSSFClient(c->CharacterID());
+		}
+		else if (group && MatchingSSFGroup(group->GetID())) {
+			AddEligibleSSFClient(c->CharacterID());
+		}
+	}
+}
+
+bool Mob::IsAssignedToSSFFlags(Client* c) {
+	if (!c) {
+		return false;
+	}
+
+	Group* group = entity_list.GetGroupByClient(c);
+	Raid*  raid  = entity_list.GetRaidByClient(c);
+
+	if (!group && !raid && MatchingSSFClient(c->CharacterID())) {
+		return true;
+	}
+
+	if (raid && MatchingSSFRaid(raid->GetID())) {
+		return true;
+	}
+
+	if (group && MatchingSSFGroup(group->GetID())) {
+		return true;
+	}
+
+	return false;
+}
+
+bool Mob::MatchingSSFClient(uint32 id) {
+	std::vector<uint32> l = GetEligibleSSFClients();
+
+	if (l.empty()) {
+		return true;
+	}
+
+	for (uint32 e : l) {
+		if (e == id) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool Mob::MatchingSSFRaid(uint32 id) {
+	std::vector<uint32> l = GetEligibleSSFRaids();
+
+	if (l.empty()) {
+		return true;
+	}
+
+	for (uint32 e : l) {
+		if (e == id) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool Mob::MatchingSSFGroup(uint32 id) {
+	std::vector<uint32> l = GetEligibleSSFGroups();
+
+	if (l.empty()) {
+		return true;
+	}
+
+	for (uint32 e : l) {
+		if (e == id) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void Mob::ResetSSFFlags() {
+	if (GetSSFFlag() != SSFFlagTypes::Undeclared && !Charmed()) {
+		RestoreEndurance();
+		RestoreHealth();
+		RestoreMana();
+		BuffFadeDetrimental();
+		SetSSFFlag(SSFFlagTypes::Undeclared);
+		ClearEligibleSSFClients();
+		ClearEligibleSSFRaids();
+		ClearEligibleSSFGroups();
+		WipeHateList();
+	}
+
+	ssf_flag_timer.Disable();
+}
+//VegasEQ - END

@@ -6182,6 +6182,35 @@ bool Perl__IsItemRaidOnly(uint32 item_id) {
 
 	return 0.0f;
 }
+
+// SSF
+bool Perl__IsAnyChallengeRuleset(uint8 flag) {
+	return flag != SSFFlagTypes::Normal && flag != SSFFlagTypes::Undeclared;
+}
+
+bool Perl__IsAnySelfFound(uint8 flag) {
+	return EQ::ValueWithin(flag, SSFFlagTypes::SelfFound, SSFFlagTypes::SFSoloHardcore);
+}
+
+bool Perl__IsAnySoloRuleset(uint8 flag) {
+	return flag == SSFFlagTypes::Solo || flag == SSFFlagTypes::SFSolo || flag == SSFFlagTypes::SFSoloHardcore;
+}
+
+bool Perl__IsHardcore(uint8 flag) {
+	return flag == SSFFlagTypes::Hardcore || flag == SSFFlagTypes::SoloHardcore || flag == SSFFlagTypes::SFHardcore || flag == SSFFlagTypes::SFSoloHardcore;
+}
+
+bool Perl__SelfFoundMismatch(uint8 my_flag, uint8 other_flag) {
+	return SSFLogic::IsAnySelfFound(my_flag) && !SSFLogic::IsAnySelfFound(other_flag) || !SSFLogic::IsAnySelfFound(my_flag) && SSFLogic::IsAnySelfFound(other_flag);
+}
+
+std::string Perl__AddSelfFoundToName(uint8 flag, std::string name) {
+	return SSFLogic::AddSelfFoundToName(flag, name);
+}
+
+std::string Perl__StripSelfFoundFromName(std::string name) {
+	return SSFLogic::StripSelfFoundFromName(name);
+}
 // VegasEQ - END
 
 void perl_register_quest()
@@ -7206,6 +7235,15 @@ void perl_register_quest()
 	package.add("GetVegasItem", &Perl__GetVegasItem);
 	package.add("IsItemLore", &Perl__IsItemLore);
 	package.add("IsItemRaidOnly", &Perl__IsItemRaidOnly);
+
+	// SSF
+	package.add("IsAnyChallengeRuleset", &Perl__IsAnyChallengeRuleset);
+	package.add("IsAnySelfFound", &Perl__IsAnySelfFound);
+	package.add("IsAnySoloRuleset", &Perl__IsAnySoloRuleset);
+	package.add("IsHardcore", &Perl__IsHardcore);
+	package.add("SelfFoundMismatch", &Perl__SelfFoundMismatch);
+	package.add("AddSelfFoundToName", &Perl__AddSelfFoundToName);
+	package.add("StripSelfFoundFromName", &Perl__StripSelfFoundFromName);
 	// VegasEQ - END
 
 }

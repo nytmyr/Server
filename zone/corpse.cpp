@@ -1173,6 +1173,14 @@ void Corpse::MakeLootRequestPackets(Client *c, const EQApplicationPacket *app)
 		}
 	}
 	else {
+		if (!RuleB(SSF, SelfFoundLootOthersAllowed) && GetCharID() != c->CharacterID()) { // VegasEQ
+			if (SSFLogic::IsAnySelfFound(c->GetSSFFlag()) && !IsLootEligibleSSFClientID(c->CharacterID())) {
+				SendLootReqErrorPacket(c, LootResponse::NotAtThisTime);
+				c->Message(Chat::Red, "You may not loot this corpse due to your challenge ruleset.");
+				return;
+			}
+		}
+
 		if (IsPlayerCorpse()) {
 			if (m_character_id == c->CharacterID()) {
 				m_loot_request_type = LootRequestType::Self;
@@ -1498,6 +1506,17 @@ void Corpse::LootCorpseItem(Client *c, const EQApplicationPacket *app)
 
 	if (item) {
 		if (item_data) {
+			if (!RuleB(SSF, SelfFoundLootOthersAllowed) && GetCharID() != c->CharacterID()) { // VegasEQ
+				if (item_data->given_by_char_id != 0 && SSFLogic::IsAnySelfFound(c->GetSSFFlag()) && item_data->given_by_char_id != c->CharacterID()) {
+					c->Message(Chat::Red, "You cannot loot this item due to a Self Found challenge mismatch as it was given by another player.");
+					c->QueuePacket(app);
+					SendEndLootErrorPacket(c);
+					ResetLooter();
+					delete inst;
+					return;
+				}
+			}
+
 			inst = database.CreateItem(
 				item, item_data ? item_data->charges : 0, item_data->aug_1,
 				item_data->aug_2, item_data->aug_3, item_data->aug_4,

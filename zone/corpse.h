@@ -3,6 +3,7 @@
 
 #include "common/loot.h"
 #include "common/repositories/character_corpses_repository.h"
+#include "vcpkg/vcpkg-export-x64/installed/x64-windows/include/boost/mpl/push_back.hpp"
 #include "zone/client.h"
 #include "zone/mob.h"
 
@@ -246,6 +247,15 @@ public:
 
 	void SyncEntityVariablesToCorpseDB();
 
+	// VegasEQ - START
+	// SSF
+	std::vector<uint32> GetEligibleSSFClientIDs() { return m_eligible_ssf_client_ids; }
+	void AddLootEligibleSSFClientID(uint32 client_id) { m_eligible_ssf_client_ids.push_back(client_id); }
+	bool IsLootEligibleSSFClientID(uint32 client_id) { return std::find(m_eligible_ssf_client_ids.begin(), m_eligible_ssf_client_ids.end(), client_id) != m_eligible_ssf_client_ids.end(); }
+	uint8 GetSSFFlag() const override { return m_ssf_flag; }
+	void SetSSFFlag(uint8 value) override { m_ssf_flag = value; }
+	// VegasEQ - END
+
 protected:
 	void MoveItemToCorpse(Client *client, EQ::ItemInstance *inst, int16 equipSlot, std::list<uint32> &removedList);
 
@@ -287,4 +297,9 @@ private:
 	std::vector<std::string> m_consented_player_names;
 	LootRequestType          m_loot_request_type;
 	uint32                   m_account_id;
+
+	// VegasEQ - START
+	uint8                    m_ssf_flag;
+	std::vector<uint32>      m_eligible_ssf_client_ids;
+	// VegasEQ - END
 };

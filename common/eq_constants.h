@@ -1095,3 +1095,27 @@ enum ExpSource
 namespace DoorType {
 	constexpr uint32 BuyerStall = 155;
 }
+
+// VegasEQ - START
+// SSF
+typedef enum {
+	Normal,           // Normal Gameplay
+	Hardcore,	      // Death = wipe, reset, announcement
+	Solo,		      // no group/raid with from others
+	SoloHardcore,	  // Same as above, Death = wipe, reset, announcement
+	SelfFound,		  // Cannot acquire gear from other players (trades/drops/objects/bazaar/parcel/trader/npc handed), no corpse looting that aren't their own credit, no merchant buying from non-standard sold items. No Valeen/Vegas. Only group/raid with other SF players
+	SFSolo,           // Combo of SelfFound and Solo
+	SFHardcore,		  // Combo of SelfFound and Hardcore
+	SFSoloHardcore,   // Combo of SelfFound, Solo and Hardcore
+	Undeclared = UINT8_MAX
+} SSFFlagTypes;
+
+typedef enum {
+	Attack,
+	BotForceCast,
+	DetrimentalSpell,
+	BeneficialSpell,
+	Rez,
+	Unused = UINT8_MAX
+} SSFFlagCheckTypes;
+// VegasEQ - END

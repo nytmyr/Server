@@ -3660,6 +3660,27 @@ bool Lua_Client::GetAntiCheatExempt() {
 	Lua_Safe_Call_Bool();
 	return self->GetAntiCheatExempt();
 }
+
+//SSF
+uint8 Lua_Client::GetSSFFlag() {
+	Lua_Safe_Call_Int();
+	return self->GetSSFFlag();
+}
+
+void Lua_Client::SetSSFFlag(uint8 value) {
+	Lua_Safe_Call_Void();
+	self->SetSSFFlag(value);
+}
+
+void Lua_Client::ResetForChallengeRuleset() {
+	Lua_Safe_Call_Void();
+	self->ResetForChallengeRuleset();
+}
+
+bool Lua_Client::HardcoreHasDied() {
+	Lua_Safe_Call_Bool();
+	return self->HardcoreHasDied();
+}
 // VegasEQ - END
 
 luabind::scope lua_register_client() {
@@ -4274,7 +4295,13 @@ luabind::scope lua_register_client() {
 	.def("SetAntiCheatExempt", (void(Lua_Client::*)(void))&Lua_Client::SetAntiCheatExempt)
 	.def("SetAntiCheatExempt", (void(Lua_Client::*)(int))&Lua_Client::SetAntiCheatExempt)
 	.def("GetAntiCheatExempt", (bool(Lua_Client::*)(void))&Lua_Client::GetAntiCheatExempt)
-	.def("GetAntiCheatExempt", (bool(Lua_Client::*)(void))&Lua_Client::GetAntiCheatExempt);
+	.def("GetAntiCheatExempt", (bool(Lua_Client::*)(void))&Lua_Client::GetAntiCheatExempt)
+
+	// SSF
+	.def("GetSSFFlag", &Lua_Client::GetSSFFlag)
+	.def("SetSSFFlag", &Lua_Client::SetSSFFlag)
+	.def("ResetForChallengeRuleset", &Lua_Client::ResetForChallengeRuleset)
+	.def("HardcoreHasDied", &Lua_Client::HardcoreHasDied);
 	// VegasEQ - END
 }
 

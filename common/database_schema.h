@@ -168,6 +168,7 @@ namespace DatabaseSchema {
 			"player_titlesets",
 			"quest_globals",
 			"sharedbank",
+			"ssf_discovered_items", // VegasEQ
 			"spell_buckets",
 			"spell_globals",
 			"timers",

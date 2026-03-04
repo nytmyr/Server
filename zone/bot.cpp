@@ -2744,7 +2744,8 @@ bool Bot::TryAutoDefend(Client* bot_owner, float leash_distance) {
 									hater &&
 									!hater->IsMezzed() &&
 									(DistanceSquared(hater->GetPosition(), bot_owner->GetPosition()) <= leash_distance) &&
-									hater->CastToNPC()->IsOnHatelist(x_member)
+									hater->CastToNPC()->IsOnHatelist(x_member) &&
+									IsValidSSFTarget(bot_owner, hater, SSFFlagCheckTypes::Attack)
 								) {
 									break;
 								}
@@ -3185,7 +3186,8 @@ bool Bot::IsValidTarget(
 		lo_distance > leash_distance ||
 		tar_distance > leash_distance ||
 		(!GetAttackingFlag() && !GetPullingFlag() && !HasLoS()) ||
-		!IsAttackAllowed(tar)
+		!IsAttackAllowed(tar) ||
+		!IsValidSSFTarget(bot_owner, tar, SSFFlagCheckTypes::Attack)
 	) {
 		invalid_target_state = true;
 	}
@@ -5468,6 +5470,10 @@ void Bot::DoClassAttacks(Mob *target, bool IsRiposte) {
 		return;
 	}
 
+	if (!IsValidSSFTarget(this, target, SSFFlagCheckTypes::Attack)) { // VegasEQ
+		return;
+	}
+
 	bool taunt_time = taunt_timer.Check(false);
 	bool ca_time    = classattack_timer.Check(false);
 	bool ma_time    = monkattack_timer.Check(false);
@@ -6383,6 +6389,10 @@ bool Bot::DoFinishedSpellSingleTarget(uint16 spell_id, Mob* spellTarget, EQ::spe
 		spellTarget->IsOfClientBot() &&
 		((IsGrouped() && GetGroup()) || (IsRaidGrouped() && GetStoredRaid() && GetStoredRaid()->GetGroup(GetCleanName()) && GetStoredRaid()->GetGroup(GetCleanName()) != RAID_GROUPLESS))
 	) {
+		if (!IsValidSSFTarget(this, spellTarget, IsBeneficialSpell(spell_id) ? SSFFlagCheckTypes::BeneficialSpell : SSFFlagCheckTypes::DetrimentalSpell)) { // VegasEQ
+			return false;
+		}
+
 		bool noGroupSpell = false;
 		uint16 thespell = spell_id;
 		for (int i = 0; i < AIBot_spells.size(); i++) { // TODO bot rewrite - fix this to reduce loop with AIBot_spells_by_type?
@@ -6513,6 +6523,10 @@ bool Bot::DoFinishedSpellGroupTarget(uint16 spell_id, Mob* spellTarget, EQ::spel
 		entity_list.AESpell(this, this, spell_id, true);
 	}
 	else {
+		if (!IsValidSSFTarget(this, spellTarget, IsBeneficialSpell(spell_id) ? SSFFlagCheckTypes::BeneficialSpell : SSFFlagCheckTypes::DetrimentalSpell)) { // VegasEQ
+			return false;
+		}
+
 		if (spellTarget != this) {
 			SpellOnTarget(spell_id, this);
 		}
@@ -9790,6 +9804,10 @@ bool Bot::PrecastChecks(Mob* tar, uint16 spell_type) {
 		return false;
 	}
 
+	if (!IsValidSSFTarget(this, tar, IsBotSpellTypeBeneficial(spell_type) ? SSFFlagCheckTypes::BeneficialSpell : SSFFlagCheckTypes::DetrimentalSpell)) { // VegasEQ
+		return false;
+	}
+
 	if (IsCommandedSpell()) {
 		LogBotSpellChecksDetail("{} says, 'Skipping [{}] PreChecks on [{}] due to IsCommandedSpell.'", GetCleanName(), GetSpellTypeNameByID(spell_type), tar->GetCleanName());
 		return true;
@@ -9939,6 +9957,10 @@ bool Bot::CastChecks(uint16 spell_id, Mob* tar, uint16 spell_type, bool precheck
 	) {
 		LogBotSpellChecksDetail("{} says, 'Cancelling cast of {} due to !PassCastRestriction.'", GetCleanName(), GetSpellName(spell_id));
 		SetCastFailure(CastFailures::SpellCastRestriction);
+		return false;
+	}
+
+	if (!IsValidSSFTarget(this, tar, IsBeneficialSpell(spell_id) ? SSFFlagCheckTypes::BeneficialSpell : SSFFlagCheckTypes::DetrimentalSpell)) { // VegasEQ
 		return false;
 	}
 

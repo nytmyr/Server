@@ -221,6 +221,10 @@ public:
 	void SetEntityVariable(std::string variable_name, std::string variable_value);
 	bool EntityVariableExists(std::string variable_name);
 
+	// VegasEQ - START
+	uint32 DroppedByCharacterID() { return m_dropped_by_client_id; }
+	// VegasEQ - END
+
 protected:
 	void	ResetState();	// Set state back to original
 	void	RandomSpawn(bool send_packet = false);		//spawn this ground spawn at a random place
@@ -237,6 +241,10 @@ protected:
 	bool   m_ground_spawn;
 	char   m_display_name[64];
 	bool   m_fix_z;
+
+	// VegasEQ - START
+	uint32 m_dropped_by_client_id;
+	// VegasEQ - END
 protected:
 
 	std::map<std::string, std::string> o_EntityVariables;

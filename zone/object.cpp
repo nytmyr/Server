@@ -211,6 +211,8 @@ decay_timer(300000)
 		}
 	}
 
+	m_dropped_by_client_id = client->CharacterID(); // VegasEQ
+
 	FixZ();
 }
 
@@ -284,6 +286,8 @@ decay_timer(decay_time)
 	if (!IsFixZEnabled()) {
 		FixZ();
 	}
+
+	m_dropped_by_client_id = 0; // VegasEQ
 }
 
 Object::Object(
@@ -323,6 +327,8 @@ decay_timer(decay_time)
 	if (!IsFixZEnabled()) {
 		FixZ();
 	}
+
+	m_dropped_by_client_id = 0; // VegasEQ
 
 	if (decay_time) {
 		decay_timer.Start();

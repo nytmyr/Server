@@ -198,6 +198,42 @@ perl::array Perl_Corpse_GetLootList(Corpse* self) // @categories Script Utility
 	return result;
 }
 
+// VegasEQ - START
+// SSF
+uint8 Perl_Corpse_GetSSFFlag(Corpse* self) // @categories Script Utility
+{
+	return self->GetSSFFlag();
+}
+
+void Perl_Corpse_SetSSFFlag(Corpse* self, uint8 value) // @categories Script Utility
+{
+	self->SetSSFFlag(value);
+}
+
+perl::array Perl_Corpse_GetEligibleSSFClientIDs(Corpse* self)
+{
+	perl::array a;
+
+	auto l = self->GetEligibleSSFClientIDs();
+
+	for (const auto& f : l) {
+		a.push_back(f);
+	}
+
+	return a;
+}
+
+void Perl_Corpse_AddLootEligibleSSFClientID(Corpse* self, uint32 client_id)
+{
+	self->AddLootEligibleSSFClientID(client_id);
+}
+
+bool Perl_Corpse_IsLootEligibleSSFClientID(Corpse* self, uint32 client_id)
+{
+	return self->IsLootEligibleSSFClientID(client_id);
+}
+// VegasEQ - END
+
 void perl_register_corpse()
 {
 	perl::interpreter perl(PERL_GET_THX);
@@ -241,6 +277,15 @@ void perl_register_corpse()
 	package.add("SetDecayTimer", &Perl_Corpse_SetDecayTimer);
 	package.add("Summon", &Perl_Corpse_Summon);
 	package.add("UnLock", &Perl_Corpse_UnLock);
+
+	// VegasEQ - START
+	// SSF
+	package.add("GetSSFFlag", &Perl_Corpse_GetSSFFlag);
+	package.add("SetSSFFlag", &Perl_Corpse_SetSSFFlag);
+	package.add("GetEligibleSSFClientIDs", &Perl_Corpse_GetEligibleSSFClientIDs);
+	package.add("AddLootEligibleSSFClientID", &Perl_Corpse_AddLootEligibleSSFClientID);
+	package.add("IsLootEligibleSSFClientID", &Perl_Corpse_IsLootEligibleSSFClientID);
+	// VegasEQ - END
 }
 
 #endif //EMBPERL_XS_CLASSES

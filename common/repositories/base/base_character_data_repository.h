@@ -115,8 +115,8 @@ public:
 		uint8_t     lfg;
 		std::string mailkey;
 		uint8_t     xtargets;
-		uint8_t     ingame;
 		uint32_t    first_login;
+		uint8_t     ingame;
 		uint32_t    e_aa_effects;
 		uint32_t    e_percent_to_aa;
 		uint32_t    e_expended_aa_spent;
@@ -124,7 +124,9 @@ public:
 		uint32_t    aa_points_old;
 		uint32_t    e_last_invsnapshot;
 		time_t      deleted_at;
-		uint8_t     illusion_block;
+		uint32_t    illusion_block;
+		uint8_t     ssf_flag;
+		time_t      hardcore_death_time;
 	};
 
 	static std::string PrimaryKey()
@@ -231,8 +233,8 @@ public:
 			"lfg",
 			"mailkey",
 			"xtargets",
-			"ingame",
 			"first_login",
+			"ingame",
 			"e_aa_effects",
 			"e_percent_to_aa",
 			"e_expended_aa_spent",
@@ -241,6 +243,8 @@ public:
 			"e_last_invsnapshot",
 			"deleted_at",
 			"illusion_block",
+			"ssf_flag",
+			"hardcore_death_time",
 		};
 	}
 
@@ -343,8 +347,8 @@ public:
 			"lfg",
 			"mailkey",
 			"xtargets",
-			"ingame",
 			"first_login",
+			"ingame",
 			"e_aa_effects",
 			"e_percent_to_aa",
 			"e_expended_aa_spent",
@@ -353,6 +357,8 @@ public:
 			"e_last_invsnapshot",
 			"UNIX_TIMESTAMP(deleted_at)",
 			"illusion_block",
+			"ssf_flag",
+			"UNIX_TIMESTAMP(hardcore_death_time)",
 		};
 	}
 
@@ -489,8 +495,8 @@ public:
 		e.lfg                     = 0;
 		e.mailkey                 = "";
 		e.xtargets                = 5;
-		e.ingame                  = 0;
 		e.first_login             = 0;
+		e.ingame                  = 0;
 		e.e_aa_effects            = 0;
 		e.e_percent_to_aa         = 0;
 		e.e_expended_aa_spent     = 0;
@@ -499,6 +505,8 @@ public:
 		e.e_last_invsnapshot      = 0;
 		e.deleted_at              = 0;
 		e.illusion_block          = 0;
+		e.ssf_flag                = 0;
+		e.hardcore_death_time     = 0;
 
 		return e;
 	}
@@ -631,8 +639,8 @@ public:
 			e.lfg                     = row[93] ? static_cast<uint8_t>(strtoul(row[93], nullptr, 10)) : 0;
 			e.mailkey                 = row[94] ? row[94] : "";
 			e.xtargets                = row[95] ? static_cast<uint8_t>(strtoul(row[95], nullptr, 10)) : 5;
-			e.ingame                  = row[96] ? static_cast<uint8_t>(strtoul(row[96], nullptr, 10)) : 0;
-			e.first_login             = row[97] ? static_cast<uint32_t>(strtoul(row[97], nullptr, 10)) : 0;
+			e.first_login             = row[96] ? static_cast<uint32_t>(strtoul(row[96], nullptr, 10)) : 0;
+			e.ingame                  = row[97] ? static_cast<uint8_t>(strtoul(row[97], nullptr, 10)) : 0;
 			e.e_aa_effects            = row[98] ? static_cast<uint32_t>(strtoul(row[98], nullptr, 10)) : 0;
 			e.e_percent_to_aa         = row[99] ? static_cast<uint32_t>(strtoul(row[99], nullptr, 10)) : 0;
 			e.e_expended_aa_spent     = row[100] ? static_cast<uint32_t>(strtoul(row[100], nullptr, 10)) : 0;
@@ -640,7 +648,9 @@ public:
 			e.aa_points_old           = row[102] ? static_cast<uint32_t>(strtoul(row[102], nullptr, 10)) : 0;
 			e.e_last_invsnapshot      = row[103] ? static_cast<uint32_t>(strtoul(row[103], nullptr, 10)) : 0;
 			e.deleted_at              = strtoll(row[104] ? row[104] : "-1", nullptr, 10);
-			e.illusion_block          = row[105] ? static_cast<uint8_t>(strtoul(row[105], nullptr, 10)) : 0;
+			e.illusion_block          = row[105] ? static_cast<uint32_t>(strtoul(row[105], nullptr, 10)) : 0;
+			e.ssf_flag                = row[106] ? static_cast<uint8_t>(strtoul(row[106], nullptr, 10)) : 0;
+			e.hardcore_death_time     = strtoll(row[107] ? row[107] : "-1", nullptr, 10);
 
 			return e;
 		}
@@ -769,8 +779,8 @@ public:
 		v.push_back(columns[93] + " = " + std::to_string(e.lfg));
 		v.push_back(columns[94] + " = '" + Strings::Escape(e.mailkey) + "'");
 		v.push_back(columns[95] + " = " + std::to_string(e.xtargets));
-		v.push_back(columns[96] + " = " + std::to_string(e.ingame));
-		v.push_back(columns[97] + " = " + std::to_string(e.first_login));
+		v.push_back(columns[96] + " = " + std::to_string(e.first_login));
+		v.push_back(columns[97] + " = " + std::to_string(e.ingame));
 		v.push_back(columns[98] + " = " + std::to_string(e.e_aa_effects));
 		v.push_back(columns[99] + " = " + std::to_string(e.e_percent_to_aa));
 		v.push_back(columns[100] + " = " + std::to_string(e.e_expended_aa_spent));
@@ -779,6 +789,8 @@ public:
 		v.push_back(columns[103] + " = " + std::to_string(e.e_last_invsnapshot));
 		v.push_back(columns[104] + " = FROM_UNIXTIME(" + (e.deleted_at > 0 ? std::to_string(e.deleted_at) : "null") + ")");
 		v.push_back(columns[105] + " = " + std::to_string(e.illusion_block));
+		v.push_back(columns[106] + " = " + std::to_string(e.ssf_flag));
+		v.push_back(columns[107] + " = FROM_UNIXTIME(" + (e.hardcore_death_time > 0 ? std::to_string(e.hardcore_death_time) : "null") + ")");
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -896,8 +908,8 @@ public:
 		v.push_back(std::to_string(e.lfg));
 		v.push_back("'" + Strings::Escape(e.mailkey) + "'");
 		v.push_back(std::to_string(e.xtargets));
-		v.push_back(std::to_string(e.ingame));
 		v.push_back(std::to_string(e.first_login));
+		v.push_back(std::to_string(e.ingame));
 		v.push_back(std::to_string(e.e_aa_effects));
 		v.push_back(std::to_string(e.e_percent_to_aa));
 		v.push_back(std::to_string(e.e_expended_aa_spent));
@@ -906,6 +918,8 @@ public:
 		v.push_back(std::to_string(e.e_last_invsnapshot));
 		v.push_back("FROM_UNIXTIME(" + (e.deleted_at > 0 ? std::to_string(e.deleted_at) : "null") + ")");
 		v.push_back(std::to_string(e.illusion_block));
+		v.push_back(std::to_string(e.ssf_flag));
+		v.push_back("FROM_UNIXTIME(" + (e.hardcore_death_time > 0 ? std::to_string(e.hardcore_death_time) : "null") + ")");
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -1031,8 +1045,8 @@ public:
 			v.push_back(std::to_string(e.lfg));
 			v.push_back("'" + Strings::Escape(e.mailkey) + "'");
 			v.push_back(std::to_string(e.xtargets));
-			v.push_back(std::to_string(e.ingame));
 			v.push_back(std::to_string(e.first_login));
+			v.push_back(std::to_string(e.ingame));
 			v.push_back(std::to_string(e.e_aa_effects));
 			v.push_back(std::to_string(e.e_percent_to_aa));
 			v.push_back(std::to_string(e.e_expended_aa_spent));
@@ -1041,6 +1055,8 @@ public:
 			v.push_back(std::to_string(e.e_last_invsnapshot));
 			v.push_back("FROM_UNIXTIME(" + (e.deleted_at > 0 ? std::to_string(e.deleted_at) : "null") + ")");
 			v.push_back(std::to_string(e.illusion_block));
+			v.push_back(std::to_string(e.ssf_flag));
+			v.push_back("FROM_UNIXTIME(" + (e.hardcore_death_time > 0 ? std::to_string(e.hardcore_death_time) : "null") + ")");
 
 			insert_chunks.push_back("(" + Strings::Implode(",", v) + ")");
 		}
@@ -1170,8 +1186,8 @@ public:
 			e.lfg                     = row[93] ? static_cast<uint8_t>(strtoul(row[93], nullptr, 10)) : 0;
 			e.mailkey                 = row[94] ? row[94] : "";
 			e.xtargets                = row[95] ? static_cast<uint8_t>(strtoul(row[95], nullptr, 10)) : 5;
-			e.ingame                  = row[96] ? static_cast<uint8_t>(strtoul(row[96], nullptr, 10)) : 0;
-			e.first_login             = row[97] ? static_cast<uint32_t>(strtoul(row[97], nullptr, 10)) : 0;
+			e.first_login             = row[96] ? static_cast<uint32_t>(strtoul(row[96], nullptr, 10)) : 0;
+			e.ingame                  = row[97] ? static_cast<uint8_t>(strtoul(row[97], nullptr, 10)) : 0;
 			e.e_aa_effects            = row[98] ? static_cast<uint32_t>(strtoul(row[98], nullptr, 10)) : 0;
 			e.e_percent_to_aa         = row[99] ? static_cast<uint32_t>(strtoul(row[99], nullptr, 10)) : 0;
 			e.e_expended_aa_spent     = row[100] ? static_cast<uint32_t>(strtoul(row[100], nullptr, 10)) : 0;
@@ -1179,7 +1195,9 @@ public:
 			e.aa_points_old           = row[102] ? static_cast<uint32_t>(strtoul(row[102], nullptr, 10)) : 0;
 			e.e_last_invsnapshot      = row[103] ? static_cast<uint32_t>(strtoul(row[103], nullptr, 10)) : 0;
 			e.deleted_at              = strtoll(row[104] ? row[104] : "-1", nullptr, 10);
-			e.illusion_block          = row[105] ? static_cast<uint8_t>(strtoul(row[105], nullptr, 10)) : 0;
+			e.illusion_block          = row[105] ? static_cast<uint32_t>(strtoul(row[105], nullptr, 10)) : 0;
+			e.ssf_flag                = row[106] ? static_cast<uint8_t>(strtoul(row[106], nullptr, 10)) : 0;
+			e.hardcore_death_time     = strtoll(row[107] ? row[107] : "-1", nullptr, 10);
 
 			all_entries.push_back(e);
 		}
@@ -1300,8 +1318,8 @@ public:
 			e.lfg                     = row[93] ? static_cast<uint8_t>(strtoul(row[93], nullptr, 10)) : 0;
 			e.mailkey                 = row[94] ? row[94] : "";
 			e.xtargets                = row[95] ? static_cast<uint8_t>(strtoul(row[95], nullptr, 10)) : 5;
-			e.ingame                  = row[96] ? static_cast<uint8_t>(strtoul(row[96], nullptr, 10)) : 0;
-			e.first_login             = row[97] ? static_cast<uint32_t>(strtoul(row[97], nullptr, 10)) : 0;
+			e.first_login             = row[96] ? static_cast<uint32_t>(strtoul(row[96], nullptr, 10)) : 0;
+			e.ingame                  = row[97] ? static_cast<uint8_t>(strtoul(row[97], nullptr, 10)) : 0;
 			e.e_aa_effects            = row[98] ? static_cast<uint32_t>(strtoul(row[98], nullptr, 10)) : 0;
 			e.e_percent_to_aa         = row[99] ? static_cast<uint32_t>(strtoul(row[99], nullptr, 10)) : 0;
 			e.e_expended_aa_spent     = row[100] ? static_cast<uint32_t>(strtoul(row[100], nullptr, 10)) : 0;
@@ -1309,7 +1327,9 @@ public:
 			e.aa_points_old           = row[102] ? static_cast<uint32_t>(strtoul(row[102], nullptr, 10)) : 0;
 			e.e_last_invsnapshot      = row[103] ? static_cast<uint32_t>(strtoul(row[103], nullptr, 10)) : 0;
 			e.deleted_at              = strtoll(row[104] ? row[104] : "-1", nullptr, 10);
-			e.illusion_block          = row[105] ? static_cast<uint8_t>(strtoul(row[105], nullptr, 10)) : 0;
+			e.illusion_block          = row[105] ? static_cast<uint32_t>(strtoul(row[105], nullptr, 10)) : 0;
+			e.ssf_flag                = row[106] ? static_cast<uint8_t>(strtoul(row[106], nullptr, 10)) : 0;
+			e.hardcore_death_time     = strtoll(row[107] ? row[107] : "-1", nullptr, 10);
 
 			all_entries.push_back(e);
 		}
@@ -1480,8 +1500,8 @@ public:
 		v.push_back(std::to_string(e.lfg));
 		v.push_back("'" + Strings::Escape(e.mailkey) + "'");
 		v.push_back(std::to_string(e.xtargets));
-		v.push_back(std::to_string(e.ingame));
 		v.push_back(std::to_string(e.first_login));
+		v.push_back(std::to_string(e.ingame));
 		v.push_back(std::to_string(e.e_aa_effects));
 		v.push_back(std::to_string(e.e_percent_to_aa));
 		v.push_back(std::to_string(e.e_expended_aa_spent));
@@ -1490,6 +1510,8 @@ public:
 		v.push_back(std::to_string(e.e_last_invsnapshot));
 		v.push_back("FROM_UNIXTIME(" + (e.deleted_at > 0 ? std::to_string(e.deleted_at) : "null") + ")");
 		v.push_back(std::to_string(e.illusion_block));
+		v.push_back(std::to_string(e.ssf_flag));
+		v.push_back("FROM_UNIXTIME(" + (e.hardcore_death_time > 0 ? std::to_string(e.hardcore_death_time) : "null") + ")");
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -1608,8 +1630,8 @@ public:
 			v.push_back(std::to_string(e.lfg));
 			v.push_back("'" + Strings::Escape(e.mailkey) + "'");
 			v.push_back(std::to_string(e.xtargets));
-			v.push_back(std::to_string(e.ingame));
 			v.push_back(std::to_string(e.first_login));
+			v.push_back(std::to_string(e.ingame));
 			v.push_back(std::to_string(e.e_aa_effects));
 			v.push_back(std::to_string(e.e_percent_to_aa));
 			v.push_back(std::to_string(e.e_expended_aa_spent));
@@ -1618,6 +1640,8 @@ public:
 			v.push_back(std::to_string(e.e_last_invsnapshot));
 			v.push_back("FROM_UNIXTIME(" + (e.deleted_at > 0 ? std::to_string(e.deleted_at) : "null") + ")");
 			v.push_back(std::to_string(e.illusion_block));
+			v.push_back(std::to_string(e.ssf_flag));
+			v.push_back("FROM_UNIXTIME(" + (e.hardcore_death_time > 0 ? std::to_string(e.hardcore_death_time) : "null") + ")");
 
 			insert_chunks.push_back("(" + Strings::Implode(",", v) + ")");
 		}

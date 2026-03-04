@@ -66,6 +66,15 @@ public:
 	uint32 GetItemIDBySlot(uint16 loot_slot);
 	uint16 GetFirstLootSlotByItemID(uint32 item_id);
 	Lua_Corpse_Loot_List GetLootList(lua_State* L);
+
+	// VegasEQ - START
+	// SSF
+	luabind::object GetEligibleSSFClientIDs(lua_State* L);
+	void AddLootEligibleSSFClientID(uint32 client_id);
+	bool IsLootEligibleSSFClientID(uint32 client_id);
+	uint8 GetSSFFlag();
+	void SetSSFFlag(uint8 value);
+	// VegasEQ - END
 };
 
 #endif // LUA_EQEMU

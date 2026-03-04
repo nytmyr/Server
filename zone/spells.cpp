@@ -2580,6 +2580,12 @@ bool Mob::SpellFinished(uint16 spell_id, Mob *spell_target, CastingSlot slot, in
 				LogSpells("Spell [{}]: Targeted spell, but we have no target", spell_id);
 				return(false);
 			}
+
+			if (GetSpellTargetType(spell_id) != ST_Self && !IsValidSSFTarget(this, spell_target, IsBeneficialSpell(spell_id) ? SSFFlagCheckTypes::BeneficialSpell : SSFFlagCheckTypes::DetrimentalSpell)) { // VegasEQ
+				Message(Chat::Red, "Spell cannot land due to a Self Found challenge mismatch.");
+				return false;
+			}
+
 			if (isproc) {
 				SpellOnTarget(spell_id, spell_target, 0, true, resist_adjust, true, level_override);
 			} else {
@@ -3962,6 +3968,11 @@ bool Mob::SpellOnTarget(
 		) {
 			return false;
 		}
+	}
+
+	if (GetSpellTargetType(spell_id) != ST_Self && !IsValidSSFTarget(this, spelltar, IsBeneficialSpell(spell_id) ? SSFFlagCheckTypes::BeneficialSpell : SSFFlagCheckTypes::DetrimentalSpell)) { // VegasEQ
+		Message(Chat::Red, "Spell cannot land due to a Self Found challenge mismatch.");
+		return false;
 	}
 
 	uint16 caster_level = level_override > 0 ? level_override : GetCasterLevel(spell_id);
@@ -7594,3 +7605,4 @@ bool Mob::CheckWaterLoS(Mob* m)
 		zone->watermap->InLiquid(m->GetPosition())
 	);
 }
+

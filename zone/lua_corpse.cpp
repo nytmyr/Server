@@ -215,6 +215,46 @@ Lua_Corpse_Loot_List Lua_Corpse::GetLootList(lua_State* L) {
 	return ret;
 }
 
+// VegasEQ - START
+// SSF
+luabind::object Lua_Corpse::GetEligibleSSFClientIDs(lua_State* L) {
+	auto t = luabind::newtable(L);
+
+	if (d_) {
+		auto self = reinterpret_cast<NativeType*>(d_);
+		auto l = self->GetEligibleSSFClientIDs();
+		int i = 1;
+
+		for (const auto& v : l) {
+			t[i] = v;
+			i++;
+		}
+	}
+
+	return t;
+}
+
+void Lua_Corpse::AddLootEligibleSSFClientID(uint32 client_id) {
+	Lua_Safe_Call_Void();
+	self->AddLootEligibleSSFClientID(client_id);
+}
+
+bool Lua_Corpse::IsLootEligibleSSFClientID(uint32 client_id) {
+	Lua_Safe_Call_Bool();
+	return self->IsLootEligibleSSFClientID(client_id);
+}
+
+uint8 Lua_Corpse::GetSSFFlag() {
+	Lua_Safe_Call_Int();
+	return self->GetSSFFlag();
+}
+
+void Lua_Corpse::SetSSFFlag(uint8 value) {
+	Lua_Safe_Call_Void();
+	self->SetSSFFlag(value);
+}
+// VegasEQ - END
+
 luabind::scope lua_register_corpse() {
 	return luabind::class_<Lua_Corpse, Lua_Mob>("Corpse")
 	.def(luabind::constructor<>())
@@ -258,7 +298,16 @@ luabind::scope lua_register_corpse() {
 	.def("SetCash", (void(Lua_Corpse::*)(uint32, uint32, uint32, uint32))&Lua_Corpse::SetCash)
 	.def("SetDecayTimer", (void(Lua_Corpse::*)(uint32))&Lua_Corpse::SetDecayTimer)
 	.def("Summon", (bool(Lua_Corpse::*)(Lua_Client, bool, bool))&Lua_Corpse::Summon)
-	.def("UnLock", (void(Lua_Corpse::*)(void))&Lua_Corpse::UnLock);
+	.def("UnLock", (void(Lua_Corpse::*)(void))&Lua_Corpse::UnLock)
+
+	// VegasEQ - START
+	// SSF
+	.def("GetEligibleSSFClientIDs", &Lua_Corpse::GetEligibleSSFClientIDs)
+	.def("AddLootEligibleSSFClientID", &Lua_Corpse::AddLootEligibleSSFClientID)
+	.def("IsLootEligibleSSFClientID", &Lua_Corpse::IsLootEligibleSSFClientID)
+	.def("GetSSFFlag", &Lua_Corpse::GetSSFFlag)
+	.def("SetSSFFlag", &Lua_Corpse::SetSSFFlag);
+	// VegasEQ - END
 
 }
 

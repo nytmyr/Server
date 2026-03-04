@@ -702,6 +702,14 @@ bool NPC::Process()
 			SetHP(GetHP() + npc_hp_regen + npc_sitting_regen_bonus);
 		}
 
+		if (GetHP() >= GetMaxHP() && !IsEngaged()) { // VegasEQ
+			ResetSSFFlags();
+		}
+
+		if (!IsEngaged() && GetSSFFlag() != SSFFlagTypes::Undeclared && !ssf_flag_timer.Enabled()) {
+			ssf_flag_timer.Start();
+		}
+
 		if (GetMana() < GetMaxMana()) {
 			if (RuleB(NPC, UseMeditateBasedManaRegen)) {
 				int64 npc_idle_mana_regen_bonus = 2;
@@ -816,6 +824,10 @@ bool NPC::Process()
 	if (bot_attack_flag_timer.Check()) {
 		bot_attack_flag_timer.Disable();
 		ClearBotAttackFlags();
+	}
+
+	if (ssf_flag_timer.Check()) {
+		ResetSSFFlags();
 	}
 
 	AI_Process();
@@ -5041,233 +5053,144 @@ Mob* NPC::GetTopHateClient() {
 }
 
 void NPC::DoFirstKillChecks(Mob* top_client) {
+	if (top_client && top_client->IsClient() && (IsRareSpawn() || IsRaidTarget())) {
+		Client* c = top_client->CastToClient();
+		std::string key;
+		std::string bucket_value;
+		std::string key_prefix = SSFLogic::GetSSFKeyPrefix(c->GetSSFFlag());
 
-	std::string key;
-	std::string bucket_value;
-
-	if (IsRareSpawn() || IsRaidTarget()) {
 		if (IsRareSpawn()) {
-			key = "FirstRareKill-" + std::to_string(GetNPCTypeID());
+			key = "First" + key_prefix + "RareKill-" + std::to_string(GetNPCTypeID());
 		}
-		if (IsRaidTarget()) {
-			key = "FirstRaidKill-" + std::to_string(GetNPCTypeID());
+		else if (IsRaidTarget()) {
+			key = "First" + key_prefix + "RaidKill-" + std::to_string(GetNPCTypeID());
 		}
+
 		bucket_value = DataBucket::GetData(&database, key);
+
 		if (bucket_value.empty()) {
-			DoFirstKillAchievements(top_client, key);
+			DoFirstKillAchievements(c, key);
 		}
 	}
 }
 
-void NPC::DoFirstKillAchievements(Mob* top_client, std::string key) {
-
-	Group* group;
-	Raid* raid;
-	std::string alertmsg;
-	std::string discordmsg;
-	std::string keydata;
-
-	if (IsRareSpawn()) {
-		alertmsg = " [Rare]";
-		discordmsg = " [Rare]";
+void NPC::DoFirstKillAchievements(Client* c, std::string key) {
+	if (!c) {
+		return;
 	}
-	if (IsRaidTarget()) {
-		alertmsg = " [Raid]";
-		discordmsg = " [Raid]";
-	}
-	alertmsg = alertmsg + " has been killed for the first time by ";
-	discordmsg = discordmsg + " has been killed for the first time by ";
+	struct KillMemberInfo {
+		uint32 character_id;
+		std::string character_name;
+		uint8  ssf_flag;
+	};
 
-	if (top_client->GetRaid()) {
-		raid = top_client->GetRaid();
-		int count = 0;
-		int raidcount = raid->RaidCount();
-		std::vector<int> guildids;
-		std::vector<int> helpedids;
+	std::string challenge_type = c->GetSSFFlag() ? " [" + SSFLogic::GetPlayerType(c->GetSSFFlag()) + "] " : "";
+	std::vector<KillMemberInfo> member_ids;
+	Raid* r = c->GetRaid();
 
-		while (count < raidcount) {
-			Mob* raidmember = raid->GetClientByIndex(count);
-			if (raidmember && entity_list.IsMobInZone(raidmember) && !raidmember->IsBot() && raidmember->IsClient() && raidmember->CastToClient()->GuildID()) {
-				if (raidmember->CastToClient()->GuildID() == 4294967295) {
-					helpedids.push_back(raidmember->CastToClient()->CharacterID());
-				}
-				else {
-					if (guildids.size() == 0 && raidmember->CastToClient()->GuildID() != 4294967295) {
-						guildids.push_back(raidmember->CastToClient()->GuildID());
-					}
-					else if (raidmember->CastToClient()->GuildID() != 4294967295) {
-						bool guildcheck;
-						int counttwo = 0;
-						while (counttwo < guildids.size()) {
-							if (raidmember->CastToClient()->GuildID() == guildids[counttwo]) {
-								guildcheck = true;
-							}
-							++counttwo;
-						}
-						if (!guildcheck) {
-							guildids.push_back(raidmember->CastToClient()->GuildID());
-						}
-					}
-				}
-				++count;
-			}
-			else {
-				++count;
-			}
-		}
+	if (r) {
+		std::vector<uint32> guild_ids;
 
-		count = 0;
-		if (guildids.size() == 1) {
-			alertmsg = alertmsg + "the Guild: ";
-			discordmsg = discordmsg + "the Guild: ";
-			keydata = keydata + "Guilds:";
-		}
-		else if (guildids.size() > 1) {
-			alertmsg = alertmsg + "the Guilds: ";
-			discordmsg = discordmsg + "the Guilds: ";
-			keydata = keydata + "Guilds:";
-		}
-		while (count < guildids.size()) {
-			std::string guildname = quest_manager.getguildnamebyid(guildids[count]);
-			std::string guildnamelink = Strings::ReplaceWhitespaces(guildname);
-			if (guildids.size() == 1 || count == guildids.size() - 1) {
-				alertmsg = alertmsg + "" + guildname + "";
-				discordmsg = discordmsg + "[" + guildname + "](http://vegaseq.com/charbrowser/index.php?page=guild&guild=" + guildnamelink + ")";
-				keydata = keydata + "" + std::to_string(guildids[count]);
-			}
-			else if (count < guildids.size() - 2 && guildids.size() > 2) {
-				alertmsg = alertmsg + "" + guildname + ", ";
-				discordmsg = discordmsg + "[" + guildname + "](http://vegaseq.com/charbrowser/index.php?page=guild&guild=" + guildnamelink + "), ";
-				keydata = keydata + "" + std::to_string(guildids[count]) + ",";
-			}
-			else if (count < guildids.size() - 1 && guildids.size() > 1) {
-				alertmsg = alertmsg + "" + guildname + " and ";
-				discordmsg = discordmsg + "[" + guildname + "](http://vegaseq.com/charbrowser/index.php?page=guild&guild=" + guildnamelink + ") and ";
-				keydata = keydata + "" + std::to_string(guildids[count]) + "&";
-			}
-			++count;
-		}
+		for (const auto& m : r->members) {
+			if (m.member && m.member->IsClient()) {
+				member_ids.emplace_back(KillMemberInfo{m.member->CharacterID(), m.member->GetCleanName(), m.member->GetSSFFlag()});
 
-		count = 0;
-		if (guildids.size() > 0 && helpedids.size() != 0) {
-			if (helpedids.size() == 1) {
-				alertmsg = alertmsg + " with the help of player ";
-				discordmsg = discordmsg + " with the help of player ";
-			}
-			else if (helpedids.size() > 1) {
-				alertmsg = alertmsg + " with the help of the players ";
-				discordmsg = discordmsg + " with the help of the players ";
-			}
-			keydata = keydata + "_Players:";
-		}
-		if (guildids.size() == 0 && helpedids.size() != 0) {
-			keydata = keydata + "Guilds:None_Players:";
-		}
-		while (count < helpedids.size()) {
-			std::string helpedname = database.GetCharNameByID(helpedids[count]);
-			if (helpedids.size() == 1 || count == helpedids.size() - 1) {
-				alertmsg = alertmsg + "" + helpedname;
-				discordmsg = discordmsg + "[" + helpedname + "](http://vegaseq.com/charbrowser/index.php?page=character&char=" + helpedname + ")";
-				keydata = keydata + "" + std::to_string(helpedids[count]);
-			}
-			else if (count < helpedids.size() - 2 && helpedids.size() > 2) {
-				alertmsg = alertmsg + "" + helpedname + ", ";
-				discordmsg = discordmsg + "[" + helpedname + "](http://vegaseq.com/charbrowser/index.php?page=character&char=" + helpedname + "), ";
-				keydata = keydata + "" + std::to_string(helpedids[count]) + ",";
-			}
-			else if (count < helpedids.size() - 1 && helpedids.size() > 1) {
-				alertmsg = alertmsg + "" + helpedname + " and ";
-				discordmsg = discordmsg + "[" + helpedname + "](http://vegaseq.com/charbrowser/index.php?page=character&char=" + helpedname + ") and ";
-				keydata = keydata + "" + std::to_string(helpedids[count]) + "&";
-			}
-			++count;
-		}
-	}
-	else if (top_client->IsGrouped()) {
-		group = top_client->GetGroup();
-		int count = 0;
-		int groupcount = group->GroupCount();
-		std::vector<int> killcredit;
-		while (count < groupcount) {
-			Mob* groupmember = group->members[count];
-			if (groupmember) {
-				if (!groupmember->IsBot()) {
-					killcredit.push_back(groupmember->CastToClient()->CharacterID());
-					++count;
-				}
-				else {
-					++count;
+				uint32 r_member_guild_id = m.member->GuildID();
+
+				if (r_member_guild_id && r_member_guild_id != 4294967295) {
+					guild_ids.push_back(r_member_guild_id);
 				}
 			}
-			else {
-				++count;
-			}
-		}
-		count = 0;
-		if (killcredit.size() == 1) {
-			keydata = keydata + "Players:";
-		}
-		else if (killcredit.size() > 1) {
-			keydata = keydata + "Players:";
-		}
-		while (count < killcredit.size()) {
-			std::string charname = database.GetCharNameByID(killcredit[count]);
-			if (killcredit.size() == 1 || count == killcredit.size() - 1) {
-				alertmsg = alertmsg + "" + charname;
-				discordmsg = discordmsg + "[" + charname + "](http://vegaseq.com/charbrowser/index.php?page=character&char=" + charname + ")";
-				keydata = keydata + "" + std::to_string(killcredit[count]);
-			}
-			else if (count < killcredit.size() - 2 && killcredit.size() > 2) {
-				alertmsg = alertmsg + "" + charname + ", ";
-				discordmsg = discordmsg + "[" + charname + "](http://vegaseq.com/charbrowser/index.php?page=character&char=" + charname + "), ";
-				keydata = keydata + "" + std::to_string(killcredit[count]) + ",";
-			}
-			else if (count < killcredit.size() - 1 && killcredit.size() > 1) {
-				alertmsg = alertmsg + "" + charname + " and ";
-				discordmsg = discordmsg + "[" + charname + "](http://vegaseq.com/charbrowser/index.php?page=character&char=" + charname + ") and ";
-				keydata = keydata + "" + std::to_string(killcredit[count]) + "&";
-			}
-			++count;
 		}
 	}
-	else if (!top_client->IsGrouped() && !top_client->IsRaidGrouped()) {
-		std::string charname = top_client->GetCleanName();
-		alertmsg = alertmsg + "" + charname;
-		discordmsg = discordmsg + "[" + charname + "](http://vegaseq.com/charbrowser/index.php?page=character&char=" + charname + ")";
-		keydata = keydata + "" + charname + "-ID:" + std::to_string(top_client->CastToClient()->CharacterID());
-	}
-	alertmsg = alertmsg + " in " + zone->GetLongName();
-	discordmsg = discordmsg + " in [" + zone->GetLongName() + "](http://vegaseq.com/Allaclone/?a=zone&name=" + zone->GetShortName() + ")";
-	keydata = keydata + "]" + zone->GetShortName();
+	else {
+		Group* g = c->GetGroup();
 
-	std::ostringstream keydata_format;
-	std::time_t current_time = std::time(nullptr);
-	//std::to_string(std::time(nullptr))
-		//keydata_format << keydata << "|" << std::put_time(nullptr, "%a %b %d %H: %M : %S %Y");
-		keydata_format << keydata << "|" << ctime(&current_time);
-	std::string keydata_format_final = keydata_format.str();
-	DataBucket::SetData(&database, key, keydata_format_final);
+		if (g) {
+			for (const auto& m : g->members) {
+				Client* g_member = m && m->IsClient() ? m->CastToClient() : nullptr;
+
+				if (g_member) {
+					member_ids.emplace_back(KillMemberInfo{g_member->CharacterID(), g_member->GetCleanName(), g_member->GetSSFFlag()});
+				}
+			}
+		}
+		else {
+			member_ids.emplace_back(KillMemberInfo{c->CharacterID(), c->GetCleanName(), c->GetSSFFlag()});
+		}
+	}
+
+	if (member_ids.empty()) {
+		return;
+	}
 
 	std::string npc_name = GetCleanName();
-	if (GetNPCTypeID() == 223201) {
+	std::string alert_msg;
+	std::string discord_msg;
+	std::string key_data = "Players:";
+
+	if (IsRareSpawn()) {
+		alert_msg = " [Rare]" + challenge_type + " has been killed for the first time by ";
+		discord_msg = " [Rare]" + challenge_type + " has been killed for the first time by ";
+	}
+	else if (IsRaidTarget()) {
+		alert_msg = " [Raid]" + challenge_type + " has been killed for the first time by ";
+		discord_msg = " [Raid]" + challenge_type + " has been killed for the first time by ";
+	}
+
+	size_t member_size = member_ids.size();
+
+	for (size_t i = 0; i < member_size; ++i) {
+		uint32 member_id        = member_ids[i].character_id;
+		std::string member_name = member_ids[i].character_name;
+		uint8 member_sff_flag   = member_ids[i].ssf_flag;
+		std::string member_name_ssf = member_sff_flag ? " " + SSFLogic::AddSelfFoundToName(member_sff_flag, "") : "";
+
+		if (member_name_ssf.length() > 1) member_name_ssf.erase(std::remove(member_name_ssf.begin() + 1, member_name_ssf.end(), ' '), member_name_ssf.end());
+
+		alert_msg = alert_msg + "" + member_name + "" + member_name_ssf;
+		discord_msg = discord_msg + "[" + member_name + "](http://vegaseq.com/charbrowser/index.php?page=character&char=" + std::to_string(member_id) + ")" + member_name_ssf;
+		key_data = key_data + "" + std::to_string(member_id);
+
+		if (i < member_size - 2 && member_size > 2) {
+			alert_msg = alert_msg + ", ";
+			discord_msg = discord_msg + ", ";
+			key_data = key_data + ",";
+		}
+		else if (i < member_size - 1 && member_size > 1) {
+			alert_msg = alert_msg + " and ";
+			discord_msg = discord_msg + " and ";
+			key_data = key_data + "&";
+		}
+	}
+
+	alert_msg = alert_msg + " in " + zone->GetLongName();
+	discord_msg = discord_msg + " in [" + zone->GetLongName() + "](http://vegaseq.com/Allaclone/?a=zone&name=" + zone->GetShortName() + ")";
+	key_data = key_data + "]" + zone->GetShortName();
+
+	key_data = key_data + "|" + std::to_string(std::time(nullptr));
+
+	DataBucket::SetData(&database, key, key_data);
+
+	if (GetNPCTypeID() == 223201) { // Quarm
 		std::string sub_alert = "! Please take a moment to congratulate them on this amazing feat!";
 		worldserver.SendEmoteMessage(0, 0, 14,
 				fmt::format(
 					"GRAND ACHIEVEMENT! The time has come! {}{}{}"
-					, npc_name, alertmsg, sub_alert
+					, npc_name, alert_msg, sub_alert
 				).c_str()
 		);
-		zone->SendDiscordMessage("achievements", "GRAND ACHIEVEMENT! The time has come! [" + npc_name + "](http://vegaseq.com/Allaclone/?a=npc&id=" + std::to_string(GetNPCTypeID()) + ")" + discordmsg + "! Please take a moment to congratulate them on this amazing feat!");
+		zone->SendDiscordMessage("achievements", "GRAND ACHIEVEMENT! The time has come! [" + npc_name + "](http://vegaseq.com/Allaclone/?a=npc&id=" + std::to_string(GetNPCTypeID()) + ")" + discord_msg + "! Please take a moment to congratulate them on this amazing feat!");
 	}
 	else {
 		std::string sub_alert = "!";
 		worldserver.SendEmoteMessage(0, 0, 14,
 			fmt::format(
 				"Achievement! {}{}{}"
-				, npc_name, alertmsg, sub_alert
+				, npc_name, alert_msg, sub_alert
 			).c_str()
 		);
-		zone->SendDiscordMessage("achievements", "Achievement!: [" + npc_name + "](http://vegaseq.com/Allaclone/?a=npc&id=" + std::to_string(GetNPCTypeID()) + ")" + discordmsg + "!");
+		zone->SendDiscordMessage("achievements", "Achievement!: [" + npc_name + "](http://vegaseq.com/Allaclone/?a=npc&id=" + std::to_string(GetNPCTypeID()) + ")" + discord_msg + "!");
 	}
 }
 

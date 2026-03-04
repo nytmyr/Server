@@ -251,6 +251,7 @@ public:
 	std::unordered_map<uint32, EXPModifier> exp_modifiers;
 
 	std::vector<uint32> discovered_items;
+	std::vector<uint32> ssf_discovered_items;
 
 	std::map<std::string, std::string> m_zone_variables;
 

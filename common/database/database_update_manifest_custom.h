@@ -1126,6 +1126,44 @@ ALTER TABLE `npc_types`
 )",
 		.content_schema_update = false,
 	},
+	ManifestEntry{
+		.version = 16,
+		.description = "2026_3_15_add_ssf_flags",
+		.check = "SHOW COLUMNS FROM `character_data` LIKE 'ssf_flag'",
+		.condition = "empty",
+		.match = "",
+		.sql = R"(
+ALTER TABLE `character_data`
+	ADD COLUMN `ssf_flag` TINYINT(3) UNSIGNED NOT NULL DEFAULT '0' AFTER `illusion_block`
+	ADD COLUMN `hardcore_death_time` DATETIME NULL DEFAULT NULL AFTER `ssf_flag`;
+ALTER TABLE `character_corpses`
+	ADD COLUMN `ssf_flag` TINYINT(3) UNSIGNED NOT NULL DEFAULT '0' AFTER `entity_variables`;
+)",
+		.content_schema_update = false,
+	},
+	ManifestEntry{
+		.version = 17,
+		.description = "2026_3_15_add_ssf_discovered_items",
+		.check = "SHOW TABLES LIKE `ssf_discovered_items`",
+		.condition = "empty",
+		.match = "",
+		.sql = R"(
+DROP TABLE IF EXISTS `ssf_discovered_items`;
+
+CREATE TABLE `ssf_discovered_items` (
+	`item_id` INT(11) UNSIGNED NOT NULL DEFAULT '0',
+	`char_name` VARCHAR(64) NOT NULL DEFAULT '' COLLATE 'latin1_swedish_ci',
+	`discovered_date` INT(11) UNSIGNED NOT NULL DEFAULT '0',
+	`account_status` INT(11) NOT NULL DEFAULT '0',
+	`ssf_flag` TINYINT(3) NOT NULL DEFAULT '0',
+	PRIMARY KEY (`item_id`) USING BTREE
+)
+COLLATE='latin1_swedish_ci'
+ENGINE=InnoDB
+;
+)",
+		.content_schema_update = false,
+	},
 // Used for testing
 //	ManifestEntry{
 //		.version = 9229,

@@ -1125,6 +1125,10 @@ int64 Mob::GetWeaponDamage(Mob *against, const EQ::ItemData *weapon_item) {
 		return 0;
 	}
 
+	if (!IsValidSSFTarget(this, against, SSFFlagCheckTypes::Attack)) { // VegasEQ
+		return 0;
+	}
+
 	//check to see if our weapons or fists are magical.
 	if (against->GetSpecialAbility(SpecialAbility::MeleeImmunityExceptMagical)) {
 		if (GetSpecialAbility(SpecialAbility::MagicalAttack)) {
@@ -1227,6 +1231,10 @@ int64 Mob::GetWeaponDamage(Mob *against, const EQ::ItemInstance *weapon_item, in
 
 	if (!against || against->GetInvul() || against->GetSpecialAbility(SpecialAbility::MeleeImmunity))
 		return 0;
+
+	if (!IsValidSSFTarget(this, against, SSFFlagCheckTypes::Attack)) { // VegasEQ
+		return 0;
+	}
 
 	// check for items being illegally attained
 	if (weapon_item) {
@@ -1596,6 +1604,10 @@ bool Mob::Attack(Mob* other, int Hand, bool bRiposte, bool IsStrikethrough, bool
 
 	if (GetFeigned()) {
 		return false; // Rogean: How can you attack while feigned? Moved up from Aggro Code.
+	}
+
+	if (!IsValidSSFTarget(this, other, SSFFlagCheckTypes::Attack)) { // VegasEQ
+		return false;
 	}
 
 	const EQ::ItemInstance* weapon = nullptr;
@@ -1970,143 +1982,150 @@ bool Client::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::Skil
 	#3: exp loss and corpse generation
 	*/
 
-	// figure out if they should lose exp
-	if (RuleB(Character, UseDeathExpLossMult)) {
-		float exp_losses[] = { 0.005f, 0.015f, 0.025f, 0.035f, 0.045f, 0.055f, 0.065f, 0.075f, 0.085f, 0.095f, 0.110f };
-		int exp_loss = RuleI(Character, DeathExpLossMultiplier);
-		if (!EQ::ValueWithin(exp_loss, 0, 10)) {
-			exp_loss = 3;
-		}
-
-		auto current_exp_loss = exp_losses[exp_loss];
-
-		exploss = static_cast<int>(static_cast<float>(GetEXP()) * current_exp_loss); //loose % of total XP pending rule (choose 0-10)
-	}
-
-	if (!RuleB(Character, UseDeathExpLossMult)) {
-		exploss = static_cast<int>(GetLevel() * (GetLevel() / 18.0) * 12000);
-	}
-
-	if (RuleB(Zone, LevelBasedEXPMods)) {
-		// Death in levels with xp_mod (such as hell levels) was resulting
-		// in losing more that appropriate since the loss was the same but
-		// getting it back would take way longer.  This makes the death the
-		// same amount of time to recover.  Will also lose more if level is
-		// granting a bonus.
-		exploss *= zone->level_exp_mod[GetLevel()].ExpMod;
-	}
-
-	if (exploss > 0 && RuleB(Character, DeathKeepLevel)) {
-		int32 total_exp = GetEXP();
-		uint32 level_min_exp = GetEXPForLevel(killed_level);
-		int32 level_exp = total_exp - level_min_exp;
-		if (exploss > level_exp) {
-			exploss = level_exp;
-		}
-	}
-
-	if ((GetLevel() < RuleI(Character, DeathExpLossLevel)) || (GetLevel() > RuleI(Character, DeathExpLossMaxLevel)) || IsBecomeNPC()) {
-		exploss = 0;
-	} else if (killer_mob) {
-		if (
-			killer_mob->IsOfClientBot() ||
-			(killer_mob->GetOwner() && killer_mob->GetOwner()->IsOfClientBot())
-		) {
-			exploss = 0;
-		}
-	}
-
-	if (IsValidSpell(spell)) {
-		uint32 buff_count = GetMaxTotalSlots();
-		for (uint16 buffIt = 0; buffIt < buff_count; buffIt++) {
-			if (buffs[buffIt].spellid == spell && buffs[buffIt].client) {
-				exploss = 0;	// no exp loss for pvp dot
-				break;
-			}
-		}
-	}
-
 	bool leave_corpse = false;
 	Corpse* new_corpse = nullptr;
 
-	// now we apply the exp loss, unmem their spells, and make a corpse
-	// unless they're a GM (or less than lvl 10
-	if (!GetGM()) {
-		if (exploss > 0) {
-			int32 newexp = GetEXP();
-			if (exploss > newexp) {
-				//lost more than we have... wtf..
-				newexp = 1;
-			} else {
-				newexp -= exploss;
+	if (!SSFLogic::IsHardcore(GetSSFFlag())) {
+		// figure out if they should lose exp
+		if (RuleB(Character, UseDeathExpLossMult)) {
+			float exp_losses[] = { 0.005f, 0.015f, 0.025f, 0.035f, 0.045f, 0.055f, 0.065f, 0.075f, 0.085f, 0.095f, 0.110f };
+			int exp_loss = RuleI(Character, DeathExpLossMultiplier);
+			if (!EQ::ValueWithin(exp_loss, 0, 10)) {
+				exp_loss = 3;
 			}
-			SetEXP(ExpSource::Death, newexp, GetAAXP());
-			//m_epp.perAA = 0;	//reset to no AA exp on death.
+
+			auto current_exp_loss = exp_losses[exp_loss];
+
+			exploss = static_cast<int>(static_cast<float>(GetEXP()) * current_exp_loss); //loose % of total XP pending rule (choose 0-10)
 		}
 
-		auto illusion_spell_id = spellbonuses.Illusion;
-
-		//this generates a lot of 'updates' to the client that the client does not need
-		if (RuleB(Spells, BuffsFadeOnDeath)) {
-			BuffFadeNonPersistDeath();
+		if (!RuleB(Character, UseDeathExpLossMult)) {
+			exploss = static_cast<int>(GetLevel() * (GetLevel() / 18.0) * 12000);
 		}
 
-		if (RuleB(Character, UnmemSpellsOnDeath)) {
-			if ((ClientVersionBit() & EQ::versions::maskSoFAndLater) && RuleB(Character, RespawnFromHover)) {
-				UnmemSpellAll(true);
-			} else {
-				UnmemSpellAll(false);
+		if (RuleB(Zone, LevelBasedEXPMods)) {
+			// Death in levels with xp_mod (such as hell levels) was resulting
+			// in losing more that appropriate since the loss was the same but
+			// getting it back would take way longer.  This makes the death the
+			// same amount of time to recover.  Will also lose more if level is
+			// granting a bonus.
+			exploss *= zone->level_exp_mod[GetLevel()].ExpMod;
+		}
+
+		if (exploss > 0 && RuleB(Character, DeathKeepLevel)) {
+			int32 total_exp = GetEXP();
+			uint32 level_min_exp = GetEXPForLevel(killed_level);
+			int32 level_exp = total_exp - level_min_exp;
+			if (exploss > level_exp) {
+				exploss = level_exp;
 			}
 		}
 
-		if (
-			(RuleB(Character, LeaveCorpses) && GetLevel() >= RuleI(Character, DeathItemLossLevel)) ||
-			RuleB(Character, LeaveNakedCorpses)
-		) {
-			// creating the corpse takes the cash/items off the player too
-			new_corpse = new Corpse(this, exploss, killed_by);
+		if ((GetLevel() < RuleI(Character, DeathExpLossLevel)) || (GetLevel() > RuleI(Character, DeathExpLossMaxLevel)) || IsBecomeNPC()) {
+			exploss = 0;
+		} else if (killer_mob) {
+			if (
+				killer_mob->IsOfClientBot() ||
+				(killer_mob->GetOwner() && killer_mob->GetOwner()->IsOfClientBot())
+			) {
+				exploss = 0;
+			}
+		}
 
-			std::string tmp;
-			database.GetVariable("ServerType", tmp);
-			if (tmp[0] == '1' && tmp[1] == '\0' && killer_mob && killer_mob->IsClient()) {
-				database.GetVariable("PvPreward", tmp);
-				auto reward = Strings::ToInt(tmp);
-				if (reward == 3) {
-					database.GetVariable("PvPitem", tmp);
-					auto pvp_item_id = Strings::ToInt(tmp);
-					const auto* item = database.GetItem(pvp_item_id);
-					if (item) {
-						new_corpse->SetPlayerKillItemID(pvp_item_id);
-					}
-				} else if (reward == 2) {
-					new_corpse->SetPlayerKillItemID(-1);
-				} else if (reward == 1) {
-					new_corpse->SetPlayerKillItemID(1);
-				} else {
-					new_corpse->SetPlayerKillItemID(0);
+		if (IsValidSpell(spell)) {
+			uint32 buff_count = GetMaxTotalSlots();
+			for (uint16 buffIt = 0; buffIt < buff_count; buffIt++) {
+				if (buffs[buffIt].spellid == spell && buffs[buffIt].client) {
+					exploss = 0;	// no exp loss for pvp dot
+					break;
 				}
+			}
+		}
 
-				if (killer_mob->CastToClient()->isgrouped) {
-					auto* group = entity_list.GetGroupByClient(killer_mob->CastToClient());
-					if (group) {
-						for (int i = 0; i < 6; i++) {
-							if (group->members[i]) {
-								new_corpse->AllowPlayerLoot(group->members[i], i);
+		// now we apply the exp loss, unmem their spells, and make a corpse
+		// unless they're a GM (or less than lvl 10
+		if (!GetGM()) {
+			if (exploss > 0) {
+				int32 newexp = GetEXP();
+				if (exploss > newexp) {
+					//lost more than we have... wtf..
+					newexp = 1;
+				} else {
+					newexp -= exploss;
+				}
+				SetEXP(ExpSource::Death, newexp, GetAAXP());
+				//m_epp.perAA = 0;	//reset to no AA exp on death.
+			}
+
+			auto illusion_spell_id = spellbonuses.Illusion;
+
+			//this generates a lot of 'updates' to the client that the client does not need
+			if (RuleB(Spells, BuffsFadeOnDeath)) {
+				BuffFadeNonPersistDeath();
+			}
+
+			if (RuleB(Character, UnmemSpellsOnDeath)) {
+				if ((ClientVersionBit() & EQ::versions::maskSoFAndLater) && RuleB(Character, RespawnFromHover)) {
+					UnmemSpellAll(true);
+				} else {
+					UnmemSpellAll(false);
+				}
+			}
+
+			if (
+				(RuleB(Character, LeaveCorpses) && GetLevel() >= RuleI(Character, DeathItemLossLevel)) ||
+				RuleB(Character, LeaveNakedCorpses)
+			) {
+				// creating the corpse takes the cash/items off the player too
+				new_corpse = new Corpse(this, exploss, killed_by);
+
+				std::string tmp;
+				database.GetVariable("ServerType", tmp);
+				if (tmp[0] == '1' && tmp[1] == '\0' && killer_mob && killer_mob->IsClient()) {
+					database.GetVariable("PvPreward", tmp);
+					auto reward = Strings::ToInt(tmp);
+					if (reward == 3) {
+						database.GetVariable("PvPitem", tmp);
+						auto pvp_item_id = Strings::ToInt(tmp);
+						const auto* item = database.GetItem(pvp_item_id);
+						if (item) {
+							new_corpse->SetPlayerKillItemID(pvp_item_id);
+						}
+					} else if (reward == 2) {
+						new_corpse->SetPlayerKillItemID(-1);
+					} else if (reward == 1) {
+						new_corpse->SetPlayerKillItemID(1);
+					} else {
+						new_corpse->SetPlayerKillItemID(0);
+					}
+
+					if (killer_mob->CastToClient()->isgrouped) {
+						auto* group = entity_list.GetGroupByClient(killer_mob->CastToClient());
+						if (group) {
+							for (int i = 0; i < 6; i++) {
+								if (group->members[i]) {
+									new_corpse->AllowPlayerLoot(group->members[i], i);
+								}
 							}
 						}
 					}
 				}
+
+				new_corpse->SetSSFFlag(GetSSFFlag());
+
+				entity_list.AddCorpse(new_corpse, GetID());
+				SetID(0);
+
+				//send the become corpse packet to everybody else in the zone.
+				entity_list.QueueClients(this, &app2, true);
+				ApplyIllusionToCorpse(illusion_spell_id, new_corpse);
+				leave_corpse = true;
 			}
-
-			entity_list.AddCorpse(new_corpse, GetID());
-			SetID(0);
-
-			//send the become corpse packet to everybody else in the zone.
-			entity_list.QueueClients(this, &app2, true);
-			ApplyIllusionToCorpse(illusion_spell_id, new_corpse);
-			leave_corpse = true;
+		} else {
+			BuffFadeDetrimental();
 		}
-	} else {
+	}
+	else {
 		BuffFadeDetrimental();
 	}
 
@@ -2148,6 +2167,22 @@ bool Client::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::Skil
 		}
 
 		dead_timer.Start(5000, true);
+
+		if (SSFLogic::IsHardcore(GetSSFFlag())) {
+			SetHardCoreDeathTimeStamp();
+			m_pp.binds[0].zone_id = RuleI(SSF, HardcoreDeathZoneID);
+			m_pp.binds[0].instance_id = 0;
+			m_pp.binds[0].x = ZoneStore::Instance()->GetZoneSafeCoordinates(RuleI(SSF, HardcoreDeathZoneID)).x;
+			m_pp.binds[0].y = ZoneStore::Instance()->GetZoneSafeCoordinates(RuleI(SSF, HardcoreDeathZoneID)).y;
+			m_pp.binds[0].z = ZoneStore::Instance()->GetZoneSafeCoordinates(RuleI(SSF, HardcoreDeathZoneID)).z;
+			m_pp.binds[0].heading = ZoneStore::Instance()->GetZoneSafeCoordinates(RuleI(SSF, HardcoreDeathZoneID)).w;
+
+			for (auto &p: m_parcels) {
+				database.QueryDatabase(fmt::format("DELETE FROM character_parcels WHERE id = {}", p.second.id));
+				database.QueryDatabase(fmt::format("DELETE FROM character_parcels_containers WHERE id = {}", p.second.id));
+			}
+		}
+
 		m_pp.zone_id = m_pp.binds[0].zone_id;
 		m_pp.zoneInstance = m_pp.binds[0].instance_id;
 		database.MoveCharacterToZone(CharacterID(), m_pp.zone_id);
@@ -2182,6 +2217,7 @@ bool Client::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::Skil
 
 		parse->EventPlayer(EVENT_DEATH_COMPLETE, this, export_string, 0, &args);
 	}
+
 	return true;
 }
 
@@ -2226,6 +2262,10 @@ bool NPC::Attack(Mob* other, int Hand, bool bRiposte, bool IsStrikethrough, bool
 		RemoveFromHateList(other);
 		RemoveFromRampageList(other);
 		LogCombat("I am not allowed to attack [{}]", other->GetName());
+		return false;
+	}
+
+	if (!IsValidSSFTarget(this, other, SSFFlagCheckTypes::Attack)) { // VegasEQ
 		return false;
 	}
 
@@ -2891,6 +2931,8 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 
 		if (killer && killer->IsClient()) {
 			corpse->AllowPlayerLoot(killer, 0);
+			corpse->AddLootEligibleSSFClientID(killer->CastToClient()->CharacterID()); // VegasEQ
+
 			if (killer->IsGrouped()) {
 				Group* g = entity_list.GetGroupByClient(killer->CastToClient());
 				if (g) {
@@ -2899,6 +2941,7 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 					for (const auto &m : g->members) {
 						if (m) {
 							corpse->AllowPlayerLoot(m, slot_id);
+							corpse->AddLootEligibleSSFClientID(m->CastToClient()->CharacterID()); // VegasEQ
 						}
 
 						slot_id++;
@@ -2918,18 +2961,21 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 							case RaidLootType::LeaderOnly:
 								if (m.member && m.is_raid_leader) {
 									corpse->AllowPlayerLoot(m.member, slot_id);
+									corpse->AddLootEligibleSSFClientID(m.member->CastToClient()->CharacterID()); // VegasEQ
 									slot_id++;
 								}
 								break;
 							case RaidLootType::LeaderAndGroupLeadersOnly:
 								if (m.member && (m.is_raid_leader || m.is_group_leader)) {
 									corpse->AllowPlayerLoot(m.member, slot_id);
+									corpse->AddLootEligibleSSFClientID(m.member->CastToClient()->CharacterID()); // VegasEQ
 									slot_id++;
 								}
 								break;
 							case RaidLootType::LeaderSelected:
 								if (m.member && m.is_looter) {
 									corpse->AllowPlayerLoot(m.member, slot_id);
+									corpse->AddLootEligibleSSFClientID(m.member->CastToClient()->CharacterID()); // VegasEQ
 									slot_id++;
 								}
 								break;
@@ -2937,6 +2983,7 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 							default:
 								if (m.member) {
 									corpse->AllowPlayerLoot(m.member, slot_id);
+									corpse->AddLootEligibleSSFClientID(m.member->CastToClient()->CharacterID()); // VegasEQ
 									slot_id++;
 								}
 								break;
@@ -2948,6 +2995,7 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 			Mob* ultimate_owner = killer_mob->GetUltimateOwner();
 			if (ultimate_owner->IsClient()) {
 				corpse->AllowPlayerLoot(ultimate_owner, 0);
+				corpse->AddLootEligibleSSFClientID(ultimate_owner->CastToClient()->CharacterID()); // VegasEQ
 			}
 		}
 
@@ -3146,6 +3194,7 @@ void Mob::AddToHateList(Mob* other, int64 hate /*= 0*/, int64 damage /*= 0*/, bo
 	Mob* my_owner = GetOwner();
 	Mob* target_mob = GetTarget();
 	bool on_hatelist = CheckAggro(other);
+	Mob* other_ultimate_owner = other->GetUltimateOwner();
 
 	AddRampage(other);
 	if (on_hatelist) { // odd reason, if you're not on the hate list, subtlety etc don't apply!
@@ -3357,6 +3406,10 @@ void Mob::AddToHateList(Mob* other, int64 hate /*= 0*/, int64 damage /*= 0*/, bo
 		}
 
 		AI_Event_Engaged(other, iYellForHelp);
+	}
+
+	if (other_ultimate_owner && other_ultimate_owner->IsClient()) { // VegasEQ
+		AssignSSFFlags(other_ultimate_owner->CastToClient());
 	}
 }
 
@@ -4111,6 +4164,10 @@ void Mob::CommonDamage(Mob* attacker, int64 &damage, const uint16 spell_id, cons
 
 	if (IsValidSpell(spell_id) || attacker == nullptr)
 		avoidable = false;
+
+	if (attacker && !IsValidSSFTarget(this, attacker, SSFFlagCheckTypes::Attack)) { // VegasEQ
+		damage = DMG_INVULNERABLE;
+	}
 
 	// only apply DS if physical damage (no spell damage)
 	// damage shield calls this function with spell_id set, so its unavoidable
