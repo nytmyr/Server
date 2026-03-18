@@ -2315,10 +2315,16 @@ void Corpse::CastRezz(uint16 spell_id, Mob *caster)
 
 	// Rez timer has expired, only GMs can rez at this point. (uses rezzable)
 	if (!IsRezzable()) {
-		if (caster && caster->IsClient()) {
-			if (!caster->CastToClient()->GetGM()) {
+		if (caster && caster->IsOfClientBot()) {
+			if (caster->IsClient() && !caster->CastToClient()->GetGM()) {
 				caster->MessageString(Chat::White, REZZ_ALREADY_PENDING);
 				caster->MessageString(Chat::White, CORPSE_TOO_OLD);
+				return;
+			}
+
+			if (caster->IsBot() && caster->GetUltimateOwner() && !caster->GetUltimateOwner()->CastToClient()->GetGM()) {
+				caster->GetUltimateOwner()->MessageString(Chat::White, REZZ_ALREADY_PENDING);
+				caster->GetUltimateOwner()->MessageString(Chat::White, CORPSE_TOO_OLD);
 				return;
 			}
 
@@ -2337,6 +2343,9 @@ void Corpse::CastRezz(uint16 spell_id, Mob *caster)
 
 				c->Message(Chat::White, "Your GM flag allows you to resurrect this corpse and return experience.");
 			}
+		}
+		else if (caster->IsBot()) {
+			m_rezzed_experience = 0;
 		}
 	}
 
