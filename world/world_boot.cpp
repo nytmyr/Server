@@ -24,15 +24,13 @@
 #include "common/http/httplib.h"
 #include "common/http/uri.h"
 #include "common/ip_util.h"
-#include "common/net/console_server.h"
-#include "common/net/servertalk_server.h"
+#include "common/net/dns.h"
 #include "common/path_manager.h"
 #include "common/repositories/character_expedition_lockouts_repository.h"
 #include "common/repositories/character_task_timers_repository.h"
 #include "common/repositories/zone_state_spawns_repository.h"
 #include "common/rulesys.h"
 #include "common/strings.h"
-#include "common/zone_store.h"
 #include "common/zone_store.h"
 #include "world/adventure_manager.h"
 #include "world/dynamic_zone_manager.h"
@@ -48,8 +46,6 @@
 #include "world/zoneserver.h"
 
 extern WorldConfig Config;
-
-auto mutex = new Mutex;
 
 void WorldBoot::GMSayHookCallBackProcessWorld(uint16 log_category, const char *func, std::string message)
 {
@@ -180,11 +176,13 @@ bool WorldBoot::LoadDatabaseConnections()
 	}
 	else {
 		content_db.SetMySQL(database);
+
 		// when database and content_db share the same underlying mysql connection
 		// it needs to be protected by a shared mutex otherwise we produce concurrency issues
 		// when database actions are occurring in different threads
-		database.SetMutex(mutex);
-		content_db.SetMutex(mutex);
+		std::shared_ptr<DBcore::Mutex> sharedMutex = std::make_shared<DBcore::Mutex>();
+		database.SetMutex(sharedMutex);
+		content_db.SetMutex(sharedMutex);
 	}
 
 	return true;
@@ -456,7 +454,7 @@ void WorldBoot::CheckForPossibleConfigurationIssues()
 
 	std::string config_address = c->WorldAddress;
 	if (!IpUtil::IsIPAddress(config_address)) {
-		config_address = IpUtil::DNSLookupSync(c->WorldAddress, 9000);
+		config_address = EQ::Net::DNSLookupSync(c->WorldAddress, 9000);
 		LogInfo(
 			"World config address using DNS [{}] resolves to [{}]",
 			c->WorldAddress,
@@ -634,7 +632,6 @@ void WorldBoot::CheckForPossibleConfigurationIssues()
 
 void WorldBoot::Shutdown()
 {
-	safe_delete(mutex);
 }
 
 void WorldBoot::SendDiscordMessage(int webhook_id, const std::string &message)
