@@ -9026,6 +9026,10 @@ bool Mob::IsAssignedToSSFFlags(Client* c) {
 		return false;
 	}
 
+	if (!SSFLogic::IsAnySelfFound(GetSSFFlag()) && !SSFLogic::IsAnySelfFound(c->GetSSFFlag())) {
+		return true;
+	}
+
 	Group* group = entity_list.GetGroupByClient(c);
 	Raid*  raid  = entity_list.GetRaidByClient(c);
 
