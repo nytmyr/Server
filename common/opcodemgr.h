@@ -1,28 +1,27 @@
-/*	EQEMu: Everquest Server Emulator
-	Copyright (C) 2001-2006 EQEMu Development Team (http://eqemulator.net)
+/*	EQEmu: EQEmulator
+
+	Copyright (C) 2001-2026 EQEmu Development Team
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; version 2 of the License.
+	the Free Software Foundation; either version 3 of the License, or
+	(at your option) any later version.
 
 	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY except by those people which sell it, which
-	are required to give you total support for your newly bought product;
-	without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-	A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+	GNU General Public License for more details.
 
 	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the Free Software
-	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+	along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-
 #pragma once
 
 #include "common/emu_opcodes.h"
-#include "common/mutex.h"
 #include "common/types.h"
 
 #include <map>
+#include <mutex>
 
 //enable the use of shared mem opcodes for world and zone only
 #ifdef ZONE
@@ -32,7 +31,8 @@
 #define SHARED_OPCODES
 #endif
 
-class OpcodeManager {
+class OpcodeManager
+{
 public:
 	OpcodeManager();
 	virtual ~OpcodeManager() {}
@@ -49,24 +49,27 @@ public:
 	EmuOpcode NameSearch(const char *name);
 
 	//This has to be public for stupid visual studio
-	class OpcodeSetStrategy {
+	class OpcodeSetStrategy
+	{
 	public:
-		virtual ~OpcodeSetStrategy() {}	//shut up compiler!
+		virtual ~OpcodeSetStrategy() = default;
 		virtual void Set(EmuOpcode emu_op, uint16 eq_op) = 0;
 	};
 
 protected:
 	bool loaded; //true if all opcodes loaded
-	Mutex MOpcodes; //this only protects the local machine
+	std::mutex MOpcodes; //this only protects the local machine
 					//in a shared manager, this dosent protect others
 
 	static bool LoadOpcodesFile(const char *filename, OpcodeSetStrategy *s, bool report_errors);
 };
 
-class MutableOpcodeManager : public OpcodeManager {
+class MutableOpcodeManager : public OpcodeManager
+{
 public:
-	MutableOpcodeManager() : OpcodeManager() {}
-	virtual bool Mutable() { return(true); }
+	MutableOpcodeManager() = default;
+
+	virtual bool Mutable() override { return true; }
 	virtual void SetOpcode(EmuOpcode emu_op, uint16 eq_op) = 0;
 };
 
@@ -109,16 +112,16 @@ public:
 	virtual void SetOpcode(EmuOpcode emu_op, uint16 eq_op);
 
 protected:
-	class NormalMemStrategy : public OpcodeManager::OpcodeSetStrategy {
+	class NormalMemStrategy : public OpcodeManager::OpcodeSetStrategy
+	{
 	public:
-		virtual ~NormalMemStrategy() {} //shut up compiler!
-		RegularOpcodeManager *it;
-		void Set(EmuOpcode emu_op, uint16 eq_op);
-	};
-	friend class NormalMemStrategy;
+		RegularOpcodeManager* it;
 
-	uint16 *emu_to_eq;
-	EmuOpcode *eq_to_emu;
+		virtual void Set(EmuOpcode emu_op, uint16 eq_op) override;
+	};
+
+	uint16* emu_to_eq;
+	EmuOpcode* eq_to_emu;
 	uint32 EQOpcodeCount;
 	uint32 EmuOpcodeCount;
 };

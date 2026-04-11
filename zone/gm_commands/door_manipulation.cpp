@@ -1,3 +1,20 @@
+/*	EQEmu: EQEmulator
+
+	Copyright (C) 2001-2026 EQEmu Development Team
+
+	This program is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation; either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "door_manipulation.h"
 
 #include "common/misc_functions.h"
@@ -430,15 +447,15 @@ void DoorManipulation::CommandHandler(Client *c, const Seperator *sep)
 
 	if (arg1 == "setinclineinc") {
 		std::map<float, std::string> incline_values = {
-			{.01,    "Upright"},
-			{63.75,  "45 Degrees",},
-			{130,    "90 Degrees"},
-			{192.5,  "135 Degrees"},
-			{255,    "180 Degrees"},
-			{321.25, "225 Degrees"},
-			{385,    "270 Degrees"},
-			{448.75, "315 Degrees"},
-			{512.5,  "360 Degrees"}
+			{.01f,     "Upright"},
+			{63.75f,   "45 Degrees",},
+			{130.f,    "90 Degrees"},
+			{192.5f,   "135 Degrees"},
+			{255.f,    "180 Degrees"},
+			{321.25f,  "225 Degrees"},
+			{385.f,    "270 Degrees"},
+			{448.75f,  "315 Degrees"},
+			{512.5f,   "360 Degrees"}
 		};
 
 		std::vector<std::string> incline_normal_options;

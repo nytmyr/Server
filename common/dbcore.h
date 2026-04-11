@@ -1,10 +1,27 @@
+/*	EQEmu: EQEmulator
+
+	Copyright (C) 2001-2026 EQEmu Development Team
+
+	This program is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation; either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
 #pragma once
 
-#include "common/mutex.h"
 #include "common/mysql_request_result.h"
 #include "common/types.h"
 
 #include "mysql.h"
+#include <memory>
 #include <mutex>
 
 #define CR_SERVER_GONE_ERROR    2006
@@ -12,11 +29,14 @@
 
 namespace mysql { class PreparedStmt; }
 
-class DBcore {
+class DBcore
+{
 public:
 	enum eStatus {
 		Closed, Connected, Error
 	};
+
+	using Mutex = std::recursive_mutex;
 
 	DBcore();
 	~DBcore();
@@ -31,17 +51,17 @@ public:
 	uint32 DoEscapeString(char *tobuf, const char *frombuf, uint32 fromlen);
 	void ping();
 
-	const std::string &GetOriginHost() const;
-	void SetOriginHost(const std::string &origin_host);
+	const std::string& GetOriginHost() const;
+	void SetOriginHost(const std::string& origin_host);
 
 	bool DoesTableExist(const std::string& table_name);
 
-	void SetMySQL(const DBcore &o)
+	void SetMySQL(const DBcore& o)
 	{
 		mysql      = o.mysql;
 		mysqlOwner = false;
 	}
-	void SetMutex(Mutex *mutex);
+	void SetMutex(const std::shared_ptr<Mutex>& mutex);
 
 	// only safe on connections shared with other threads if results buffered
 	// unsafe to use off main thread due to internal server logging
@@ -64,22 +84,21 @@ protected:
 private:
 	bool Open(uint32 *errnum = nullptr, char *errbuf = nullptr);
 
-	MYSQL*  mysql;
-	bool    mysqlOwner;
-	Mutex   *m_mutex;
-	eStatus pStatus;
+	MYSQL*  mysql = nullptr;
+	bool    mysqlOwner = true;
+	eStatus pStatus = Closed;
 
-	std::mutex m_query_lock{};
+	std::shared_ptr<Mutex> m_mutex;
 
 	std::string origin_host;
 
-	char   *pHost;
-	char   *pUser;
-	char   *pPassword;
-	char   *pDatabase;
-	bool   pCompress;
-	uint32 pPort;
-	bool   pSSL;
+	std::string m_host;
+	std::string m_user;
+	std::string m_password;
+	std::string m_database;
+	bool   pCompress = false;
+	uint32 pPort = 0;
+	bool   pSSL = false;
 
 	// allows multiple queries to be executed within the same query
 	// do not use this under normal operation

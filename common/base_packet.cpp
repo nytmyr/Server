@@ -1,62 +1,51 @@
-/*	EQEMu: Everquest Server Emulator
-	Copyright (C) 2001-2006 EQEMu Development Team (http://eqemulator.net)
+/*	EQEmu: EQEmulator
+
+	Copyright (C) 2001-2026 EQEmu Development Team
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; version 2 of the License.
+	the Free Software Foundation; either version 3 of the License, or
+	(at your option) any later version.
 
 	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY except by those people which sell it, which
-	are required to give you total support for your newly bought product;
-	without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-	A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+	GNU General Public License for more details.
 
 	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the Free Software
-	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+	along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-
 #include "common/base_packet.h"
 #include "common/misc.h"
 #include "common/packet_dump.h"
 
-BasePacket::BasePacket(const unsigned char *buf, uint32 len)
+BasePacket::BasePacket(const unsigned char* buf, size_t len)
 {
-	pBuffer=nullptr;
-	size=0;
-	_wpos = 0;
-	_rpos = 0;
-	timestamp.tv_sec = 0;
-	if (len>0) {
-		size=len;
-		pBuffer= new unsigned char[len];
+	if (len > 0) {
+		size = static_cast<uint32>(len);
+		pBuffer = new unsigned char[len];
 		if (buf) {
-			memcpy(pBuffer,buf,len);
-		} else {
-			memset(pBuffer,0,len);
+			memcpy(pBuffer, buf, len);
+		}
+		else {
+			memset(pBuffer, 0, len);
 		}
 	}
 }
 
-BasePacket::BasePacket(SerializeBuffer &buf)
+BasePacket::BasePacket(SerializeBuffer&& buf)
+	: pBuffer(std::exchange(buf.m_buffer, nullptr))
 {
-	pBuffer = buf.m_buffer;
-	buf.m_buffer = nullptr;
-	size = buf.m_pos;
-	buf.m_pos = 0;
+	// We are essentially taking ownership of this serialize buffer.
+	size = static_cast<uint32>(std::exchange(buf.m_pos, 0));
 	buf.m_capacity = 0;
-	_wpos = 0;
-	_rpos = 0;
-	timestamp.tv_sec = 0;
 }
 
 BasePacket::~BasePacket()
 {
-	if (pBuffer)
-		delete[] pBuffer;
-	pBuffer=nullptr;
+	delete[] pBuffer;
+	pBuffer = nullptr;
 }
-
 
 void BasePacket::build_raw_header_dump(char *buffer, uint16 seq) const
 {

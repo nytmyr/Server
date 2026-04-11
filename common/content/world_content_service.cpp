@@ -1,3 +1,20 @@
+/*	EQEmu: EQEmulator
+
+	Copyright (C) 2001-2026 EQEmu Development Team
+
+	This program is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation; either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "world_content_service.h"
 
 #include "common/database.h"
@@ -115,7 +132,7 @@ void WorldContentService::SetContentFlags(const std::vector<ContentFlagsReposito
 bool WorldContentService::IsContentFlagEnabled(const std::string &content_flag)
 {
 	for (auto &f: GetContentFlags()) {
-		if (f.flag_name == content_flag && f.enabled == true) {
+		if (f.flag_name == content_flag && f.enabled == 1) {
 			return true;
 		}
 	}
@@ -130,7 +147,7 @@ bool WorldContentService::IsContentFlagEnabled(const std::string &content_flag)
 bool WorldContentService::IsContentFlagDisabled(const std::string &content_flag)
 {
 	for (auto &f: GetContentFlags()) {
-		if (f.flag_name == content_flag && f.enabled == false) {
+		if (f.flag_name == content_flag && f.enabled == 0) {
 			return true;
 		}
 	}

@@ -1,3 +1,20 @@
+/*	EQEmu: EQEmulator
+
+	Copyright (C) 2001-2026 EQEmu Development Team
+
+	This program is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation; either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "process.h"
 
 #include <algorithm>
@@ -6,11 +23,13 @@
 
 inline std::string random_string(size_t length)
 {
-	auto        randchar = []() -> char {
+	auto randchar = []() -> char
+	{
 		const char   charset[] = "0123456789" "ABCDEFGHIJKLMNOPQRSTUVWXYZ" "abcdefghijklmnopqrstuvwxyz";
 		const size_t max_index = (sizeof(charset) - 1);
 		return charset[static_cast<size_t>(std::rand()) % max_index];
 	};
+
 	std::string str(length, 0);
 	std::generate_n(str.begin(), length, randchar);
 	return str;

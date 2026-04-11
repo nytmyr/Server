@@ -1,3 +1,20 @@
+/*	EQEmu: EQEmulator
+
+	Copyright (C) 2001-2026 EQEmu Development Team
+
+	This program is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation; either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "shared_task_zone_messaging.h"
 
 #include "common/servertalk.h"
@@ -100,7 +117,7 @@ void SharedTaskZoneMessaging::HandleWorldMessage(ServerPacket *pack)
 					buf.WriteInt8(m.is_leader ? 1 : 0);
 				}
 
-				auto outapp = std::make_unique<EQApplicationPacket>(OP_SharedTaskMemberList, buf);
+				auto outapp = std::make_unique<EQApplicationPacket>(OP_SharedTaskMemberList, std::move(buf));
 				c->QueuePacket(outapp.get());
 			}
 
@@ -124,7 +141,7 @@ void SharedTaskZoneMessaging::HandleWorldMessage(ServerPacket *pack)
 				// live sends more after the name but it might just be garbage from
 				// a re-used buffer (possibly a former name[64] buffer?)
 
-				auto outapp = std::make_unique<EQApplicationPacket>(OP_SharedTaskMemberChange, buf);
+				auto outapp = std::make_unique<EQApplicationPacket>(OP_SharedTaskMemberChange, std::move(buf));
 				c->QueuePacket(outapp.get());
 			}
 

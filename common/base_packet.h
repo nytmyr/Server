@@ -1,21 +1,20 @@
-/*	EQEMu: Everquest Server Emulator
-	Copyright (C) 2001-2006 EQEMu Development Team (http://eqemulator.net)
+/*	EQEmu: EQEmulator
+
+	Copyright (C) 2001-2026 EQEmu Development Team
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; version 2 of the License.
+	the Free Software Foundation; either version 3 of the License, or
+	(at your option) any later version.
 
 	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY except by those people which sell it, which
-	are required to give you total support for your newly bought product;
-	without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-	A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+	GNU General Public License for more details.
 
 	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the Free Software
-	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+	along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-
 #pragma once
 
 #include "common/platform/inet.h"
@@ -24,14 +23,26 @@
 
 #include <cstdio>
 
-class BasePacket {
+class BasePacket
+{
+protected:
+	BasePacket() = default;
+	BasePacket(const unsigned char* buf, size_t len);
+	BasePacket(SerializeBuffer&& buf);
+
+	virtual ~BasePacket();
+
 public:
-	unsigned char *pBuffer;
-	uint32 size, _wpos, _rpos;
-	uint32 src_ip,dst_ip;
-	uint16 src_port,dst_port;
-	uint32 priority;
-	timeval timestamp;
+	unsigned char* pBuffer = nullptr;
+	uint32 size = 0;
+	uint32 _wpos = 0;
+	uint32 _rpos = 0;
+	uint32 src_ip = 0;
+	uint32 dst_ip = 0;
+	uint16 src_port = 0;
+	uint16 dst_port = 0;
+	uint32 priority = 0;
+	timeval timestamp{};
 
 	virtual void build_raw_header_dump(char *buffer, uint16 seq=0xffff) const;
 	virtual void build_header_dump(char *buffer) const;
@@ -41,11 +52,11 @@ public:
 
 	void setSrcInfo(uint32 sip, uint16 sport) { src_ip=sip; src_port=sport; }
 	void setDstInfo(uint32 dip, uint16 dport) { dst_ip=dip; dst_port=dport; }
-	void setTimeInfo(uint32 ts_sec, uint32 ts_usec) { timestamp.tv_sec=ts_sec; timestamp.tv_usec=ts_usec; }
+	void setTimeInfo(uint32 ts_sec, uint32 ts_usec) { timestamp.tv_sec = ts_sec; timestamp.tv_usec = ts_usec; }
 	void copyInfo(const BasePacket *p) { src_ip=p->src_ip; src_port=p->src_port; dst_ip=p->dst_ip; dst_port=p->dst_port; timestamp.tv_sec=p->timestamp.tv_sec; timestamp.tv_usec=p->timestamp.tv_usec; }
 
 	inline bool operator<(const BasePacket &rhs) {
-		return (timestamp.tv_sec < rhs.timestamp.tv_sec || (timestamp.tv_sec==rhs.timestamp.tv_sec && timestamp.tv_usec < rhs.timestamp.tv_usec));
+		return (timestamp.tv_sec < rhs.timestamp.tv_sec || (timestamp.tv_sec == rhs.timestamp.tv_sec && timestamp.tv_usec < rhs.timestamp.tv_usec));
 	}
 
 	void WriteUInt8(uint8 value) { *(uint8 *)(pBuffer + _wpos) = value; _wpos += sizeof(uint8); }
@@ -74,12 +85,6 @@ public:
 	uint32 GetReadPosition() { return _rpos; }
 	void SetWritePosition(uint32 Newwpos) { _wpos = Newwpos; }
 	void SetReadPosition(uint32 Newrpos) { _rpos = Newrpos; }
-
-protected:
-	virtual ~BasePacket();
-	BasePacket() { pBuffer=nullptr; size=0; _wpos = 0; _rpos = 0; }
-	BasePacket(const unsigned char *buf, const uint32 len);
-	BasePacket(SerializeBuffer &buf);
 };
 
 extern void DumpPacketHex(const BasePacket* app);

@@ -1,22 +1,20 @@
-/*	EQEMu: Everquest Server Emulator
+/*	EQEmu: EQEmulator
 
-	Copyright (C) 2001-2016 EQEMu Development Team (http://eqemulator.net)
+	Copyright (C) 2001-2026 EQEmu Development Team
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; version 2 of the License.
+	the Free Software Foundation; either version 3 of the License, or
+	(at your option) any later version.
 
 	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY except by those people which sell it, which
-	are required to give you total support for your newly bought product;
-	without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-	A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+	GNU General Public License for more details.
 
 	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the Free Software
-	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+	along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-
 #include "rof2.h"
 #include "rof2_structs.h"
 
@@ -691,7 +689,7 @@ namespace RoF2
 		EQApplicationPacket *outapp = nullptr;
 		if (eq->bufffade == 1)
 		{
-			outapp = new EQApplicationPacket(OP_BuffCreate, 29);
+			outapp = new EQApplicationPacket(OP_BuffCreate, 29u);
 			outapp->WriteUInt32(emu->entityid);
 			outapp->WriteUInt32(0);	// tic timer
 			outapp->WriteUInt8(0);		// Type of OP_BuffCreate packet ?
@@ -755,7 +753,7 @@ namespace RoF2
 				ar(bl);
 
 				//packet size
-				auto            packet_size = bl.item_name.length() + 1 + 34;
+				size_t          packet_size = bl.item_name.length() + 1 + 34;
 				for (auto const &b: bl.trade_items) {
 					packet_size += b.item_name.length() + 1;
 					packet_size += 12;
@@ -1624,7 +1622,7 @@ namespace RoF2
 			//Log.LogDebugType(Logs::General, Logs::Netcode, "[ERROR] Yourname is %s", gu2->yourname);
 
 			int MemberCount = 1;
-			int PacketLength = 8 + strlen(gu2->leadersname) + 1 + 22 + strlen(gu2->yourname) + 1;
+			uint32 PacketLength = 8 + strlen(gu2->leadersname) + 1 + 22 + strlen(gu2->yourname) + 1;
 
 			for (int i = 0; i < 5; ++i)
 			{
@@ -2209,7 +2207,7 @@ namespace RoF2
 
 		char *Buffer = (char *)in->pBuffer;
 
-		int PacketSize = sizeof(structs::MercenaryMerchantList_Struct) - 4 + emu->MercTypeCount * 4;
+		uint32 PacketSize = sizeof(structs::MercenaryMerchantList_Struct) - 4 + emu->MercTypeCount * 4;
 		PacketSize += (sizeof(structs::MercenaryListEntry_Struct) - sizeof(structs::MercenaryStance_Struct)) * emu->MercCount;
 
 		uint32 r;
@@ -3822,7 +3820,7 @@ namespace RoF2
 
 		buf.WriteString(new_message);
 
-		auto outapp = new EQApplicationPacket(OP_SpecialMesg, buf);
+		auto outapp = new EQApplicationPacket(OP_SpecialMesg, std::move(buf));
 
 		dest->FastQueuePacket(&outapp, ack_req);
 		delete in;
@@ -4122,8 +4120,8 @@ namespace RoF2
 					std::begin(emu->items),
 					std::end(emu->items),
 					std::begin(eq->items),
-					[&](const uint32 x) {
-						return x;
+					[&](uint64 x) {
+						return static_cast<uint32>(x);
 					}
 				);
 				std::copy_n(
@@ -4601,7 +4599,7 @@ namespace RoF2
 		int k;
 		for (r = 0; r < entrycount; r++, emu++) {
 
-			int PacketSize = 206;
+			uint32 PacketSize = 206;
 
 			PacketSize += strlen(emu->name);
 			PacketSize += strlen(emu->lastName);

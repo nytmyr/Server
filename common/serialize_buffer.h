@@ -1,3 +1,20 @@
+/*	EQEmu: EQEmulator
+
+	Copyright (C) 2001-2026 EQEmu Development Team
+
+	This program is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation; either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #pragma once
 
@@ -10,7 +27,7 @@
 class SerializeBuffer
 {
 public:
-	SerializeBuffer() : m_buffer(nullptr), m_capacity(0), m_pos(0) {}
+	SerializeBuffer() = default;
 
 	explicit SerializeBuffer(size_t size) : m_capacity(size), m_pos(0)
 	{
@@ -18,8 +35,10 @@ public:
 		memset(m_buffer, 0, size);
 	}
 
-	SerializeBuffer(const SerializeBuffer &rhs)
-	    : m_buffer(new unsigned char[rhs.m_capacity]), m_capacity(rhs.m_capacity), m_pos(rhs.m_pos)
+	SerializeBuffer(const SerializeBuffer& rhs)
+		: m_buffer(new unsigned char[rhs.m_capacity])
+		, m_capacity(rhs.m_capacity)
+		, m_pos(rhs.m_pos)
 	{
 		memcpy(m_buffer, rhs.m_buffer, rhs.m_capacity);
 	}
@@ -36,30 +55,31 @@ public:
 		return *this;
 	}
 
-	SerializeBuffer(SerializeBuffer &&rhs) : m_buffer(rhs.m_buffer), m_capacity(rhs.m_capacity), m_pos(rhs.m_pos)
+	SerializeBuffer(SerializeBuffer&& rhs)
+		: m_buffer(std::exchange(rhs.m_buffer, nullptr))
+		, m_capacity(std::exchange(rhs.m_capacity, 0))
+		, m_pos(std::exchange(rhs.m_pos, 0))
 	{
-		rhs.m_buffer = nullptr;
-		rhs.m_capacity = 0;
-		rhs.m_pos = 0;
 	}
 
-	SerializeBuffer &operator=(SerializeBuffer &&rhs)
+	SerializeBuffer& operator=(SerializeBuffer&& rhs)
 	{
-		if (this != &rhs) {
+		if (this != &rhs)
+		{
 			delete[] m_buffer;
 
-			m_buffer = rhs.m_buffer;
-			m_capacity = rhs.m_capacity;
-			m_pos = rhs.m_pos;
-
-			rhs.m_buffer = nullptr;
-			rhs.m_capacity = 0;
-			rhs.m_pos = 0;
+			m_buffer = std::exchange(rhs.m_buffer, nullptr);
+			m_capacity = std::exchange(rhs.m_capacity, 0);
+			m_pos = std::exchange(rhs.m_pos, 0);
 		}
+
 		return *this;
 	}
 
-	~SerializeBuffer() { delete[] m_buffer; }
+	~SerializeBuffer()
+	{
+		delete[] m_buffer;
+	}
 
 	void WriteUInt8(uint8_t v)
 	{
@@ -192,7 +212,8 @@ public:
 private:
 	void Grow(size_t new_size);
 	void Reset();
-	unsigned char *m_buffer;
-	size_t m_capacity;
-	size_t m_pos;
+
+	unsigned char* m_buffer = nullptr;
+	size_t m_capacity = 0;
+	size_t m_pos = 0;
 };

@@ -1,9 +1,26 @@
+/*	EQEmu: EQEmulator
+
+	Copyright (C) 2001-2026 EQEmu Development Team
+
+	This program is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation; either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
 #pragma once
 
 #define MAX_SWARM_PETS 12	//this can change as long as you make more coords (swarm_pet_x/swarm_pet_y)
 #define WAKE_THE_DEAD_NPCTYPEID 500 //We use first pet in pets table as a template
 
-typedef enum {
+enum aaNonspellAction {
 	aaActionNone				= 0,
 	aaActionAETaunt				= 1,
 	aaActionMassBuff			= 2,
@@ -21,7 +38,7 @@ typedef enum {
 	aaActionLeechTouch			= 14,
 	aaActionProjectIllusion		= 15,
 	aaActionFadingMemories		= 16
-} aaNonspellAction;
+};
 
 enum {	//leadership AA indexes
 	groupAAMarkNPC = 0,
@@ -99,7 +116,7 @@ static const uint8 LeadershipAACosts[_maxLeaderAA][MAX_LEADERSHIP_TIERS] = {
 { 0, 0, 0, 0, 0, 0 },	//raidAA15
 };
 
-typedef enum {	//AA IDs
+enum aaID {	//AA IDs
 	aaNone									=0,
 	aaInnateStrength						=2,//implemented as bonus
 	aaInnateStamina							=7,//implemented as bonus
@@ -1508,7 +1525,7 @@ typedef enum {	//AA IDs
 
 	aaHighestID		//this should always be last, and should always
 					//follow the highest AA ID
-} aaID;
+};
 
 //Structure representing the database's swarm pet configs
 struct SwarmPet_Struct {

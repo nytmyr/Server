@@ -1,3 +1,20 @@
+/*	EQEmu: EQEmulator
+
+	Copyright (C) 2001-2026 EQEmu Development Team
+
+	This program is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation; either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "world_boot.h"
 
 #include "common/content/world_content_service.h"
@@ -7,15 +24,13 @@
 #include "common/http/httplib.h"
 #include "common/http/uri.h"
 #include "common/ip_util.h"
-#include "common/net/console_server.h"
-#include "common/net/servertalk_server.h"
+#include "common/net/dns.h"
 #include "common/path_manager.h"
 #include "common/repositories/character_expedition_lockouts_repository.h"
 #include "common/repositories/character_task_timers_repository.h"
 #include "common/repositories/zone_state_spawns_repository.h"
 #include "common/rulesys.h"
 #include "common/strings.h"
-#include "common/zone_store.h"
 #include "common/zone_store.h"
 #include "world/adventure_manager.h"
 #include "world/dynamic_zone_manager.h"
@@ -31,8 +46,6 @@
 #include "world/zoneserver.h"
 
 extern WorldConfig Config;
-
-auto mutex = new Mutex;
 
 void WorldBoot::GMSayHookCallBackProcessWorld(uint16 log_category, const char *func, std::string message)
 {
@@ -163,11 +176,13 @@ bool WorldBoot::LoadDatabaseConnections()
 	}
 	else {
 		content_db.SetMySQL(database);
+
 		// when database and content_db share the same underlying mysql connection
 		// it needs to be protected by a shared mutex otherwise we produce concurrency issues
 		// when database actions are occurring in different threads
-		database.SetMutex(mutex);
-		content_db.SetMutex(mutex);
+		std::shared_ptr<DBcore::Mutex> sharedMutex = std::make_shared<DBcore::Mutex>();
+		database.SetMutex(sharedMutex);
+		content_db.SetMutex(sharedMutex);
 	}
 
 	return true;
@@ -439,7 +454,7 @@ void WorldBoot::CheckForPossibleConfigurationIssues()
 
 	std::string config_address = c->WorldAddress;
 	if (!IpUtil::IsIPAddress(config_address)) {
-		config_address = IpUtil::DNSLookupSync(c->WorldAddress, 9000);
+		config_address = EQ::Net::DNSLookupSync(c->WorldAddress, 9000);
 		LogInfo(
 			"World config address using DNS [{}] resolves to [{}]",
 			c->WorldAddress,
@@ -617,7 +632,6 @@ void WorldBoot::CheckForPossibleConfigurationIssues()
 
 void WorldBoot::Shutdown()
 {
-	safe_delete(mutex);
 }
 
 void WorldBoot::SendDiscordMessage(int webhook_id, const std::string &message)

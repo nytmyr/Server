@@ -1,3 +1,20 @@
+/*	EQEmu: EQEmulator
+
+	Copyright (C) 2001-2026 EQEmu Development Team
+
+	This program is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation; either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "zone/bot_command.h"
 
 void bot_command_pickpocket(Client *c, const Seperator *sep)
@@ -65,8 +82,8 @@ void bot_command_pickpocket(Client *c, const Seperator *sep)
 	}
 
 	// Setup variables for calcs
-	bool steal_skill  = my_bot->GetSkill(EQ::skills::SkillPickPockets);
-	bool steal_chance = steal_skill * 100 / (5 * over_level + 5);
+	uint16 steal_skill  = my_bot->GetSkill(EQ::skills::SkillPickPockets);
+	int steal_chance = steal_skill * 100 / (5 * over_level + 5);
 
 	// Determine whether to steal money or an item.
 	uint32 money[6] = {

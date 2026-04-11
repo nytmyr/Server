@@ -1,9 +1,28 @@
+/*	EQEmu: EQEmulator
+
+	Copyright (C) 2001-2026 EQEmu Development Team
+
+	This program is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation; either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
 #pragma once
 
-#include "mysql.h"
+#include "common/dbcore.h"
+
 #include <cassert>
 #include <cstring>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <span>
 #include <string_view>
@@ -166,7 +185,7 @@ public:
 		int64_t, uint64_t, float, double, bool, std::string_view, std::nullptr_t>;
 
 	PreparedStmt() = delete;
-	PreparedStmt(MYSQL& mysql, std::string query, Mutex* mutex, StmtOptions opts = {});
+	PreparedStmt(MYSQL& mysql, std::string query, DBcore::Mutex& mutex, StmtOptions opts = {});
 
 	const std::string& GetQuery() const { return m_query; }
 	StmtOptions GetOptions() const { return m_options; }
@@ -202,7 +221,8 @@ private:
 
 	struct StmtDeleter
 	{
-		Mutex* mutex = nullptr;
+		DBcore::Mutex& mutex;
+
 		void operator()(MYSQL_STMT* stmt) noexcept;
 	};
 
@@ -215,7 +235,7 @@ private:
 	std::string m_query;
 	StmtOptions m_options = {};
 	bool m_need_bind = true;
-	Mutex* m_mutex = nullptr; // connection mutex
+	DBcore::Mutex& m_mutex; // connection mutex
 };
 
 } // namespace mysql

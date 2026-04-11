@@ -1,3 +1,20 @@
+/*	EQEmu: EQEmulator
+
+	Copyright (C) 2001-2026 EQEmu Development Team
+
+	This program is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation; either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
 #pragma once
 
 #include "common/eq_packet_structs.h"
@@ -372,35 +389,31 @@ enum {
 class ServerPacket
 {
 public:
-	~ServerPacket() { safe_delete_array(pBuffer); }
-	ServerPacket(uint16 in_opcode = 0, uint32 in_size = 0) {
-		this->compressed = false;
-		size = in_size;
-		opcode = in_opcode;
-		if (size == 0) {
-			pBuffer = 0;
-		}
-		else {
+	~ServerPacket()
+	{
+		safe_delete_array(pBuffer);
+	}
+
+	ServerPacket(uint16 in_opcode = 0, size_t in_size = 0)
+		: size(static_cast<uint32>(in_size))
+		, opcode(in_opcode)
+	{
+		if (size != 0)
+		{
 			pBuffer = new uchar[size];
 			memset(pBuffer, 0, size);
 		}
-		_wpos = 0;
-		_rpos = 0;
 	}
 
-	ServerPacket(uint16 in_opcode, const EQ::Net::Packet &p) {
-		this->compressed = false;
-		size = (uint32)p.Length();
-		opcode = in_opcode;
-		if (size == 0) {
-			pBuffer = 0;
-		}
-		else {
+	ServerPacket(uint16 in_opcode, const EQ::Net::Packet& p)
+		: size(static_cast<uint32>(p.Length()))
+		, opcode(in_opcode)
+	{
+		if (size != 0)
+		{
 			pBuffer = new uchar[size];
 			memcpy(pBuffer, p.Data(), size);
 		}
-		_wpos = 0;
-		_rpos = 0;
 	}
 
 	ServerPacket* Copy() {
@@ -430,14 +443,14 @@ public:
 	void ReadSkipBytes(uint32 count) { _rpos += count; }
 	void SetReadPosition(uint32 Newrpos) { _rpos = Newrpos; }
 
-	uint32	size;
-	uint16	opcode;
-	uchar*	pBuffer;
-	uint32	_wpos;
-	uint32	_rpos;
-	bool	compressed;
-	uint32	InflatedSize;
-	uint32	destination;
+	uint32	size = 0;
+	uint16	opcode = 0;
+	uchar*	pBuffer = nullptr;
+	uint32	_wpos = 0;
+	uint32	_rpos = 0;
+	bool	compressed = false;
+	uint32	InflatedSize = 0;
+	uint32	destination = 0;
 };
 
 #pragma pack(push)
@@ -976,11 +989,12 @@ struct LauncherConnectInfo {
 	char name[64];
 };
 
-typedef enum {
+enum ZoneRequestCommands {
 	ZR_Start,
 	ZR_Restart,
 	ZR_Stop
-} ZoneRequestCommands;
+};
+
 struct LauncherZoneRequest {
 	uint8 command;
 	char short_name[33];
