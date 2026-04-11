@@ -1072,11 +1072,13 @@ bool Client::HandleEnterWorldPacket(const EQApplicationPacket *app) {
 }
 
 bool Client::HandleDeleteCharacterPacket(const EQApplicationPacket *app) {
+	std::string raw_name = (const char*)app->pBuffer;
+	std::string stripped_name = SSFLogic::StripSelfFoundFromName(raw_name);
+	uint32 char_acct_id = database.GetAccountIDByChar(stripped_name.c_str());
 
-	uint32 char_acct_id = database.GetAccountIDByChar((char*)app->pBuffer);
 	if(char_acct_id == GetAccountID()) {
-		LogInfo("Delete character: [{}]", (const char*)app->pBuffer);
-		database.DeleteCharacter((char *)app->pBuffer);
+		LogInfo("Stripped name for deletion: [{}]", stripped_name);
+		database.DeleteCharacter(stripped_name.c_str());
 		SendCharInfo();
 	}
 
