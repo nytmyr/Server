@@ -1151,7 +1151,8 @@ ALTER TABLE `npc_types`
 		.match = "",
 		.sql = R"(
 ALTER TABLE `character_data`
-	ADD COLUMN `ssf_flag` TINYINT(3) UNSIGNED NOT NULL DEFAULT '0' AFTER `illusion_block`
+	ADD COLUMN `ssf_flag` TINYINT(3) UNSIGNED NOT NULL DEFAULT '0' AFTER `illusion_block`;
+ALTER TABLE `character_data`
 	ADD COLUMN `hardcore_death_time` DATETIME NULL DEFAULT NULL AFTER `ssf_flag`;
 ALTER TABLE `character_corpses`
 	ADD COLUMN `ssf_flag` TINYINT(3) UNSIGNED NOT NULL DEFAULT '0' AFTER `entity_variables`;
