@@ -26,7 +26,6 @@
 
 #include "common/data_verification.h"
 
-typedef enum {
 enum CLE_Status {
 	Never,
 	Offline,
