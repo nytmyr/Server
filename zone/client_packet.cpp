@@ -4886,7 +4886,7 @@ void Client::Handle_OP_ClickObject(const EQApplicationPacket *app)
 	if (entity && entity->IsObject()) {
 		auto* object = entity->CastToObject();
 
-		if (!RuleB(SSF, SelfFoundPickupDroppedAllowed) && !object->IsGroundSpawn() && SSFLogic::IsAnySelfFound(GetSSFFlag()) && object->DroppedByCharacterID() != CharacterID()) { // VegasEQ
+		if (!RuleB(SSF, SelfFoundPickupDroppedAllowed) && !object->IsGroundSpawn() && object->GetType() == ObjectTypes::Temporary && SSFLogic::IsAnySelfFound(GetSSFFlag()) && object->DroppedByCharacterID() != CharacterID()) { // VegasEQ
 			Message(Chat::Red, "Self Found players cannot pick up dropped items that are not their own.");
 			auto outapp = new EQApplicationPacket(OP_ClickObject, sizeof(ClickObject_Struct));
 			memcpy(outapp->pBuffer, click_object, sizeof(ClickObject_Struct));
