@@ -13904,6 +13904,7 @@ void Client::ResetForChallengeRuleset() {
 	DataBucketsRepository::DeleteWhere(database, fmt::format("character_id = {}", CharacterID()));
 	database.QueryDatabase(fmt::format("DELETE FROM char_leaderboard_data WHERE id = {}", CharacterID()));
 	database.QueryDatabase(fmt::format("DELETE FROM character_stats_record WHERE character_id = {}", CharacterID()));
-	Kick("Challenge Ruleset Change");
+	SetAntiCheatExempt();
+	MovePC(GetBindZoneID(), 0, GetBindX(), GetBindY(), GetBindZ(), GetBindHeading());
 }
 // VegasEQ - END
