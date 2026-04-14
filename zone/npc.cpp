@@ -5083,7 +5083,7 @@ void NPC::DoFirstKillAchievements(Client* c, std::string key) {
 		uint8  ssf_flag;
 	};
 
-	std::string challenge_type = c->GetSSFFlag() ? " [" + SSFLogic::GetPlayerType(c->GetSSFFlag()) + "] " : "";
+	std::string challenge_type = c->GetSSFFlag() ? " [" + SSFLogic::GetPlayerType(c->GetSSFFlag()) + "]" : "";
 	std::vector<KillMemberInfo> member_ids;
 	Raid* r = c->GetRaid();
 
