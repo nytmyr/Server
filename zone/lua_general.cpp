@@ -6050,23 +6050,23 @@ bool lua_IsItemRaidOnly(uint32 item_id) {
 
 // SSF
 bool lua_IsAnyChallengeRuleset(uint8 flag) {
-	return flag != SSFFlagTypes::Normal && flag != SSFFlagTypes::Undeclared;
+	return SSFLogic::IsAnyChallengeRuleset(flag);
 }
 
 bool lua_IsAnySelfFound(uint8 flag) {
-	return EQ::ValueWithin(flag, SSFFlagTypes::SelfFound, SSFFlagTypes::SFSoloHardcore);
+	return SSFLogic::IsAnySelfFound(flag);
 }
 
 bool lua_IsAnySoloRuleset(uint8 flag) {
-	return flag == SSFFlagTypes::Solo || flag == SSFFlagTypes::SFSolo || flag == SSFFlagTypes::SFSoloHardcore;
+	return SSFLogic::IsAnySoloRuleset(flag);
 }
 
 bool lua_IsHardcore(uint8 flag) {
-	return flag == SSFFlagTypes::Hardcore || flag == SSFFlagTypes::SoloHardcore || flag == SSFFlagTypes::SFHardcore || flag == SSFFlagTypes::SFSoloHardcore;
+	return SSFLogic::IsHardcore(flag);
 }
 
 bool lua_SelfFoundMismatch(uint8 my_flag, uint8 other_flag) {
-	return SSFLogic::IsAnySelfFound(my_flag) && !SSFLogic::IsAnySelfFound(other_flag) || !SSFLogic::IsAnySelfFound(my_flag) && SSFLogic::IsAnySelfFound(other_flag);
+	return SSFLogic::SelfFoundMismatch(my_flag, other_flag);
 }
 
 std::string lua_AddSelfFoundToName(uint8 flag, std::string name) {

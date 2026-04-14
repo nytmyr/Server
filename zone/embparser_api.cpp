@@ -6184,23 +6184,23 @@ bool Perl__IsItemRaidOnly(uint32 item_id) {
 
 // SSF
 bool Perl__IsAnyChallengeRuleset(uint8 flag) {
-	return flag != SSFFlagTypes::Normal && flag != SSFFlagTypes::Undeclared;
+	return SSFLogic::IsAnyChallengeRuleset(flag);
 }
 
 bool Perl__IsAnySelfFound(uint8 flag) {
-	return EQ::ValueWithin(flag, SSFFlagTypes::SelfFound, SSFFlagTypes::SFSoloHardcore);
+	return SSFLogic::IsAnySelfFound(flag);
 }
 
 bool Perl__IsAnySoloRuleset(uint8 flag) {
-	return flag == SSFFlagTypes::Solo || flag == SSFFlagTypes::SFSolo || flag == SSFFlagTypes::SFSoloHardcore;
+	return SSFLogic::IsAnySoloRuleset(flag);
 }
 
 bool Perl__IsHardcore(uint8 flag) {
-	return flag == SSFFlagTypes::Hardcore || flag == SSFFlagTypes::SoloHardcore || flag == SSFFlagTypes::SFHardcore || flag == SSFFlagTypes::SFSoloHardcore;
+	return SSFLogic::IsHardcore(flag);
 }
 
 bool Perl__SelfFoundMismatch(uint8 my_flag, uint8 other_flag) {
-	return SSFLogic::IsAnySelfFound(my_flag) && !SSFLogic::IsAnySelfFound(other_flag) || !SSFLogic::IsAnySelfFound(my_flag) && SSFLogic::IsAnySelfFound(other_flag);
+	return SSFLogic::SelfFoundMismatch(my_flag, other_flag);
 }
 
 std::string Perl__AddSelfFoundToName(uint8 flag, std::string name) {
