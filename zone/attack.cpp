@@ -2941,7 +2941,10 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 					for (const auto &m : g->members) {
 						if (m) {
 							corpse->AllowPlayerLoot(m, slot_id);
-							corpse->AddLootEligibleSSFClientID(m->CastToClient()->CharacterID()); // VegasEQ
+
+							if (m->IsClient()) { // VegasEQ
+								corpse->AddLootEligibleSSFClientID(m->CastToClient()->CharacterID());
+							}
 						}
 
 						slot_id++;
@@ -2995,6 +2998,13 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 			Mob* ultimate_owner = killer_mob->GetUltimateOwner();
 			if (ultimate_owner->IsClient()) {
 				corpse->AllowPlayerLoot(ultimate_owner, 0);
+				corpse->AddLootEligibleSSFClientID(ultimate_owner->CastToClient()->CharacterID()); // VegasEQ
+			}
+		}
+		else if (killer_mob && killer_mob->HasOwner()) { // VegasEQ
+			Mob* ultimate_owner = killer_mob->GetUltimateOwner();
+
+			if (ultimate_owner->IsClient()) {
 				corpse->AddLootEligibleSSFClientID(ultimate_owner->CastToClient()->CharacterID()); // VegasEQ
 			}
 		}
