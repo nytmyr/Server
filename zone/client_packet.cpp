@@ -11345,16 +11345,18 @@ void Client::Handle_OP_MoveItem(const EQApplicationPacket *app)
 
 	// VegasEQ - START
 	// SSF
-	bool shared_bank_slot =
-		EQ::ValueWithin(mi->to_slot, EQ::invslot::SHARED_BANK_BEGIN, EQ::invslot::SHARED_BANK_END) ||
-		EQ::ValueWithin(mi->to_slot, EQ::invbag::SHARED_BANK_BAGS_BEGIN, EQ::invbag::SHARED_BANK_BAGS_END) ||
-		EQ::ValueWithin(mi->from_slot, EQ::invslot::SHARED_BANK_BEGIN, EQ::invslot::SHARED_BANK_END) ||
-		EQ::ValueWithin(mi->from_slot, EQ::invbag::SHARED_BANK_BAGS_BEGIN, EQ::invbag::SHARED_BANK_BAGS_END);
+	if (!RuleB(SSF, SelfFoundSharedBankAllowed) && SSFLogic::IsAnySelfFound(GetSSFFlag())) {
+		bool shared_bank_slot =
+			EQ::ValueWithin(mi->to_slot, EQ::invslot::SHARED_BANK_BEGIN, EQ::invslot::SHARED_BANK_END) ||
+			EQ::ValueWithin(mi->to_slot, EQ::invbag::SHARED_BANK_BAGS_BEGIN, EQ::invbag::SHARED_BANK_BAGS_END) ||
+			EQ::ValueWithin(mi->from_slot, EQ::invslot::SHARED_BANK_BEGIN, EQ::invslot::SHARED_BANK_END) ||
+			EQ::ValueWithin(mi->from_slot, EQ::invbag::SHARED_BANK_BAGS_BEGIN, EQ::invbag::SHARED_BANK_BAGS_END);
 
-	if (shared_bank_slot && SSFLogic::IsAnySelfFound(GetSSFFlag())) {
-		Message(Chat::Red, "Self Found players cannot use the Shared Bank.");
-		SwapItemResync(mi);
-		return;
+		if (shared_bank_slot) {
+			Message(Chat::Red, "Self Found players cannot use the Shared Bank.");
+			SwapItemResync(mi);
+			return;
+		}
 	}
 	// VegasEQ - END
 

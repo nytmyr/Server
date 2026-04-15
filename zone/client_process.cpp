@@ -1478,6 +1478,11 @@ void Client::OPMoveCoin(const EQApplicationPacket* app)
 		}
 		case 4:	// shared bank
 		{
+			if (!RuleB(SSF, SelfFoundSharedBankPlatinumAllowed) && SSFLogic::IsAnySelfFound(GetSSFFlag())) {
+				Message(Chat::Red, "Self Found players cannot use the Shared Bank.");
+				KickLinkDead("SSF Shared Bank violation");
+				return;
+			}
 			uint32 distance = 0;
 			NPC *banker = entity_list.GetClosestBanker(this, distance);
 			if(!banker || distance > USE_NPC_RANGE2)
@@ -1632,6 +1637,11 @@ void Client::OPMoveCoin(const EQApplicationPacket* app)
 		}
 		case 4:	// shared bank
 		{
+			if (!RuleB(SSF, SelfFoundSharedBankPlatinumAllowed) && SSFLogic::IsAnySelfFound(GetSSFFlag())) {
+				Message(Chat::Red, "Self Found players cannot use the Shared Bank.");
+				KickLinkDead("SSF Shared Bank violation");
+				return;
+			}
 			uint32 distance = 0;
 			NPC *banker = entity_list.GetClosestBanker(this, distance);
 			if(!banker || distance > USE_NPC_RANGE2)
@@ -1701,7 +1711,7 @@ void Client::OPMoveCoin(const EQApplicationPacket* app)
 			*to_bucket += amount_to_add;
 
 		//shared bank plat
-		if (!SSFLogic::IsAnySelfFound(GetSSFFlag()) && RuleB(Character, SharedBankPlat))
+		if (RuleB(Character, SharedBankPlat))
 		{
 			if (to_bucket == &m_pp.platinum_shared || from_bucket == &m_pp.platinum_shared)
 			{

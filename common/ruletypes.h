@@ -1487,6 +1487,8 @@ RULE_BOOL(SSF, SelfFoundBeneficialSpellMismatchAllowed, false, "If enabled, play
 RULE_BOOL(SSF, SelfFoundBotForceCastMismatchAllowed, false, "If enabled, players can use bots to force cast (^cast or ^clickitem) on targets or players with mismatched Self Found challenge flags. Default False.")
 RULE_BOOL(SSF, SelfFoundRezAllowed, false, "If enabled, players can rez or be rezzed by mismatched Self Found challenge flags. Default False.")
 RULE_BOOL(SSF, SelfFoundDiscoveredItemsEnabled, true, "If enabled, players following a Self Found challenge ruleset will use a separate discovered items list. Default True.")
+RULE_BOOL(SSF, SelfFoundSharedBankAllowed, false, "If enabled, Self Found players can use the Shared Bank. Default False.")
+RULE_BOOL(SSF, SelfFoundSharedBankPlatinumAllowed, false, "If enabled, Self Found players can use the Shared Bank Platinum. Default False.")
 RULE_INT(SSF, HardcoreDeathZoneID, 184, "Zone players will be sent to if they die while following the Hardcore challenge ruleset. Default 184 (load)")
 
 RULE_CATEGORY_END()
