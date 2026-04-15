@@ -6210,6 +6210,14 @@ std::string Perl__AddSelfFoundToName(uint8 flag, std::string name) {
 std::string Perl__StripSelfFoundFromName(std::string name) {
 	return SSFLogic::StripSelfFoundFromName(name);
 }
+
+std::string Perl__GetChallengeRulesetKeyPrefix(uint8 flag) {
+	return SSFLogic::GetChallengeRulesetKeyPrefix(flag);
+}
+
+std::string Perl__GetChallengeRulesetPlayerType(uint8 flag) {
+	return SSFLogic::GetChallengeRulesetPlayerType(flag);
+}
 // VegasEQ - END
 
 void perl_register_quest()
@@ -7243,6 +7251,8 @@ void perl_register_quest()
 	package.add("SelfFoundMismatch", &Perl__SelfFoundMismatch);
 	package.add("AddSelfFoundToName", &Perl__AddSelfFoundToName);
 	package.add("StripSelfFoundFromName", &Perl__StripSelfFoundFromName);
+	package.add("GetChallengeRulesetKeyPrefix", &Perl__GetChallengeRulesetKeyPrefix);
+	package.add("GetChallengeRulesetPlayerType", &Perl__GetChallengeRulesetPlayerType);
 	// VegasEQ - END
 
 }

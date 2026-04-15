@@ -6076,6 +6076,14 @@ std::string lua_AddSelfFoundToName(uint8 flag, std::string name) {
 std::string lua_StripSelfFoundFromName(std::string name) {
 	return SSFLogic::StripSelfFoundFromName(name);
 }
+
+std::string lua_GetChallengeRulesetKeyPrefix(uint8 flag) {
+	return SSFLogic::GetChallengeRulesetKeyPrefix(flag);
+}
+
+std::string lua_GetChallengeRulesetPlayerType(uint8 flag) {
+	return SSFLogic::GetChallengeRulesetPlayerType(flag);
+}
 // VegasEQ - END
 
 luabind::scope lua_register_general() {
@@ -7050,7 +7058,9 @@ luabind::scope lua_register_general() {
 		luabind::def("IsHardcore", &lua_IsHardcore),
 		luabind::def("SelfFoundMismatch", &lua_SelfFoundMismatch),
 		luabind::def("AddSelfFoundToName", &lua_AddSelfFoundToName),
-		luabind::def("StripSelfFoundFromName", &lua_StripSelfFoundFromName)
+		luabind::def("StripSelfFoundFromName", &lua_StripSelfFoundFromName),
+		luabind::def("GetChallengeRulesetKeyPrefix", &lua_GetChallengeRulesetKeyPrefix),
+		luabind::def("GetChallengeRulesetPlayerType", &lua_GetChallengeRulesetPlayerType)
 		// VegasEQ - END
 	)];
 }

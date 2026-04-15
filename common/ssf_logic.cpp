@@ -64,74 +64,48 @@ std::string SSFLogic::StripSelfFoundFromName(std::string name) {
     return name;
 }
 
-std::string SSFLogic::GetSSFKeyPrefix(uint8 flag) {
+std::string SSFLogic::GetChallengeRulesetKeyPrefix(uint8 flag) {
     if (!flag) { return ""; }
 
-    if (SSFLogic::IsAnyChallengeRuleset(flag)) {
-        if (SSFLogic::IsHardcore(flag) && SSFLogic::IsAnySoloRuleset(flag) && !SSFLogic::IsAnySelfFound(flag)) {
-            return "HardcoreSolo";
-        }
-
-        if (SSFLogic::IsHardcore(flag) && SSFLogic::IsAnySoloRuleset(flag) && SSFLogic::IsAnySelfFound(flag)) {
-            return "HardcoreSoloSelfFound";
-        }
-
-        if (SSFLogic::IsHardcore(flag) && SSFLogic::IsAnySelfFound(flag)) {
-            return "HardcoreSelfFound";
-        }
-
-        if (SSFLogic::IsHardcore(flag) && !SSFLogic::IsAnySelfFound(flag)) {
+    switch (flag) {
+        case SSFFlagTypes::Hardcore:
             return "Hardcore";
-        }
-
-        if (SSFLogic::IsAnySoloRuleset(flag) && SSFLogic::IsAnySelfFound(flag)) {
-            return "SoloSelfFound";
-        }
-
-        if (SSFLogic::IsAnySoloRuleset(flag) && !SSFLogic::IsAnySelfFound(flag)) {
+        case SSFFlagTypes::Solo:
             return "Solo";
-        }
-
-        if (SSFLogic::IsAnySelfFound(flag)) {
+        case SSFFlagTypes::SoloHardcore:
+            return "HardcoreSolo";
+        case SSFFlagTypes::SelfFound:
             return "SelfFound";
-        }
+        case SSFFlagTypes::SFSolo:
+            return "SoloSelfFound";
+        case SSFFlagTypes::SFHardcore:
+            return "HardcoreSelfFound";
+        case SSFFlagTypes::SFSoloHardcore:
+            return "HardcoreSoloSelfFound";
+        default:
+            return "";
     }
-
-    return "";
 }
 
-std::string SSFLogic::GetPlayerType(uint8 flag) {
+std::string SSFLogic::GetChallengeRulesetPlayerType(uint8 flag) {
     if (!flag) { return ""; }
 
-    if (SSFLogic::IsAnyChallengeRuleset(flag)) {
-        if (SSFLogic::IsHardcore(flag) && SSFLogic::IsAnySoloRuleset(flag) && !SSFLogic::IsAnySelfFound(flag)) {
-            return "Hardcore Solo";
-        }
-
-        if (SSFLogic::IsHardcore(flag) && SSFLogic::IsAnySoloRuleset(flag) && SSFLogic::IsAnySelfFound(flag)) {
-            return "Hardcore Solo Self Found";
-        }
-
-        if (SSFLogic::IsHardcore(flag) && SSFLogic::IsAnySelfFound(flag)) {
-            return "Hardcore Self Found";
-        }
-
-        if (SSFLogic::IsHardcore(flag) && !SSFLogic::IsAnySelfFound(flag)) {
+    switch (flag) {
+        case SSFFlagTypes::Hardcore:
             return "Hardcore";
-        }
-
-        if (SSFLogic::IsAnySoloRuleset(flag) && SSFLogic::IsAnySelfFound(flag)) {
-            return "Solo Self Found";
-        }
-
-        if (SSFLogic::IsAnySoloRuleset(flag) && !SSFLogic::IsAnySelfFound(flag)) {
+        case SSFFlagTypes::Solo:
             return "Solo";
-        }
-
-        if (SSFLogic::IsAnySelfFound(flag)) {
+        case SSFFlagTypes::SoloHardcore:
+            return "Hardcore Solo";
+        case SSFFlagTypes::SelfFound:
             return "Self Found";
-        }
+        case SSFFlagTypes::SFSolo:
+            return "Solo Self Found";
+        case SSFFlagTypes::SFHardcore:
+            return "Hardcore Self Found";
+        case SSFFlagTypes::SFSoloHardcore:
+            return "Hardcore Solo Self Found";
+        default:
+            return "";
     }
-
-    return "";
 }

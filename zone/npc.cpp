@@ -5056,7 +5056,7 @@ void NPC::DoFirstKillChecks(Mob* top_client) {
 		Client* c = top_client->CastToClient();
 		std::string key;
 		std::string bucket_value;
-		std::string key_prefix = SSFLogic::GetSSFKeyPrefix(c->GetSSFFlag());
+		std::string key_prefix = SSFLogic::GetChallengeRulesetKeyPrefix(c->GetSSFFlag());
 
 		if (IsRareSpawn()) {
 			key = "First" + key_prefix + "RareKill-" + std::to_string(GetNPCTypeID());
@@ -5083,7 +5083,7 @@ void NPC::DoFirstKillAchievements(Client* c, std::string key) {
 		uint8  ssf_flag;
 	};
 
-	std::string challenge_type = c->GetSSFFlag() ? " [" + SSFLogic::GetPlayerType(c->GetSSFFlag()) + "]" : "";
+	std::string challenge_type = c->GetSSFFlag() ? " [" + SSFLogic::GetChallengeRulesetPlayerType(c->GetSSFFlag()) + "]" : "";
 	std::vector<KillMemberInfo> member_ids;
 	Raid* r = c->GetRaid();
 

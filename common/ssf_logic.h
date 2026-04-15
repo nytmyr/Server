@@ -15,8 +15,8 @@ public:
     static std::string AddSelfFoundToName(uint8 flag, std::string name);
     static std::string StripSelfFoundFromName(std::string name);
 
-    static std::string GetSSFKeyPrefix(uint8 flag);
-    static std::string GetPlayerType(uint8 flag);
+    static std::string GetChallengeRulesetKeyPrefix(uint8 flag);
+    static std::string GetChallengeRulesetPlayerType(uint8 flag);
 };
 
 #endif
