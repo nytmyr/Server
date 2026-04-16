@@ -170,6 +170,7 @@ public:
 
 	// VegasEQ - START
 	float GetGroupTotalGearScore();
+	uint8 InZoneGroupCount();
 	// VegasEQ - END
 
 	Mob*	members[MAX_GROUP_MEMBERS] {nullptr};

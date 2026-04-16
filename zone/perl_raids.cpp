@@ -179,6 +179,11 @@ float Perl_Raid_GetRaidTotalGearScore(Raid* self) // @categories Raid
 {
 	return self->GetRaidTotalGearScore();
 }
+
+int Perl_Raid_InZoneRaidCount(Raid* self) // @categories Raid
+{
+	return self->InZoneRaidCount();
+}
 // VegasEQ - END
 
 void perl_register_raid()
@@ -217,6 +222,7 @@ void perl_register_raid()
 
 	// VegasEQ - START
 	package.add("GetRaidTotalGearScore", &Perl_Raid_GetRaidTotalGearScore);
+	package.add("InZoneRaidCount", &Perl_Raid_InZoneRaidCount);
 	// VegasEQ - END
 }
 

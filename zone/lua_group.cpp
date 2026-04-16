@@ -171,6 +171,11 @@ float Lua_Group::GetGroupTotalGearScore() {
 	Lua_Safe_Call_Real();
 	return self->GetGroupTotalGearScore();
 }
+
+int Lua_Group::InZoneGroupCount() {
+	Lua_Safe_Call_Int();
+	return self->InZoneGroupCount();
+}
 // VegasEQ - END
 
 luabind::scope lua_register_group() {
@@ -206,7 +211,8 @@ luabind::scope lua_register_group() {
 	.def("TeleportGroup", (void(Lua_Group::*)(Lua_Mob,uint32,uint32,float,float,float,float))&Lua_Group::TeleportGroup)
 
 	// VegasEQ - START
-	.def("GetGroupTotalGearScore", (uint32(Lua_Group::*)(Lua_Mob)) & Lua_Group::GetGroupTotalGearScore);
+	.def("GetGroupTotalGearScore", (uint32(Lua_Group::*)(Lua_Mob)) & Lua_Group::GetGroupTotalGearScore)
+	.def("InZoneGroupCount", (int(Lua_Group::*)(void))&Lua_Group::InZoneGroupCount);
 	// VegasEQ - END
 }
 

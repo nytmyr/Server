@@ -1245,6 +1245,8 @@ RULE_BOOL(VegasEXP, EnableEXPRangeLimit, true, "Limits the range at which experi
 RULE_REAL(VegasEXP, EXPRangeLimit, 750.0, "If EnableEXPRangeLimit is enabled, this is the maximum range a group or raid member can from the kill to receive EXP. Default 750.0.")
 RULE_INT(VegasEXP, NumGroupMembersReqForLeadership, 3, "Number of members that must be in a group for leadership EXP to be allowed. Default 3, 2 for live.")
 RULE_INT(VegasEXP, NumRaidMembersReqForLeadership, 3, "Number of members that must be in a raid for leadership EXP to be allowed. Default 3, 17 for live.")
+RULE_BOOL(VegasEXP, OnlyCountRaidMembersInZoneForEXP, true, "If true, when calculating EXP for the raid, only members currently in the zone will be taken into account. Default True")
+RULE_BOOL(VegasEXP, OnlyCountGroupMembersInZoneForEXP, true, "If true, when calculating EXP for the group, only members currently in the zone will be taken into account. Default True")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(VegasPathing)

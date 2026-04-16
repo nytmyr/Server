@@ -73,6 +73,7 @@ public:
 
 	// VegasEQ - START
 	float GetGroupTotalGearScore();
+	int InZoneGroupCount();
 	// VegasEQ - END
 };
 

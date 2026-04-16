@@ -178,6 +178,11 @@ float Perl_Group_GetGroupTotalGearScore(Group* self) // @categories Group
 {
 	return self->GetGroupTotalGearScore();
 }
+
+int Perl_Group_InZoneGroupCount(Group* self) // @categories Script Utility, Group
+{
+	return self->InZoneGroupCount();
+}
 // VegasEQ - END
 
 void perl_register_group()
@@ -216,6 +221,7 @@ void perl_register_group()
 
 	// VegasEQ - START
 	package.add("GetGroupTotalGearScore", &Perl_Group_GetGroupTotalGearScore);
+	package.add("InZoneGroupCount", &Perl_Group_InZoneGroupCount);
 	// VegasEQ - END
 }
 

@@ -3021,4 +3021,17 @@ float Raid::GetRaidTotalGearScore() {
 
 	return total_score;
 }
+
+uint8 Raid::InZoneRaidCount()
+{
+	int count = 0;
+
+	for (const auto& m : members) {
+		if (m.member) {
+			count++;
+		}
+	}
+
+	return count;
+}
 // VegasEQ - END

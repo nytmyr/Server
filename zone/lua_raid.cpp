@@ -189,6 +189,11 @@ float Lua_Raid::GetRaidTotalGearScore() {
 	Lua_Safe_Call_Real();
 	return self->GetRaidTotalGearScore();
 }
+
+int Lua_Raid::InZoneRaidCount() {
+	Lua_Safe_Call_Int();
+	return self->InZoneRaidCount();
+}
 // VegasEQ - END
 
 luabind::scope lua_register_raid() {
@@ -226,7 +231,8 @@ luabind::scope lua_register_raid() {
 	.def("TeleportRaid", (int(Lua_Raid::*)(Lua_Mob,uint32,uint32,float,float,float,float))&Lua_Raid::TeleportRaid)
 
 	// VegasEQ - START
-	.def("GetRaidTotalGearScore", (uint32(Lua_Raid::*)(Lua_Mob)) & Lua_Raid::GetRaidTotalGearScore);
+	.def("GetRaidTotalGearScore", (uint32(Lua_Raid::*)(Lua_Mob)) & Lua_Raid::GetRaidTotalGearScore)
+	.def("InZoneRaidCount", (int(Lua_Raid::*)(void))&Lua_Raid::InZoneRaidCount);
 	// VegasEQ - END
 }
 

@@ -281,6 +281,7 @@ public:
 
 	// VegasEQ - START
 	float GetRaidTotalGearScore();
+	uint8 InZoneRaidCount();
 	// VegasEQ - END
 
 	RaidMember members[MAX_RAID_MEMBERS];

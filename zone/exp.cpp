@@ -1131,7 +1131,16 @@ void Group::SplitExp(ExpSource exp_source, const uint64 exp, Mob* other) {
 		return;
 	}
 
-	const auto member_count = GroupCount();
+	auto member_count = GroupCount();
+
+	if (!member_count) {
+		return;
+	}
+
+	if (RuleB(VegasEXP, OnlyCountGroupMembersInZoneForEXP)) {
+		member_count = InZoneGroupCount();
+	}
+
 	if (!member_count) {
 		return;
 	}
@@ -1201,7 +1210,16 @@ void Raid::SplitExp(ExpSource exp_source, const uint64 exp, Mob* other) {
 		return;
 	}
 
-	const auto member_count = RaidCount();
+	auto member_count = RaidCount();
+
+	if (!member_count) {
+		return;
+	}
+
+	if (RuleB(VegasEXP, OnlyCountRaidMembersInZoneForEXP)) {
+		member_count = InZoneRaidCount();
+	}
+
 	if (!member_count) {
 		return;
 	}
@@ -1216,36 +1234,27 @@ void Raid::SplitExp(ExpSource exp_source, const uint64 exp, Mob* other) {
 		return;
 	}
 
-	uint32 member_count_modified = 1;
-
-	if (RuleB(Character, EnableRaidMemberEXPModifier)) {
-		member_count_modified = member_count;
-	}
-
 	float raid_modifier = 1.0f;
 
 	if (RuleB(VegasEXP, EnableRaidMemberEXPMultiplier)) {
 		if (member_count > RuleI(VegasEXP, MaxNumberRaidMembersEXPModifier)) {
-			member_count_modified = RuleI(VegasEXP, MaxNumberRaidMembersEXPModifier);
-		}
-		else {
-			member_count_modified = member_count;
+			member_count = RuleI(VegasEXP, MaxNumberRaidMembersEXPModifier);
 		}
 
-		if (member_count_modified > 1) {
-			if (member_count_modified == MAX_GROUP_MEMBERS) {
+		if (member_count > 1) {
+			if (member_count == MAX_GROUP_MEMBERS) {
 				raid_modifier = RuleR(Character, FullGroupEXPModifier);
 			}
-			else if (RuleB(VegasEXP, EnableFullRaidEXPModifier) && member_count_modified == MAX_RAID_MEMBERS) {
+			else if (RuleB(VegasEXP, EnableFullRaidEXPModifier) && member_count == MAX_RAID_MEMBERS) {
 				raid_modifier = RuleR(VegasEXP, FullRaidEXPModifier);
 			}
 			else {
-				raid_modifier = 1 + RuleR(VegasEXP, RaidMemberEXPModifier) * (member_count_modified - 1); // 2 = 1.2x, 3 = 1.4x, 4 = 1.6x, 5 = 1.8x, 6 = 2x, 7 = 2.2x etc.
+				raid_modifier = 1 + RuleR(VegasEXP, RaidMemberEXPModifier) * (member_count - 1); // 2 = 1.2x, 3 = 1.4x, 4 = 1.6x, 5 = 1.8x, 6 = 2x, 7 = 2.2x etc.
 			}
 		}
 	}
 
-	if (EQ::ValueWithin(RuleB(Character, EnableRaidMemberEXPModifier) ? member_count_modified : member_count, 2, MAX_RAID_MEMBERS)) {
+	if (EQ::ValueWithin(member_count, 2, MAX_RAID_MEMBERS)) {
 		if (RuleB(Character, EnableRaidEXPModifier)) {
 			raid_experience += static_cast<uint64>(
 				static_cast<float>(exp) *
@@ -1278,7 +1287,7 @@ void Raid::SplitExp(ExpSource exp_source, const uint64 exp, Mob* other) {
 
 			if (diff >= max_diff) {
 				const uint64 tmp  = (m.member->GetLevel() + 3) * (m.member->GetLevel() + 3) * 75 * 35 / 10;
-				const uint64 tmp2 = raid_experience / (RuleB(Character, EnableRaidMemberEXPModifier) ? member_count_modified : member_count);
+				const uint64 tmp2 = raid_experience / member_count;
 
 				m.member->AddEXP(exp_source, tmp < tmp2 ? tmp : tmp2, consider_level, false, other->CastToNPC());
 			}

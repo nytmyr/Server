@@ -2759,4 +2759,17 @@ float Group::GetGroupTotalGearScore() {
 
 	return total_score;
 }
+
+uint8 Group::InZoneGroupCount() {
+
+	uint8 MemberCount = 0;
+
+	for(uint8 i = 0; i < MAX_GROUP_MEMBERS; ++i) {
+		if(members[i]) {
+			++MemberCount;
+		}
+	}
+
+	return MemberCount;
+}
 // VegasEQ - END
