@@ -1495,10 +1495,20 @@ bool Bot::DeleteBot()
 		if (!database.botdb.DeleteBotBlockedBuffs(GetBotID())) {
 			return false;
 		}
-	}
 
-	if (!database.botdb.DeleteBot(GetBotID())) {
-		return false;
+		if (!database.botdb.DeleteBot(GetBotID())) {
+			return false;
+		}
+	}
+	else {
+		std::string query = StringFormat("UPDATE bot_data SET name = SUBSTRING(CONCAT(name, '-deleted-', UNIX_TIMESTAMP()), 1, 64) WHERE `bot_id` = '%u'", GetBotID());
+
+		auto results = database.QueryDatabase(query);
+
+		if (!results.Success()) {
+			bot_owner->Message(Chat::White, "Failed to soft delete bot '%u'", GetBotID());
+			return false;
+		}
 	}
 
 	return true;
