@@ -3034,4 +3034,24 @@ uint8 Raid::InZoneRaidCount()
 
 	return count;
 }
+
+uint8 Raid::InZoneGroupCount(uint32 gid)
+{
+	uint8 count = 0;
+	if (gid < MAX_RAID_GROUPS) {
+		for (const auto& m : members) {
+			if (m.member && m.group_number == gid && strlen(m.member_name) > 0) {
+				count++;
+			}
+		}
+	}
+	else {
+		for (const auto& m : members) {
+			if (m.member && m.group_number > 11 && strlen(m.member_name) > 0) {
+				count++;
+			}
+		}
+	}
+	return count;
+}
 // VegasEQ - END

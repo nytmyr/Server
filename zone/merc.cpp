@@ -203,8 +203,15 @@ int Merc::GroupLeadershipAAHealthEnhancement()
 {
 	Group *g = GetGroup();
 
-	if(!g || (g->GroupCount() < 3))
+	if (!g) {
 		return 0;
+	}
+
+	auto group_count = RuleB(VegasEXP, OnlyCountGroupMembersInZoneForEXP) ? g->InZoneGroupCount() : g->GroupCount();
+
+	if (group_count < 3) {
+		return 0;
+	}
 
 	switch(g->GetLeadershipAA(groupAAHealthEnhancement))
 	{
@@ -225,8 +232,15 @@ int Merc::GroupLeadershipAAManaEnhancement()
 {
 	Group *g = GetGroup();
 
-	if(!g || (g->GroupCount() < 3))
+	if (!g) {
 		return 0;
+	}
+
+	auto group_count = RuleB(VegasEXP, OnlyCountGroupMembersInZoneForEXP) ? g->InZoneGroupCount() : g->GroupCount();
+
+	if (group_count < 3) {
+		return 0;
+	}
 
 	switch(g->GetLeadershipAA(groupAAManaEnhancement))
 	{
@@ -247,8 +261,15 @@ int Merc::GroupLeadershipAAHealthRegeneration()
 {
 	Group *g = GetGroup();
 
-	if(!g || (g->GroupCount() < 3))
+	if (!g) {
 		return 0;
+	}
+
+	auto group_count = RuleB(VegasEXP, OnlyCountGroupMembersInZoneForEXP) ? g->InZoneGroupCount() : g->GroupCount();
+
+	if (group_count < 3) {
+		return 0;
+	}
 
 	switch(g->GetLeadershipAA(groupAAHealthRegeneration))
 	{
@@ -269,8 +290,15 @@ int Merc::GroupLeadershipAAOffenseEnhancement()
 {
 	Group *g = GetGroup();
 
-	if(!g || (g->GroupCount() < 3))
+	if (!g) {
 		return 0;
+	}
+
+	auto group_count = RuleB(VegasEXP, OnlyCountGroupMembersInZoneForEXP) ? g->InZoneGroupCount() : g->GroupCount();
+
+	if (group_count < 3) {
+		return 0;
+	}
 
 	switch(g->GetLeadershipAA(groupAAOffenseEnhancement))
 	{

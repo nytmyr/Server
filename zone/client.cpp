@@ -5448,8 +5448,13 @@ bool Client::IsLeadershipEXPOn() {
 
 	Group *g = GetGroup();
 
-	if (g && g->IsLeader(this) && g->GroupCount() >= RuleI(VegasEXP, NumGroupMembersReqForLeadership))
-		return true;
+	if (g && g->IsLeader(this)) {
+		auto group_count = RuleB(VegasEXP, OnlyCountGroupMembersInZoneForEXP) ? g->InZoneGroupCount() : g->GroupCount();
+
+		if (group_count >= RuleI(VegasEXP, NumGroupMembersReqForLeadership)) {
+			return true;
+		}
+	}
 
 	Raid *r = GetRaid();
 
@@ -5458,10 +5463,9 @@ bool Client::IsLeadershipEXPOn() {
 
 	// raid leaders can only gain raid AA XP
 	if (r->IsLeader(this)) {
-		if (r->RaidCount() >= RuleI(VegasEXP, NumRaidMembersReqForLeadership))
-			return true;
-		else
-			return false;
+		auto raid_count = RuleB(VegasEXP, OnlyCountRaidMembersInZoneForEXP) ? r->InZoneRaidCount() : r->RaidCount();
+
+		return raid_count >= RuleI(VegasEXP, NumRaidMembersReqForLeadership);
 	}
 
 	uint32 gid = r->GetGroup(this);
@@ -5469,8 +5473,13 @@ bool Client::IsLeadershipEXPOn() {
 	if (gid > 11) // not in a group
 		return false;
 
-	if (r->IsGroupLeader(GetName()) && r->GroupCount(gid) > 2)
-		return true;
+	if (r->IsGroupLeader(GetName())) {
+		auto raid_count = RuleB(VegasEXP, OnlyCountRaidMembersInZoneForEXP) ? r->InZoneGroupCount(gid) : r->GroupCount(gid);
+
+		if (raid_count >= 3) {
+			return true;
+		}
+	}
 
 	return false;
 

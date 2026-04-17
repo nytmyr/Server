@@ -576,30 +576,37 @@ int Client::GroupLeadershipAAHealthEnhancement()
 		if (!raid)
 			return 0;
 		uint32 group_id = raid->GetGroup(this);
-		if (group_id < 12 && raid->GroupCount(group_id) >= 3) {
-			switch (raid->GetLeadershipAA(groupAAHealthEnhancement, group_id)) {
-			case 1:
-				bonus = 30;
-				break;
-			case 2:
-				bonus = 60;
-				break;
-			case 3:
-				bonus = 100;
-				break;
+		if (group_id < 12) {
+			auto raid_count = RuleB(VegasEXP, OnlyCountRaidMembersInZoneForEXP) ? raid->InZoneGroupCount(group_id) : raid->GroupCount(group_id);
+
+			if (raid_count >= 3) {
+				switch (raid->GetLeadershipAA(groupAAHealthEnhancement, group_id)) {
+					case 1:
+						bonus = 30;
+						break;
+					case 2:
+						bonus = 60;
+						break;
+					case 3:
+						bonus = 100;
+						break;
+				}
 			}
 		}
-		if (raid->RaidCount() >= 18) {
+
+		auto raid_count = RuleB(VegasEXP, OnlyCountRaidMembersInZoneForEXP) ? raid->InZoneRaidCount() : raid->RaidCount();
+
+		if (raid_count >= RuleI(VegasEXP, NumRaidMembersReqForLeadership)) {
 			switch (raid->GetLeadershipAA(raidAAHealthEnhancement)) {
-			case 1:
-				bonus += 30;
-				break;
-			case 2:
-				bonus += 60;
-				break;
-			case 3:
-				bonus += 100;
-				break;
+				case 1:
+					bonus += 30;
+					break;
+				case 2:
+					bonus += 60;
+					break;
+				case 3:
+					bonus += 100;
+					break;
 			}
 		}
 		return bonus;
@@ -607,8 +614,15 @@ int Client::GroupLeadershipAAHealthEnhancement()
 
 	Group *g = GetGroup();
 
-	if(!g || (g->GroupCount() < 3))
+	if (!g) {
 		return 0;
+	}
+
+	auto group_count = RuleB(VegasEXP, OnlyCountGroupMembersInZoneForEXP) ? g->InZoneGroupCount() : g->GroupCount();
+
+	if (group_count < 3) {
+		return 0;
+	}
 
 	switch(g->GetLeadershipAA(groupAAHealthEnhancement))
 	{
@@ -633,30 +647,37 @@ int Client::GroupLeadershipAAManaEnhancement()
 		if (!raid)
 			return 0;
 		uint32 group_id = raid->GetGroup(this);
-		if (group_id < 12 && raid->GroupCount(group_id) >= 3) {
-			switch (raid->GetLeadershipAA(groupAAManaEnhancement, group_id)) {
-			case 1:
-				bonus = 30;
-				break;
-			case 2:
-				bonus = 60;
-				break;
-			case 3:
-				bonus = 100;
-				break;
+		if (group_id < 12) {
+			auto raid_count = RuleB(VegasEXP, OnlyCountRaidMembersInZoneForEXP) ? raid->InZoneGroupCount(group_id) : raid->GroupCount(group_id);
+
+			if (raid_count >= 3) {
+				switch (raid->GetLeadershipAA(groupAAManaEnhancement, group_id)) {
+					case 1:
+						bonus = 30;
+						break;
+					case 2:
+						bonus = 60;
+						break;
+					case 3:
+						bonus = 100;
+						break;
+				}
 			}
 		}
-		if (raid->RaidCount() >= 18) {
+
+		auto raid_count = RuleB(VegasEXP, OnlyCountRaidMembersInZoneForEXP) ? raid->InZoneRaidCount() : raid->RaidCount();
+
+		if (raid_count >= RuleI(VegasEXP, NumRaidMembersReqForLeadership)) {
 			switch (raid->GetLeadershipAA(raidAAManaEnhancement)) {
-			case 1:
-				bonus += 30;
-				break;
-			case 2:
-				bonus += 60;
-				break;
-			case 3:
-				bonus += 100;
-				break;
+				case 1:
+					bonus += 30;
+					break;
+				case 2:
+					bonus += 60;
+					break;
+				case 3:
+					bonus += 100;
+					break;
 			}
 		}
 		return bonus;
@@ -664,8 +685,15 @@ int Client::GroupLeadershipAAManaEnhancement()
 
 	Group *g = GetGroup();
 
-	if(!g || (g->GroupCount() < 3))
+	if (!g) {
 		return 0;
+	}
+
+	auto group_count = RuleB(VegasEXP, OnlyCountGroupMembersInZoneForEXP) ? g->InZoneGroupCount() : g->GroupCount();
+
+	if (group_count < 3) {
+		return 0;
+	}
 
 	switch(g->GetLeadershipAA(groupAAManaEnhancement))
 	{
@@ -690,30 +718,37 @@ int Client::GroupLeadershipAAHealthRegeneration()
 		if (!raid)
 			return 0;
 		uint32 group_id = raid->GetGroup(this);
-		if (group_id < 12 && raid->GroupCount(group_id) >= 3) {
-			switch (raid->GetLeadershipAA(groupAAHealthRegeneration, group_id)) {
-			case 1:
-				bonus = 4;
-				break;
-			case 2:
-				bonus = 6;
-				break;
-			case 3:
-				bonus = 8;
-				break;
+		if (group_id < 12) {
+			auto raid_count = RuleB(VegasEXP, OnlyCountRaidMembersInZoneForEXP) ? raid->InZoneGroupCount(group_id) : raid->GroupCount(group_id);
+
+			if (raid_count >= 3) {
+				switch (raid->GetLeadershipAA(groupAAHealthRegeneration, group_id)) {
+					case 1:
+						bonus = 4;
+						break;
+					case 2:
+						bonus = 6;
+						break;
+					case 3:
+						bonus = 8;
+						break;
+				}
 			}
 		}
-		if (raid->RaidCount() >= 18) {
+
+		auto raid_count = RuleB(VegasEXP, OnlyCountRaidMembersInZoneForEXP) ? raid->InZoneRaidCount() : raid->RaidCount();
+
+		if (raid_count >= RuleI(VegasEXP, NumRaidMembersReqForLeadership)) {
 			switch (raid->GetLeadershipAA(raidAAHealthRegeneration)) {
-			case 1:
-				bonus += 4;
-				break;
-			case 2:
-				bonus += 6;
-				break;
-			case 3:
-				bonus += 8;
-				break;
+				case 1:
+					bonus += 4;
+					break;
+				case 2:
+					bonus += 6;
+					break;
+				case 3:
+					bonus += 8;
+					break;
 			}
 		}
 		return bonus;
@@ -721,8 +756,15 @@ int Client::GroupLeadershipAAHealthRegeneration()
 
 	Group *g = GetGroup();
 
-	if(!g || (g->GroupCount() < 3))
+	if (!g) {
 		return 0;
+	}
+
+	auto group_count = RuleB(VegasEXP, OnlyCountGroupMembersInZoneForEXP) ? g->InZoneGroupCount() : g->GroupCount();
+
+	if (group_count < 3) {
+		return 0;
+	}
 
 	switch(g->GetLeadershipAA(groupAAHealthRegeneration))
 	{
@@ -749,40 +791,43 @@ int Client::GroupLeadershipAAOffenseEnhancement()
 		uint32 group_id = raid->GetGroup(this);
 		if (group_id < 12 && raid->GroupCount(group_id) >= 3) {
 			switch (raid->GetLeadershipAA(groupAAOffenseEnhancement, group_id)) {
-			case 1:
-				bonus = 10;
-				break;
-			case 2:
-				bonus = 19;
-				break;
-			case 3:
-				bonus = 28;
-				break;
-			case 4:
-				bonus = 34;
-				break;
-			case 5:
-				bonus = 40;
-				break;
+				case 1:
+					bonus = 10;
+					break;
+				case 2:
+					bonus = 19;
+					break;
+				case 3:
+					bonus = 28;
+					break;
+				case 4:
+					bonus = 34;
+					break;
+				case 5:
+					bonus = 40;
+					break;
 			}
 		}
-		if (raid->RaidCount() >= 18) {
+
+		auto raid_count = RuleB(VegasEXP, OnlyCountRaidMembersInZoneForEXP) ? raid->InZoneRaidCount() : raid->RaidCount();
+
+		if (raid_count >= RuleI(VegasEXP, NumRaidMembersReqForLeadership)) {
 			switch (raid->GetLeadershipAA(raidAAOffenseEnhancement)) {
-			case 1:
-				bonus += 10;
-				break;
-			case 2:
-				bonus += 19;
-				break;
-			case 3:
-				bonus += 28;
-				break;
-			case 4:
-				bonus += 34;
-				break;
-			case 5:
-				bonus += 40;
-				break;
+				case 1:
+					bonus += 10;
+					break;
+				case 2:
+					bonus += 19;
+					break;
+				case 3:
+					bonus += 28;
+					break;
+				case 4:
+					bonus += 34;
+					break;
+				case 5:
+					bonus += 40;
+					break;
 			}
 		}
 		return bonus;
@@ -790,8 +835,15 @@ int Client::GroupLeadershipAAOffenseEnhancement()
 
 	Group *g = GetGroup();
 
-	if(!g || (g->GroupCount() < 3))
+	if (!g) {
 		return 0;
+	}
+
+	auto group_count = RuleB(VegasEXP, OnlyCountGroupMembersInZoneForEXP) ? g->InZoneGroupCount() : g->GroupCount();
+
+	if (group_count < 3) {
+		return 0;
+	}
 
 	switch(g->GetLeadershipAA(groupAAOffenseEnhancement))
 	{

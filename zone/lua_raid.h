@@ -75,6 +75,7 @@ public:
 	// VegasEQ - START
 	float GetRaidTotalGearScore();
 	int InZoneRaidCount();
+	int InZoneGroupCount(uint32 group_id);
 	// VegasEQ - END
 };
 

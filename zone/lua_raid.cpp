@@ -194,6 +194,11 @@ int Lua_Raid::InZoneRaidCount() {
 	Lua_Safe_Call_Int();
 	return self->InZoneRaidCount();
 }
+
+int Lua_Raid::InZoneGroupCount(uint32 group_id) {
+	Lua_Safe_Call_Int();
+	return self->InZoneGroupCount(group_id);
+}
 // VegasEQ - END
 
 luabind::scope lua_register_raid() {
@@ -232,7 +237,8 @@ luabind::scope lua_register_raid() {
 
 	// VegasEQ - START
 	.def("GetRaidTotalGearScore", (uint32(Lua_Raid::*)(Lua_Mob)) & Lua_Raid::GetRaidTotalGearScore)
-	.def("InZoneRaidCount", (int(Lua_Raid::*)(void))&Lua_Raid::InZoneRaidCount);
+	.def("InZoneRaidCount", (int(Lua_Raid::*)(void))&Lua_Raid::InZoneRaidCount)
+	.def("InZoneGroupCount", (int(Lua_Raid::*)(uint32))&Lua_Raid::InZoneGroupCount);
 	// VegasEQ - END
 }
 

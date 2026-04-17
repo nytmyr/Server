@@ -4314,7 +4314,9 @@ bool Bot::AddBotToGroup(Bot* bot, Group* group) {
 	if (bot && group->AddMember(bot)) {
 		if (group->GetLeader()) {
 			// Need to send this only once when a group is formed with a bot so the client knows it is also the group leader
-			if (group->GroupCount() == 2 && group->GetLeader()->IsClient()) {
+			auto group_count = RuleB(VegasEXP, OnlyCountGroupMembersInZoneForEXP) ? group->InZoneGroupCount() : group->GroupCount();
+
+			if (group_count == 2 && group->GetLeader()->IsClient()) {
 				group->UpdateGroupAAs();
 				Mob *TempLeader = group->GetLeader();
 				group->SendUpdate(groupActUpdate, TempLeader);
