@@ -3610,22 +3610,22 @@ void Zone::LoadValeenMerchantList(int merchant_id, int tier, bool force_update) 
 	}
 
 	std::list<MerchantList> merchant_list;
-	std::string bucket_value = DataBucket::GetData(&database, bucket_key);
-	std::string new_valeen_bucket_data = "";
+	std::string new_valeen_bucket_data;
 	bool has_bucket = false;
 	std::string query;
 
-	if (!bucket_value.empty()) {
-		has_bucket = true;
+	if (!force_update) {
+		std::string bucket_value = DataBucket::GetData(&database, bucket_key);
+
+		if (!bucket_value.empty()) {
+			const auto& item_ids = Strings::Split(bucket_value, "|");
+
+			query = fmt::format("item_id IN ({})", Strings::Join(item_ids, ", "));
+			has_bucket = true;
+		}
 	}
 
-	if (has_bucket) {
-		const auto& item_ids = Strings::Split(bucket_value, "|");
-		std::string id_list = Strings::Join(item_ids, ", ");
-
-		query = fmt::format("item_id IN ({})", id_list);
-	}
-	else {
+	if (!has_bucket) {
 		query = fmt::format(
 			"merchant_tier = {} ORDER BY RAND() LIMIT {}",
 			tier,
