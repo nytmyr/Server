@@ -8055,12 +8055,62 @@ uint32 Bot::CalcCurrentWeight() {
 }
 
 int Bot::GroupLeadershipAAHealthEnhancement() {
+	if (IsRaidGrouped()) {
+		int bonus = 0;
+		Raid *raid = GetRaid();
+		if (!raid)
+			return 0;
+		uint32 group_id = raid->GetGroup(GetCleanName());
+		if (group_id < 12) {
+			auto raid_count = RuleB(VegasEXP, OnlyCountRaidMembersInZoneForEXP) ? raid->InZoneGroupCount(group_id) : raid->GroupCount(group_id);
+
+			if (raid_count >= 3) {
+				switch (raid->GetLeadershipAA(groupAAHealthEnhancement, group_id)) {
+					case 1:
+						bonus = 30;
+						break;
+					case 2:
+						bonus = 60;
+						break;
+					case 3:
+						bonus = 100;
+						break;
+				}
+			}
+		}
+
+		auto raid_count = RuleB(VegasEXP, OnlyCountRaidMembersInZoneForEXP) ? raid->InZoneRaidCount() : raid->RaidCount();
+
+		if (raid_count >= RuleI(VegasEXP, NumRaidMembersReqForLeadership)) {
+			switch (raid->GetLeadershipAA(raidAAHealthEnhancement)) {
+				case 1:
+					bonus += 30;
+					break;
+				case 2:
+					bonus += 60;
+					break;
+				case 3:
+					bonus += 100;
+					break;
+			}
+		}
+		return bonus;
+	}
+
 	Group *g = GetGroup();
 
-	if (!g || (g->GroupCount() < 3))
+	if (!g) {
 		return 0;
+	}
 
-	switch(g->GetLeadershipAA(groupAAHealthEnhancement)) {
+	auto group_count = RuleB(VegasEXP, OnlyCountGroupMembersInZoneForEXP) ? g->InZoneGroupCount() : g->GroupCount();
+
+	if (group_count < 3) {
+		return 0;
+	}
+
+	switch(g->GetLeadershipAA(groupAAHealthEnhancement))
+	{
 		case 0:
 			return 0;
 		case 1:
@@ -8070,15 +8120,67 @@ int Bot::GroupLeadershipAAHealthEnhancement() {
 		case 3:
 			return 100;
 	}
+
 	return 0;
 }
 
 int Bot::GroupLeadershipAAManaEnhancement() {
-	Group *g = GetGroup();
-	if (!g || (g->GroupCount() < 3))
-		return 0;
+	if (IsRaidGrouped()) {
+		int bonus = 0;
+		Raid *raid = GetRaid();
+		if (!raid)
+			return 0;
+		uint32 group_id = raid->GetGroup(GetCleanName());
+		if (group_id < 12) {
+			auto raid_count = RuleB(VegasEXP, OnlyCountRaidMembersInZoneForEXP) ? raid->InZoneGroupCount(group_id) : raid->GroupCount(group_id);
 
-	switch(g->GetLeadershipAA(groupAAManaEnhancement)) {
+			if (raid_count >= 3) {
+				switch (raid->GetLeadershipAA(groupAAManaEnhancement, group_id)) {
+					case 1:
+						bonus = 30;
+						break;
+					case 2:
+						bonus = 60;
+						break;
+					case 3:
+						bonus = 100;
+						break;
+				}
+			}
+		}
+
+		auto raid_count = RuleB(VegasEXP, OnlyCountRaidMembersInZoneForEXP) ? raid->InZoneRaidCount() : raid->RaidCount();
+
+		if (raid_count >= RuleI(VegasEXP, NumRaidMembersReqForLeadership)) {
+			switch (raid->GetLeadershipAA(raidAAManaEnhancement)) {
+				case 1:
+					bonus += 30;
+					break;
+				case 2:
+					bonus += 60;
+					break;
+				case 3:
+					bonus += 100;
+					break;
+			}
+		}
+		return bonus;
+	}
+
+	Group *g = GetGroup();
+
+	if (!g) {
+		return 0;
+	}
+
+	auto group_count = RuleB(VegasEXP, OnlyCountGroupMembersInZoneForEXP) ? g->InZoneGroupCount() : g->GroupCount();
+
+	if (group_count < 3) {
+		return 0;
+	}
+
+	switch(g->GetLeadershipAA(groupAAManaEnhancement))
+	{
 		case 0:
 			return 0;
 		case 1:
@@ -8088,15 +8190,67 @@ int Bot::GroupLeadershipAAManaEnhancement() {
 		case 3:
 			return 100;
 	}
+
 	return 0;
 }
 
 int Bot::GroupLeadershipAAHealthRegeneration() {
-	Group *g = GetGroup();
-	if (!g || (g->GroupCount() < 3))
-		return 0;
+	if (IsRaidGrouped()) {
+		int bonus = 0;
+		Raid *raid = GetRaid();
+		if (!raid)
+			return 0;
+		uint32 group_id = raid->GetGroup(GetCleanName());
+		if (group_id < 12) {
+			auto raid_count = RuleB(VegasEXP, OnlyCountRaidMembersInZoneForEXP) ? raid->InZoneGroupCount(group_id) : raid->GroupCount(group_id);
 
-	switch(g->GetLeadershipAA(groupAAHealthRegeneration)) {
+			if (raid_count >= 3) {
+				switch (raid->GetLeadershipAA(groupAAHealthRegeneration, group_id)) {
+					case 1:
+						bonus = 4;
+						break;
+					case 2:
+						bonus = 6;
+						break;
+					case 3:
+						bonus = 8;
+						break;
+				}
+			}
+		}
+
+		auto raid_count = RuleB(VegasEXP, OnlyCountRaidMembersInZoneForEXP) ? raid->InZoneRaidCount() : raid->RaidCount();
+
+		if (raid_count >= RuleI(VegasEXP, NumRaidMembersReqForLeadership)) {
+			switch (raid->GetLeadershipAA(raidAAHealthRegeneration)) {
+				case 1:
+					bonus += 4;
+					break;
+				case 2:
+					bonus += 6;
+					break;
+				case 3:
+					bonus += 8;
+					break;
+			}
+		}
+		return bonus;
+	}
+
+	Group *g = GetGroup();
+
+	if (!g) {
+		return 0;
+	}
+
+	auto group_count = RuleB(VegasEXP, OnlyCountGroupMembersInZoneForEXP) ? g->InZoneGroupCount() : g->GroupCount();
+
+	if (group_count < 3) {
+		return 0;
+	}
+
+	switch(g->GetLeadershipAA(groupAAHealthRegeneration))
+	{
 		case 0:
 			return 0;
 		case 1:
@@ -8111,12 +8265,70 @@ int Bot::GroupLeadershipAAHealthRegeneration() {
 }
 
 int Bot::GroupLeadershipAAOffenseEnhancement() {
+	if (IsRaidGrouped()) {
+		int bonus = 0;
+		Raid *raid = GetRaid();
+		if (!raid)
+			return 0;
+		uint32 group_id = raid->GetGroup(GetCleanName());
+		if (group_id < 12 && raid->GroupCount(group_id) >= 3) {
+			switch (raid->GetLeadershipAA(groupAAOffenseEnhancement, group_id)) {
+				case 1:
+					bonus = 10;
+					break;
+				case 2:
+					bonus = 19;
+					break;
+				case 3:
+					bonus = 28;
+					break;
+				case 4:
+					bonus = 34;
+					break;
+				case 5:
+					bonus = 40;
+					break;
+			}
+		}
+
+		auto raid_count = RuleB(VegasEXP, OnlyCountRaidMembersInZoneForEXP) ? raid->InZoneRaidCount() : raid->RaidCount();
+
+		if (raid_count >= RuleI(VegasEXP, NumRaidMembersReqForLeadership)) {
+			switch (raid->GetLeadershipAA(raidAAOffenseEnhancement)) {
+				case 1:
+					bonus += 10;
+					break;
+				case 2:
+					bonus += 19;
+					break;
+				case 3:
+					bonus += 28;
+					break;
+				case 4:
+					bonus += 34;
+					break;
+				case 5:
+					bonus += 40;
+					break;
+			}
+		}
+		return bonus;
+	}
+
 	Group *g = GetGroup();
 
-	if (!g || (g->GroupCount() < 3))
+	if (!g) {
 		return 0;
+	}
 
-	switch(g->GetLeadershipAA(groupAAOffenseEnhancement)) {
+	auto group_count = RuleB(VegasEXP, OnlyCountGroupMembersInZoneForEXP) ? g->InZoneGroupCount() : g->GroupCount();
+
+	if (group_count < 3) {
+		return 0;
+	}
+
+	switch(g->GetLeadershipAA(groupAAOffenseEnhancement))
+	{
 		case 0:
 			return 0;
 		case 1:
