@@ -8997,6 +8997,10 @@ void Mob::AssignSSFFlags(Client* c) {
 		return;
 	}
 
+	if (c->GetGM()) {
+		return;
+	}
+
 	Group* group = entity_list.GetGroupByClient(c);
 	Raid*  raid  = entity_list.GetRaidByClient(c);
 
