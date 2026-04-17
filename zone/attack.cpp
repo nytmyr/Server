@@ -2169,6 +2169,8 @@ bool Client::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::Skil
 		dead_timer.Start(5000, true);
 
 		if (SSFLogic::IsHardcore(GetSSFFlag())) {
+			CampAllBots();
+			database.QueryDatabase(fmt::format("UPDATE bot_data SET name = SUBSTRING(CONCAT(name, 'hasdied', '{}'), 1, 64) WHERE owner_id = {}", Strings::NumbersToStrings(CharacterID()), CharacterID()));
 			SetHardCoreDeathTimeStamp();
 			m_pp.binds[0].zone_id = RuleI(SSF, HardcoreDeathZoneID);
 			m_pp.binds[0].instance_id = 0;

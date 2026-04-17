@@ -90,6 +90,7 @@ public:
 	static int						GetElementMatchingOperator(std::string delimiter, std::string string_one, float variable = 0.0f, uint8 type = ComparisonType::Equal);
 	static std::vector<float>		GetFloatVectorFromDelimitedString(const std::string& string, const std::string& delimiter);
 	static std::vector<uint32>		GetUIntVectorFromDelimitedString(const std::string& string, const std::string& delimiter);
+	static std::string              NumbersToStrings(uint32 number, std::string delimiter = "");
 	// VegasEQ - END
 
 };

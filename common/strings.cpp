@@ -1134,4 +1134,31 @@ std::vector<uint32> Strings::GetUIntVectorFromDelimitedString(const std::string&
 
 	return result;
 }
+
+std::string Strings::NumbersToStrings(uint32 number, std::string delimiter) {
+	static const std::vector<std::string> words = {
+		"zero", "one", "two", "three", "four",
+		"five", "six", "seven", "eight", "nine"
+	};
+
+	std::string num_str = std::to_string(number);
+
+	if (num_str.empty()) {
+		return "";
+	}
+
+	std::string result;
+
+	for (size_t i = 0; i < num_str.length(); ++i) {
+		int digitIndex = num_str[i] - '0';
+
+		result += words[digitIndex];
+
+		if (!delimiter.empty() && i < num_str.length() - 1) {
+			result += delimiter;
+		}
+	}
+
+	return result;
+}
 // VegasEQ - END
