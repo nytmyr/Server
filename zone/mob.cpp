@@ -9064,6 +9064,12 @@ bool Mob::MatchingSSFClient(uint32 id) {
 	return false;
 }
 
+void Mob::AddEligibleSSFClient(uint32 value) {
+	if (!MatchingSSFClient(value)) {
+		eligible_ssf_clients.push_back(value);
+	}
+}
+
 bool Mob::MatchingSSFRaid(uint32 id) {
 	std::vector<uint32> l = GetEligibleSSFRaids();
 
@@ -9080,6 +9086,12 @@ bool Mob::MatchingSSFRaid(uint32 id) {
 	return false;
 }
 
+void Mob::AddEligibleSSFRaid(uint32 value) {
+	if (!MatchingSSFRaid(value)) {
+		eligible_raid_ids.push_back(value);
+	}
+}
+
 bool Mob::MatchingSSFGroup(uint32 id) {
 	std::vector<uint32> l = GetEligibleSSFGroups();
 
@@ -9094,6 +9106,12 @@ bool Mob::MatchingSSFGroup(uint32 id) {
 	}
 
 	return false;
+}
+
+void Mob::AddEligibleSSFGroup(uint32 value) {
+	if (!MatchingSSFGroup(value)) {
+		eligible_group_ids.push_back(value);
+	}
 }
 
 void Mob::ResetSSFFlags() {

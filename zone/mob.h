@@ -1541,15 +1541,15 @@ public:
 	bool IsAssignedToSSFFlags(Client* c);
 	bool MatchingSSFClient(uint32 id);
 	std::vector<uint32> GetEligibleSSFClients() { return eligible_ssf_clients; }
-	void AddEligibleSSFClient(uint32 value) { eligible_ssf_clients.push_back(value); }
+	void AddEligibleSSFClient(uint32 value);
 	void ClearEligibleSSFClients() { eligible_ssf_clients.clear(); }
 	bool MatchingSSFRaid(uint32 id);
 	std::vector<uint32> GetEligibleSSFRaids() { return eligible_raid_ids; }
-	void AddEligibleSSFRaid(uint32 value) { eligible_raid_ids.push_back(value); }
+	void AddEligibleSSFRaid(uint32 value);
 	void ClearEligibleSSFRaids() { eligible_raid_ids.clear(); }
 	bool MatchingSSFGroup(uint32 id);
 	std::vector<uint32> GetEligibleSSFGroups() { return eligible_group_ids; }
-	void AddEligibleSSFGroup(uint32 value) { eligible_group_ids.push_back(value); }
+	void AddEligibleSSFGroup(uint32 value);
 	void ClearEligibleSSFGroups() { eligible_group_ids.clear(); }
 	// VegasEQ - END
 
