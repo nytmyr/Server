@@ -3206,7 +3206,6 @@ void Mob::AddToHateList(Mob* other, int64 hate /*= 0*/, int64 damage /*= 0*/, bo
 	Mob* my_owner = GetOwner();
 	Mob* target_mob = GetTarget();
 	bool on_hatelist = CheckAggro(other);
-	Mob* other_ultimate_owner = other->GetUltimateOwner();
 
 	AddRampage(other);
 	if (on_hatelist) { // odd reason, if you're not on the hate list, subtlety etc don't apply!
@@ -3420,8 +3419,16 @@ void Mob::AddToHateList(Mob* other, int64 hate /*= 0*/, int64 damage /*= 0*/, bo
 		AI_Event_Engaged(other, iYellForHelp);
 	}
 
+	Mob* other_ultimate_owner = other->GetUltimateOwner();
+
 	if (other_ultimate_owner && other_ultimate_owner->IsClient()) { // VegasEQ
 		AssignSSFFlags(other_ultimate_owner->CastToClient());
+	}
+
+	Mob* ultimate_owner = other->IsNPC() ? GetUltimateOwner() : nullptr;
+
+	if (ultimate_owner && ultimate_owner->IsClient()) { // VegasEQ
+		other->AssignSSFFlags(ultimate_owner->CastToClient());
 	}
 }
 
