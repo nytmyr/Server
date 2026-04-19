@@ -1182,6 +1182,18 @@ ENGINE=InnoDB
 )",
 		.content_schema_update = false,
 	},
+	ManifestEntry{
+		.version = 18,
+		.description = "2026_1_21_add_merchantlist_price",
+		.check = "SHOW COLUMNS FROM `merchantlist` LIKE 'price'",
+		.condition = "empty",
+		.match = "",
+		.sql = R"(
+ALTER TABLE `merchantlist`
+	ADD COLUMN `price` INT(11) NOT NULL DEFAULT -1 AFTER `max_status`;
+)",
+		.content_schema_update = false,
+	},
 // Used for testing
 //	ManifestEntry{
 //		.version = 9229,

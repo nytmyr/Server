@@ -4373,6 +4373,7 @@ struct MerchantList {
 	int8        level_required;
 	uint8       min_status;
 	uint8       max_status;
+	int32       price;
 	uint16      alt_currency_cost;
 	uint32      classes_required;
 	uint8       probability;

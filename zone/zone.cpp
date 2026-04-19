@@ -646,6 +646,7 @@ void Zone::LoadNewMerchantData(uint32 merchantid) {
 		ml.level_required    = e.level_required;
 		ml.min_status        = e.min_status;
 		ml.max_status        = e.max_status;
+		ml.price             = e.price;
 		ml.alt_currency_cost = e.alt_currency_cost;
 		ml.classes_required  = e.classes_required;
 		ml.probability       = e.probability;
@@ -723,6 +724,7 @@ void Zone::LoadMerchants()
 				.level_required = static_cast<int8>(e.level_required),
 				.min_status = e.min_status,
 				.max_status = e.max_status,
+				.price = e.price,
 				.alt_currency_cost = e.alt_currency_cost,
 				.classes_required = static_cast<uint32>(e.classes_required),
 				.probability = static_cast<uint8>(e.probability),

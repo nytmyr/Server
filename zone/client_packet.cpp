@@ -14662,6 +14662,7 @@ void Client::Handle_OP_ShopPlayerBuy(const EQApplicationPacket *app)
 	merchantid = tmp->CastToNPC()->MerchantType;
 
 	uint32 item_id = 0;
+	int32 custom_price = 0;
 	std::list<MerchantList> merlist = zone->merchanttable[merchantid];
 	std::list<MerchantList>::const_iterator itr;
 	for (itr = merlist.begin(); itr != merlist.end(); ++itr) {
@@ -14672,6 +14673,7 @@ void Client::Handle_OP_ShopPlayerBuy(const EQApplicationPacket *app)
 
 		if (mp->itemslot == ml.slot) {
 			item_id = ml.item;
+			custom_price = ml.price;
 			break;
 		}
 	}
@@ -14748,6 +14750,10 @@ void Client::Handle_OP_ShopPlayerBuy(const EQApplicationPacket *app)
 
 	if (RuleB(Merchant, UsePriceMod)) {
 		single_price *= Client::CalcPriceMod(tmp, false);
+	}
+
+	if (custom_price >= 0) { // VegasEQ
+		single_price = custom_price;
 	}
 
 	if (item->MaxCharges > 1) {

@@ -985,6 +985,10 @@ void Client::BulkSendMerchantInventory(int merchant_id, int npcid) {
 					item_price *= Client::CalcPriceMod(npc);
 				}
 
+				if (ml.price >= 0) { // VegasEQ
+					item_price = ml.price;
+				}
+
 				inst->SetCharges(item_charges);
 				inst->SetMerchantCount(-1);
 				inst->SetMerchantSlot(ml.slot);
