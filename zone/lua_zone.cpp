@@ -872,14 +872,24 @@ luabind::object Lua_Zone::GetPausedTimers(lua_State* L) {
 }
 
 // VegasEQ - START
-void Lua_Zone::ClearValeenMerchantList(int npc_id) {
+void Lua_Zone::DeleteMerchantListEntry() {
 	Lua_Safe_Call_Void();
-	self->DeleteMerchantListEntry(npc_id);
+	self->DeleteMerchantListEntry();
 }
 
-void Lua_Zone::GenerateNewValeenMerchantList(int npc_id) {
+void Lua_Zone::DeleteMerchantListEntry(uint8 tier) {
 	Lua_Safe_Call_Void();
-	self->GenerateNewValeenMerchantList(npc_id);
+	self->DeleteMerchantListEntry(tier);
+}
+
+void Lua_Zone::GenerateNewValeenMerchantList() {
+	Lua_Safe_Call_Void();
+	self->GenerateNewValeenMerchantList();
+}
+
+void Lua_Zone::GenerateNewValeenMerchantList(uint8 tier) {
+	Lua_Safe_Call_Void();
+	self->GenerateNewValeenMerchantList(tier);
 }
 // VegasEQ - END
 
@@ -1042,8 +1052,10 @@ luabind::scope lua_register_zone() {
 	.def("VariableExists", &Lua_Zone::VariableExists)
 
 	// VegasEQ - START
-	.def("ClearValeenMerchantList", &Lua_Zone::ClearValeenMerchantList)
-	.def("GenerateNewValeenMerchantList", &Lua_Zone::GenerateNewValeenMerchantList);
+	.def("DeleteMerchantListEntry", (void(Lua_Zone::*)(void))&Lua_Zone::DeleteMerchantListEntry)
+	.def("DeleteMerchantListEntry", (void(Lua_Zone::*)(uint8))&Lua_Zone::DeleteMerchantListEntry)
+	.def("GenerateNewValeenMerchantList", (void(Lua_Zone::*)(void))&Lua_Zone::GenerateNewValeenMerchantList)
+	.def("GenerateNewValeenMerchantList", (void(Lua_Zone::*)(uint8))&Lua_Zone::GenerateNewValeenMerchantList);
 	// VegasEQ - END
 }
 

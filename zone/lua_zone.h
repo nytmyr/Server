@@ -187,8 +187,10 @@ public:
 	std::string GetBucketRemaining(const std::string& bucket_name);
 
 	// VegasEQ - START
-	void ClearValeenMerchantList(int npc_id);
-	void GenerateNewValeenMerchantList(int npc_id);
+	void DeleteMerchantListEntry();
+	void DeleteMerchantListEntry(uint8 tier);
+	void GenerateNewValeenMerchantList();
+	void GenerateNewValeenMerchantList(uint8 tier);
 	// VegasEQ - END
 
 };

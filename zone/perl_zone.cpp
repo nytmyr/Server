@@ -704,12 +704,20 @@ perl::array Perl_Zone_GetTimers(Zone* self)
 }
 
 // VegasEQ - START
-void Perl_Zone_ClearValeenMerchantList(Zone* self, int npc_id) {
-	self->DeleteMerchantListEntry(npc_id);
+void Perl_Zone_DeleteMerchantListEntry(Zone* self) {
+	self->DeleteMerchantListEntry();
 }
 
-void Perl_Zone_GenerateNewValeenMerchantList(Zone* self, int npc_id) {
-	self->GenerateNewValeenMerchantList(npc_id);
+void Perl_Zone_DeleteMerchantListEntry(Zone* self, uint8 tier) {
+	self->DeleteMerchantListEntry(tier);
+}
+
+void Perl_Zone_GenerateNewValeenMerchantList(Zone* self) {
+	self->GenerateNewValeenMerchantList();
+}
+
+void Perl_Zone_GenerateNewValeenMerchantList(Zone* self, uint8 tier) {
+	self->GenerateNewValeenMerchantList(tier);
 }
 // VegasEQ - END
 
@@ -859,8 +867,10 @@ void perl_register_zone()
 	package.add("VariableExists", &Perl_Zone_VariableExists);
 
 	// VegasEQ - START
-	package.add("ClearValeenMerchantList", &Perl_Zone_ClearValeenMerchantList);
-	package.add("GenerateNewValeenMerchantList", &Perl_Zone_GenerateNewValeenMerchantList);
+	package.add("DeleteMerchantListEntry", (void(*)(Zone*))&Perl_Zone_DeleteMerchantListEntry);
+	package.add("DeleteMerchantListEntry", (void(*)(Zone*, uint8))&Perl_Zone_DeleteMerchantListEntry);
+	package.add("GenerateNewValeenMerchantList", (void(*)(Zone*))&Perl_Zone_GenerateNewValeenMerchantList);
+	package.add("GenerateNewValeenMerchantList", (void(*)(Zone*, uint8))&Perl_Zone_GenerateNewValeenMerchantList);
 	// VegasEQ - END
 }
 

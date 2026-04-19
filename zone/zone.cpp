@@ -3601,7 +3601,7 @@ void Zone::LoadBulkValeenMerchantLists(bool force_update) {
 	}
 }
 
-void Zone::LoadValeenMerchantList(int merchant_id, int tier, bool force_update) {
+void Zone::LoadValeenMerchantList(uint32 merchant_id, uint8 tier, bool force_update) {
 	std::string bucket_key = fmt::format("ValeenSpawnT{}", tier);
 
 	if (force_update) {
@@ -3683,22 +3683,65 @@ void Zone::LoadValeenMerchantList(int merchant_id, int tier, bool force_update) 
 	merchanttable[merchant_id] = merchant_list;
 }
 
-void Zone::DeleteMerchantListEntry(int npc_id) {
-	auto npc = entity_list.GetNPCByNPCTypeID(npc_id);
+void Zone::DeleteMerchantListEntry(uint8 tier) {
+	if (tier) {
+		std::string bucket_key = fmt::format("ValeenSpawnT{}", tier);
+		DataBucket::DeleteData(&database, bucket_key);
 
-	if (npc) {
-		auto it = merchanttable.find(npc->MerchantType);
+		const auto& valeen_ids = Strings::Split(RuleS(VegasMerchants, ValeenNPCIDsByTier), ",");
 
-		if (it != merchanttable.end()) {
-			merchanttable.erase(it);
+		if (!valeen_ids.empty()) {
+			if (tier <= valeen_ids.size()) {
+				auto merchant_id = std::stoul(valeen_ids[tier - 1]);
+
+				if (merchant_id) {
+					merchanttable.erase(merchant_id);
+				}
+			}
+		}
+	}
+	else {
+		const auto& valeen_ids = Strings::Split(RuleS(VegasMerchants, ValeenNPCIDsByTier), ",");
+
+		if (!valeen_ids.empty()) {
+			for (uint16 i = 0; i < valeen_ids.size(); ++i) {
+				std::string bucket_key = fmt::format("ValeenSpawnT{}", i + 1);
+				DataBucket::DeleteData(&database, bucket_key);
+				auto merchant_id = std::stoul(valeen_ids[i]);
+
+				if (merchant_id) {
+					merchanttable.erase(merchant_id);
+				}
+			}
 		}
 	}
 }
 
-void Zone::GenerateNewValeenMerchantList(int npc_id) {
-	auto npc = entity_list.GetNPCByNPCTypeID(npc_id);
+void Zone::GenerateNewValeenMerchantList(uint8 tier) {
+	if (tier) {
+		const auto& valeen_ids = Strings::Split(RuleS(VegasMerchants, ValeenNPCIDsByTier), ",");
 
-	if (npc) {
-		LoadValeenMerchantList(npc->MerchantType, npc->GetValeenMerchantTier(), true);
+		if (!valeen_ids.empty()) {
+			if (tier <= valeen_ids.size()) {
+				auto merchant_id = std::stoul(valeen_ids[tier - 1]);
+
+				if (merchant_id) {
+					LoadValeenMerchantList(merchant_id, tier, true);
+				}
+			}
+		}
+	}
+	else {
+		const auto& valeen_ids = Strings::Split(RuleS(VegasMerchants, ValeenNPCIDsByTier), ",");
+
+		if (!valeen_ids.empty()) {
+			for (uint16 i = 0; i < valeen_ids.size(); ++i) {
+				auto merchant_id = std::stoul(valeen_ids[i]);
+
+				if (merchant_id) {
+					LoadValeenMerchantList(merchant_id, i + 1, true);
+				}
+			}
+		}
 	}
 }
