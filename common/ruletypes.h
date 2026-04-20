@@ -1471,7 +1471,8 @@ RULE_STRING(CharChange, CharChangeDiscordWebhook, "charchanges", "Webhook name t
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(SSF)
-RULE_INT(SSF, MobFlagResetTimer, 300000, "Timer in ms for flags to reset on a mob after disengage. Default 300000 - 5m.")
+RULE_INT(SSF, ChallengeMobFlagResetTimer, 300000, "Timer in ms for flags to reset on a mob flagged by a challenge ruleset player after disengage. Default 300000 - 5m.")
+RULE_INT(SSF, NonChallengeMobFlagResetTimer, 600000, "Timer in ms for flags to reset on a mob flagged by a normal player after disengage. Default 600000 - 10m.")
 RULE_BOOL(SSF, ShowSSFTagsOnWho, true, "If enabled, Self Found players will show their tags on /who and /who all. Default True.")
 RULE_BOOL(SSF, ShowSSFTagsOnCon, true, "If enabled, Self Found players will show their challenge set on /con. Default True.")
 RULE_BOOL(SSF, SelfFoundGroupOthersAllowed, false, "If enabled, Self Found players can group with non Self Found players. Default False.")

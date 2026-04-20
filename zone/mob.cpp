@@ -132,7 +132,7 @@ Mob::Mob(
 	m_mob_check_moving_timer(1000),
 	bot_attack_flag_timer(10000),
 	m_clear_wearchange_cache_timer(60 * 10 * 1000), // 10 minutes
-	ssf_flag_timer(RuleI(SSF, MobFlagResetTimer)),
+	ssf_flag_timer(RuleI(SSF, ChallengeMobFlagResetTimer)),
 	m_destroying(false)
 {
 	mMovementManager = &MobMovementManager::Get();
@@ -8981,7 +8981,7 @@ bool Mob::IsValidSSFTarget(Mob* initiator, Mob* target, uint8 flag_type) {
 		Client* t = (ultimate_target_owner && ultimate_target_owner->IsClient()) ? ultimate_target_owner->CastToClient() : nullptr;
 
 		if (t) {
-			if (SSFLogic::IsAnySelfFound(c_ssf_flag) || SSFLogic::IsAnySelfFound(t->GetSSFFlag())) {
+			if (SSFLogic::IsAnyChallengeRuleset(c_ssf_flag) || SSFLogic::IsAnyChallengeRuleset(t->GetSSFFlag())) {
 				if (!c->IsInGroupOrRaid(t)) {
 					return false;
 				}
@@ -9042,7 +9042,7 @@ bool Mob::IsAssignedToSSFFlags(Client* c) {
 		return false;
 	}
 
-	if (!SSFLogic::IsAnySelfFound(GetSSFFlag()) && !SSFLogic::IsAnySelfFound(c->GetSSFFlag())) {
+	if (!SSFLogic::IsAnyChallengeRuleset(GetSSFFlag()) && !SSFLogic::IsAnyChallengeRuleset(c->GetSSFFlag())) {
 		return true;
 	}
 
@@ -9133,18 +9133,15 @@ void Mob::AddEligibleSSFGroup(uint32 value) {
 }
 
 void Mob::ResetSSFFlags() {
-	if (GetSSFFlag() != SSFFlagTypes::Undeclared && !Charmed()) {
-		RestoreEndurance();
-		RestoreHealth();
-		RestoreMana();
-		BuffFadeDetrimental();
-		SetSSFFlag(SSFFlagTypes::Undeclared);
-		ClearEligibleSSFClients();
-		ClearEligibleSSFRaids();
-		ClearEligibleSSFGroups();
-		WipeHateList();
-	}
-
+	RestoreEndurance();
+	RestoreHealth();
+	RestoreMana();
+	BuffFadeDetrimental();
+	SetSSFFlag(SSFFlagTypes::Undeclared);
+	ClearEligibleSSFClients();
+	ClearEligibleSSFRaids();
+	ClearEligibleSSFGroups();
+	WipeHateList();
 	ssf_flag_timer.Disable();
 }
 //VegasEQ - END

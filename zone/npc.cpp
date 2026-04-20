@@ -709,7 +709,12 @@ bool NPC::Process()
 		}
 
 		if (!IsEngaged() && GetSSFFlag() != SSFFlagTypes::Undeclared && !ssf_flag_timer.Enabled()) {
-			ssf_flag_timer.Start();
+			if (GetSSFFlag() == SSFFlagTypes::Normal) {
+				ssf_flag_timer.Start(RuleI(SSF, NonChallengeMobFlagResetTimer));
+			}
+			else {
+				ssf_flag_timer.Start();
+			}
 		}
 
 		if (GetMana() < GetMaxMana()) {
