@@ -702,7 +702,10 @@ bool NPC::Process()
 		}
 
 		if (GetHP() >= GetMaxHP() && !IsEngaged()) { // VegasEQ
-			ResetSSFFlags();
+			if (SSFLogic::IsAnyChallengeRuleset(GetSSFFlag()) && !Charmed()) {
+				Emote(" feels fully relaxed, awaiting another victim.");
+				ResetSSFFlags();
+			}
 		}
 
 		if (!IsEngaged() && GetSSFFlag() != SSFFlagTypes::Undeclared && !ssf_flag_timer.Enabled()) {
@@ -825,7 +828,8 @@ bool NPC::Process()
 		ClearBotAttackFlags();
 	}
 
-	if (ssf_flag_timer.Check()) {
+	if (ssf_flag_timer.Check() && !Charmed()) {
+		Emote(" relaxes, awaiting another victim.");
 		ResetSSFFlags();
 	}
 

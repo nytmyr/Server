@@ -12950,7 +12950,8 @@ void Client::ClientToNpcAggroProcess()
 			}
 
 			if (mob->CheckWillAggro(this) && !mob->CheckAggro(this)) {
-				if (!mob->IsAssignedToSSFFlags(this)) { // VegasEQ
+				if (!mob->IsAssignedToSSFFlags(this) && mob->GetSSFFlag() != SSFFlagTypes::Undeclared) { // VegasEQ
+					mob->Emote(" turns to their new victim.");
 					mob->ResetSSFFlags();
 				}
 
