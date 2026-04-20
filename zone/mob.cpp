@@ -9001,8 +9001,8 @@ void Mob::AssignSSFFlags(Client* c) {
 		return;
 	}
 
-	Group* group = entity_list.GetGroupByClient(c);
-	Raid*  raid  = entity_list.GetRaidByClient(c);
+	Group* group = c->GetGroup();
+	Raid*  raid  = c->GetRaid();
 
 	if (GetSSFFlag() == SSFFlagTypes::Undeclared) {
 		SetSSFFlag(c->GetSSFFlag());
@@ -9010,9 +9010,21 @@ void Mob::AssignSSFFlags(Client* c) {
 
 		if (raid) {
 			AddEligibleSSFRaid(raid->GetID());
+
+			for (const auto& m : raid->members) {
+				if (m.member && m.member->IsClient()) {
+					AddEligibleSSFClient(m.member->CharacterID());
+				}
+			}
 		}
 		else if (group) {
 			AddEligibleSSFGroup(group->GetID());
+
+			for (const auto& m : group->members) {
+				if (m && m->IsClient()) {
+					AddEligibleSSFClient(m->CastToClient()->CharacterID());
+				}
+			}
 		}
 	}
 	else {
@@ -9034,19 +9046,33 @@ bool Mob::IsAssignedToSSFFlags(Client* c) {
 		return true;
 	}
 
-	Group* group = entity_list.GetGroupByClient(c);
-	Raid*  raid  = entity_list.GetRaidByClient(c);
+	bool client_id_match = MatchingSSFClient(c->CharacterID());
 
-	if (!group && !raid && MatchingSSFClient(c->CharacterID())) {
+	if (client_id_match) {
 		return true;
 	}
 
-	if (raid && MatchingSSFRaid(raid->GetID())) {
-		return true;
-	}
+	Raid* raid = c->GetRaid();
 
-	if (group && MatchingSSFGroup(group->GetID())) {
-		return true;
+	if (raid) {
+		if (MatchingSSFRaid(raid->GetID())) {
+			if (!client_id_match) {
+				AddEligibleSSFClient(c->CharacterID());
+			}
+
+			return true;
+		}
+	}
+	else {
+		Group* group = c->GetGroup();
+
+		if (group && MatchingSSFGroup(group->GetID())) {
+			if (!client_id_match) {
+				AddEligibleSSFClient(c->CharacterID());
+			}
+
+			return true;
+		}
 	}
 
 	return false;
@@ -9054,10 +9080,6 @@ bool Mob::IsAssignedToSSFFlags(Client* c) {
 
 bool Mob::MatchingSSFClient(uint32 id) {
 	std::vector<uint32> l = GetEligibleSSFClients();
-
-	if (l.empty()) {
-		return true;
-	}
 
 	for (uint32 e : l) {
 		if (e == id) {
@@ -9077,10 +9099,6 @@ void Mob::AddEligibleSSFClient(uint32 value) {
 bool Mob::MatchingSSFRaid(uint32 id) {
 	std::vector<uint32> l = GetEligibleSSFRaids();
 
-	if (l.empty()) {
-		return true;
-	}
-
 	for (uint32 e : l) {
 		if (e == id) {
 			return true;
@@ -9098,10 +9116,6 @@ void Mob::AddEligibleSSFRaid(uint32 value) {
 
 bool Mob::MatchingSSFGroup(uint32 id) {
 	std::vector<uint32> l = GetEligibleSSFGroups();
-
-	if (l.empty()) {
-		return true;
-	}
 
 	for (uint32 e : l) {
 		if (e == id) {
