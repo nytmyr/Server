@@ -267,6 +267,7 @@ public:
 	// VegasEQ - START
 	// SSF
 	std::vector<uint32> GetEligibleSSFClientIDs() { return m_eligible_ssf_client_ids; }
+	void AddEligibleSSFLooters(Mob* m);
 	void AddLootEligibleSSFClientID(uint32 client_id) { m_eligible_ssf_client_ids.push_back(client_id); }
 	bool IsLootEligibleSSFClientID(uint32 client_id) { return std::find(m_eligible_ssf_client_ids.begin(), m_eligible_ssf_client_ids.end(), client_id) != m_eligible_ssf_client_ids.end(); }
 	uint8 GetSSFFlag() const override { return m_ssf_flag; }

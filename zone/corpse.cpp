@@ -2530,3 +2530,14 @@ void Corpse::SyncEntityVariablesToCorpseDB()
 
 	CharacterCorpsesRepository::UpdateEntityVariables(database, m_corpse_db_id, serialized);
 }
+
+// VegasEQ - START
+// SSF
+void Corpse::AddEligibleSSFLooters(Mob* m) {
+	std::vector<uint32> l = m->GetEligibleSSFClients();
+
+	for (uint32 e : l) {
+		AddLootEligibleSSFClientID(e);
+	}
+}
+// VegasEQ - END
