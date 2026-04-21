@@ -8957,7 +8957,7 @@ bool Mob::IsValidSSFTarget(Mob* initiator, Mob* target, uint8 flag_type) {
 
 		if (target->IsCorpse()) {
 			if (SSFLogic::IsAnySelfFound(c_ssf_flag) || SSFLogic::IsAnySelfFound(target->CastToCorpse()->GetSSFFlag())) {
-				if (target->CastToCorpse()->GetCharID() != c->character_id && !c->IsInGroupOrRaid(target)) {
+				if (target->CastToCorpse()->GetCharID() != c->character_id && !target->CastToCorpse()->IsEligibleRezSSFClientID(c->CharacterID())) {
 					return false;
 				}
 

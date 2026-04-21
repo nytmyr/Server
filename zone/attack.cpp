@@ -2113,6 +2113,10 @@ bool Client::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::Skil
 
 				new_corpse->SetSSFFlag(GetSSFFlag());
 
+				if (killer_mob->IsNPC()) {
+					new_corpse->AddEligibleSSFRezzers(killer_mob);
+				}
+
 				entity_list.AddCorpse(new_corpse, GetID());
 				SetID(0);
 

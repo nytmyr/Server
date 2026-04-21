@@ -2540,4 +2540,12 @@ void Corpse::AddEligibleSSFLooters(Mob* m) {
 		AddLootEligibleSSFClientID(e);
 	}
 }
+
+void Corpse::AddEligibleSSFRezzers(Mob* m) {
+	std::vector<uint32> l = m->GetEligibleSSFClients();
+
+	for (uint32 e : l) {
+		AddEligibleRezSSFClientID(e);
+	}
+}
 // VegasEQ - END

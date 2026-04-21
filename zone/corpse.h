@@ -270,6 +270,10 @@ public:
 	void AddEligibleSSFLooters(Mob* m);
 	void AddLootEligibleSSFClientID(uint32 client_id) { m_eligible_ssf_client_ids.push_back(client_id); }
 	bool IsLootEligibleSSFClientID(uint32 client_id) { return std::find(m_eligible_ssf_client_ids.begin(), m_eligible_ssf_client_ids.end(), client_id) != m_eligible_ssf_client_ids.end(); }
+	std::vector<uint32> GetEligibleRezSSFClientID() { return m_eligible_rez_ssf_client_ids; }
+	void AddEligibleSSFRezzers(Mob* m);
+	void AddEligibleRezSSFClientID(uint32 client_id) { m_eligible_rez_ssf_client_ids.push_back(client_id); }
+	bool IsEligibleRezSSFClientID(uint32 client_id) { return std::find(m_eligible_rez_ssf_client_ids.begin(), m_eligible_rez_ssf_client_ids.end(), client_id) != m_eligible_rez_ssf_client_ids.end(); }
 	uint8 GetSSFFlag() const override { return m_ssf_flag; }
 	void SetSSFFlag(uint8 value) override { m_ssf_flag = value; }
 	// VegasEQ - END
@@ -319,5 +323,6 @@ private:
 	// VegasEQ - START
 	uint8                    m_ssf_flag;
 	std::vector<uint32>      m_eligible_ssf_client_ids;
+	std::vector<uint32>      m_eligible_rez_ssf_client_ids;
 	// VegasEQ - END
 };
