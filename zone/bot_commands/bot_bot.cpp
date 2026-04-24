@@ -1627,7 +1627,7 @@ void bot_command_toggle_ranged(Client *c, const Seperator *sep)
 				fmt::format(
 					"{} says, 'I {} currently ranged.'",
 					my_bot->GetCleanName(),
-					my_bot->IsBotRanged() ? "am" : "am no longer"
+					my_bot->IsBotRanged() ? "am" : "am not"
 				).c_str()
 			);
 		}
