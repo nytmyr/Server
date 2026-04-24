@@ -2766,6 +2766,10 @@ bool Bot::CanUseBotSpell(uint16 spell_id) {
 			return false;
 		}
 
+		if (s.maxlevel < GetLevel()) {
+			return false;
+		}
+
 		return true;
 	}
 

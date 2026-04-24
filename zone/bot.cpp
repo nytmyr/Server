@@ -8878,7 +8878,11 @@ void Bot::ListBotSpells(uint8 min_level)
 
 	for (const auto& s : (GetBotEnforceSpellSetting()) ? AIBot_spells_enforced : AIBot_spells) {
 		auto b = bot_spell_settings.find(s.spellid);
-		if (b == bot_spell_settings.end() && s.minlevel >= min_level) {
+		if (
+			b == bot_spell_settings.end() &&
+			s.minlevel >= min_level &&
+			CanUseBotSpell(s.spellid)
+		) {
 			bot_owner->Message(
 				Chat::White,
 				fmt::format(
@@ -8932,23 +8936,25 @@ void Bot::ListBotSpellSettings()
 	auto setting_number = 1;
 
 	for (const auto& bs : bot_spell_settings) {
-		bot_owner->Message(
-			Chat::White,
-			fmt::format(
-				"Setting {} | Spell: {} | State: {} | {}",
-				setting_number,
-				Saylink::Silent(fmt::format("^spellinfo {}", bs.first), spells[bs.first].name),
-				Saylink::Silent(
-					fmt::format("^spellsettingstoggle {} {}",
-					bs.first, bs.second.is_enabled ? "False" : "True"),
-					bs.second.is_enabled ? "Enabled" : "Disabled"
-				),
-				Saylink::Silent(fmt::format("^spellsettingsdelete {}", bs.first), "Remove")
-			).c_str()
-		);
+		if (CanUseBotSpell(bs.first)) {
+			bot_owner->Message(
+				Chat::White,
+				fmt::format(
+					"Setting {} | Spell: {} | State: {} | {}",
+					setting_number,
+					Saylink::Silent(fmt::format("^spellinfo {}", bs.first), spells[bs.first].name),
+					Saylink::Silent(
+						fmt::format("^spellsettingstoggle {} {}",
+						bs.first, bs.second.is_enabled ? "False" : "True"),
+						bs.second.is_enabled ? "Enabled" : "Disabled"
+					),
+					Saylink::Silent(fmt::format("^spellsettingsdelete {}", bs.first), "Remove")
+				).c_str()
+			);
 
-		setting_count++;
-		setting_number++;
+			setting_count++;
+			setting_number++;
+		}
 	}
 
 	bot_owner->Message(
