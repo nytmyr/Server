@@ -10359,6 +10359,13 @@ bool Bot::CastChecks(uint16 spell_id, Mob* tar, uint16 spell_type, bool precheck
 			return false;
 		}
 	}
+
+	if ((spell.target_type == ST_Pet || spell.target_type == ST_SummonedPet) && !tar->IsPet()) {
+		LogBotSpellChecksDetail("{} says, 'Cancelling cast of {} on {} due to !tar->IsPet().'", GetCleanName(), GetSpellName(spell_id), tar->GetCleanName());
+		SetCastFailure(CastFailures::InvalidSpellTypeForTarget);
+		return false;
+	}
+
 	//LogBotSpellChecksDetail("{} says, 'Doing CanCastSpellType checks of {} on {}.'", GetCleanName(), GetSpellName(spell_id), tar->GetCleanName());
 	if (!CanCastSpellType(spell_type, spell_id, tar)) {
 		LogBotSpellChecksDetail("{} says, 'Cancelling cast of {} on {} due to CanCastSpellType.'", GetCleanName(), GetSpellName(spell_id), tar->GetCleanName());
