@@ -2675,6 +2675,7 @@ void Client::DoIllusionWearCheck() {
 		illusion_fade_check = false;
 		LogTestDebug("Moving to old coords in [{}] [#{}] - x: [{}], y: [{}], z: [{}], h: [{}].", zone->GetZoneID(), zone->GetInstanceID(), old_x, old_y, old_z, old_heading); //deleteme
 		Message(Chat::Yellow, "Oops, looks like that's not gonna work...");
+		cheat_manager.SetExemptStatus(Port, true);
 		MovePC(zone->GetZoneID(), zone->GetInstanceID(), old_x, old_y, old_z, old_heading, 2);
 	}
 
