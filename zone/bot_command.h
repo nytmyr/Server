@@ -1182,4 +1182,4 @@ bool helper_is_help_or_usage(const char* arg);
 bool helper_no_available_bots(Client *bot_owner, Bot *my_bot = nullptr);
 void helper_send_available_subcommands(Client *bot_owner, const char* command_simile, std::vector<const char*> subcommand_list);
 void helper_send_usage_required_bots(Client *bot_owner, uint16 spell_type);
-void SendSpellTypeWindow(Client* c, const Seperator* sep);
+void SendSpellTypeWindow(Client* c, const Seperator* sep, bool short_names = false);

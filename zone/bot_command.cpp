@@ -775,7 +775,7 @@ void helper_send_usage_required_bots(Client *bot_owner, uint16 spell_type)
 	bot_owner->Message(Chat::Green, "%s", description.c_str());
 }
 
-void SendSpellTypeWindow(Client* c, const Seperator* sep) {
+void SendSpellTypeWindow(Client* c, const Seperator* sep, bool short_names) {
 	std::string arg0 = sep->arg[0];
 	std::string arg1 = sep->arg[1];
 
@@ -828,7 +828,7 @@ void SendSpellTypeWindow(Client* c, const Seperator* sep) {
 	std::string popup_text = DialogueWindow::TableRow(
 		DialogueWindow::TableCell(DialogueWindow::ColorMessage(goldenrod, spell_type_field))
 		+
-		DialogueWindow::TableCell((!arg0.compare("^spelltypeids") ? DialogueWindow::ColorMessage(goldenrod, id_field) : DialogueWindow::ColorMessage(goldenrod, shortname_field)))
+		DialogueWindow::TableCell((!short_names ? DialogueWindow::ColorMessage(goldenrod, id_field) : DialogueWindow::ColorMessage(goldenrod, shortname_field)))
 	);
 
 	popup_text += DialogueWindow::TableRow(
@@ -845,7 +845,7 @@ void SendSpellTypeWindow(Client* c, const Seperator* sep) {
 		popup_text += DialogueWindow::TableRow(
 			DialogueWindow::TableCell(DialogueWindow::ColorMessage(forest_green, Bot::GetSpellTypeNameByID(i)))
 			+
-			DialogueWindow::TableCell((!arg0.compare("^spelltypeids") ? DialogueWindow::ColorMessage(slate_blue, std::to_string(i)) : DialogueWindow::ColorMessage(slate_blue, Bot::GetSpellTypeShortNameByID(i))))
+			DialogueWindow::TableCell((!short_names ? DialogueWindow::ColorMessage(slate_blue, std::to_string(i)) : DialogueWindow::ColorMessage(slate_blue, Bot::GetSpellTypeShortNameByID(i))))
 		);
 	}
 

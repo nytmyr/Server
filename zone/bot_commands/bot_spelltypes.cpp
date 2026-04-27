@@ -162,5 +162,5 @@ void bot_command_spelltype_names(Client* c, const Seperator* sep)
 		return;
 	}
 
-	SendSpellTypeWindow(c, sep);
+	SendSpellTypeWindow(c, sep, true);
 }
