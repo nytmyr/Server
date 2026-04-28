@@ -35,7 +35,7 @@ jobs:
             submodules/vcpkg/packages
             submodules/vcpkg/vcpkg.exe
             submodules/vcpkg/vcpkg
-          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json', 'submodules/vcpkg/.git/HEAD') }}
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
           restore-keys: |
             ${{ runner.os }}-vcpkg-
 
@@ -85,7 +85,7 @@ jobs:
             submodules/vcpkg/packages
             submodules/vcpkg/vcpkg.exe
             submodules/vcpkg/vcpkg
-          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json', 'submodules/vcpkg/.git/HEAD') }}
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
           restore-keys: |
             ${{ runner.os }}-vcpkg-
 
