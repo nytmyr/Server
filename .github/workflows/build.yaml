@@ -30,14 +30,11 @@ jobs:
         uses: actions/cache@v5
         with:
           path: |
-            submodules/vcpkg/buildtrees
+            vcpkg_installed
             submodules/vcpkg/downloads
-            submodules/vcpkg/installed
-            submodules/vcpkg/packages
-            submodules/vcpkg/vcpkg.exe
-            submodules/vcpkg/vcpkg
           key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
           restore-keys: |
+            ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}-
             ${{ runner.os }}-vcpkg-
 
       - name: Configure
@@ -80,14 +77,11 @@ jobs:
         uses: actions/cache@v5
         with:
           path: |
-            submodules/vcpkg/buildtrees
+            vcpkg_installed
             submodules/vcpkg/downloads
-            submodules/vcpkg/installed
-            submodules/vcpkg/packages
-            submodules/vcpkg/vcpkg.exe
-            submodules/vcpkg/vcpkg
           key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
           restore-keys: |
+            ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}-
             ${{ runner.os }}-vcpkg-
 
       - name: Configure
