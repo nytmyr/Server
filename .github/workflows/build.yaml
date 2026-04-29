@@ -69,6 +69,11 @@ jobs:
 
       - name: Enable long paths
         run: git config --global core.longpaths true
+        
+      - name: Setup MSVC environment
+        uses: TheMrMilchmann/setup-msvc-dev@v4
+        with:
+          arch: x64
 
       - name: Restore vcpkg Cache
         uses: actions/cache@v5
