@@ -29,7 +29,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: |
-            vcpkg_installed
+            build/vcpkg_installed
             submodules/vcpkg/downloads
           key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
           restore-keys: |
@@ -69,11 +69,6 @@ jobs:
 
       - name: Enable long paths
         run: git config --global core.longpaths true
-
-      - name: Setup MSVC environment
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: x64
 
       - name: Restore vcpkg Cache
         uses: actions/cache@v5
