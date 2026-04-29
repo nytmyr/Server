@@ -9,9 +9,6 @@ jobs:
   linux:
     name: Linux
     runs-on: ubuntu-latest
-    env:
-      VCPKG_DOWNLOADS: ${{ github.workspace }}/submodules/vcpkg/downloads
-      VCPKG_BINARY_SOURCES: 'clear;files,${{ github.workspace }}/vcpkg_archives,readwrite'
     steps:
       - name: Checkout source
         uses: actions/checkout@v5
@@ -32,10 +29,11 @@ jobs:
         uses: actions/cache@v5
         with:
           path: |
-            ${{ env.VCPKG_DOWNLOADS }}
-            ${{ github.workspace }}/vcpkg_archives
+            vcpkg_installed
+            submodules/vcpkg/downloads
           key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
           restore-keys: |
+            ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}-
             ${{ runner.os }}-vcpkg-
 
       - name: Configure
