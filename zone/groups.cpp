@@ -158,33 +158,30 @@ void Group::SplitMoney(uint32 copper, uint32 silver, uint32 gold, uint32 platinu
 	uint8 random_member = zone->random.Int(0, member_count - 1);
 
 	// Calculate split and remainder for each coin type
-	uint32 copper_split       = copper / member_count;
-	uint32 copper_remainder   = copper % member_count;
-	uint32 silver_split       = silver / member_count;
-	uint32 silver_remainder   = silver % member_count;
-	uint32 gold_split         = gold / member_count;
-	uint32 gold_remainder     = gold % member_count;
-	uint32 platinum_split     = platinum / member_count;
-	uint32 platinum_remainder = platinum % member_count;
+	uint32 total_copper        = copper + (silver * 10) + (gold * 100) + (platinum * 1000);
+	uint32 base_share_copper   = total_copper / member_count;
+	uint32 winner_share_copper = base_share_copper + (total_copper % member_count);
+	uint32 split_platinum      = base_share_copper / 1000;
+	uint32 split_gold          = (base_share_copper % 1000) / 100;
+	uint32 split_silver        = (base_share_copper % 100) / 10;
+	uint32 split_copper        = base_share_copper % 10;
+	uint32 winner_platinum     = winner_share_copper / 1000;
+	uint32 winner_gold         = (winner_share_copper % 1000) / 100;
+	uint32 winner_silver       = (winner_share_copper % 100) / 10;
+	uint32 winner_copper       = winner_share_copper % 10;
 
 	// Loop through the group members to split the coins.
 	for (const auto &m: members) {
 		if (m && m->IsClient()) {
 			Client *member_client = m->CastToClient();
 
-			uint32 receive_copper   = copper_split;
-			uint32 receive_silver   = silver_split;
-			uint32 receive_gold     = gold_split;
-			uint32 receive_platinum = platinum_split;
-
 			// if /split is used then splitter gets the remainder + split.
 			// if /autosplit is used then random players in the group will get the remainder + split.
-			if(share ? member_client == splitter : member_client == members[random_member]) {
-				receive_copper   += copper_remainder;
-				receive_silver   += silver_remainder;
-				receive_gold     += gold_remainder;
-				receive_platinum += platinum_remainder;
-			}
+			bool is_winner          = share && splitter ? splitter : member_client == members[random_member];
+			uint32 receive_copper   = is_winner ? winner_copper : split_copper;
+			uint32 receive_silver   = is_winner ? winner_silver : split_silver;
+			uint32 receive_gold     = is_winner ? winner_gold : split_gold;
+			uint32 receive_platinum = is_winner ? winner_platinum : split_platinum;
 
 			// the group member other than the character doing the /split only gets this message "(splitter) shares the money with the group"
 			if (share && member_client != splitter) {

@@ -1210,6 +1210,7 @@ RULE_BOOL(Vegas, HardDisconnectOnCamp, true, "When enabled, if a client camps to
 RULE_BOOL(Vegas, DetrimentalBeneficalConflict, true, "If set to false, detrimental and beneficial spells cannot block or overwrite one another, they will instead attempt to find other buff slots. Default True.")
 RULE_INT(Vegas, CorpseSummonRange, 150, "Maximum range to be able to /corpse. Default 150, stock 100.")
 RULE_INT(Vegas, NumPlayersForGuildAchievement, 7, "If more than x players get kill credit for an achievement, it will then list guilds achievement instead of players.")
+RULE_BOOL(Vegas, SplitAcrossRaid, true, "If enabled, /autosplit and /split will share across the entire raid rather than just the members group. Default True.")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(VegasBots)

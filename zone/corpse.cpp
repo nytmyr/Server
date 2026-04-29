@@ -1289,9 +1289,17 @@ void Corpse::MakeLootRequestPackets(Client *c, const EQApplicationPacket *app)
 		d->unknown2 = 0xef;
 
 		Group *cgroup = c->GetGroup();
+		Raid* c_raid = c->GetRaid();
 
 		// this can be reworked into a switch and/or massaged to include specialized pve loot rules based on 'LootRequestType'
-		if (!IsPlayerCorpse() && c->IsGrouped() && c->AutoSplitEnabled() && cgroup) {
+		if (!IsPlayerCorpse() && c->AutoSplitEnabled() && c_raid) {
+			d->copper   = 0;
+			d->silver   = 0;
+			d->gold     = 0;
+			d->platinum = 0;
+			c_raid->SplitMoney(c_raid->GetGroup(c), GetCopper(), GetSilver(), GetGold(), GetPlatinum());
+		}
+		else if (!IsPlayerCorpse() && c->IsGrouped() && c->AutoSplitEnabled() && cgroup) {
 			d->copper   = 0;
 			d->silver   = 0;
 			d->gold     = 0;

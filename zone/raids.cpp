@@ -904,69 +904,75 @@ void Raid::SplitMoney(uint32 gid, uint32 copper, uint32 silver, uint32 gold, uin
 	}
 
 	uint8 member_count = 0;
+
 	for (const auto& m : members) {
-		if (m.is_bot) {
+		if (!m.member || !m.member->IsClient() || m.group_number == RAID_GROUPLESS) {
 			continue;
 		}
 
-		if (m.member && m.group_number == gid && m.member->IsClient()) {
-			member_count++;
+		if (!RuleB(Vegas, SplitAcrossRaid) && m.group_number != gid) {
+			continue;
 		}
+
+		member_count++;
 	}
 
 	if (!member_count) {
 		return;
 	}
 
-	uint32 modifier;
-	if (member_count > 1) {
-		modifier = platinum % member_count;
+	uint32 total_copper        = copper + (silver * 10) + (gold * 100) + (platinum * 1000);
+	uint32 base_share_copper   = total_copper / member_count;
+	uint32 winner_share_copper = base_share_copper + (total_copper % member_count);
+	uint32 split_platinum      = base_share_copper / 1000;
+	uint32 split_gold          = (base_share_copper % 1000) / 100;
+	uint32 split_silver        = (base_share_copper % 100) / 10;
+	uint32 split_copper        = base_share_copper % 10;
+	uint32 winner_platinum     = winner_share_copper / 1000;
+	uint32 winner_gold         = (winner_share_copper % 1000) / 100;
+	uint32 winner_silver       = (winner_share_copper % 100) / 10;
+	uint32 winner_copper       = winner_share_copper % 10;
 
-		if (modifier) {
-			platinum -= modifier;
-			gold += 10 * modifier;
+	Client* random_member = nullptr;
+
+	uint8 x = 0;
+
+	while (!random_member) {
+		uint8 random_index = zone->random.Int(0, member_count - 1);
+		auto c = GetClientByIndex(random_index);
+
+		if (c && c->IsClient() && GetGroup(c) != RAID_GROUPLESS) {
+			random_member = c;
+			break;
 		}
 
-		modifier = gold % member_count;
+		++x;
 
-		if (modifier) {
-			gold -= modifier;
-			silver += 10 * modifier;
-		}
-
-		modifier = silver % member_count;
-
-		if (modifier) {
-			silver -= modifier;
-			copper += 10 * modifier;
+		if (x >= member_count) {
+			break;
 		}
 	}
 
-	auto copper_split = copper / member_count;
-	auto silver_split = silver / member_count;
-	auto gold_split = gold / member_count;
-	auto platinum_split = platinum / member_count;
-
 	for (const auto& m : members) {
-		if (m.is_bot) {
+		if (!m.member || !m.member->IsClient() || m.group_number == RAID_GROUPLESS) {
 			continue;
 		}
 
-		if (m.member && m.group_number == gid && m.member->IsClient()) { // If Group Member is Client
-			m.member->AddMoneyToPP(
-				copper_split,
-				silver_split,
-				gold_split,
-				platinum_split,
-				true
-			);
+		bool is_winner          = splitter ? splitter : m.member == random_member;
+		uint32 receive_copper   = is_winner ? winner_copper : split_copper;
+		uint32 receive_silver   = is_winner ? winner_silver : split_silver;
+		uint32 receive_gold     = is_winner ? winner_gold : split_gold;
+		uint32 receive_platinum = is_winner ? winner_platinum : split_platinum;
+
+		if (!RuleB(Vegas, SplitAcrossRaid) || m.group_number == gid) {
+			m.member->AddMoneyToPP(receive_copper, receive_silver, receive_gold, receive_platinum, true);
 
 			if (PlayerEventLogs::Instance()->IsEventEnabled(PlayerEvent::SPLIT_MONEY)) {
 				auto e = PlayerEvent::SplitMoneyEvent{
-					.copper = copper_split,
-					.silver = silver_split,
-					.gold = gold_split,
-					.platinum = platinum_split,
+					.copper = receive_copper,
+					.silver = receive_silver,
+					.gold = receive_gold,
+					.platinum = receive_platinum,
 					.player_money_balance = m.member->GetCarriedMoney(),
 				};
 
@@ -977,10 +983,10 @@ void Raid::SplitMoney(uint32 gid, uint32 copper, uint32 silver, uint32 gold, uin
 				Chat::MoneySplit,
 				YOU_RECEIVE_AS_SPLIT,
 				Strings::Money(
-					platinum_split,
-					gold_split,
-					silver_split,
-					copper_split
+					receive_platinum,
+					receive_gold,
+					receive_silver,
+					receive_copper
 				).c_str()
 			);
 		}
