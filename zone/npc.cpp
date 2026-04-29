@@ -5176,7 +5176,8 @@ void NPC::DoFirstKillAchievements(Client* c, std::string key) {
 	discord_msg = discord_msg + " in [" + zone->GetLongName() + "](http://vegaseq.com/Allaclone/?a=zone&name=" + zone->GetShortName() + ")";
 	key_data = key_data + "]" + zone->GetShortName();
 
-	key_data = key_data + "|" + std::to_string(std::time(nullptr));
+	std::time_t current_time = std::time(nullptr);
+	key_data += "|" + std::string(std::ctime(&current_time)).substr(0, 24);
 
 	DataBucket::SetData(&database, key, key_data);
 
