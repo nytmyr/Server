@@ -5,11 +5,13 @@ on:
       - master
       - develop
   pull_request:
-
 jobs:
   linux:
     name: Linux
     runs-on: ubuntu-latest
+    env:
+      VCPKG_DOWNLOADS: ${{ github.workspace }}/submodules/vcpkg/downloads
+      VCPKG_BINARY_SOURCES: 'clear;files,${{ github.workspace }}/vcpkg_archives,readwrite'
     steps:
       - name: Checkout source
         uses: actions/checkout@v5
@@ -30,11 +32,10 @@ jobs:
         uses: actions/cache@v5
         with:
           path: |
-            vcpkg_installed
-            submodules/vcpkg/downloads
+            ${{ env.VCPKG_DOWNLOADS }}
+            ${{ github.workspace }}/vcpkg_archives
           key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
           restore-keys: |
-            ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}-
             ${{ runner.os }}-vcpkg-
 
       - name: Configure
@@ -59,6 +60,9 @@ jobs:
   windows:
     name: Windows
     runs-on: windows-latest
+    env:
+      VCPKG_DOWNLOADS: ${{ github.workspace }}\submodules\vcpkg\downloads
+      VCPKG_BINARY_SOURCES: 'clear;files,${{ github.workspace }}\vcpkg_archives,readwrite'
     steps:
       - name: Checkout source
         uses: actions/checkout@v5
@@ -77,11 +81,10 @@ jobs:
         uses: actions/cache@v5
         with:
           path: |
-            vcpkg_installed
-            submodules/vcpkg/downloads
+            ${{ env.VCPKG_DOWNLOADS }}
+            ${{ github.workspace }}/vcpkg_archives
           key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
           restore-keys: |
-            ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}-
             ${{ runner.os }}-vcpkg-
 
       - name: Configure
