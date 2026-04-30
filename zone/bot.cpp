@@ -5341,7 +5341,7 @@ int Bot::GetBaseSkillDamage(EQ::skills::SkillType skill, Mob *target)
 				ac_bonus = skill_bonus;
 			}
 
-			return static_cast<int>(ac_bonus + skill_bonus);
+			return base + static_cast<int>(ac_bonus + skill_bonus);
 		}
 		case EQ::skills::SkillKick: {
 			float skill_bonus = skill_level / 10.0f;
@@ -5356,7 +5356,7 @@ int Bot::GetBaseSkillDamage(EQ::skills::SkillType skill, Mob *target)
 				ac_bonus = skill_bonus;
 			}
 
-			return static_cast<int>(ac_bonus + skill_bonus);
+			return base + static_cast<int>(ac_bonus + skill_bonus);
 		}
 		case EQ::skills::SkillBash: {
 			float skill_bonus = skill_level / 10.0f;
@@ -5378,7 +5378,7 @@ int Bot::GetBaseSkillDamage(EQ::skills::SkillType skill, Mob *target)
 				ac_bonus = skill_bonus;
 			}
 
-			return static_cast<int>(ac_bonus + skill_bonus);
+			return base + static_cast<int>(ac_bonus + skill_bonus);
 		}
 		case EQ::skills::SkillBackstab: {
 			float skill_bonus = static_cast<float>(skill_level) * 0.02f;
