@@ -138,6 +138,10 @@ void Group::SplitMoney(uint32 copper, uint32 silver, uint32 gold, uint32 platinu
 	for (uint32 i = 0; i < MAX_GROUP_MEMBERS; i++) {
 		// Don't split with Mercs or Bots
 		if (members[i] && members[i]->IsClient()) {
+			if (share && splitter && members[i]->CastToClient() != splitter && SSFLogic::IsAnySelfFound(members[i]->GetSSFFlag())) {
+				continue;
+			}
+
 			member_count++;
 			if (members[i]->CastToClient() == splitter) {
 				splitter_in_group = true;
@@ -173,6 +177,10 @@ void Group::SplitMoney(uint32 copper, uint32 silver, uint32 gold, uint32 platinu
 	// Loop through the group members to split the coins.
 	for (const auto &m: members) {
 		if (m && m->IsClient()) {
+			if (share && splitter && m->CastToClient() != splitter && SSFLogic::IsAnySelfFound(m->GetSSFFlag())) {
+				continue;
+			}
+
 			Client *member_client = m->CastToClient();
 
 			// if /split is used then splitter gets the remainder + split.

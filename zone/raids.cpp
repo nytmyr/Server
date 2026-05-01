@@ -914,6 +914,10 @@ void Raid::SplitMoney(uint32 gid, uint32 copper, uint32 silver, uint32 gold, uin
 			continue;
 		}
 
+		if (splitter && m.member != splitter && SSFLogic::IsAnySelfFound(m.member->GetSSFFlag())) {
+			continue;
+		}
+
 		member_count++;
 	}
 
@@ -942,8 +946,10 @@ void Raid::SplitMoney(uint32 gid, uint32 copper, uint32 silver, uint32 gold, uin
 		auto c = GetClientByIndex(random_index);
 
 		if (c && c->IsClient() && GetGroup(c) != RAID_GROUPLESS) {
-			random_member = c;
-			break;
+			if (!splitter || (splitter && !SSFLogic::IsAnySelfFound(c->GetSSFFlag()))) {
+				random_member = c;
+				break;
+			}
 		}
 
 		++x;
@@ -955,6 +961,10 @@ void Raid::SplitMoney(uint32 gid, uint32 copper, uint32 silver, uint32 gold, uin
 
 	for (const auto& m : members) {
 		if (!m.member || !m.member->IsClient() || m.group_number == RAID_GROUPLESS) {
+			continue;
+		}
+
+		if (splitter && m.member != splitter && SSFLogic::IsAnySelfFound(m.member->GetSSFFlag())) {
 			continue;
 		}
 
