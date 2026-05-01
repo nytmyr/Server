@@ -183,6 +183,21 @@ int Perl_Group_InZoneGroupCount(Group* self) // @categories Script Utility, Grou
 {
 	return self->InZoneGroupCount();
 }
+
+uint32_t Perl_Group_GetAbsoluteAverageLevel(Group* self) // @categories Script Utility, Group
+{
+	return self->GetAbsoluteAvgLevel();
+}
+
+uint32_t Perl_Group_GetAbsoluteHighestLevel(Group* self) // @categories Script Utility, Group
+{
+	return self->GetAbsoluteHighestLevel();
+}
+
+uint32_t Perl_Group_GetAbsoluteLowestLevel(Group* self) // @categories Script Utility, Group
+{
+	return self->GetAbsoluteLowestLevel();
+}
 // VegasEQ - END
 
 void perl_register_group()
@@ -222,6 +237,9 @@ void perl_register_group()
 	// VegasEQ - START
 	package.add("GetGroupTotalGearScore", &Perl_Group_GetGroupTotalGearScore);
 	package.add("InZoneGroupCount", &Perl_Group_InZoneGroupCount);
+	package.add("GetAbsoluteAverageLevel", &Perl_Group_GetAbsoluteAverageLevel);
+	package.add("GetAbsoluteHighestLevel", &Perl_Group_GetAbsoluteHighestLevel);
+	package.add("GetAbsoluteLowestLevel", &Perl_Group_GetAbsoluteLowestLevel);
 	// VegasEQ - END
 }
 

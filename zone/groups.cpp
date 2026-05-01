@@ -2777,4 +2777,78 @@ uint8 Group::InZoneGroupCount() {
 
 	return MemberCount;
 }
+
+uint16 Group::GetAbsoluteAvgLevel()
+{
+	double levelHolder = 0;
+	uint8 i = 0;
+	uint8 numMem = 0;
+
+	while(i < MAX_GROUP_MEMBERS) {
+		if (members[i]) {
+			numMem++;
+			levelHolder = levelHolder + (members[i]->GetLevel());
+		}
+		else {
+			if(membername[i][0]) {
+				numMem++;
+				levelHolder = levelHolder + database.GetCharacterLevel(membername[i]);
+			}
+		}
+
+		i++;
+	}
+
+	levelHolder = ((levelHolder/numMem)+.5); // total levels divided by num of characters
+	return (uint16(levelHolder));
+}
+
+uint32 Group::GetAbsoluteHighestLevel()
+{
+	uint32 level = 1;
+	uint32 i;
+
+	for (i = 0; i < MAX_GROUP_MEMBERS; i++) {
+		if (members[i]) {
+			if(members[i]->GetLevel() > level) {
+				level = members[i]->GetLevel();
+			}
+		}
+		else {
+			if(membername[i][0]) {
+				auto temp_level = database.GetCharacterLevel(membername[i]);
+
+				if (temp_level > level) {
+					level = temp_level;
+				}
+			}
+		}
+	}
+
+	return level;
+}
+
+uint32 Group::GetAbsoluteLowestLevel()
+{
+	uint32 level = 255;
+	uint32 i;
+	for (i = 0; i < MAX_GROUP_MEMBERS; i++) {
+		if (members[i]) {
+			if(members[i]->GetLevel() < level) {
+				level = members[i]->GetLevel();
+			}
+		}
+		else {
+			if(membername[i][0]) {
+				auto temp_level = database.GetCharacterLevel(membername[i]);
+
+				if (temp_level < level) {
+					level = temp_level;
+				}
+			}
+		}
+	}
+
+	return level;
+}
 // VegasEQ - END

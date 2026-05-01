@@ -74,6 +74,9 @@ public:
 	// VegasEQ - START
 	float GetGroupTotalGearScore();
 	int InZoneGroupCount();
+	uint32 GetAbsoluteAverageLevel();
+	uint32 GetAbsoluteHighestLevel();
+	uint32 GetAbsoluteLowestLevel();
 	// VegasEQ - END
 };
 

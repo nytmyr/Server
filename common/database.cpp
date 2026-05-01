@@ -2264,3 +2264,24 @@ uint64_t Database::GetNextTableId(const std::string &table_name)
 
 	return 1;
 }
+
+// VegasEQ - START
+uint32 Database::GetCharacterLevel(const std::string& name)
+{
+	const auto& l = CharacterDataRepository::GetWhere(
+		*this,
+		fmt::format(
+			"`name` = '{}'",
+			Strings::Escape(name)
+		)
+	);
+
+	if (l.empty()) {
+		return 0;
+	}
+
+	auto& e = l.front();
+
+	return e.level;
+}
+// VegasEQ - END

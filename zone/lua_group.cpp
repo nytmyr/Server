@@ -176,6 +176,21 @@ int Lua_Group::InZoneGroupCount() {
 	Lua_Safe_Call_Int();
 	return self->InZoneGroupCount();
 }
+
+uint32 Lua_Group::GetAbsoluteAverageLevel() {
+	Lua_Safe_Call_Int();
+	return self->GetAbsoluteAvgLevel();
+}
+
+uint32 Lua_Group::GetAbsoluteHighestLevel() {
+	Lua_Safe_Call_Int();
+	return self->GetAbsoluteHighestLevel();
+}
+
+uint32 Lua_Group::GetAbsoluteLowestLevel() {
+	Lua_Safe_Call_Int();
+	return self->GetAbsoluteLowestLevel();
+}
 // VegasEQ - END
 
 luabind::scope lua_register_group() {
@@ -212,7 +227,10 @@ luabind::scope lua_register_group() {
 
 	// VegasEQ - START
 	.def("GetGroupTotalGearScore", (uint32(Lua_Group::*)(Lua_Mob)) & Lua_Group::GetGroupTotalGearScore)
-	.def("InZoneGroupCount", (int(Lua_Group::*)(void))&Lua_Group::InZoneGroupCount);
+	.def("InZoneGroupCount", (int(Lua_Group::*)(void))&Lua_Group::InZoneGroupCount)
+	.def("GetAbsoluteAverageLevel", (uint32(Lua_Group::*)(void))&Lua_Group::GetAbsoluteAverageLevel)
+	.def("GetAbsoluteHighestLevel", (uint32(Lua_Group::*)(void))&Lua_Group::GetAbsoluteHighestLevel)
+	.def("GetAbsoluteLowestLevel", (uint32(Lua_Group::*)(void))&Lua_Group::GetAbsoluteLowestLevel);
 	// VegasEQ - END
 }
 

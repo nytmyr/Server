@@ -263,6 +263,10 @@ public:
 
 	uint64_t GetNextTableId(const std::string& table_name);
 
+	// VegasEQ - START
+	uint32 GetCharacterLevel(const std::string& name);
+	// VegasEQ - END
+
 private:
 	std::mutex      Mvarcache;
 	VarCache_Struct varcache;

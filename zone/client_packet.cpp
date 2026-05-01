@@ -7919,20 +7919,49 @@ void Client::Handle_OP_GroupInvite2(const EQApplicationPacket *app)
 
 	if (invitee) {
 		if (invitee->IsClient()) {
+			if (SSFLogic::IsAnySoloRuleset(CastToClient()->GetSSFFlag())) { // VegasEQ
+				Message(Chat::Red, "You are following a Solo ruleset and cannot group or raid with other players");
+				return;
+			}
+
+			if (SSFLogic::IsAnySoloRuleset(invitee->CastToClient()->GetSSFFlag())) { // VegasEQ
+				Message(Chat::Red, "%s is following a Solo ruleset and cannot group or raid with other players", invitee->GetName());
+				return;
+			}
+
 			if (!RuleB(SSF, SelfFoundGroupOthersAllowed)) {
-				if (SSFLogic::IsAnySoloRuleset(CastToClient()->GetSSFFlag())) { // VegasEQ
-					Message(Chat::Red, "You are following a Solo ruleset and cannot group or raid with other players");
-					return;
-				}
-
-				if (SSFLogic::IsAnySoloRuleset(invitee->CastToClient()->GetSSFFlag())) { // VegasEQ
-					Message(Chat::Red, "%s is following a Solo ruleset and cannot group or raid with other players", invitee->GetName());
-					return;
-				}
-
 				if (SSFLogic::SelfFoundMismatch(CastToClient()->GetSSFFlag(), invitee->CastToClient()->GetSSFFlag())) { // VegasEQ
 					Message(Chat::Red, "Normal and Self Found players cannot group or raid together.");
 					return;
+				}
+
+				if (SSFLogic::IsAnyChallengeRuleset(invitee->CastToClient()->GetSSFFlag())) {
+					Group* g = GetGroup();
+					int32 hard_cap = RuleI(SSF, MaxGroupRaidLevelDifference);
+					uint8 invitee_level = invitee->GetLevel();
+					uint8 highest_level = g ? g->GetAbsoluteHighestLevel() : GetLevel();
+					uint8 lowest_level = g ? g->GetAbsoluteLowestLevel() : GetLevel();
+					int32 xp_diff = std::min(invitee_level, highest_level) - std::max(invitee_level, highest_level);
+					int32 xp_max_diff = -((std::min(invitee_level, highest_level) + 1) / 2);
+
+					if (xp_max_diff > -5) {
+						xp_max_diff = -5;
+					}
+
+					bool out_of_exp_range = xp_diff < xp_max_diff;
+					bool too_far_from_high = abs(highest_level - invitee_level) > hard_cap;
+					bool too_far_from_low = abs(lowest_level - invitee_level) > hard_cap;
+
+					LogTestDebug("Too Far For EXP = {}, Too Low LVL = {}, Too High LVL = {}", out_of_exp_range ? "true" : "false", too_far_from_low ? "true" : "false", too_far_from_high ? "true" : "false"); //deleteme
+
+					if (out_of_exp_range || too_far_from_high || too_far_from_low) {
+						Message(Chat::Red,
+						fmt::format("Players following a challenge ruleset must be within the eligible experience level or a max of {} levels of one another to group or raid.",
+								RuleI(SSF, MaxGroupRaidLevelDifference)
+							).c_str()
+						);
+						return;
+					}
 				}
 			}
 
@@ -13017,15 +13046,49 @@ void Client::Handle_OP_RaidCommand(const EQApplicationPacket* app)
 				break;
 			}
 
-			if (!RuleB(SSF, SelfFoundRaidOthersAllowed)) {
-				if (SSFLogic::IsAnySoloRuleset(GetSSFFlag())) { // VegasEQ
-					Message(Chat::Red, "You are following a Solo ruleset and cannot group or raid with other players");
-					break;
+			if (SSFLogic::IsAnySoloRuleset(GetSSFFlag())) { // VegasEQ
+				Message(Chat::Red, "You are following a Solo ruleset and cannot group or raid with other players");
+				break;
+			}
+
+			if (SSFLogic::IsAnySoloRuleset(player_to_invite->GetSSFFlag())) { // VegasEQ
+				Message(Chat::Red, "%s is following a Solo ruleset and cannot group or raid with other players", player_to_invite->GetName());
+				break;
+			}
+
+			if (!RuleB(SSF, SelfFoundRaidOthersAllowed)) { // VegasEQ
+				if (SSFLogic::SelfFoundMismatch(GetSSFFlag(), player_to_invite->GetSSFFlag())) {
+					Message(Chat::Red, "Normal and Self Found players cannot group or raid together.");
+					return;
+				}
+			}
+
+			if (SSFLogic::IsAnyChallengeRuleset(player_to_invite->GetSSFFlag())) {
+				Raid* r = GetRaid();
+				int32 hard_cap = RuleI(SSF, MaxGroupRaidLevelDifference);
+				uint8 invitee_level = player_to_invite->GetLevel();
+				uint8 highest_level = r ? r->GetHighestLevel() : GetLevel();
+				uint8 lowest_level = r ? r->GetLowestLevel() : GetLevel();
+				int32 xp_diff = std::min(invitee_level, highest_level) - std::max(invitee_level, highest_level);
+				int32 xp_max_diff = -((std::min(invitee_level, highest_level) + 1) / 2);
+
+				if (xp_max_diff > -5) {
+					xp_max_diff = -5;
 				}
 
-				if (SSFLogic::IsAnySoloRuleset(player_to_invite->GetSSFFlag())) { // VegasEQ
-					Message(Chat::Red, "%s is following a Solo ruleset and cannot group or raid with other players", player_to_invite->GetName());
-					break;
+				bool out_of_exp_range = xp_diff < xp_max_diff;
+				bool too_far_from_high = abs(highest_level - invitee_level) > hard_cap;
+				bool too_far_from_low = abs(lowest_level - invitee_level) > hard_cap;
+
+				LogTestDebug("Too Far For EXP = {}, Too Low LVL = {}, Too High LVL = {}", out_of_exp_range ? "true" : "false", too_far_from_low ? "true" : "false", too_far_from_high ? "true" : "false"); //deleteme
+
+				if (out_of_exp_range || too_far_from_high || too_far_from_low) {
+					Message(Chat::Red,
+						fmt::format("Players following a challenge ruleset must be within the eligible experience level or a max of {} levels of one another to group or raid.",
+							RuleI(SSF, MaxGroupRaidLevelDifference)
+						).c_str()
+					);
+					return;
 				}
 			}
 
@@ -13044,13 +13107,6 @@ void Client::Handle_OP_RaidCommand(const EQApplicationPacket* app)
 			if (player_to_invite_group && !player_to_invite_group->IsLeader(player_to_invite)) {
 				Message(Chat::Red, "You can only invite an ungrouped player or group leader to join your raid.");
 				break;
-			}
-
-			if (!RuleB(SSF, SelfFoundRaidOthersAllowed)) {
-				if (SSFLogic::SelfFoundMismatch(GetSSFFlag(), player_to_invite->GetSSFFlag())) { // VegasEQ
-					Message(Chat::Red, "Normal and Self Found players cannot group or raid together.");
-					return;
-				}
 			}
 
 			/* Send out invite to the client */

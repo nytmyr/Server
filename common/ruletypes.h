@@ -1495,6 +1495,7 @@ RULE_BOOL(SSF, SelfFoundDiscoveredItemsEnabled, true, "If enabled, players follo
 RULE_BOOL(SSF, SelfFoundSharedBankAllowed, false, "If enabled, Self Found players can use the Shared Bank. Default False.")
 RULE_BOOL(SSF, SelfFoundSharedBankPlatinumAllowed, false, "If enabled, Self Found players can use the Shared Bank Platinum. Default False.")
 RULE_INT(SSF, HardcoreDeathZoneID, 184, "Zone players will be sent to if they die while following the Hardcore challenge ruleset. Default 184 (load)")
+RULE_INT(SSF, MaxGroupRaidLevelDifference, 10, "Maximum level difference between the invitee and the inviter or highest level in the group or raid allowed for challenge ruleset players. Default 10.")
 
 RULE_CATEGORY_END()
 
