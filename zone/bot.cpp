@@ -8805,6 +8805,8 @@ bool Bot::AddBotSpellSetting(uint16 spell_id, BotSpellSetting* bs)
 	s.bot_id = GetBotID();
 
 	s.priority = bs->priority;
+	s.min_level = bs->min_level;
+	s.max_level = bs->max_level;
 	s.min_hp = bs->min_hp;
 	s.max_hp = bs->max_hp;
 	s.is_enabled = bs->is_enabled;
@@ -8881,7 +8883,8 @@ void Bot::ListBotSpells(uint8 min_level)
 		if (
 			b == bot_spell_settings.end() &&
 			s.minlevel >= min_level &&
-			CanUseBotSpell(s.spellid)
+			s.minlevel <= GetLevel() &&
+			s.maxlevel >= GetLevel()
 		) {
 			bot_owner->Message(
 				Chat::White,
@@ -8936,7 +8939,10 @@ void Bot::ListBotSpellSettings()
 	auto setting_number = 1;
 
 	for (const auto& bs : bot_spell_settings) {
-		if (CanUseBotSpell(bs.first)) {
+		if (
+			bs.second.min_level <= GetLevel() &&
+			bs.second.max_level >= GetLevel()
+		) {
 			bot_owner->Message(
 				Chat::White,
 				fmt::format(
@@ -8981,6 +8987,8 @@ void Bot::LoadBotSpellSettings()
 		BotSpellSetting b;
 
 		b.priority = e.priority;
+		b.min_level = e.min_level;
+		b.max_level = e.max_level;
 		b.min_hp = e.min_hp;
 		b.max_hp = e.max_hp;
 		b.is_enabled = e.is_enabled;
@@ -8999,6 +9007,8 @@ bool Bot::UpdateBotSpellSetting(uint16 spell_id, BotSpellSetting* bs)
 	s.spell_id = spell_id;
 	s.bot_id = GetBotID();
 	s.priority = bs->priority;
+	s.min_level = bs->min_level;
+	s.max_level = bs->max_level;
 	s.min_hp = bs->min_hp;
 	s.max_hp = bs->max_hp;
 	s.is_enabled = bs->is_enabled;
@@ -13063,6 +13073,8 @@ void Bot::CopyBotSpellSettings(Bot* to)
 		BotSpellSetting b;
 
 		b.priority = e.priority;
+		b.min_level = e.min_level;
+		b.max_level = e.max_level;
 		b.min_hp = e.min_hp;
 		b.max_hp = e.max_hp;
 		b.is_enabled = e.is_enabled;

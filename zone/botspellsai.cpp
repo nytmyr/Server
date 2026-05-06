@@ -2915,3 +2915,23 @@ BotSpell Bot::GetBestBotSpellForCharm(Bot* caster, Mob* target, uint16 spell_typ
 
 	return result;
 }
+
+BotSpells Bot::GetBotSpellBySpellID(uint16 spell_id) {
+	BotSpells spell;
+
+	if (AIBot_spells.empty()) {
+		return spell;
+	}
+
+	for (const auto& s : AIBot_spells) {
+		if (!IsValidSpell(s.spellid)) {
+			return spell;
+		}
+
+		if (s.spellid != spell_id) {
+			continue;
+		}
+
+		return s;
+	}
+}

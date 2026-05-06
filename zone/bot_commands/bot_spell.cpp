@@ -25,7 +25,7 @@ void bot_command_spell_list(Client* c, const Seperator *sep)
 
 	if (helper_is_help_or_usage(sep->arg[1])) {
 		c->Message(
-			Chat::White,
+			Chat::Yellow,
 			fmt::format(
 				"Usage: {} [Min Level] (Level is optional)",
 				sep->arg[0]
@@ -36,7 +36,7 @@ void bot_command_spell_list(Client* c, const Seperator *sep)
 
 	auto my_bot = ActionableBots::AsTarget_ByBot(c);
 	if (!my_bot) {
-		c->Message(Chat::White, "You must target a bot that you own to use this command.");
+		c->Message(Chat::Yellow, "You must target a bot that you own to use this command.");
 		return;
 	}
 
@@ -94,7 +94,7 @@ void bot_command_spell_settings_add(Client *c, const Seperator *sep)
 
 	if (!IsValidSpell(spell_id)) {
 		c->Message(
-			Chat::White,
+			Chat::Yellow,
 			fmt::format(
 				"Spell ID {} is invalid or could not be found.",
 				spell_id
@@ -103,9 +103,20 @@ void bot_command_spell_settings_add(Client *c, const Seperator *sep)
 		return;
 	}
 
+	if (!my_bot->CanUseBotSpell(spell_id)) {
+		c->Message(
+			Chat::Yellow,
+			fmt::format(
+				"Spell ID {} is not usable by your bot, ensure it's not disabled via Spell Settings if it should be usable.",
+				spell_id
+			).c_str()
+		);
+		return;
+	}
+
 	if (my_bot->GetBotSpellSetting(spell_id)) {
 		c->Message(
-			Chat::White,
+			Chat::Yellow,
 			fmt::format(
 				"{} already has a spell setting for {} ({}), trying using {} instead.",
 				my_bot->GetCleanName(),
@@ -121,15 +132,21 @@ void bot_command_spell_settings_add(Client *c, const Seperator *sep)
 	auto min_hp = static_cast<int8>(EQ::Clamp(Strings::ToInt(sep->arg[3]), -1, 99));
 	auto max_hp = static_cast<int8>(EQ::Clamp(Strings::ToInt(sep->arg[4]), -1, 100));
 
+	BotSpells spell = my_bot->GetBotSpellBySpellID(spell_id);
 	BotSpellSetting bs;
 
 	bs.priority = priority;
 	bs.min_hp = min_hp;
 	bs.max_hp = max_hp;
 
+	if (IsValidSpell(spell.spellid)) {
+		bs.min_level = spell.minlevel;
+		bs.max_level = spell.maxlevel;
+	}
+
 	if (!my_bot->AddBotSpellSetting(spell_id, &bs)) {
 		c->Message(
-			Chat::White,
+			Chat::Yellow,
 			fmt::format(
 				"Failed to add spell setting for {}.",
 				my_bot->GetCleanName()
@@ -175,7 +192,7 @@ void bot_command_spell_settings_delete(Client *c, const Seperator *sep)
 
 	if (helper_is_help_or_usage(sep->arg[1])) {
 		c->Message(
-			Chat::White,
+			Chat::Yellow,
 			fmt::format(
 				"Usage: {} [Spell ID]",
 				sep->arg[0]
@@ -186,7 +203,7 @@ void bot_command_spell_settings_delete(Client *c, const Seperator *sep)
 
 	auto my_bot = ActionableBots::AsTarget_ByBot(c);
 	if (!my_bot) {
-		c->Message(Chat::White, "You must target a bot that you own to use this command.");
+		c->Message(Chat::Yellow, "You must target a bot that you own to use this command.");
 		return;
 	}
 
@@ -196,7 +213,7 @@ void bot_command_spell_settings_delete(Client *c, const Seperator *sep)
 		!sep->IsNumber(1)
 		) {
 		c->Message(
-			Chat::White,
+			Chat::Yellow,
 			fmt::format(
 				"Usage: {} [Spell ID]",
 				sep->arg[0]
@@ -209,7 +226,7 @@ void bot_command_spell_settings_delete(Client *c, const Seperator *sep)
 
 	if (!IsValidSpell(spell_id)) {
 		c->Message(
-			Chat::White,
+			Chat::Yellow,
 			fmt::format(
 				"Spell ID {} is invalid or could not be found.",
 				spell_id
@@ -220,7 +237,7 @@ void bot_command_spell_settings_delete(Client *c, const Seperator *sep)
 
 	if (!my_bot->DeleteBotSpellSetting(spell_id)) {
 		c->Message(
-			Chat::White,
+			Chat::Yellow,
 			fmt::format(
 				"Failed to delete spell setting for {}.",
 				my_bot->GetCleanName()
@@ -257,7 +274,7 @@ void bot_command_spell_settings_list(Client *c, const Seperator *sep)
 
 	if (helper_is_help_or_usage(sep->arg[1])) {
 		c->Message(
-			Chat::White,
+			Chat::Yellow,
 			fmt::format(
 				"Usage: {}",
 				sep->arg[0]
@@ -268,7 +285,7 @@ void bot_command_spell_settings_list(Client *c, const Seperator *sep)
 
 	auto my_bot = ActionableBots::AsTarget_ByBot(c);
 	if (!my_bot) {
-		c->Message(Chat::White, "You must target a bot that you own to use this command.");
+		c->Message(Chat::Yellow, "You must target a bot that you own to use this command.");
 		return;
 	}
 
@@ -283,7 +300,7 @@ void bot_command_spell_settings_toggle(Client *c, const Seperator *sep)
 
 	if (helper_is_help_or_usage(sep->arg[1])) {
 		c->Message(
-			Chat::White,
+			Chat::Yellow,
 			fmt::format(
 				"Usage: {} [Spell ID] [Toggle]",
 				sep->arg[0]
@@ -294,7 +311,7 @@ void bot_command_spell_settings_toggle(Client *c, const Seperator *sep)
 
 	auto my_bot = ActionableBots::AsTarget_ByBot(c);
 	if (!my_bot) {
-		c->Message(Chat::White, "You must target a bot that you own to use this command.");
+		c->Message(Chat::Yellow, "You must target a bot that you own to use this command.");
 		return;
 	}
 
@@ -304,7 +321,7 @@ void bot_command_spell_settings_toggle(Client *c, const Seperator *sep)
 		!sep->IsNumber(1)
 		) {
 		c->Message(
-			Chat::White,
+			Chat::Yellow,
 			fmt::format(
 				"Usage: {} [Spell ID] [Toggle]",
 				sep->arg[0]
@@ -316,7 +333,7 @@ void bot_command_spell_settings_toggle(Client *c, const Seperator *sep)
 	auto spell_id = static_cast<uint16>(Strings::ToUnsignedInt(sep->arg[1]));
 	if (!IsValidSpell(spell_id)) {
 		c->Message(
-			Chat::White,
+			Chat::Yellow,
 			fmt::format(
 				"Spell ID {} is invalid or could not be found.",
 				spell_id
@@ -339,13 +356,15 @@ void bot_command_spell_settings_toggle(Client *c, const Seperator *sep)
 	BotSpellSetting bs;
 
 	bs.priority = obs->priority;
+	bs.min_level = obs->min_level;
+	bs.max_level = obs->max_level;
 	bs.min_hp = obs->min_hp;
 	bs.max_hp = obs->max_hp;
 	bs.is_enabled = toggle;
 
 	if (!my_bot->UpdateBotSpellSetting(spell_id, &bs)) {
 		c->Message(
-			Chat::White,
+			Chat::Yellow,
 			fmt::format(
 				"Failed to {}able spell for {}.",
 				toggle ? "en" : "dis",
@@ -385,7 +404,7 @@ void bot_command_spell_settings_update(Client *c, const Seperator *sep)
 
 	if (helper_is_help_or_usage(sep->arg[1])) {
 		c->Message(
-			Chat::White,
+			Chat::Yellow,
 			fmt::format(
 				"Usage: {} [Spell ID] [Priority] [Min HP] [Max HP]",
 				sep->arg[0]
@@ -396,7 +415,7 @@ void bot_command_spell_settings_update(Client *c, const Seperator *sep)
 
 	auto my_bot = ActionableBots::AsTarget_ByBot(c);
 	if (!my_bot) {
-		c->Message(Chat::White, "You must target a bot that you own to use this command.");
+		c->Message(Chat::Yellow, "You must target a bot that you own to use this command.");
 		return;
 	}
 
@@ -409,7 +428,7 @@ void bot_command_spell_settings_update(Client *c, const Seperator *sep)
 		!sep->IsNumber(4)
 		) {
 		c->Message(
-			Chat::White,
+			Chat::Yellow,
 			fmt::format(
 				"Usage: {} [Spell ID] [Priority] [Min HP] [Max HP]",
 				sep->arg[0]
@@ -422,7 +441,7 @@ void bot_command_spell_settings_update(Client *c, const Seperator *sep)
 
 	if (!IsValidSpell(spell_id)) {
 		c->Message(
-			Chat::White,
+			Chat::Yellow,
 			fmt::format(
 				"Spell ID {} is invalid or could not be found.",
 				spell_id
@@ -435,15 +454,21 @@ void bot_command_spell_settings_update(Client *c, const Seperator *sep)
 	auto min_hp = static_cast<int8>(EQ::Clamp(Strings::ToInt(sep->arg[3]), -1, 99));
 	auto max_hp = static_cast<int8>(EQ::Clamp(Strings::ToInt(sep->arg[4]), -1, 100));
 
+	BotSpells spell = my_bot->GetBotSpellBySpellID(spell_id);
 	BotSpellSetting bs;
 
 	bs.priority = priority;
 	bs.min_hp = min_hp;
 	bs.max_hp = max_hp;
 
+	if (IsValidSpell(spell.spellid)) {
+		bs.min_level = spell.minlevel;
+		bs.max_level = spell.maxlevel;
+	}
+
 	if (!my_bot->UpdateBotSpellSetting(spell_id, &bs)) {
 		c->Message(
-			Chat::White,
+			Chat::Yellow,
 			fmt::format(
 				"Failed to update spell setting for {}.",
 				my_bot->GetCleanName()
@@ -493,7 +518,7 @@ void bot_spell_info_dialogue_window(Client* c, const Seperator *sep)
 		!sep->IsNumber(1)
 		) {
 		c->Message(
-			Chat::White,
+			Chat::Yellow,
 			fmt::format(
 				"Usage: {} [Spell ID]",
 				sep->arg[0]
@@ -504,7 +529,7 @@ void bot_spell_info_dialogue_window(Client* c, const Seperator *sep)
 
 	auto my_bot = ActionableBots::AsTarget_ByBot(c);
 	if (!my_bot) {
-		c->Message(Chat::White, "You must target a bot that you own to use this command.");
+		c->Message(Chat::Yellow, "You must target a bot that you own to use this command.");
 		return;
 	}
 
@@ -513,7 +538,7 @@ void bot_spell_info_dialogue_window(Client* c, const Seperator *sep)
 	auto class_level = min_level[my_bot->GetBotClass() - 1];
 
 	if (class_level > my_bot->GetLevel()) {
-		c->Message(Chat::White, "This is not a usable spell by your bot.");
+		c->Message(Chat::Yellow, "This is not a usable spell by your bot.");
 		return;
 	}
 
@@ -525,7 +550,7 @@ void bot_spell_info_dialogue_window(Client* c, const Seperator *sep)
 	);
 
 	if (!results.Success() || !results.RowCount()) {
-		c->Message(Chat::White, "No Spell Information Available for this.");
+		c->Message(Chat::Yellow, "No Spell Information Available for this.");
 		return;
 	}
 
@@ -558,7 +583,7 @@ void bot_command_enforce_spell_list(Client* c, const Seperator *sep)
 
 	if (helper_is_help_or_usage(sep->arg[1])) {
 		c->Message(
-			Chat::White,
+			Chat::Yellow,
 			fmt::format(
 				"Usage: {} [True|False] (Blank to toggle]",
 				sep->arg[0]
@@ -569,7 +594,7 @@ void bot_command_enforce_spell_list(Client* c, const Seperator *sep)
 
 	auto my_bot = ActionableBots::AsTarget_ByBot(c);
 	if (!my_bot) {
-		c->Message(Chat::White, "You must target a bot that you own to use this command.");
+		c->Message(Chat::Yellow, "You must target a bot that you own to use this command.");
 		return;
 	}
 

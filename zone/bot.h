@@ -1091,6 +1091,7 @@ public:
 	void SetExpansionBitmask(int expansionBitmask);
 
 	void ListBotSpells(uint8 min_level);
+	BotSpells GetBotSpellBySpellID(uint16 spell_id);
 
 	std::string GetHPString(int8 min_hp, int8 max_hp);
 

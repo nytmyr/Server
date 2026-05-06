@@ -1194,6 +1194,25 @@ ALTER TABLE `merchantlist`
 )",
 		.content_schema_update = false,
 	},
+	ManifestEntry{
+		.version = 19,
+		.description = "2026_5_5_add_min_max_level_bot_spell_settings",
+		.check = "SHOW COLUMNS FROM `bot_spell_settings` LIKE 'min_level'",
+		.condition = "empty",
+		.match = "",
+		.sql = R"(
+ALTER TABLE `bot_spell_settings`
+	ADD COLUMN `min_level` SMALLINT(5) NOT NULL DEFAULT '0' AFTER `priority`,
+	ADD COLUMN `max_level` SMALLINT(5) NOT NULL DEFAULT '0' AFTER `min_level`;
+
+UPDATE bot_spell_settings b, bot_spells_entries bs, bot_data bd
+SET b.min_level = bs.minlevel, b.max_level = bs.maxlevel
+WHERE b.bot_id = bd.bot_id
+AND bd.spells_id = bs.npc_spells_id
+AND b.spell_id = bs.spell_id;
+)",
+		.content_schema_update = false,
+	},
 // Used for testing
 //	ManifestEntry{
 //		.version = 9229,

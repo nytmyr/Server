@@ -1,20 +1,3 @@
-/*	EQEmu: EQEmulator
-
-	Copyright (C) 2001-2026 EQEmu Development Team
-
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 3 of the License, or
-	(at your option) any later version.
-
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 /**
  * DO NOT MODIFY THIS FILE
  *
@@ -40,6 +23,8 @@ public:
 		int32_t  bot_id;
 		int16_t  spell_id;
 		int16_t  priority;
+		int16_t  min_level;
+		int16_t  max_level;
 		int16_t  min_hp;
 		int16_t  max_hp;
 		uint8_t  is_enabled;
@@ -57,6 +42,8 @@ public:
 			"bot_id",
 			"spell_id",
 			"priority",
+			"min_level",
+			"max_level",
 			"min_hp",
 			"max_hp",
 			"is_enabled",
@@ -70,6 +57,8 @@ public:
 			"bot_id",
 			"spell_id",
 			"priority",
+			"min_level",
+			"max_level",
 			"min_hp",
 			"max_hp",
 			"is_enabled",
@@ -117,6 +106,8 @@ public:
 		e.bot_id     = 0;
 		e.spell_id   = 0;
 		e.priority   = 0;
+		e.min_level  = 0;
+		e.max_level  = 0;
 		e.min_hp     = 0;
 		e.max_hp     = 0;
 		e.is_enabled = 1;
@@ -160,9 +151,11 @@ public:
 			e.bot_id     = row[1] ? static_cast<int32_t>(atoi(row[1])) : 0;
 			e.spell_id   = row[2] ? static_cast<int16_t>(atoi(row[2])) : 0;
 			e.priority   = row[3] ? static_cast<int16_t>(atoi(row[3])) : 0;
-			e.min_hp     = row[4] ? static_cast<int16_t>(atoi(row[4])) : 0;
-			e.max_hp     = row[5] ? static_cast<int16_t>(atoi(row[5])) : 0;
-			e.is_enabled = row[6] ? static_cast<uint8_t>(strtoul(row[6], nullptr, 10)) : 1;
+			e.min_level  = row[4] ? static_cast<int16_t>(atoi(row[4])) : 0;
+			e.max_level  = row[5] ? static_cast<int16_t>(atoi(row[5])) : 0;
+			e.min_hp     = row[6] ? static_cast<int16_t>(atoi(row[6])) : 0;
+			e.max_hp     = row[7] ? static_cast<int16_t>(atoi(row[7])) : 0;
+			e.is_enabled = row[8] ? static_cast<uint8_t>(strtoul(row[8], nullptr, 10)) : 1;
 
 			return e;
 		}
@@ -199,9 +192,11 @@ public:
 		v.push_back(columns[1] + " = " + std::to_string(e.bot_id));
 		v.push_back(columns[2] + " = " + std::to_string(e.spell_id));
 		v.push_back(columns[3] + " = " + std::to_string(e.priority));
-		v.push_back(columns[4] + " = " + std::to_string(e.min_hp));
-		v.push_back(columns[5] + " = " + std::to_string(e.max_hp));
-		v.push_back(columns[6] + " = " + std::to_string(e.is_enabled));
+		v.push_back(columns[4] + " = " + std::to_string(e.min_level));
+		v.push_back(columns[5] + " = " + std::to_string(e.max_level));
+		v.push_back(columns[6] + " = " + std::to_string(e.min_hp));
+		v.push_back(columns[7] + " = " + std::to_string(e.max_hp));
+		v.push_back(columns[8] + " = " + std::to_string(e.is_enabled));
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -227,6 +222,8 @@ public:
 		v.push_back(std::to_string(e.bot_id));
 		v.push_back(std::to_string(e.spell_id));
 		v.push_back(std::to_string(e.priority));
+		v.push_back(std::to_string(e.min_level));
+		v.push_back(std::to_string(e.max_level));
 		v.push_back(std::to_string(e.min_hp));
 		v.push_back(std::to_string(e.max_hp));
 		v.push_back(std::to_string(e.is_enabled));
@@ -263,6 +260,8 @@ public:
 			v.push_back(std::to_string(e.bot_id));
 			v.push_back(std::to_string(e.spell_id));
 			v.push_back(std::to_string(e.priority));
+			v.push_back(std::to_string(e.min_level));
+			v.push_back(std::to_string(e.max_level));
 			v.push_back(std::to_string(e.min_hp));
 			v.push_back(std::to_string(e.max_hp));
 			v.push_back(std::to_string(e.is_enabled));
@@ -303,9 +302,11 @@ public:
 			e.bot_id     = row[1] ? static_cast<int32_t>(atoi(row[1])) : 0;
 			e.spell_id   = row[2] ? static_cast<int16_t>(atoi(row[2])) : 0;
 			e.priority   = row[3] ? static_cast<int16_t>(atoi(row[3])) : 0;
-			e.min_hp     = row[4] ? static_cast<int16_t>(atoi(row[4])) : 0;
-			e.max_hp     = row[5] ? static_cast<int16_t>(atoi(row[5])) : 0;
-			e.is_enabled = row[6] ? static_cast<uint8_t>(strtoul(row[6], nullptr, 10)) : 1;
+			e.min_level  = row[4] ? static_cast<int16_t>(atoi(row[4])) : 0;
+			e.max_level  = row[5] ? static_cast<int16_t>(atoi(row[5])) : 0;
+			e.min_hp     = row[6] ? static_cast<int16_t>(atoi(row[6])) : 0;
+			e.max_hp     = row[7] ? static_cast<int16_t>(atoi(row[7])) : 0;
+			e.is_enabled = row[8] ? static_cast<uint8_t>(strtoul(row[8], nullptr, 10)) : 1;
 
 			all_entries.push_back(e);
 		}
@@ -334,9 +335,11 @@ public:
 			e.bot_id     = row[1] ? static_cast<int32_t>(atoi(row[1])) : 0;
 			e.spell_id   = row[2] ? static_cast<int16_t>(atoi(row[2])) : 0;
 			e.priority   = row[3] ? static_cast<int16_t>(atoi(row[3])) : 0;
-			e.min_hp     = row[4] ? static_cast<int16_t>(atoi(row[4])) : 0;
-			e.max_hp     = row[5] ? static_cast<int16_t>(atoi(row[5])) : 0;
-			e.is_enabled = row[6] ? static_cast<uint8_t>(strtoul(row[6], nullptr, 10)) : 1;
+			e.min_level  = row[4] ? static_cast<int16_t>(atoi(row[4])) : 0;
+			e.max_level  = row[5] ? static_cast<int16_t>(atoi(row[5])) : 0;
+			e.min_hp     = row[6] ? static_cast<int16_t>(atoi(row[6])) : 0;
+			e.max_hp     = row[7] ? static_cast<int16_t>(atoi(row[7])) : 0;
+			e.is_enabled = row[8] ? static_cast<uint8_t>(strtoul(row[8], nullptr, 10)) : 1;
 
 			all_entries.push_back(e);
 		}
@@ -415,6 +418,8 @@ public:
 		v.push_back(std::to_string(e.bot_id));
 		v.push_back(std::to_string(e.spell_id));
 		v.push_back(std::to_string(e.priority));
+		v.push_back(std::to_string(e.min_level));
+		v.push_back(std::to_string(e.max_level));
 		v.push_back(std::to_string(e.min_hp));
 		v.push_back(std::to_string(e.max_hp));
 		v.push_back(std::to_string(e.is_enabled));
@@ -444,6 +449,8 @@ public:
 			v.push_back(std::to_string(e.bot_id));
 			v.push_back(std::to_string(e.spell_id));
 			v.push_back(std::to_string(e.priority));
+			v.push_back(std::to_string(e.min_level));
+			v.push_back(std::to_string(e.max_level));
 			v.push_back(std::to_string(e.min_hp));
 			v.push_back(std::to_string(e.max_hp));
 			v.push_back(std::to_string(e.is_enabled));
