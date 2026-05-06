@@ -4413,6 +4413,10 @@ void Mob::CommonDamage(Mob* attacker, int64 &damage, const uint16 spell_id, cons
 					SetHP(-500);
 				}
 
+				if (IsClient()) { //VegasEQ
+					CastToClient()->SetAntiCheatExempt();
+				}
+
 				// killedByType is clarified in Client::Death if we are client.
 				if (Death(attacker, damage, spell_id, skill_used, KilledByTypes::Killed_NPC, iBuffTic)) {
 					return;
