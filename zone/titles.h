@@ -42,6 +42,11 @@ public:
 	bool HasTitle(Client* c, uint32 title_id);
 	inline const std::vector<TitlesRepository::Titles>& GetTitles() { return titles; }
 
+	// VegasEQ - START
+	std::string GetSetPrefix(int title_set);
+	std::string GetSetSuffix(int title_set);
+	// VegasEQ - END
+
 protected:
 	std::vector<TitlesRepository::Titles> titles;
 };

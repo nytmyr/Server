@@ -394,3 +394,39 @@ void Client::RemoveTitle(int title_set)
 		)
 	);
 }
+
+// VegasEQ - START
+std::string TitleManager::GetSetPrefix(int title_set)
+{
+	if (!title_set) {
+		return "";
+	}
+
+	auto e = std::find_if(
+		titles.begin(),
+		titles.end(),
+		[title_set](const auto& t) {
+			return t.title_set == title_set;
+		}
+	);
+
+	return e != titles.end() ? e->prefix : "";
+}
+
+std::string TitleManager::GetSetSuffix(int title_set)
+{
+	if (!title_set) {
+		return "";
+	}
+
+	auto e = std::find_if(
+		titles.begin(),
+		titles.end(),
+		[title_set](const auto& t) {
+			return t.title_set == title_set;
+		}
+	);
+
+	return e != titles.end() ? e->suffix : "";
+}
+// VegasEQ - END

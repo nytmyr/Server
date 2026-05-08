@@ -49,6 +49,8 @@
 #include <map>
 #include <sstream>
 
+#include "titles.h"
+
 struct Events { };
 struct Factions { };
 struct Slots { };
@@ -6048,6 +6050,22 @@ bool lua_IsItemRaidOnly(uint32 item_id) {
 	return 0.0f;
 }
 
+std::string lua_GetTitlePrefix(int title_id) {
+	return title_manager.GetPrefix(title_id);
+}
+
+std::string lua_GetTitleSuffix(int title_id) {
+	return title_manager.GetSuffix(title_id);
+}
+
+std::string lua_GetTitleSetPrefix(int title_set) {
+	return title_manager.GetSetPrefix(title_set);
+}
+
+std::string lua_GetTitleSetSuffix(int title_set) {
+	return title_manager.GetSetSuffix(title_set);
+}
+
 // SSF
 bool lua_IsAnyChallengeRuleset(uint8 flag) {
 	return SSFLogic::IsAnyChallengeRuleset(flag);
@@ -7050,6 +7068,10 @@ luabind::scope lua_register_general() {
 		luabind::def("GetVegasItem", &lua_GetVegasItem),
 		luabind::def("IsItemLore", &lua_IsItemLore),
 		luabind::def("IsItemRaidOnly", &lua_IsItemRaidOnly),
+		luabind::def("GetTitlePrefix", &lua_GetTitlePrefix),
+		luabind::def("GetTitleSuffix", &lua_GetTitleSuffix),
+		luabind::def("GetTitleSetPrefix", &lua_GetTitleSetPrefix),
+		luabind::def("GetTitleSetSuffix", &lua_GetTitleSetSuffix),
 
 		//SSF
 		luabind::def("IsAnyChallengeRuleset", &lua_IsAnyChallengeRuleset),

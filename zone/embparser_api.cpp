@@ -35,6 +35,8 @@
 
 #include <cctype>
 
+#include "titles.h"
+
 extern Zone      *zone;
 extern QueryServ *QServ;
 extern WorldServer worldserver;
@@ -6182,6 +6184,22 @@ bool Perl__IsItemRaidOnly(uint32 item_id) {
 	return 0.0f;
 }
 
+std::string Perl__GetTitlePrefix(int title_id) {
+	return title_manager.GetPrefix(title_id);
+}
+
+std::string Perl__GetTitleSuffix(int title_id) {
+	return title_manager.GetSuffix(title_id);
+}
+
+std::string Perl__GetTitleSetPrefix(int title_set) {
+	return title_manager.GetSetPrefix(title_set);
+}
+
+std::string Perl__GetTitleSetSuffix(int title_set) {
+	return title_manager.GetSetSuffix(title_set);
+}
+
 // SSF
 bool Perl__IsAnyChallengeRuleset(uint8 flag) {
 	return SSFLogic::IsAnyChallengeRuleset(flag);
@@ -7242,6 +7260,10 @@ void perl_register_quest()
 	package.add("GetVegasItem", &Perl__GetVegasItem);
 	package.add("IsItemLore", &Perl__IsItemLore);
 	package.add("IsItemRaidOnly", &Perl__IsItemRaidOnly);
+	package.add("GetTitlePrefix", &Perl__GetTitlePrefix);
+	package.add("GetTitleSuffix", &Perl__GetTitleSuffix);
+	package.add("GetTitleSetPrefix", &Perl__GetTitleSetPrefix);
+	package.add("GetTitleSetSuffix", &Perl__GetTitleSetSuffix);
 
 	// SSF
 	package.add("IsAnyChallengeRuleset", &Perl__IsAnyChallengeRuleset);
