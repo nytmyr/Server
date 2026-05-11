@@ -14287,12 +14287,6 @@ void Client::Handle_OP_RequestDuel(const EQApplicationPacket *app)
 		return;
 	}
 
-	if (SSFLogic::IsHardcore(GetSSFFlag()) || entity->IsClient() && SSFLogic::IsHardcore(entity->CastToClient()->GetSSFFlag())) { // VegasEQ
-		Message(Chat::Red, "Hardcore players cannot be challenged to a duel.");
-		safe_delete(outapp);
-		return;
-	}
-
 	if (
 		GetID() != ds->duel_target &&
 		entity->IsClient() &&

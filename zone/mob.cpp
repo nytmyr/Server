@@ -8982,7 +8982,10 @@ bool Mob::IsValidSSFTarget(Mob* initiator, Mob* target, uint8 flag_type) {
 
 		if (t) {
 			if (SSFLogic::IsAnyChallengeRuleset(c_ssf_flag) || SSFLogic::IsAnyChallengeRuleset(t->GetSSFFlag())) {
-				if (!c->IsInGroupOrRaid(t)) {
+				bool is_pvp = c->GetPVP() && t->GetPVP();
+				bool is_dueling = c->IsDueling() && t->IsDueling() && c->duel_target == t->GetID();
+
+				if (!is_pvp && !is_dueling && !c->IsInGroupOrRaid(t)) {
 					return false;
 				}
 			}

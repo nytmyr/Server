@@ -1928,6 +1928,8 @@ bool Client::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::Skil
 		GetMerc()->Suspend();
 	}
 
+	bool was_dueling = false;
+
 	if (killer_mob) {
 		parse->EventBotMercNPC(EVENT_SLAY, killer_mob, this);
 
@@ -1946,6 +1948,7 @@ bool Client::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::Skil
 			killer_mob->IsClient() &&
 			(IsDueling() || killer_mob->CastToClient()->IsDueling())
 		) {
+			was_dueling = true;
 			SetDueling(false);
 			SetDuelTarget(0);
 			if (
@@ -1985,7 +1988,7 @@ bool Client::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::Skil
 	bool leave_corpse = false;
 	Corpse* new_corpse = nullptr;
 
-	if (!SSFLogic::IsHardcore(GetSSFFlag()) && zone->GetZoneID() != Zones::ARENA) {
+	if (!was_dueling && !SSFLogic::IsHardcore(GetSSFFlag()) && zone->GetZoneID() != Zones::ARENA) {
 		// figure out if they should lose exp
 		if (RuleB(Character, UseDeathExpLossMult)) {
 			float exp_losses[] = { 0.005f, 0.015f, 0.025f, 0.035f, 0.045f, 0.055f, 0.065f, 0.075f, 0.085f, 0.095f, 0.110f };
@@ -2172,7 +2175,7 @@ bool Client::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::Skil
 
 		dead_timer.Start(5000, true);
 
-		if (SSFLogic::IsHardcore(GetSSFFlag()) && zone->GetZoneID() != Zones::ARENA) {
+		if (!was_dueling && SSFLogic::IsHardcore(GetSSFFlag()) && zone->GetZoneID() != Zones::ARENA) {
 			CampAllBots();
 			database.QueryDatabase(fmt::format("UPDATE bot_data SET name = SUBSTRING(CONCAT(name, 'hasdied', '{}'), 1, 64) WHERE owner_id = {}", Strings::NumbersToStrings(CharacterID()), CharacterID()));
 			SetHardCoreDeathTimeStamp();
