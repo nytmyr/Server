@@ -5545,6 +5545,11 @@ void Bot::DoClassAttacks(Mob *target, bool IsRiposte) {
 			return;
 		}
 
+		if (!GetSkill(EQ::skills::SkillTigerClaw)) {
+			monkattack_timer.Disable();
+			return;
+		}
+
 		int reuse = (MonkSpecialAttack(target, EQ::skills::SkillTigerClaw) - 1);
 
 		// Live AA - Technique of Master Wu
