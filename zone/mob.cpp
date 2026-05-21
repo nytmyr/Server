@@ -8797,6 +8797,10 @@ bool Mob::DoLosChecks(Mob* other) {
 }
 
 bool Mob::CheckDoorLoSCheat(Mob* other) {
+	if (!other) {
+		return false;
+	}
+
 	if (!other->IsOfClientBotMerc() && other->CastToNPC()->IsOnHatelist(this)) {
 		return true;
 	}
