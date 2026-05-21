@@ -232,7 +232,7 @@ namespace CastFailures {
 	constexpr uint8 SpellHold           	    = 2;
 	constexpr uint8 ManaLimit           	    = 3;
 	constexpr uint8 HPLimit             	    = 4;
-	constexpr uint8 RecastTimer         	    = 5;
+	constexpr uint8 SpellRecastTimer         	= 5;
 	constexpr uint8 Threshold           	    = 6;
 	constexpr uint8 NoTarget            	    = 7;
 	constexpr uint8 InvalidSpell        	    = 8;
@@ -287,10 +287,11 @@ namespace CastFailures {
 	constexpr uint8 AlreadyHasDiscBuff          = 57;
 	constexpr uint8 AttackNotAllowed            = 58;
 	constexpr uint8 Fizzle                      = 59;
+	constexpr uint8 SpellTypeRecastTimer        = 60;
 
 	constexpr uint8 Undeclared                  = UINT8_MAX;
 	constexpr uint8 START                       = CastFailures::TargetValidation;
-	constexpr uint8 END                         = CastFailures::Fizzle;
+	constexpr uint8 END                         = CastFailures::SpellTypeRecastTimer;
 }
 
 static std::map<uint16, std::string> CastFailuresNames {
@@ -298,7 +299,7 @@ static std::map<uint16, std::string> CastFailuresNames {
 	{ CastFailures::SpellHold,           	     "Spell type is currently held" },
 	{ CastFailures::ManaLimit,           	     "Spell type is outside of Mana limit settings" },
 	{ CastFailures::HPLimit,             	     "Spell type is outside of HP limit settings" },
-	{ CastFailures::RecastTimer,         	     "Spell type is on a recast timer" },
+	{ CastFailures::SpellRecastTimer,         	 "Spell is on a recast timer" },
 	{ CastFailures::Threshold,           	     "Spell type is outside of threshold settings" },
 	{ CastFailures::NoTarget,            	     "No target" },
 	{ CastFailures::InvalidSpell,        	     "Spell is invalid" },
@@ -353,6 +354,7 @@ static std::map<uint16, std::string> CastFailuresNames {
 	{ CastFailures::AlreadyHasDiscBuff,          "Already has discipline buff" },
 	{ CastFailures::AttackNotAllowed,            "Cannot attack that target" },
 	{ CastFailures::Fizzle,                      "Spell fizzled." },
+    { CastFailures::SpellTypeRecastTimer,        "Spell type is on a recast timer" },
 	{ CastFailures::Undeclared,                  "Unknown" }
 };
 

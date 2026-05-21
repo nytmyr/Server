@@ -321,6 +321,20 @@ bool Bot::BotCastMez(Mob* tar, uint8 bot_class, BotSpell& bot_spell, uint16 spel
 			tar = add_mob;
 		}
 
+		if (IsCommandedSpell() && IsCasting()) {
+			RaidGroupSay(
+				fmt::format(
+					"Interrupting {}. I have been commanded to try to cast a [{}] spell, {} on {}.",
+					CastingSpellID() ? spells[CastingSpellID()].name : "my spell",
+					GetSpellTypeNameByID(spell_type),
+					spells[s.SpellId].name,
+					tar->GetCleanName()
+				).c_str()
+			);
+
+			InterruptSpell();
+		}
+
 		if (AIDoSpellCast(s.SpellIndex, tar, s.ManaCost)) {
 			if (BotSpellTypeUsesTargetSettings(spell_type)) {
 				SetCastedSpellType(UINT16_MAX);
@@ -367,6 +381,20 @@ bool Bot::BotCastCure(Mob* tar, uint8 bot_class, BotSpell& bot_spell, uint16 spe
 
 	if (!HasLoS() && BotRequiresLoSToCast(spell_type, bot_spell.SpellId)) {
 		return false;
+	}
+
+	if (IsCommandedSpell() && IsCasting()) {
+		RaidGroupSay(
+			fmt::format(
+				"Interrupting {}. I have been commanded to try to cast a [{}] spell, {} on {}.",
+				CastingSpellID() ? spells[CastingSpellID()].name : "my spell",
+				GetSpellTypeNameByID(spell_type),
+				spells[bot_spell.SpellId].name,
+				tar->GetCleanName()
+			).c_str()
+		);
+
+		InterruptSpell();
 	}
 
 	if (AIDoSpellCast(bot_spell.SpellIndex, tar, bot_spell.ManaCost)) {
@@ -443,6 +471,20 @@ bool Bot::BotCastPet(Mob* tar, uint8 bot_class, BotSpell& bot_spell, uint16 spel
 		return false;
 	}
 
+	if (IsCommandedSpell() && IsCasting()) {
+		RaidGroupSay(
+			fmt::format(
+				"Interrupting {}. I have been commanded to try to cast a [{}] spell, {} on {}.",
+				CastingSpellID() ? spells[CastingSpellID()].name : "my spell",
+				GetSpellTypeNameByID(spell_type),
+				spells[bot_spell.SpellId].name,
+				tar->GetCleanName()
+			).c_str()
+		);
+
+		InterruptSpell();
+	}
+
 	if (AIDoSpellCast(bot_spell.SpellIndex, tar, bot_spell.ManaCost)) {
 		SetCastedSpellType(spell_type);
 
@@ -505,6 +547,20 @@ bool Bot::BotCastNuke(Mob* tar, uint8 bot_class, BotSpell& bot_spell, uint16 spe
 				continue;
 			}
 
+			if (IsCommandedSpell() && IsCasting()) {
+				RaidGroupSay(
+					fmt::format(
+						"Interrupting {}. I have been commanded to try to cast a [{}] spell, {} on {}.",
+						CastingSpellID() ? spells[CastingSpellID()].name : "my spell",
+						GetSpellTypeNameByID(spell_type),
+						spells[s.SpellId].name,
+						tar->GetCleanName()
+					).c_str()
+				);
+
+				InterruptSpell();
+			}
+
 			if (AIDoSpellCast(s.SpellIndex, tar, s.ManaCost)) {
 				SetCastedSpellType(spell_type);
 
@@ -522,6 +578,20 @@ bool Bot::BotCastNuke(Mob* tar, uint8 bot_class, BotSpell& bot_spell, uint16 spe
 		}
 	}
 	else {
+		if (IsCommandedSpell() && IsCasting()) {
+			RaidGroupSay(
+				fmt::format(
+					"Interrupting {}. I have been commanded to try to cast a [{}] spell, {} on {}.",
+					CastingSpellID() ? spells[CastingSpellID()].name : "my spell",
+					GetSpellTypeNameByID(spell_type),
+					spells[bot_spell.SpellId].name,
+					tar->GetCleanName()
+				).c_str()
+			);
+
+			InterruptSpell();
+		}
+
 		if (AIDoSpellCast(bot_spell.SpellIndex, tar, bot_spell.ManaCost)) {
 			SetCastedSpellType(spell_type);
 
@@ -552,6 +622,20 @@ bool Bot::BotCastHeal(Mob* tar, uint8 bot_class, BotSpell& bot_spell, uint16 spe
 	if (!IsValidSpell(bot_spell.SpellId)) {
 		SetCastFailure(CastFailures::InvalidSpell);
 		return false;
+	}
+
+	if (IsCommandedSpell() && IsCasting()) {
+		RaidGroupSay(
+			fmt::format(
+				"Interrupting {}. I have been commanded to try to cast a [{}] spell, {} on {}.",
+				CastingSpellID() ? spells[CastingSpellID()].name : "my spell",
+				GetSpellTypeNameByID(spell_type),
+				spells[bot_spell.SpellId].name,
+				tar->GetCleanName()
+			).c_str()
+		);
+
+		InterruptSpell();
 	}
 
 	if (AIDoSpellCast(bot_spell.SpellIndex, tar, bot_spell.ManaCost)) {

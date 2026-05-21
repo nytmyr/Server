@@ -9511,6 +9511,8 @@ bool Bot::CheckSpellRecastTimer(uint16 spell_id)
 		return true;
 	}
 
+	SetCastFailure(CastFailures::SpellRecastTimer);
+
 	return false;
 }
 
@@ -10088,7 +10090,7 @@ bool Bot::PrecastChecks(Mob* tar, uint16 spell_type) {
 
 	if (!GetUltimateSpellTypeRecastCheck(spell_type, tar)) {
 		LogBotSpellChecksDetail("{} says, 'Cancelling cast of [{}] on [{}] due to GetUltimateSpellTypeRecastCheck.'", GetCleanName(), GetSpellTypeNameByID(spell_type), tar->GetCleanName());
-		SetCastFailure(CastFailures::RecastTimer);
+		SetCastFailure(CastFailures::SpellTypeRecastTimer);
 		return false;
 	}
 
@@ -10177,7 +10179,7 @@ bool Bot::CastChecks(uint16 spell_id, Mob* tar, uint16 spell_type, bool precheck
 
 	if (!CheckSpellRecastTimer(spell_id)) {
 		LogBotSpellChecksDetail("{} says, 'Cancelling cast of {} due to !CheckSpellRecastTimer.'", GetCleanName(), GetSpellName(spell_id));
-		SetCastFailure(CastFailures::RecastTimer);
+		SetCastFailure(CastFailures::SpellRecastTimer);
 		return false;
 	}
 
@@ -12128,7 +12130,7 @@ bool Bot::AttemptAACastSpell(Mob* tar, uint16 spell_id, AA::Rank* rank) {
 			).c_str()
 	);
 
-	SetCastFailure(CastFailures::RecastTimer);
+	SetCastFailure(CastFailures::SpellRecastTimer);
 
 	return false;
 }
@@ -12190,7 +12192,7 @@ bool Bot::AttemptForcedCastSpell(Mob* tar, uint16 spell_id, bool is_disc) {
 	}
 
 	if (!is_disc && !CheckSpellRecastTimer(spell_id)) {
-		SetCastFailure(CastFailures::RecastTimer);
+		SetCastFailure(CastFailures::SpellRecastTimer);
 		return false;
 	}
 
