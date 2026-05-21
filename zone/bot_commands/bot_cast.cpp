@@ -663,7 +663,7 @@ void bot_command_cast(Client* c, const Seperator* sep)
 					return;
 				}
 
-				if (IsBotSpellTypeBeneficial(spell_type)) {
+				if (IsBotSpellTypeBeneficial(spell_type) && spell_type != BotSpellTypes::Pet) {
 					if (
 						(tar->IsNPC() && !tar->GetOwner()) ||
 						(!RuleB(Bots, EnableBotTGB) && tar->GetOwner() && tar->GetOwner()->IsOfClientBot() && !c->IsInGroupOrRaid(tar->GetOwner())) ||
