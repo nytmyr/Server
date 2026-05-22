@@ -15100,14 +15100,14 @@ void Client::Handle_OP_ShopPlayerSell(const EQApplicationPacket *app)
 
 	if (RuleB(Merchant, UsePriceMod)) {
 		for (i = 1; i <= cost_quantity; i++) {
-			price = (uint32)(item->Price * i) * Client::CalcPriceMod(vendor, true);
+			price = (uint32)(item->Price * Client::CalcPriceMod(vendor, true));
 
 			// Don't use SellCostMod if using UseClassicPriceMod
 			if (!RuleB(Merchant, UseClassicPriceMod)) {
 				price *= RuleR(Merchant, BuyCostMod);
 			}
 
-			price += 0.5; // need to round up, because client does it automatically when displaying price
+			price = price * cost_quantity;
 
 			if (price > 4000000000) {
 				cost_quantity = i;
@@ -15118,7 +15118,7 @@ void Client::Handle_OP_ShopPlayerSell(const EQApplicationPacket *app)
 	}
 	else {
 		for (i = 1; i <= cost_quantity; i++) {
-			price = (uint32)((item->Price * i)*(RuleR(Merchant, BuyCostMod)) + 0.5); // need to round up, because client does it automatically when displaying price
+			price = (uint32)(item->Price * RuleR(Merchant, BuyCostMod) * i);
 			if (price > 4000000000) {
 				cost_quantity = i;
 				mp->quantity = i;
