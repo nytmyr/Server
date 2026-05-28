@@ -1477,6 +1477,8 @@ RULE_INT(SSF, ChallengeMobFlagResetTimer, 300000, "Timer in ms for flags to rese
 RULE_INT(SSF, NonChallengeMobFlagResetTimer, 600000, "Timer in ms for flags to reset on a mob flagged by a normal player after disengage. Default 600000 - 10m.")
 RULE_BOOL(SSF, ShowSSFTagsOnWho, true, "If enabled, Self Found players will show their tags on /who and /who all. Default True.")
 RULE_BOOL(SSF, ShowSSFTagsOnCon, true, "If enabled, Self Found players will show their challenge set on /con. Default True.")
+RULE_BOOL(SSF, ChallengeRulesetMismatchGroupAllowed, false, "If enabled, players can group with mismatched Challenge Rulesets. Default False.")
+RULE_BOOL(SSF, ChallengeRulesetMismatchRaidAllowed, false, "If enabled, players can raid with mismatched Challenge Rulesets. Default False.")
 RULE_BOOL(SSF, SelfFoundGroupOthersAllowed, false, "If enabled, Self Found players can group with non Self Found players. Default False.")
 RULE_BOOL(SSF, SelfFoundRaidOthersAllowed, false, "If enabled, Self Found players can raid with non Self Found players. Default False.")
 RULE_BOOL(SSF, SelfFoundTradeOthersAllowed, false, "If enabled, Self Found players can trade with others. Default False.")

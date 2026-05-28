@@ -7929,39 +7929,42 @@ void Client::Handle_OP_GroupInvite2(const EQApplicationPacket *app)
 				return;
 			}
 
-			if (!RuleB(SSF, SelfFoundGroupOthersAllowed)) {
-				if (SSFLogic::SelfFoundMismatch(CastToClient()->GetSSFFlag(), invitee->CastToClient()->GetSSFFlag())) { // VegasEQ
-					Message(Chat::Red, "Normal and Self Found players cannot group or raid together.");
-					return;
+			if (!RuleB(SSF, ChallengeRulesetMismatchGroupAllowed) && CastToClient()->GetSSFFlag() != invitee->CastToClient()->GetSSFFlag()) { // VegasEQ
+				Message(Chat::Red, "Mismatched Challenge Ruleset players cannot group or raid together.");
+				return;
+			}
+
+			if (!RuleB(SSF, SelfFoundGroupOthersAllowed) && SSFLogic::SelfFoundMismatch(CastToClient()->GetSSFFlag(), invitee->CastToClient()->GetSSFFlag())) { // VegasEQ
+				Message(Chat::Red, "Normal and Self Found players cannot group or raid together.");
+				return;
+			}
+
+			if (SSFLogic::IsAnyChallengeRuleset(invitee->CastToClient()->GetSSFFlag())) {
+				Group* g = GetGroup();
+				int32 hard_cap = RuleI(SSF, MaxGroupRaidLevelDifference);
+				uint8 invitee_level = invitee->GetLevel();
+				uint8 highest_level = g ? g->GetAbsoluteHighestLevel() : GetLevel();
+				uint8 lowest_level = g ? g->GetAbsoluteLowestLevel() : GetLevel();
+				int32 xp_diff = std::min(invitee_level, highest_level) - std::max(invitee_level, highest_level);
+				int32 xp_max_diff = -((std::min(invitee_level, highest_level) + 1) / 2);
+
+				if (xp_max_diff > -5) {
+					xp_max_diff = -5;
 				}
 
-				if (SSFLogic::IsAnyChallengeRuleset(invitee->CastToClient()->GetSSFFlag())) {
-					Group* g = GetGroup();
-					int32 hard_cap = RuleI(SSF, MaxGroupRaidLevelDifference);
-					uint8 invitee_level = invitee->GetLevel();
-					uint8 highest_level = g ? g->GetAbsoluteHighestLevel() : GetLevel();
-					uint8 lowest_level = g ? g->GetAbsoluteLowestLevel() : GetLevel();
-					int32 xp_diff = std::min(invitee_level, highest_level) - std::max(invitee_level, highest_level);
-					int32 xp_max_diff = -((std::min(invitee_level, highest_level) + 1) / 2);
+				bool out_of_exp_range = xp_diff < xp_max_diff;
+				bool too_far_from_high = abs(highest_level - invitee_level) > hard_cap;
+				bool too_far_from_low = abs(lowest_level - invitee_level) > hard_cap;
 
-					if (xp_max_diff > -5) {
-						xp_max_diff = -5;
-					}
+				LogTestDebug("Too Far For EXP = {}, Too Low LVL = {}, Too High LVL = {}", out_of_exp_range ? "true" : "false", too_far_from_low ? "true" : "false", too_far_from_high ? "true" : "false"); //deleteme
 
-					bool out_of_exp_range = xp_diff < xp_max_diff;
-					bool too_far_from_high = abs(highest_level - invitee_level) > hard_cap;
-					bool too_far_from_low = abs(lowest_level - invitee_level) > hard_cap;
-
-					LogTestDebug("Too Far For EXP = {}, Too Low LVL = {}, Too High LVL = {}", out_of_exp_range ? "true" : "false", too_far_from_low ? "true" : "false", too_far_from_high ? "true" : "false"); //deleteme
-
-					if (out_of_exp_range || too_far_from_high || too_far_from_low) {
-						Message(Chat::Red,
-						fmt::format("Players following a challenge ruleset must be within the eligible experience level or a max of {} levels of one another to group or raid.",
-								RuleI(SSF, MaxGroupRaidLevelDifference)
-							).c_str()
-						);
-						return;
-					}
+				if (out_of_exp_range || too_far_from_high || too_far_from_low) {
+					Message(Chat::Red,
+					fmt::format("Players following a challenge ruleset must be within the eligible experience level or a max of {} levels of one another to group or raid.",
+							RuleI(SSF, MaxGroupRaidLevelDifference)
+						).c_str()
+					);
+					return;
 				}
 			}
 
@@ -13056,11 +13059,14 @@ void Client::Handle_OP_RaidCommand(const EQApplicationPacket* app)
 				break;
 			}
 
-			if (!RuleB(SSF, SelfFoundRaidOthersAllowed)) { // VegasEQ
-				if (SSFLogic::SelfFoundMismatch(GetSSFFlag(), player_to_invite->GetSSFFlag())) {
-					Message(Chat::Red, "Normal and Self Found players cannot group or raid together.");
-					return;
-				}
+			if (!RuleB(SSF, ChallengeRulesetMismatchRaidAllowed) && GetSSFFlag() != player_to_invite->GetSSFFlag()) { // VegasEQ
+				Message(Chat::Red, "Mismatched Challenge Ruleset players cannot group or raid together.");
+				return;
+			}
+
+			if (!RuleB(SSF, SelfFoundRaidOthersAllowed) && SSFLogic::SelfFoundMismatch(GetSSFFlag(), player_to_invite->GetSSFFlag())) { // VegasEQ
+				Message(Chat::Red, "Normal and Self Found players cannot group or raid together.");
+				return;
 			}
 
 			if (SSFLogic::IsAnyChallengeRuleset(player_to_invite->GetSSFFlag())) {
