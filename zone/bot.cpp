@@ -3432,6 +3432,10 @@ bool Bot::CheckIfIncapacitated() {
 	}
 
 	if (currently_fleeing) {
+		if (!FindType(SpellEffect::Fear)) { // Blinded
+			return BotProcessBlind();
+		}
+
 		if (RuleB(Combat, EnableFearPathing) && AI_movement_timer->Check()) {
 			// Check if we have reached the last fear point
 			if (DistanceNoZ(glm::vec3(GetX(), GetY(), GetZ()), m_FearWalkTarget) <= 5.0f) {
@@ -3445,6 +3449,23 @@ bool Bot::CheckIfIncapacitated() {
 				m_FearWalkTarget.y,
 				m_FearWalkTarget.z
 			);
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+bool Bot::BotProcessBlind() {
+	if (m_combat_jitter_timer.Check() && zone->random.Int(1, 100) <= RuleI(Bots, BlindMoveChance)) {
+		Mob* tar = GetTarget() ? GetTarget() : GetBotOwner();
+
+		if (tar) {
+			glm::vec3 Goal = tar->GetPosition();
+
+			RunTo(Goal.x, Goal.y, Goal.z);
+			SetCombatJitter();
 		}
 
 		return true;

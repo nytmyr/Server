@@ -542,7 +542,7 @@ public:
 	bool IsValidMezTarget(Mob* owner, Mob* npc, uint16 spell_id);
 
 	// Cast checks
-	bool PrecastChecks(Mob* tar, uint16 spell_type);	
+	bool PrecastChecks(Mob* tar, uint16 spell_type);
 	bool CastChecks(uint16 spell_id, Mob* tar, uint16 spell_type, bool prechecks = false, bool ae_check = false);
 	bool IsImmuneToBotSpell(uint16 spell_id, Mob* caster);
 	bool CanCastSpellType(uint16 spell_type, uint16 spell_id, Mob* tar);
@@ -1055,6 +1055,7 @@ public:
 	bool BotCastCure(Mob* tar, uint8 bot_class, BotSpell& bot_spell, uint16 spell_type);
 
 	bool CheckIfIncapacitated();
+	bool BotProcessBlind();
 	bool IsAIProcessValid(const Client* bot_owner, const Group* bot_group, const Raid* raid);
 
 	Client* SetLeashOwner(Client* bot_owner, Group* bot_group, Raid* raid, uint32 r_group) const;
