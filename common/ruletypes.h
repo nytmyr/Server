@@ -921,6 +921,7 @@ RULE_INT(Bots, AICastSpellTypeHeldDelay, 2500, "Delay in milliseconds between AI
 RULE_BOOL(Bots, BotsRequireLoS, true, "Whether or not bots require line of sight to be told to attack their target")
 RULE_BOOL(Bots, HoldAttacksOnEnrage, true, "Controls whether or not front facing melee bots will automatically hold their attacks during their target's enrage to avoid ripostes. Default True.")
 RULE_BOOL(Bots, AllowBotsToDispelFriendly, true, "Determines if bots can dispel friendly targets. Default True.")
+RULE_INT(Bots, BlindMoveChance, 5, "Chance for a bot to run to its target if it is blinded. Default 5.")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(Chat)

@@ -1204,6 +1204,7 @@ public:
 	bool BotCastCure(Mob* tar, uint8 bot_class, BotSpell& bot_spell, uint16 spell_type);
 
 	bool CheckIfIncapacitated();
+	bool BotProcessBlind();
 	bool HasDiscBuff();
 	bool IsAIProcessValid(const Client* bot_owner, const Group* bot_group, const Raid* raid);
 
