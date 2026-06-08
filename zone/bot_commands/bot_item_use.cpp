@@ -206,8 +206,8 @@ void bot_command_item_use(Client* c, const Seperator* sep)
 		}
 
 		if (
-			(!RuleB(Bots, AllowBotEquipAnyRaceGear) && ((~item_data->Races) & GetPlayerRaceBit(bot_iter->GetRace()))) ||
-			(!RuleB(Bots, AllowBotEquipAnyClassGear) && ((~item_data->Classes) & GetPlayerClassBit(bot_iter->GetClass())))
+			(!RuleB(Bots, AllowBotEquipAnyRaceGear) && !(item_data->Races & GetPlayerRaceBit(bot_iter->GetBaseRace()))) ||
+			(!RuleB(Bots, AllowBotEquipAnyClassGear) && !(item_data->Classes & GetPlayerClassBit(bot_iter->GetClass())))
 		) {
 			continue;
 		}
