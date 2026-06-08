@@ -3009,6 +3009,13 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 				corpse->AddEligibleSSFLooters(this);
 			}
 		}
+		else if (killer && killer->HasOwner()) { // VegasEQ
+			Mob* ultimate_owner = killer->GetUltimateOwner();
+
+			if (ultimate_owner->IsClient()) {
+				corpse->AddEligibleSSFLooters(this);
+			}
+		}
 
 		if (zone && zone->adv_data) {
 			auto sr = (ServerZoneAdventureDataReply_Struct *) zone->adv_data;
