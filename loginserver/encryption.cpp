@@ -182,6 +182,18 @@ static OSSL_PROVIDER *s_default_provider = nullptr;
 bool eqcrypt_init()
 {
 #ifdef EQEMU_USE_OPENSSL
+#ifdef _WIN32
+	// Set OpenSSL default provider search path to the executable directory.
+	char* exe_path = nullptr;
+	if (_get_pgmptr(&exe_path) == 0 && exe_path != nullptr && *exe_path != '\0') {
+		std::string exe_dir{exe_path};
+		if (auto sep = exe_dir.find_last_of("\\/"); sep != std::string::npos) {
+			exe_dir.resize(sep);
+			OSSL_PROVIDER_set_default_search_path(nullptr, exe_dir.c_str());
+		}
+	}
+#endif
+
 	if (!s_default_provider) {
 		s_default_provider = OSSL_PROVIDER_load(nullptr, "default");
 	}
