@@ -462,9 +462,10 @@ BaseVeqGearScoreRepository::VeqGearScore UpdateGearScores(const EQ::ItemData* it
 	if (bulk_update) {
 		return e;
 	}
-	else {
-		BaseVeqGearScoreRepository::ReplaceOne(database, e);
-	}
+
+	BaseVeqGearScoreRepository::ReplaceOne(database, e);
+
+	return e;
 }
 
 float CalculateGearScore(const EQ::ItemData* item, uint8 class_id) {

@@ -4134,6 +4134,8 @@ int16 Bot::PutItem(int16 slot_id, const EQ::ItemInstance& inst,EQ::InventoryProf
 	}
 
 	inventory_inst.PutItem(slot_id, inst);
+
+	return slot_id;
 }
 
 // Adds the specified item it bot to the NPC equipment array and to the bot inventory collection.
@@ -5923,7 +5925,7 @@ void Bot::EquipBot() {
 	GetBotItems(m_inv);
 	const EQ::ItemInstance* inst = nullptr;
 	const EQ::ItemData* item = nullptr;
-	for (int slot_id = BotInventorySlots::EQUIPMENT_BEGIN; slot_id <= BotInventorySlots::EQUIPMENT_END; ++slot_id + 1) { // VegasEQ
+	for (int slot_id = BotInventorySlots::EQUIPMENT_BEGIN; slot_id <= BotInventorySlots::EQUIPMENT_END; ++slot_id) { // VegasEQ
 		inst = GetBotItem(slot_id);
 		if (inst) {
 			item = inst->GetItem();

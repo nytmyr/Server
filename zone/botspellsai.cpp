@@ -3018,4 +3018,6 @@ BotSpells Bot::GetBotSpellBySpellID(uint16 spell_id) {
 
 		return s;
 	}
+
+	return spell;
 }
