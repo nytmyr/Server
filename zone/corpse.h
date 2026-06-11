@@ -20,7 +20,6 @@
 
 #include "common/loot.h"
 #include "common/repositories/character_corpses_repository.h"
-#include "vcpkg/vcpkg-export-x64/installed/x64-windows/include/boost/mpl/push_back.hpp"
 #include "zone/client.h"
 #include "zone/mob.h"
 
