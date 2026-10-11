@@ -6034,14 +6034,6 @@ uint32 lua_GetLoottableMaxCash(uint32 loottable_id) {
 	return loottable_data->maxcash;
 }
 
-Mob* lua_GetTopHateClient(Mob* npc) {
-	return npc ? npc->CastToNPC()->GetTopHateClient() : 0;
-}
-
-bool lua_IsVegasLootEligible(Mob* npc, Mob* top_client) {
-	return npc ? npc->CastToNPC()->IsVegasLootEligible(top_client) : false;
-}
-
 uint32 lua_GetVegasItem(uint32 id_min, uint32 id_max, float difficulty_min, float difficulty_max, bool raidonly, uint32 lowest_drop_npc_id, uint32 max_drop_npc_id) {
 	return NPC::GetVegasItems(id_min, id_max, difficulty_min, difficulty_max, lowest_drop_npc_id, max_drop_npc_id, raidonly)->ID;
 }
@@ -7087,8 +7079,6 @@ luabind::scope lua_register_general() {
 		luabind::def("GetItemMinDropLevel", &lua_GetItemMinDropLevel),
 		luabind::def("GetLoottableMinCash", &lua_GetLoottableMinCash),
 		luabind::def("GetLoottableMaxCash", &lua_GetLoottableMaxCash),
-		luabind::def("GetTopHateClient", &lua_GetTopHateClient),
-		luabind::def("IsVegasLootEligible", &lua_IsVegasLootEligible),
 		luabind::def("GetVegasItem", &lua_GetVegasItem),
 		luabind::def("IsItemLore", &lua_IsItemLore),
 		luabind::def("IsItemRaidOnly", &lua_IsItemRaidOnly),

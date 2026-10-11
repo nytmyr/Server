@@ -3635,6 +3635,16 @@ void Lua_Mob::SetPetType(uint8 pet_type)
 }
 
 // VegasEQ - START
+Lua_Mob Lua_Mob::GetTopHateClient() {
+	Lua_Safe_Call_Class(Lua_Mob);
+	return Lua_Mob(self->CastToNPC()->GetTopHateClient());
+}
+
+bool Lua_Mob::IsVegasLootEligible(Lua_Mob top_client) {
+	Lua_Safe_Call_Bool();
+	return self->CastToNPC()->IsVegasLootEligible(top_client);
+}
+
 // SSF
 void Lua_Mob::SetSSFFlag(uint8 value) {
 	Lua_Safe_Call_Void();
@@ -4368,6 +4378,8 @@ luabind::scope lua_register_mob() {
 	.def("WipeHateList", (void(Lua_Mob::*)(void))&Lua_Mob::WipeHateList)
 
 	// VegasEQ - START
+	.def("GetTopHateClient", &Lua_Mob::GetTopHateClient)
+	.def("IsVegasLootEligible", (bool(Lua_Mob::*)(Lua_Mob))&Lua_Mob::IsVegasLootEligible)
 	// SSF
 	.def("SetSSFFlag", &Lua_Mob::SetSSFFlag)
 	.def("GetSSFFlag", &Lua_Mob::GetSSFFlag)

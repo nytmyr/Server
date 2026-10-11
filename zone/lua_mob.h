@@ -654,6 +654,8 @@ public:
 	void SetPetType(uint8 pet_type);
 
 	// VegasEQ - START
+	Lua_Mob  GetTopHateClient();
+	bool IsVegasLootEligible(Lua_Mob top_client);
 	// SSF
 	void SetSSFFlag(uint8 value);
 	uint8 GetSSFFlag();
