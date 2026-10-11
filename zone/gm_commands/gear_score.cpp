@@ -1,10 +1,13 @@
+#include "zone/client.h"
 #include "zone/command.h"
 #include "common/veq_item_data.h"
 
 void command_gear_score(Client* c, const Seperator* sep) {
-	return; // TODO - VegasEQ - Implement after
-
 	uint8 gm_access_level = AccountStatus::Max;
+
+	if (c->Admin() < gm_access_level) {
+		return; // TODO - VegasEQ - Implement after
+	}
 
 	if (!strcasecmp(sep->arg[1], "help")) {
 		c->Message(Chat::White, "Usage: #gearscore with an item on your cursor.");
@@ -25,7 +28,7 @@ void command_gear_score(Client* c, const Seperator* sep) {
 			p.notes =
 				{
 					"You can use options like:",
-					"- 'byclass' to specify a class ID to get the Gear Score for that class"
+					"- 'byclass' to specify a class ID to get the Gear Score for that class",
 					"- 'min' to display the lowest Gear Score of all classes",
 					"- 'max' to display the highest Gear Score of all classes",
 					"- 'avg' to display the average Gear Score of all classes",
@@ -59,22 +62,28 @@ void command_gear_score(Client* c, const Seperator* sep) {
 		if (GearScoreTypes::END <= 19) {
 			min_count = GearScoreTypes::START;
 			max_count = GearScoreTypes::END;
-		} else if (!type_id.compare("0-19")) {
+		}
+		else if (type_id == "0-19") {
 			min_count = GearScoreTypes::START;
-			max_count = std::min(static_cast<uint16_t>(19), static_cast<uint16_t>(GearScoreTypes::END));
-		} else if (!type_id.compare("20-39") && static_cast<uint16_t>(GearScoreTypes::END) >= 20) {
-			min_count = std::min(static_cast<uint16_t>(20), static_cast<uint16_t>(GearScoreTypes::END));
-			max_count = std::min(static_cast<uint16_t>(39), static_cast<uint16_t>(GearScoreTypes::END));
-		} else if (!type_id.compare("40-59") && static_cast<uint16_t>(GearScoreTypes::END) >= 40) {
-			min_count = std::min(static_cast<uint16_t>(40), static_cast<uint16_t>(GearScoreTypes::END));
-			max_count = std::min(static_cast<uint16_t>(59), static_cast<uint16_t>(GearScoreTypes::END));
-		} else if (!type_id.compare("60-79") && static_cast<uint16_t>(GearScoreTypes::END) >= 50) {
-			min_count = std::min(static_cast<uint16_t>(60), static_cast<uint16_t>(GearScoreTypes::END));
-			max_count = std::min(static_cast<uint16_t>(79), static_cast<uint16_t>(GearScoreTypes::END));
-		} else if (!type_id.compare("80+") && static_cast<uint16_t>(GearScoreTypes::END) >= 80) {
-			min_count = std::min(static_cast<uint16_t>(80), static_cast<uint16_t>(GearScoreTypes::END));
+			max_count = std::min(static_cast<uint16_t>(19), GearScoreTypes::END);
+		}
+		else if (type_id == "20-39" && GearScoreTypes::END >= 20) {
+			min_count = std::min(static_cast<uint16_t>(20), GearScoreTypes::END);
+			max_count = std::min(static_cast<uint16_t>(39), GearScoreTypes::END);
+		}
+		else if (type_id == "40-59" && GearScoreTypes::END >= 40) {
+			min_count = std::min(static_cast<uint16_t>(40), GearScoreTypes::END);
+			max_count = std::min(static_cast<uint16_t>(59), GearScoreTypes::END);
+		}
+		else if (type_id == "60-79" && GearScoreTypes::END >= 50) {
+			min_count = std::min(static_cast<uint16_t>(60), GearScoreTypes::END);
+			max_count = std::min(static_cast<uint16_t>(79), GearScoreTypes::END);
+		}
+		else if (type_id == "80+" && GearScoreTypes::END >= 80) {
+			min_count = std::min(static_cast<uint16_t>(80), GearScoreTypes::END);
 			max_count = GearScoreTypes::END;
-		} else {
+		}
+		else {
 			c->Message(Chat::Yellow, "You must choose a valid range option");
 
 			return;
@@ -165,9 +174,7 @@ void command_gear_score(Client* c, const Seperator* sep) {
 		return;
 	}
 	else {
-		const EQ::ItemData *item = item_instance->GetItem();
-
-		if (item) {
+		if (const EQ::ItemData *item = item_instance->GetItem()) {
 			uint8 class_id = c->GetClass();
 
 			if (!strcasecmp(sep->arg[1], "update") && c->Admin() >= gm_access_level) {

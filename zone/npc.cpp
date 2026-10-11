@@ -5219,8 +5219,8 @@ float NPC::CalcDifficulty() {
 	attack_speed_difficulty = ((base_difficulty * (33 / GetAttackDelay())) - base_difficulty) / 5;
 	base_difficulty += attack_speed_difficulty;
 	special_abilities_difficulty = CalcSpecialAbilitiesDifficulty(base_difficulty);
-	//spells_difficulty = CalcSpellDifficulty();
-	//proc_difficulty = CalcProcDifficulty();
+	//spells_difficulty = CalcSpellDifficulty(); // VegasEQ - TODO with GearScore Changes
+	//proc_difficulty = CalcProcDifficulty(); // VegasEQ - TODO with GearScore Changes
 	difficulty_total = base_difficulty + attack_speed_difficulty + special_abilities_difficulty + spells_difficulty + proc_difficulty;
 
 	return difficulty_total;
