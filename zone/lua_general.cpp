@@ -305,6 +305,26 @@ void unregister_spell_event(int evt, int spell_id) {
 	unregister_spell_event(name, evt, spell_id);
 }
 
+void register_bot_event(std::string name, int evt, luabind::adl::object func) {
+	if (luabind::type(func) == LUA_TFUNCTION) {
+		register_event("bot", name, evt, func);
+	}
+}
+
+void register_bot_event(int evt, luabind::adl::object func) {
+	std::string name = quest_manager.GetEncounter();
+	register_bot_event(name, evt, func);
+}
+
+void unregister_bot_event(std::string name, int evt) {
+	unregister_event("bot", name, evt);
+}
+
+void unregister_bot_event(int evt) {
+	std::string name = quest_manager.GetEncounter();
+	unregister_bot_event(name, evt);
+}
+
 Lua_Mob lua_spawn2(int npc_type, int grid, int unused, double x, double y, double z, double heading) {
 	auto position = glm::vec4(x, y, z, heading);
 	return Lua_Mob(quest_manager.spawn2(npc_type, grid, unused, position));
@@ -6127,6 +6147,10 @@ luabind::scope lua_register_general() {
 		luabind::def("register_spell_event", (void(*)(int, int, luabind::adl::object func))&register_spell_event),
 		luabind::def("unregister_spell_event", (void(*)(std::string, int, int))&unregister_spell_event),
 		luabind::def("unregister_spell_event", (void(*)(int, int))&unregister_spell_event),
+		luabind::def("register_bot_event", (void(*)(std::string, int, luabind::adl::object))&register_bot_event),
+		luabind::def("register_bot_event", (void(*)(int, luabind::adl::object))&register_bot_event),
+		luabind::def("unregister_bot_event", (void(*)(std::string, int))&unregister_bot_event),
+		luabind::def("unregister_bot_event", (void(*)(int))&unregister_bot_event),
 		luabind::def("spawn2", (Lua_Mob(*)(int,int,int,double,double,double,double))&lua_spawn2),
 		luabind::def("unique_spawn", (Lua_Mob(*)(int,int,int,double,double,double))&lua_unique_spawn),
 		luabind::def("unique_spawn", (Lua_Mob(*)(int,int,int,double,double,double,double))&lua_unique_spawn),

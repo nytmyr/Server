@@ -382,7 +382,13 @@ bool QuestParserCollection::BotHasQuestSubGlobal(QuestEventID event_id)
 
 bool QuestParserCollection::BotHasQuestSub(QuestEventID event_id)
 {
-	return BotHasQuestSubLocal(event_id) || BotHasQuestSubGlobal(event_id);
+	return
+		BotHasQuestSubLocal(event_id) || BotHasQuestSubGlobal(event_id) || BotHasEncounterSub(event_id);
+}
+
+bool QuestParserCollection::BotHasEncounterSub(QuestEventID event_id)
+{
+	return HasEncounterSub(event_id, "bot");
 }
 
 bool QuestParserCollection::MercHasQuestSubLocal(QuestEventID event_id)

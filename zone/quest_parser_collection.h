@@ -211,6 +211,7 @@ private:
 	bool HasEncounterSub(QuestEventID event_id, const std::string& package_name);
 	bool BotHasQuestSubLocal(QuestEventID event_id);
 	bool BotHasQuestSubGlobal(QuestEventID event_id);
+	bool BotHasEncounterSub(QuestEventID event_id);
 	bool MercHasQuestSubLocal(QuestEventID event_id);
 	bool MercHasQuestSubGlobal(QuestEventID event_id);
 	bool ZoneHasQuestSubLocal(QuestEventID event_id);
