@@ -1302,6 +1302,14 @@ void NPC::GetVegasDifficultyRange(uint16 zone_id, float* difficulty_min, float* 
 }
 
 bool NPC::IsVegasLootEligible(Mob* top_client) {
+	if (!top_client) {
+		return false;
+	}
+
+	if (HasOwner()) {
+		return false;
+	}
+
 	if (IsOnVegasCoolDown(top_client)) {
 		return false;
 	}
