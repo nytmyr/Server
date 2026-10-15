@@ -990,7 +990,7 @@ void NPC::RemoveLootCash()
 	m_loot_platinum = 0;
 }
 
-void NPC::AttemptVegasLoot(Mob* top_client, float diff_min, float diff_max, bool raid_item, float bonus_chance) {
+void NPC::AttemptVegasLoot(Mob* top_client, float diff_min, float diff_max, bool raid_item, float bonus_chance, bool skip_shards, bool skip_spells, bool skip_bags, bool skip_bridles, bool skip_epic_tokens) {
 	if (!top_client) {
 		return;
 	}
@@ -1137,12 +1137,23 @@ void NPC::AttemptVegasLoot(Mob* top_client, float diff_min, float diff_max, bool
 		}
 	}
 
-	AttemptVegasShardLoot(top_client, shard_multiplier, guaranteed_shard_drop);
-	AttemptVegasSpellLoot(top_client);
-	AttemptVegasBagLoot(top_client);
-	AttemptVegasBridleLoot(top_client);
+	if (!skip_shards) {
+		AttemptVegasShardLoot(top_client, shard_multiplier, guaranteed_shard_drop);
+	}
 
-	if (GetLevel() >= RuleI(VegasLoot, MinLevelForEpicToken)) {
+	if (!skip_spells) {
+		AttemptVegasSpellLoot(top_client);
+	}
+
+	if (!skip_bags) {
+		AttemptVegasBagLoot(top_client);
+	}
+
+	if (!skip_bridles) {
+		AttemptVegasBridleLoot(top_client);
+	}
+
+	if (!skip_epic_tokens && GetLevel() >= RuleI(VegasLoot, MinLevelForEpicToken)) {
 		AttemptVegasEpicTokenLoot(top_client);
 	}
 

@@ -259,6 +259,11 @@ public:
 	void AddVegasLoot(float difficulty_min, float difficulty_max);
 	void AddVegasLoot(float difficulty_min, float difficulty_max, bool raid_only);
 	void AddVegasLoot(float difficulty_min, float difficulty_max, bool raid_only, uint32 bonus_chance);
+	void AddVegasLoot(float difficulty_min, float difficulty_max, bool raid_only, uint32 bonus_chance, bool skip_shards);
+	void AddVegasLoot(float difficulty_min, float difficulty_max, bool raid_only, uint32 bonus_chance, bool skip_shards, bool skip_spells);
+	void AddVegasLoot(float difficulty_min, float difficulty_max, bool raid_only, uint32 bonus_chance, bool skip_shards, bool skip_spells, bool skip_bags);
+	void AddVegasLoot(float difficulty_min, float difficulty_max, bool raid_only, uint32 bonus_chance, bool skip_shards, bool skip_spells, bool skip_bags, bool skip_bridles);
+	void AddVegasLoot(float difficulty_min, float difficulty_max, bool raid_only, uint32 bonus_chance, bool skip_shards, bool skip_spells, bool skip_bags, bool skip_bridles, bool skip_epic_tokens);
 	// VegasEQ - END
 
 };

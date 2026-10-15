@@ -1191,6 +1191,51 @@ void Lua_NPC::AddVegasLoot(float difficulty_min, float difficulty_max, bool raid
 		self->AttemptVegasLoot(top_client, difficulty_min, difficulty_max, raid_only, bonus_chance);
 	}
 }
+
+void Lua_NPC::AddVegasLoot(float difficulty_min, float difficulty_max, bool raid_only, uint32 bonus_chance, bool skip_shards) {
+	Lua_Safe_Call_Void();
+	auto top_client = self->GetTopHateClient();
+
+	if (top_client && self->IsVegasLootEligible(top_client)) {
+		self->AttemptVegasLoot(top_client, difficulty_min, difficulty_max, raid_only, bonus_chance, skip_shards);
+	}
+}
+
+void Lua_NPC::AddVegasLoot(float difficulty_min, float difficulty_max, bool raid_only, uint32 bonus_chance, bool skip_shards, bool skip_spells) {
+	Lua_Safe_Call_Void();
+	auto top_client = self->GetTopHateClient();
+
+	if (top_client && self->IsVegasLootEligible(top_client)) {
+		self->AttemptVegasLoot(top_client, difficulty_min, difficulty_max, raid_only, bonus_chance, skip_shards, skip_spells);
+	}
+}
+
+void Lua_NPC::AddVegasLoot(float difficulty_min, float difficulty_max, bool raid_only, uint32 bonus_chance, bool skip_shards, bool skip_spells, bool skip_bags) {
+	Lua_Safe_Call_Void();
+	auto top_client = self->GetTopHateClient();
+
+	if (top_client && self->IsVegasLootEligible(top_client)) {
+		self->AttemptVegasLoot(top_client, difficulty_min, difficulty_max, raid_only, bonus_chance, skip_shards, skip_spells, skip_bags);
+	}
+}
+
+void Lua_NPC::AddVegasLoot(float difficulty_min, float difficulty_max, bool raid_only, uint32 bonus_chance, bool skip_shards, bool skip_spells, bool skip_bags, bool skip_bridles) {
+	Lua_Safe_Call_Void();
+	auto top_client = self->GetTopHateClient();
+
+	if (top_client && self->IsVegasLootEligible(top_client)) {
+		self->AttemptVegasLoot(top_client, difficulty_min, difficulty_max, raid_only, bonus_chance, skip_shards, skip_spells, skip_bags, skip_bridles);
+	}
+}
+
+void Lua_NPC::AddVegasLoot(float difficulty_min, float difficulty_max, bool raid_only, uint32 bonus_chance, bool skip_shards, bool skip_spells, bool skip_bags, bool skip_bridles, bool skip_epic_tokens) {
+	Lua_Safe_Call_Void();
+	auto top_client = self->GetTopHateClient();
+
+	if (top_client && self->IsVegasLootEligible(top_client)) {
+		self->AttemptVegasLoot(top_client, difficulty_min, difficulty_max, raid_only, bonus_chance, skip_shards, skip_spells, skip_bags, skip_bridles, skip_epic_tokens);
+	}
+}
 // VegasEQ - END
 
 luabind::scope lua_register_npc() {
@@ -1401,7 +1446,12 @@ luabind::scope lua_register_npc() {
 	.def("AddVegasLoot", (void(Lua_NPC::*)(float))&Lua_NPC::AddVegasLoot)
 	.def("AddVegasLoot", (void(Lua_NPC::*)(float, float))&Lua_NPC::AddVegasLoot)
 	.def("AddVegasLoot", (void(Lua_NPC::*)(float, float, bool))&Lua_NPC::AddVegasLoot)
-	.def("AddVegasLoot", (void(Lua_NPC::*)(float, float, bool, uint32))&Lua_NPC::AddVegasLoot);
+	.def("AddVegasLoot", (void(Lua_NPC::*)(float, float, bool, uint32))&Lua_NPC::AddVegasLoot)
+	.def("AddVegasLoot", (void(Lua_NPC::*)(float, float, bool, uint32, bool))&Lua_NPC::AddVegasLoot)
+	.def("AddVegasLoot", (void(Lua_NPC::*)(float, float, bool, uint32, bool, bool))&Lua_NPC::AddVegasLoot)
+	.def("AddVegasLoot", (void(Lua_NPC::*)(float, float, bool, uint32, bool, bool, bool))&Lua_NPC::AddVegasLoot)
+	.def("AddVegasLoot", (void(Lua_NPC::*)(float, float, bool, uint32, bool, bool, bool, bool))&Lua_NPC::AddVegasLoot)
+	.def("AddVegasLoot", (void(Lua_NPC::*)(float, float, bool, uint32, bool, bool, bool, bool, bool))&Lua_NPC::AddVegasLoot);
 	// VegasEQ - END
 }
 

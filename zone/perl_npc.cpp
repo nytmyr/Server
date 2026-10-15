@@ -1100,6 +1100,46 @@ void Perl_NPC_AddVegasLoot(NPC* self, float difficulty_min, float difficulty_max
 		self->AttemptVegasLoot(top_client, difficulty_min, difficulty_max, raid_only, bonus_chance);
 	}
 }
+
+void Perl_NPC_AddVegasLoot(NPC* self, float difficulty_min, float difficulty_max, bool raid_only, uint32 bonus_chance, bool skip_shards) {
+	auto top_client = self->GetTopHateClient();
+
+	if (top_client && self->IsVegasLootEligible(top_client)) {
+		self->AttemptVegasLoot(top_client, difficulty_min, difficulty_max, raid_only, bonus_chance, skip_shards);
+	}
+}
+
+void Perl_NPC_AddVegasLoot(NPC* self, float difficulty_min, float difficulty_max, bool raid_only, uint32 bonus_chance, bool skip_shards, bool skip_spells) {
+	auto top_client = self->GetTopHateClient();
+
+	if (top_client && self->IsVegasLootEligible(top_client)) {
+		self->AttemptVegasLoot(top_client, difficulty_min, difficulty_max, raid_only, bonus_chance, skip_shards, skip_spells);
+	}
+}
+
+void Perl_NPC_AddVegasLoot(NPC* self, float difficulty_min, float difficulty_max, bool raid_only, uint32 bonus_chance, bool skip_shards, bool skip_spells, bool skip_bags) {
+	auto top_client = self->GetTopHateClient();
+
+	if (top_client && self->IsVegasLootEligible(top_client)) {
+		self->AttemptVegasLoot(top_client, difficulty_min, difficulty_max, raid_only, bonus_chance, skip_shards, skip_spells, skip_bags);
+	}
+}
+
+void Perl_NPC_AddVegasLoot(NPC* self, float difficulty_min, float difficulty_max, bool raid_only, uint32 bonus_chance, bool skip_shards, bool skip_spells, bool skip_bags, bool skip_bridles) {
+	auto top_client = self->GetTopHateClient();
+
+	if (top_client && self->IsVegasLootEligible(top_client)) {
+		self->AttemptVegasLoot(top_client, difficulty_min, difficulty_max, raid_only, bonus_chance, skip_shards, skip_spells, skip_bags, skip_bridles);
+	}
+}
+
+void Perl_NPC_AddVegasLoot(NPC* self, float difficulty_min, float difficulty_max, bool raid_only, uint32 bonus_chance, bool skip_shards, bool skip_spells, bool skip_bags, bool skip_bridles, bool skip_epic_tokens) {
+	auto top_client = self->GetTopHateClient();
+
+	if (top_client && self->IsVegasLootEligible(top_client)) {
+		self->AttemptVegasLoot(top_client, difficulty_min, difficulty_max, raid_only, bonus_chance, skip_shards, skip_spells, skip_bags, skip_bridles, skip_epic_tokens);
+	}
+}
 // VegasEQ - END
 
 void perl_register_npc()
@@ -1313,6 +1353,11 @@ void perl_register_npc()
 	package.add("AddVegasLoot", (void(*)(NPC*, float, float))&Perl_NPC_AddVegasLoot);
 	package.add("AddVegasLoot", (void(*)(NPC*, float, float, bool))&Perl_NPC_AddVegasLoot);
 	package.add("AddVegasLoot", (void(*)(NPC*, float, float, bool, uint32))&Perl_NPC_AddVegasLoot);
+	package.add("AddVegasLoot", (void(*)(NPC*, float, float, bool, uint32, bool))&Perl_NPC_AddVegasLoot);
+	package.add("AddVegasLoot", (void(*)(NPC*, float, float, bool, uint32, bool, bool))&Perl_NPC_AddVegasLoot);
+	package.add("AddVegasLoot", (void(*)(NPC*, float, float, bool, uint32, bool, bool, bool))&Perl_NPC_AddVegasLoot);
+	package.add("AddVegasLoot", (void(*)(NPC*, float, float, bool, uint32, bool, bool, bool, bool))&Perl_NPC_AddVegasLoot);
+	package.add("AddVegasLoot", (void(*)(NPC*, float, float, bool, uint32, bool, bool, bool, bool, bool))&Perl_NPC_AddVegasLoot);
 	// VegasEQ - END
 }
 

@@ -688,7 +688,7 @@ public:
 	void AttemptVegasBagLoot(Mob* top_client);
 	void AttemptVegasBridleLoot(Mob* top_client);
 	void AttemptVegasEpicTokenLoot(Mob* top_client);
-	void AttemptVegasLoot(Mob* top_client, float difficulty_min = 0.0f, float difficulty_max = 0.0f, bool raid_only = false, float bonus_chance = 0);
+	void AttemptVegasLoot(Mob* top_client, float difficulty_min = 0.0f, float difficulty_max = 0.0f, bool raid_only = false, float bonus_chance = 0, bool skip_shards = false, bool skip_spells = false, bool skip_bags = false, bool skip_bridles = false, bool skip_epic_tokens = false);
 	void AttemptVegasShardLoot(Mob* top_client, float shard_multiplier, bool guaranteed_shard_drop);
 	void AttemptVegasSpellLoot(Mob* top_client);
 	void DoFirstKillAchievements(Client* c, std::string key);
