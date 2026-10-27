@@ -1028,10 +1028,11 @@ void NPC::AttemptVegasLoot(Mob* top_client, float diff_min, float diff_max, bool
 	difficulty_bonus_min *= std::max(0.01f, RuleR(VegasLoot, OverallBonusDropMinDifficultyMultiplier));
 	difficulty_bonus_max *= std::max(0.01f, RuleR(VegasLoot, OverallBonusDropMaxDifficultyMultiplier));
 
+	float clamped_bonus = std::clamp(bonus_chance, 0.0f, 100.0f);
 	auto random_drop_multiplier = std::max(0.01f, RuleR(VegasLoot, RandomDropMultiplier)) * random_drop_multiplier_scale; // 2.0x at Level 1, 1.0x by level 30
-	auto roll_count = GetRollCount(difficulty);
-	auto raid_roll_count = GetRaidRollCount(difficulty);
-	auto bonus_roll_count = GetBonusRollCount(difficulty);
+	auto roll_count = clamped_bonus > 0.0f && !raid_item ? 1 : raid_item ? 0 : GetRollCount(difficulty);
+	auto raid_roll_count = clamped_bonus > 0.0f ? 0 : GetRaidRollCount(difficulty);
+	auto bonus_roll_count = clamped_bonus > 0.0f || raid_item ? 0 :GetBonusRollCount(difficulty);
 	auto roll_max = 0;
 	auto roll_to_hit = 0;
 	auto bonus_roll_max = 0;
@@ -1040,15 +1041,19 @@ void NPC::AttemptVegasLoot(Mob* top_client, float diff_min, float diff_max, bool
 	auto raid_roll_to_hit = 0;
 	int rolled;
 
-	float clamped_bonus = std::clamp(bonus_chance, 0.0f, 100.0f);
 	LogVegasLootDetail("RuleR(VegasLoot, RandomDropMultiplier) is [{}], random_drop_multiplier_scale is [{}] random_drop_multiplier is [{}], clamped_bonus is [{}]", RuleR(VegasLoot, RandomDropMultiplier), random_drop_multiplier_scale, random_drop_multiplier, clamped_bonus); //deleteme
-	random_drop_multiplier *= 1.0f + (clamped_bonus * 0.01f);
 	LogVegasLootDetail("Final random_drop_mulitplier is [{}]", random_drop_multiplier); //deleteme
 
 
 	if (roll_count > 0) {
 		roll_max = GetRollMax();
 		roll_to_hit = GetRollToHit(roll_max, random_drop_multiplier);
+
+		if (clamped_bonus >= 100.0f) {
+			roll_to_hit = 1;
+		} else if (clamped_bonus > 0.0f) {
+			roll_to_hit = std::max(1, static_cast<int>(std::round(roll_to_hit * ((100 - clamped_bonus) * 0.01f))));
+		}
 	}
 
 	if (bonus_roll_count) {
@@ -1059,6 +1064,15 @@ void NPC::AttemptVegasLoot(Mob* top_client, float diff_min, float diff_max, bool
 	if (raid_roll_count > 0) {
 		raid_roll_max = GetRaidRollMax();
 		raid_roll_to_hit = GetRaidRollToHit(raid_roll_max, random_drop_multiplier);
+
+		if (raid_only && clamped_bonus > 0.0f) {
+			if (clamped_bonus >= 100.0f) {
+				raid_roll_to_hit = 1;
+			}
+			else {
+				raid_roll_to_hit = std::max(1, static_cast<int>(std::round(raid_roll_to_hit * ((100 - clamped_bonus) * 0.01f))));
+			}
+		}
 	}
 
 	std::string vegas_loot_type;
