@@ -2118,7 +2118,7 @@ void Raid::QueueClients(Mob *sender, const EQApplicationPacket *app, bool ack_re
 				continue;
 			}
 
-			if (m.member->IsClient()) {
+			if (!m.member->IsClient()) {
 				continue;
 			}
 
